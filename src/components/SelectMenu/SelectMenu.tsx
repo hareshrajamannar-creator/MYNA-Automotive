@@ -77,6 +77,23 @@ export function SelectMenu({
 
           {filtered.map((opt) => {
             const isSel = selected.has(opt.value)
+            // Single select — label left, gray tick on the right, gray selected row.
+            if (!multi) {
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => toggle(opt.value)}
+                  className={`flex w-full items-center gap-sm rounded-sm py-sm pl-md pr-sm text-left ${
+                    isSel ? 'bg-surface-selected' : 'hover:bg-surface-hover'
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate text-body text-text-primary">{opt.label}</span>
+                  {isSel && <Icon name="check" size={20} className="shrink-0 text-text-icon" />}
+                </button>
+              )
+            }
+            // Multi select — checkbox on the left.
             return (
               <button
                 key={opt.value}
@@ -84,20 +101,8 @@ export function SelectMenu({
                 onClick={() => toggle(opt.value)}
                 className="flex w-full items-center gap-sm rounded-sm py-sm pr-sm text-left hover:bg-surface-hover"
               >
-                {multi ? (
-                  <CheckBox checked={isSel} />
-                ) : (
-                  <span className="flex size-[18px] shrink-0 items-center justify-center">
-                    {isSel && <Icon name="check" size={18} className="text-primary" />}
-                  </span>
-                )}
-                <span
-                  className={`min-w-0 flex-1 truncate text-body ${
-                    !multi && isSel ? 'text-primary' : 'text-text-primary'
-                  }`}
-                >
-                  {opt.label}
-                </span>
+                <CheckBox checked={isSel} />
+                <span className="min-w-0 flex-1 truncate text-body text-text-primary">{opt.label}</span>
               </button>
             )
           })}
