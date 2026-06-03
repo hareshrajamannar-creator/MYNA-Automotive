@@ -68,6 +68,14 @@ interface ColumnDef extends Column<Lead> {
 const COLUMN_DEFS: ColumnDef[] = [
   { key: 'name', label: 'Name', width: 240, sortable: true, locked: true },
   {
+    key: 'status',
+    label: 'Status',
+    width: 180,
+    sortable: true,
+    render: (value) => <Chip label={String(value)} variant={STATUS_VARIANT[String(value)] ?? 'neutral'} />,
+  },
+  { key: 'lookingFor', label: 'Looking for', width: 200, sortable: true },
+  {
     key: 'channel',
     label: 'Outreach channel',
     width: 150,
@@ -75,21 +83,13 @@ const COLUMN_DEFS: ColumnDef[] = [
     render: (value) => <Icon name={CHANNEL_ICON[String(value)] ?? 'chat'} size={20} className="text-text-icon" />,
   },
   { key: 'apptType', label: 'Appt type', width: 150, sortable: true },
-  { key: 'lookingFor', label: 'Looking for', width: 200, sortable: true },
-  {
-    key: 'status',
-    label: 'Status',
-    width: 180,
-    sortable: true,
-    render: (value) => <Chip label={String(value)} variant={STATUS_VARIANT[String(value)] ?? 'neutral'} />,
-  },
   { key: 'updatedOn', label: 'Updated on', width: 180, sortable: true },
   { key: 'phone', label: 'Phone', width: 160, sortable: true },
   { key: 'email', label: 'Email', width: 210, sortable: true },
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['name', 'channel', 'apptType', 'lookingFor', 'status', 'updatedOn']
+const DEFAULT_VISIBLE = ['name', 'status', 'lookingFor', 'channel', 'apptType', 'updatedOn']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))

@@ -64,9 +64,6 @@ interface ColumnDef extends Column<ServiceRequest> {
 
 const COLUMN_DEFS: ColumnDef[] = [
   { key: 'customer', label: 'Customer', width: 220, sortable: true, locked: true },
-  { key: 'vehicle', label: 'Vehicle', width: 190, sortable: true },
-  { key: 'serviceType', label: 'Service type', width: 170, sortable: true },
-  { key: 'advisor', label: 'Service advisor', width: 160, sortable: true },
   {
     key: 'status',
     label: 'Status',
@@ -74,6 +71,9 @@ const COLUMN_DEFS: ColumnDef[] = [
     sortable: true,
     render: (value) => <Chip label={String(value)} variant={STATUS_VARIANT[String(value)] ?? 'neutral'} />,
   },
+  { key: 'vehicle', label: 'Vehicle', width: 190, sortable: true },
+  { key: 'serviceType', label: 'Service type', width: 170, sortable: true },
+  { key: 'advisor', label: 'Service advisor', width: 160, sortable: true },
   { key: 'promisedBy', label: 'Promised by', width: 190, sortable: true },
   { key: 'priority', label: 'Priority', width: 130, sortable: true },
   { key: 'phone', label: 'Phone', width: 160, sortable: true },
@@ -81,7 +81,7 @@ const COLUMN_DEFS: ColumnDef[] = [
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['customer', 'vehicle', 'serviceType', 'advisor', 'status', 'promisedBy']
+const DEFAULT_VISIBLE = ['customer', 'status', 'vehicle', 'serviceType', 'advisor', 'promisedBy']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))

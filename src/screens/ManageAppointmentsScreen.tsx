@@ -73,17 +73,17 @@ const COLUMN_DEFS: ColumnDef[] = [
       <Chip label={String(value)} variant={STATUS_VARIANT[String(value)] ?? 'neutral'} />
     ),
   },
+  { key: 'vehicle', label: 'Vehicle', width: 180, sortable: true },
   { key: 'customerRep', label: 'Customer rep', width: 160, sortable: true },
   { key: 'apptType', label: 'Appt type', width: 160, sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', width: 160, sortable: true },
-  { key: 'vehicle', label: 'Vehicle', width: 180, sortable: true },
   { key: 'phone', label: 'Phone', width: 160, sortable: true },
   { key: 'email', label: 'Email', width: 210, sortable: true },
   { key: 'location', label: 'Location', width: 160, sortable: true },
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['patient', 'status', 'customerRep', 'apptType', 'insuranceStatus', 'vehicle']
+const DEFAULT_VISIBLE = ['patient', 'status', 'vehicle', 'customerRep', 'apptType', 'insuranceStatus']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
