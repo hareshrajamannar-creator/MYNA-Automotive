@@ -10,7 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment, cancel in-progress runs.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -19,19 +18,43 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+
+      # ── Build main branch → root ──────────────────────────────────────────
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - run: npm ci
       - run: npm run build
+      - run: mv dist dist-main
+
+      # ── Build Akhil-branch → /akhil-branch subfolder ──────────────────────
+      - uses: actions/checkout@v4
+        with:
+          ref: Akhil-branch
+          clean: false
+      - run: npm ci
+      - name: Build Akhil-branch
+        run: npm run build
+        env:
+          VITE_BASE_PATH: /MYNA-Automotive/akhil-branch/
+
+      # ── Combine: main at root, Akhil at /akhil-branch ────────────────────
+      - name: Combine builds
+        run: |
+          mkdir -p combined
+          cp -r dist-main/. combined/
+          mkdir -p combined/akhil-branch
+          cp -r dist/. combined/akhil-branch/
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: combined
 
   deploy:
     needs: build
