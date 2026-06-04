@@ -562,8 +562,29 @@ Before calling any screen done, verify:
 | Recreate a component that's already in the registry | Import it from `src/components` |
 | Use `style={{ color: '#...' }}` | Use Tailwind class with token |
 | Put complex UI logic inside a screen file | Extract to a component |
-| Skip fetching Figma context and guess from description | Always call `get_design_context` first |
+| Skip fetching Figma context and guess from description | Fetch `get_screenshot` first; use `get_design_context` only when exact tokens are needed (see §15) |
 | Export a component from its own file only | Also add it to `src/components/index.ts` |
 | Forget to update the Component Registry | Update Section 5 every time a component is created |
 | Use `any` in TypeScript | Define a proper interface in `.types.ts` |
 | Build the full screen at once without checking components | Audit registry → build missing components → compose screen |
+
+---
+
+## 15. Working Agreement (keep token cost low)
+
+This project is built one task per conversation. **Start a fresh chat (or `/clear`) for each new task** — CLAUDE.md reloads automatically, so project context is never lost. Do not carry one long thread across many tasks (the whole history is re-billed every prompt).
+
+- **Figma:** prefer `get_screenshot` (cheap) and build from the visual. Only call `get_design_context` (very large — tens of thousands of tokens) when exact tokens/measurements are needed, and only for the first component of a new family. Never call it "just to check."
+- **Verify** with `npm run build` + **one** small screenshot (headless Chrome, `--force-device-scale-factor=1`), not several.
+- **Model:** Sonnet is fine for routine UI build/edit work; reserve Opus for hard reasoning/planning.
+- Batch related changes into one prompt instead of many follow-ups.
+
+---
+
+## 16. Project State (so a new chat can resume)
+
+- **App:** automotive dealership prototype ("MYNA Automotive"). Shell = `IconRail` (L1, hover-expand) + `SideNav` (L2 "Frontdesk") + screen. Routing is **state-based in `src/App.tsx`** via `navActive` (no react-router); agent items drill into `AgentDetailScreen` → row click → `AgentInstanceScreen`.
+- **Icons:** Material Symbols (Outlined) via the `Icon` component — NOT Lucide. A few brand glyphs are SVGs in `src/assets/`.
+- **Screens:** `ManageAppointmentsScreen`, `SalesPipelineScreen`, `ServiceRequestsScreen` (list pages — no tabs, push `FilterPanel`, `CustomizeColumnsDrawer`, row-hover CTA + `FormDrawer`); `ConversationsScreen` (Outcomes dashboard, `src/components/charts/*` + Recharts); `AgentDetailScreen` (Agents/Library tabs); `AgentInstanceScreen` (Outcomes + per-location table).
+- **Table convention:** column order is **name → Status (2nd) → Vehicle/subject (3rd) → rest**; tables support resize + sort + customize-columns. Drawers use the generic `FormDrawer`. Charts use `chartColors` + `ChartCard`.
+- **Repo / deploy:** pushed to `github.com/hareshrajamannar-creator/MYNA-Automotive`; pushing to `main` auto-deploys to GitHub Pages (`.github/workflows/deploy.yml`). Vite `base` is `/MYNA-Automotive/` for production builds. Live: https://hareshrajamannar-creator.github.io/MYNA-Automotive/
