@@ -15,7 +15,7 @@ export function ChartCard({ title, toolbar, showActions = true, className = '', 
   return (
     <section className={`rounded-md border border-border bg-surface p-lg ${className}`}>
       <header className="mb-md flex items-center justify-between gap-md">
-        <h3 className="text-body font-medium text-text-primary">{title}</h3>
+        <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
         <div className="flex items-center gap-sm">
           {toolbar}
           {showActions && (

@@ -34,8 +34,15 @@ export function DonutChart({ data, centerValue, centerLabel, height = 260 }: Don
           </Pie>
           <Tooltip
             contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }}
+            itemStyle={{ color: '#555555' }}
           />
-          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, fontFamily: 'Roboto', paddingTop: 8 }} />
+          <Legend
+            align="left"
+            iconType="circle"
+            iconSize={8}
+            formatter={(value) => <span style={{ color: '#555555' }}>{value}</span>}
+            wrapperStyle={{ fontSize: 12, fontFamily: 'Roboto', paddingTop: 8 }}
+          />
         </PieChart>
       </ResponsiveContainer>
       {(centerValue || centerLabel) && (

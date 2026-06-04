@@ -144,7 +144,7 @@ export function ConversationsScreen() {
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col gap-lg overflow-auto bg-surface-l2 px-2xl pb-2xl pt-md">
+      <div className="flex flex-1 flex-col gap-lg overflow-auto bg-surface px-2xl pb-2xl pt-md">
         <SummaryStats stats={SUMMARY} />
 
         <ChartCard title="Conversations overtime">

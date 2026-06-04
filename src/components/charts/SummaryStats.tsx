@@ -17,8 +17,8 @@ export interface SummaryStatsProps {
 export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
   return (
     <section className="rounded-md border border-border bg-surface p-lg">
-      <h3 className="mb-md text-body font-medium text-text-primary">{title}</h3>
-      <div className="flex flex-wrap gap-x-2xl gap-y-lg">
+      <h3 className="mb-md text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+      <div className="flex flex-wrap gap-x-[40px] gap-y-lg">
         {stats.map((s) => (
           <div key={s.id} className="min-w-[120px]">
             <div className="flex items-center gap-sm">

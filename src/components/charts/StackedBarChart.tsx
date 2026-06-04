@@ -35,8 +35,16 @@ export function StackedBarChart({ data, series, xKey, height = 300 }: StackedBar
         <Tooltip
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
           contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }}
+          labelStyle={{ color: '#212121' }}
+          itemStyle={{ color: '#555555' }}
         />
-        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, fontFamily: 'Roboto', paddingTop: 8 }} />
+        <Legend
+          align="left"
+          iconType="circle"
+          iconSize={8}
+          formatter={(value) => <span style={{ color: '#555555' }}>{value}</span>}
+          wrapperStyle={{ fontSize: 12, fontFamily: 'Roboto', paddingTop: 8 }}
+        />
         {series.map((s, i) => (
           <Bar
             key={s.key}

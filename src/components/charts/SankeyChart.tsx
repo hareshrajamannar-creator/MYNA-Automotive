@@ -15,13 +15,14 @@ export interface SankeyChartProps {
   height?: number
 }
 
+const colorAt = (i: number) => chartColors.categorical[i % chartColors.categorical.length]
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Node({ x, y, width, height, index, payload, containerWidth }: any) {
-  const color = chartColors.categorical[index % chartColors.categorical.length]
   const onLeftEdge = x < containerWidth * 0.2
   return (
     <g>
-      <rect x={x} y={y} width={width} height={height} rx={2} fill={color} />
+      <rect x={x} y={y} width={width} height={height} rx={2} fill={colorAt(index)} />
       <text
         x={onLeftEdge ? x - 6 : x + width + 6}
         y={y + height / 2}
@@ -37,20 +38,26 @@ function Node({ x, y, width, height, index, payload, containerWidth }: any) {
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Link({ sourceX, sourceY, targetX, targetY, sourceControlX, targetControlX, linkWidth }: any) {
-  return (
-    <path
-      d={`M${sourceX},${sourceY}C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
-      fill="none"
-      stroke={chartColors.blue}
-      strokeOpacity={0.16}
-      strokeWidth={linkWidth}
-    />
-  )
-}
-
 export function SankeyChart({ nodes, links, height = 360 }: SankeyChartProps) {
+  const nameToIndex = new Map(nodes.map((n, i) => [n.name, i]))
+
+  // Closure so each flow can be tinted with its source category's color.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Link = ({ sourceX, sourceY, targetX, targetY, sourceControlX, targetControlX, linkWidth, payload }: any) => {
+    const src = payload?.source
+    const srcIdx =
+      typeof src === 'number' ? src : src?.index ?? nameToIndex.get(src?.name) ?? 0
+    return (
+      <path
+        d={`M${sourceX},${sourceY}C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
+        fill="none"
+        stroke={colorAt(srcIdx)}
+        strokeOpacity={0.3}
+        strokeWidth={linkWidth}
+      />
+    )
+  }
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <Sankey
