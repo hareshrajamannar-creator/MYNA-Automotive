@@ -1,3 +1,4 @@
+import { Icon } from '../Icon/Icon'
 import { MetricTilesProps } from './MetricTiles.types'
 
 export function MetricTiles({ metrics }: MetricTilesProps) {
@@ -8,8 +9,23 @@ export function MetricTiles({ metrics }: MetricTilesProps) {
           key={metric.id}
           className="flex flex-1 flex-col items-start rounded-md border border-border px-lg pb-lg pt-md"
         >
-          <span className="text-display text-text-primary">{metric.value}</span>
-          <span className="text-body text-text-primary">{metric.label}</span>
+          <div className="flex items-baseline gap-sm">
+            <span className="text-display text-text-primary">{metric.value}</span>
+            {metric.delta && (
+              <span
+                className={`text-small font-medium ${
+                  metric.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
+                }`}
+              >
+                {metric.trend === 'down' ? '-' : '+'}
+                {metric.delta}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-xs">
+            <span className="text-body text-text-primary">{metric.label}</span>
+            {metric.info && <Icon name="info" size={16} className="text-text-icon" />}
+          </div>
         </div>
       ))}
     </div>

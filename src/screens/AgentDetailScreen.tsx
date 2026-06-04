@@ -16,6 +16,7 @@ import {
   type Metric,
   type Tab,
 } from '../components'
+import { AgentInstanceScreen } from './AgentInstanceScreen'
 
 interface AgentDetailScreenProps {
   agentName: string
@@ -57,6 +58,7 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
 
   const metrics: Metric[] = [
     { id: 'interactions', value: '2,850', label: 'Interactions handled' },
@@ -132,6 +134,10 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
     },
   ]
 
+  if (selectedInstance) {
+    return <AgentInstanceScreen instanceName={selectedInstance} onBack={() => setSelectedInstance(null)} />
+  }
+
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
@@ -172,7 +178,7 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
                 <MetricTiles metrics={metrics} />
               </div>
               <div className="px-lg py-lg">
-                <DataTable columns={columns} data={data} />
+                <DataTable columns={columns} data={data} onRowClick={(row) => setSelectedInstance(row.name)} />
               </div>
             </>
           ) : (
