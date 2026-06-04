@@ -1,25 +1,23 @@
 export interface InfoCardProps {
   title: string
   description: string
-  /** Optional primary action button (e.g. "Set up"). */
+  /** Hover CTA label (revealed on hover). */
   actionLabel?: string
   onAction?: () => void
 }
 
-export function InfoCard({ title, description, actionLabel, onAction }: InfoCardProps) {
+export function InfoCard({ title, description, actionLabel = 'Use agent', onAction }: InfoCardProps) {
   return (
-    <div className="flex flex-col rounded-md border border-border bg-surface p-lg">
+    <div className="group flex h-full min-h-[216px] flex-col rounded-md border border-border bg-surface p-lg transition-colors hover:bg-surface-hover">
       <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
       <p className="mt-sm flex-1 text-body text-text-secondary">{description}</p>
-      {actionLabel && (
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-lg self-start rounded-sm bg-primary px-lg py-[7px] text-body font-medium text-white transition-colors hover:bg-primary-hover"
-        >
-          {actionLabel}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onAction}
+        className="mt-lg self-start rounded-sm bg-primary px-lg py-[7px] text-body font-medium text-white opacity-0 transition-opacity hover:bg-primary-hover group-hover:opacity-100"
+      >
+        {actionLabel}
+      </button>
     </div>
   )
 }

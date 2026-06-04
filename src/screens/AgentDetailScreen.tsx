@@ -116,7 +116,6 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
       title: `${agentName} routing and triage`,
       description:
         'Handles inbound calls, identifies intent, routes hot leads, and transfers to the right team with full context.',
-      actionLabel: 'Set up',
     },
     {
       title: `${agentName} for new lead intake`,
