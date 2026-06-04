@@ -113,12 +113,31 @@ const heatValues = DAYS.map((_, d) =>
   }),
 )
 
-function MiniKpis({ items }: { items: Array<{ value: string; label: string }> }) {
+interface MiniKpi {
+  value: string
+  label: string
+  delta?: string
+  trend?: 'up' | 'down'
+}
+
+function MiniKpis({ items }: { items: MiniKpi[] }) {
   return (
-    <div className="mb-md flex flex-wrap gap-x-lg gap-y-xs">
+    <div className="mb-md flex flex-wrap gap-x-2xl gap-y-md">
       {items.map((k) => (
-        <div key={k.label} className="flex items-baseline gap-xs">
-          <span className="text-body font-medium text-text-primary">{k.value}</span>
+        <div key={k.label}>
+          <div className="flex items-center gap-xs">
+            <span className="text-[16px] leading-5 font-medium text-text-primary">{k.value}</span>
+            {k.delta && (
+              <span
+                className={`inline-flex items-center text-small font-medium ${
+                  k.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
+                }`}
+              >
+                <Icon name={k.trend === 'down' ? 'arrow_downward' : 'arrow_upward'} size={12} />
+                {k.delta}
+              </span>
+            )}
+          </div>
           <span className="text-small text-text-secondary">{k.label}</span>
         </div>
       ))}
@@ -155,9 +174,9 @@ export function ConversationsScreen() {
           <ChartCard title="Questions by channel">
             <MiniKpis
               items={[
-                { value: '216', label: 'Total ask' },
-                { value: '116', label: 'SMS' },
-                { value: '60', label: 'Email' },
+                { value: '216', label: 'Total ask', delta: '1.3%', trend: 'up' },
+                { value: '116', label: 'SMS', delta: '1.3%', trend: 'up' },
+                { value: '60', label: 'Email', delta: '1.3%', trend: 'up' },
                 { value: '40', label: 'Call' },
               ]}
             />
@@ -167,8 +186,8 @@ export function ConversationsScreen() {
           <ChartCard title="Resolution rate">
             <MiniKpis
               items={[
-                { value: '88%', label: 'Resolved' },
-                { value: '12%', label: 'Unresponded' },
+                { value: '88%', label: 'Resolved', delta: '1.3%', trend: 'up' },
+                { value: '12%', label: 'Unresponded', delta: '1.3%', trend: 'up' },
               ]}
             />
             <DonutChart data={resolutionDonut} centerValue="88%" centerLabel="Resolution rate" />
