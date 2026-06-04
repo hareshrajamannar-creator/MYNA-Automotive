@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import {
   ChartCard,
+  DateRangeSelector,
   DonutChart,
   Icon,
+  ReportHeader,
   StackedBarChart,
+  SummaryStats,
   TopNav,
 } from '../components'
 
-// ── KPI tiles ────────────────────────────────────────────────────────────────
-const KPI_TILES = [
-  { id: 'leads',      title: 'Leads handled by Myna',   value: '1,347',  delta: '18% vs last period' },
-  { id: 'appt-rate',  title: 'Appointments set rate',    value: '28.4%',  delta: 'Target: 25%'        },
-  { id: 'speed',      title: 'Avg speed-to-lead',        value: '3m 48s', delta: 'Target: <5 min'     },
-  { id: 'completion', title: 'Journey completion rate',  value: '73.1%',  delta: 'Target: 70%'        },
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
+
+// ── Summary KPIs ─────────────────────────────────────────────────────────────
+const SUMMARY_STATS = [
+  { id: 'leads',      value: '1,347',  label: 'Leads handled by Myna',  delta: '18% vs last period', trend: 'up' as const },
+  { id: 'appt-rate',  value: '28.4%',  label: 'Appointments set rate',   delta: 'Target: 25%',        trend: 'up' as const },
+  { id: 'speed',      value: '3m 48s', label: 'Avg speed-to-lead',       delta: 'Target: <5 min',     trend: 'up' as const },
+  { id: 'completion', value: '73.1%',  label: 'Journey completion rate', delta: 'Target: 70%',        trend: 'up' as const },
 ]
 
 // ── Lead pipeline stages ─────────────────────────────────────────────────────
@@ -35,19 +40,19 @@ const SLA_DATA: { source: string; pct: number; status: SlaStatus }[] = [
   { source: 'After-hours',  pct: 58, status: 'fail' },
 ]
 const SLA_STYLE: Record<SlaStatus, { bar: string; icon: string; iconClass: string }> = {
-  ok:   { bar: '#4cae3d', icon: 'check',         iconClass: 'text-chip-success-text' },
-  warn: { bar: '#f59e0b', icon: 'priority_high',  iconClass: 'text-[#c69204]'        },
-  fail: { bar: '#de1b0c', icon: 'close',          iconClass: 'text-chip-danger-text' },
+  ok:   { bar: '#4cae3d', icon: 'check',        iconClass: 'text-chip-success-text' },
+  warn: { bar: '#f59e0b', icon: 'priority_high', iconClass: 'text-[#c69204]'        },
+  fail: { bar: '#de1b0c', icon: 'close',         iconClass: 'text-chip-danger-text' },
 }
 
 // ── Outbound journey performance ─────────────────────────────────────────────
 const JOURNEY_DATA = [
-  { journey: 'Internet lead',      touches: 2400, apptSet: 382 },
-  { journey: 'Missed call',        touches: 870,  apptSet: 148 },
-  { journey: 'Unsold showroom',    touches: 620,  apptSet: 112 },
-  { journey: 'No-show re-engage',  touches: 430,  apptSet: 67  },
-  { journey: 'Lease maturity',     touches: 310,  apptSet: 58  },
-  { journey: 'Equity mining',      touches: 180,  apptSet: 24  },
+  { journey: 'Internet lead',     touches: 2400, apptSet: 382 },
+  { journey: 'Missed call',       touches: 870,  apptSet: 148 },
+  { journey: 'Unsold showroom',   touches: 620,  apptSet: 112 },
+  { journey: 'No-show re-engage', touches: 430,  apptSet: 67  },
+  { journey: 'Lease maturity',    touches: 310,  apptSet: 58  },
+  { journey: 'Equity mining',     touches: 180,  apptSet: 24  },
 ]
 const JOURNEY_SERIES = [
   { key: 'touches', label: 'Touches sent', color: '#90caf9' },
@@ -63,10 +68,8 @@ const LEAD_TYPE_DATA = [
   { name: 'Test drive',  value: 10, color: '#9e9e9e' },
 ]
 
-const PERIODS = ['7d', '30d', '90d', 'Custom']
-
 export function SalesScreen() {
-  const [period, setPeriod] = useState('30d')
+  const [dateRange, setDateRange] = useState('Last 30 days')
 
   return (
     <div className="flex h-full flex-col">
@@ -74,53 +77,25 @@ export function SalesScreen() {
 
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
 
-        {/* Page header */}
-        <div className="flex items-center justify-between bg-surface px-2xl py-xl">
-          <div>
-            <p className="text-small text-text-secondary">Outcomes / Reports</p>
-            <h1 className="flex items-center gap-sm text-h3 font-medium text-text-primary">
-              <Icon name="directions_car" size={22} className="text-text-icon" />
-              Sales
-            </h1>
-          </div>
-          <div className="flex items-center gap-sm">
-            {PERIODS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPeriod(p)}
-                className={`rounded-full border px-md py-xs text-body transition-colors ${
-                  period === p
-                    ? 'border-text-primary bg-surface font-medium text-text-primary'
-                    : 'border-border text-text-secondary hover:bg-surface-hover'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
+        <ReportHeader
+          title="Sales"
+          rightSlot={
+            <DateRangeSelector
+              value={dateRange}
+              options={DATE_RANGE_OPTIONS}
+              onChange={setDateRange}
+            />
+          }
+        />
 
         <div className="flex flex-col gap-lg px-2xl pb-2xl">
 
-          {/* KPI tiles */}
-          <div className="grid grid-cols-4 gap-lg">
-            {KPI_TILES.map((k) => (
-              <div key={k.id} className="rounded-md border border-border bg-surface p-lg">
-                <p className="mb-xs text-small text-text-secondary">{k.title}</p>
-                <p className="text-[28px] font-medium leading-9 text-text-primary">{k.value}</p>
-                <p className="mt-xs flex items-center gap-xs text-small text-chip-success-text">
-                  <Icon name="arrow_upward" size={13} />
-                  {k.delta}
-                </p>
-              </div>
-            ))}
-          </div>
+          {/* Summary KPIs */}
+          <SummaryStats stats={SUMMARY_STATS} />
 
           {/* Mid row: pipeline + SLA */}
           <div className="grid grid-cols-2 gap-lg">
 
-            {/* Lead pipeline */}
             <ChartCard title="Lead pipeline — inbound to appointment" showActions={false}>
               <p className="mb-md text-small text-text-secondary">% of total inbound leads</p>
               <div className="flex flex-col gap-sm">
@@ -145,7 +120,6 @@ export function SalesScreen() {
               </div>
             </ChartCard>
 
-            {/* SLA compliance */}
             <ChartCard title="Speed-to-lead SLA compliance by source" showActions={false}>
               <div className="flex flex-col gap-md">
                 {SLA_DATA.map((row) => {

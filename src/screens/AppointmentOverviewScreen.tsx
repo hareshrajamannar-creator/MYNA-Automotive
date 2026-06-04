@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import {
   ChartCard,
   DataTable,
+  DateRangeSelector,
   Heatmap,
+  ReportHeader,
   SankeyChart,
   StackedBarChart,
   SummaryStats,
@@ -10,6 +13,8 @@ import {
   type SankeyLink,
   type SankeyNode,
 } from '../components'
+
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
 
 // ── Summary KPIs ────────────────────────────────────────────────────────────
 const SUMMARY_STATS = [
@@ -127,27 +132,24 @@ const HEATMAP_VALUES = [
 ]
 
 export function AppointmentOverviewScreen() {
+  const [dateRange, setDateRange] = useState('Last 3 months')
+
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
-        {/* Page header */}
-        <div className="flex items-start justify-between bg-surface px-2xl py-xl">
-          <div className="flex flex-col gap-xs">
-            <h1 className="text-h3 text-text-primary">Appointments overview</h1>
-            <p className="text-small text-text-secondary">
-              All human and agent-driven appointment outcomes across all channels and locations.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
-          >
-            Last 3 months
-            <span className="text-text-icon">▾</span>
-          </button>
-        </div>
+        <ReportHeader
+          title="Appointments overview"
+          subtitle="All human and agent-driven appointment outcomes across all channels and locations."
+          rightSlot={
+            <DateRangeSelector
+              value={dateRange}
+              options={DATE_RANGE_OPTIONS}
+              onChange={setDateRange}
+            />
+          }
+        />
 
         <div className="flex flex-col gap-lg p-2xl">
 
