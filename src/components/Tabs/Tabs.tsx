@@ -13,7 +13,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
             className="flex flex-col items-stretch"
           >
             <span
-              className={`flex h-9 items-center gap-xs rounded-sm px-sm text-body font-medium transition-colors ${
+              className={`flex h-9 items-center gap-xs rounded-sm px-sm text-body transition-colors ${
                 active ? 'text-primary' : 'text-text-secondary hover:bg-surface-selected'
               }`}
             >

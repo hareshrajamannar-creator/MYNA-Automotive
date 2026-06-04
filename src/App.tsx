@@ -6,6 +6,7 @@ import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
 // import { ConversationsScreen } from './screens/ConversationsScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
+import { ServiceScreen } from './screens/ServiceScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -88,6 +89,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'conversations', label: 'Appointment overview' },
       { id: 'sales', label: 'Sales' },
+      { id: 'service', label: 'Service' },
     ],
   },
   {
@@ -136,6 +138,8 @@ export function App() {
           <AppointmentOverviewScreen />
         ) : navActive === 'sales' ? (
           <SalesScreen />
+        ) : navActive === 'service' ? (
+          <ServiceScreen />
         ) : (
           <ManageAppointmentsScreen />
         )}

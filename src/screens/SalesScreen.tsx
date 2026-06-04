@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   ChartCard,
+  ChartStatRow,
   DateRangeSelector,
   DonutChart,
   Icon,
@@ -22,11 +23,11 @@ const SUMMARY_STATS = [
 
 // ── Lead pipeline stages ─────────────────────────────────────────────────────
 const PIPELINE = [
-  { label: 'Internet leads received', count: 1347, pct: 100,  barColor: '#1565c0', dark: true  },
-  { label: 'First contact made',      count: 1264, pct: 93.8, barColor: '#1976d2', dark: true  },
-  { label: 'Lead qualified',          count: 824,  pct: 61.2, barColor: '#42a5f5', dark: true  },
-  { label: 'Test drive scheduled',    count: 483,  pct: 35.9, barColor: '#90caf9', dark: false },
-  { label: 'Appointment set',         count: 382,  pct: 28.4, barColor: '#bbdefb', dark: false },
+  { label: 'Internet leads received', count: 1347, pct: 100  },
+  { label: 'First contact made',      count: 1264, pct: 93.8 },
+  { label: 'Lead qualified',          count: 824,  pct: 61.2 },
+  { label: 'Test drive scheduled',    count: 483,  pct: 35.9 },
+  { label: 'Appointment set',         count: 382,  pct: 28.4 },
 ]
 
 // ── SLA compliance by source ─────────────────────────────────────────────────
@@ -37,12 +38,11 @@ const SLA_DATA: { source: string; pct: number; status: SlaStatus }[] = [
   { source: 'Cars.com',     pct: 86, status: 'ok'   },
   { source: 'CarGurus',     pct: 82, status: 'ok'   },
   { source: 'Phone-in',     pct: 71, status: 'warn' },
-  { source: 'After-hours',  pct: 58, status: 'fail' },
 ]
-const SLA_STYLE: Record<SlaStatus, { bar: string; icon: string; iconClass: string }> = {
-  ok:   { bar: '#4cae3d', icon: 'check',        iconClass: 'text-chip-success-text' },
-  warn: { bar: '#f59e0b', icon: 'priority_high', iconClass: 'text-[#c69204]'        },
-  fail: { bar: '#de1b0c', icon: 'close',         iconClass: 'text-chip-danger-text' },
+const SLA_BAR_COLOR: Record<SlaStatus, string> = {
+  ok:   '#4cae3d',
+  warn: '#de1b0c',
+  fail: '#de1b0c',
 }
 
 // ── Outbound journey performance ─────────────────────────────────────────────
@@ -55,8 +55,8 @@ const JOURNEY_DATA = [
   { journey: 'Equity mining',     touches: 180,  apptSet: 24  },
 ]
 const JOURNEY_SERIES = [
-  { key: 'touches', label: 'Touches sent', color: '#90caf9' },
-  { key: 'apptSet', label: 'Appt set',     color: '#4cae3d' },
+  { key: 'touches', label: 'Touches sent',     color: '#90caf9' },
+  { key: 'apptSet', label: 'Appointment set',  color: '#4cae3d' },
 ]
 
 // ── Lead type breakdown ───────────────────────────────────────────────────────
@@ -79,6 +79,7 @@ export function SalesScreen() {
 
         <ReportHeader
           title="Sales"
+          subtitle="All human and agent-driven sales appointment outcomes across all channels and locations."
           rightSlot={
             <DateRangeSelector
               value={dateRange}
@@ -97,21 +98,21 @@ export function SalesScreen() {
           <div className="grid grid-cols-2 gap-lg">
 
             <ChartCard title="Lead pipeline — inbound to appointment" showActions={false}>
-              <p className="mb-md text-small text-text-secondary">% of total inbound leads</p>
               <div className="flex flex-col gap-sm">
                 {PIPELINE.map((stage) => (
                   <div key={stage.label}>
-                    <p className="mb-xs text-small text-text-secondary">
-                      {stage.label} — {stage.count.toLocaleString()}
-                    </p>
-                    <div
-                      className="flex h-9 items-center rounded-sm px-md"
-                      style={{ width: `${stage.pct}%`, backgroundColor: stage.barColor }}
-                    >
-                      <span
-                        className="text-body font-medium"
-                        style={{ color: stage.dark ? '#ffffff' : '#212121' }}
+                    <p className="mb-xs text-small text-text-primary">{stage.label}</p>
+                    <div className="flex items-center gap-md">
+                      <div
+                        className="relative h-6 flex-1 overflow-hidden rounded-sm bg-surface-selected"
+                        title={stage.count.toLocaleString()}
                       >
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-sm bg-primary"
+                          style={{ width: `${stage.pct}%` }}
+                        />
+                      </div>
+                      <span className="w-[48px] shrink-0 text-right text-small text-text-primary">
                         {stage.pct}%
                       </span>
                     </div>
@@ -120,50 +121,63 @@ export function SalesScreen() {
               </div>
             </ChartCard>
 
-            <ChartCard title="Speed-to-lead SLA compliance by source" showActions={false}>
-              <div className="flex flex-col gap-md">
-                {SLA_DATA.map((row) => {
-                  const style = SLA_STYLE[row.status]
-                  return (
-                    <div key={row.source} className="flex items-center gap-md">
-                      <span className="w-[120px] shrink-0 text-body text-text-primary">{row.source}</span>
-                      <div className="relative h-[10px] flex-1 rounded-full bg-surface-selected">
+            <ChartCard
+              title="Speed-to-lead SLA compliance by source"
+              showActions={false}
+              titleSuffix={
+                <div className="group relative flex items-center">
+                  <Icon name="info" size={16} className="cursor-help text-text-icon" />
+                  <div className="pointer-events-none absolute left-0 top-6 z-50 hidden w-72 rounded-sm border border-border bg-surface p-sm text-small leading-5 text-text-secondary shadow-dropdown group-hover:block">
+                    Shows out of all leads from this source, what % got a first contact attempt within 5 minutes
+                  </div>
+                </div>
+              }
+            >
+              <div className="flex max-h-[360px] flex-col gap-sm overflow-y-auto">
+                {SLA_DATA.map((row) => (
+                  <div key={row.source}>
+                    <p className="mb-xs text-small text-text-primary">{row.source}</p>
+                    <div className="flex items-center gap-md">
+                      <div className="relative h-6 flex-1 overflow-hidden rounded-sm bg-surface-selected">
                         <div
-                          className="absolute inset-y-0 left-0 rounded-full"
-                          style={{ width: `${row.pct}%`, backgroundColor: style.bar }}
+                          className="absolute inset-y-0 left-0 rounded-sm"
+                          style={{ width: `${row.pct}%`, backgroundColor: SLA_BAR_COLOR[row.status] }}
                         />
                       </div>
-                      <span className="w-[36px] shrink-0 text-right text-body font-medium text-text-primary">
+                      <span className="w-[36px] shrink-0 text-right text-small text-text-primary">
                         {row.pct}%
                       </span>
-                      <Icon name={style.icon} size={18} className={`shrink-0 ${style.iconClass}`} />
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             </ChartCard>
 
           </div>
 
-          {/* Bottom row: journey performance + lead type */}
-          <div className="grid grid-cols-2 gap-lg">
+          {/* Outbound journey — full width */}
+          <ChartCard title="Outbound journey performance">
+            <StackedBarChart
+              data={JOURNEY_DATA}
+              series={JOURNEY_SERIES}
+              xKey="journey"
+              height={320}
+              grouped
+              wrapXLabels
+              showBarLabels
+            />
+          </ChartCard>
 
-            <ChartCard title="Outbound journey performance">
-              <StackedBarChart
-                data={JOURNEY_DATA}
-                series={JOURNEY_SERIES}
-                xKey="journey"
-                height={320}
-                grouped
-                xAxisAngle={-35}
-              />
-            </ChartCard>
-
-            <ChartCard title="Lead type breakdown">
-              <DonutChart data={LEAD_TYPE_DATA} height={320} />
-            </ChartCard>
-
-          </div>
+          {/* Lead type breakdown — full width */}
+          <ChartCard title="Lead type breakdown">
+            <ChartStatRow stats={[
+              { value: '1,347', label: 'Total leads'    },
+              { value: '35%',   label: 'New vehicle'    },
+              { value: '25%',   label: 'Used / CPO'     },
+              { value: '15%',   label: 'Trade-in'       },
+            ]} />
+            <DonutChart data={LEAD_TYPE_DATA} height={320} />
+          </ChartCard>
 
         </div>
       </div>

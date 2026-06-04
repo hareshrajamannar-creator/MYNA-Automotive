@@ -3,6 +3,8 @@ import { Icon } from '../Icon/Icon'
 
 export interface ChartCardProps {
   title: string
+  /** Renders inline immediately after the title text. */
+  titleSuffix?: ReactNode
   /** Optional content shown between the title and the menu (e.g. mini KPIs). */
   toolbar?: ReactNode
   /** Show the trailing table/menu icons (decorative on the prototype). */
@@ -11,11 +13,14 @@ export interface ChartCardProps {
   children: ReactNode
 }
 
-export function ChartCard({ title, toolbar, showActions = true, className = '', children }: ChartCardProps) {
+export function ChartCard({ title, titleSuffix, toolbar, showActions = true, className = '', children }: ChartCardProps) {
   return (
-    <section className={`rounded-md border border-border bg-surface p-lg ${className}`}>
-      <header className="mb-md flex items-center justify-between gap-md">
-        <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+    <section className={`rounded-md border border-border bg-surface p-2xl ${className}`}>
+      <header className="mb-lg flex items-center justify-between gap-md">
+        <div className="flex items-center gap-xs">
+          <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+          {titleSuffix}
+        </div>
         <div className="flex items-center gap-sm">
           {toolbar}
           {showActions && (

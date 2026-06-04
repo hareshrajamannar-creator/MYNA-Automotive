@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   ChartCard,
+  ChartStatRow,
   DataTable,
   DateRangeSelector,
   Heatmap,
@@ -168,46 +169,37 @@ export function AppointmentOverviewScreen() {
               series={OVERTIME_SERIES}
               xKey="month"
               height={340}
+              showBarLabels
             />
           </ChartCard>
 
           {/* No-shows prevented + Insurances verified */}
           <div className="grid grid-cols-2 gap-lg">
             <ChartCard title="No-shows prevented">
-              <div className="mb-md flex items-end gap-2xl">
-                <div>
-                  <span className="text-[24px] leading-8 text-text-primary">275</span>
-                  <p className="text-body text-text-secondary">No-shows prevented</p>
-                </div>
-                <div>
-                  <span className="text-[24px] leading-8 text-text-primary">9.7%</span>
-                  <p className="text-body text-text-secondary">No-show rate</p>
-                </div>
-              </div>
+              <ChartStatRow stats={[
+                { value: '275',  label: 'No-shows prevented' },
+                { value: '9.7%', label: 'No-show rate'       },
+              ]} />
               <StackedBarChart
                 data={NO_SHOW_DATA}
                 series={NO_SHOW_SERIES}
                 xKey="month"
                 height={220}
+                showBarLabels
               />
             </ChartCard>
 
             <ChartCard title="Insurances verified">
-              <div className="mb-md flex items-end gap-2xl">
-                <div>
-                  <span className="text-[24px] leading-8 text-text-primary">1.2K</span>
-                  <p className="text-body text-text-secondary">Total verified</p>
-                </div>
-                <div>
-                  <span className="text-[24px] leading-8 text-text-primary">94.2%</span>
-                  <p className="text-body text-text-secondary">Verification rate</p>
-                </div>
-              </div>
+              <ChartStatRow stats={[
+                { value: '1.2K',   label: 'Total verified'    },
+                { value: '94.2%',  label: 'Verification rate' },
+              ]} />
               <StackedBarChart
                 data={INSURANCE_DATA}
                 series={INSURANCE_SERIES}
                 xKey="month"
                 height={220}
+                showBarLabels
               />
             </ChartCard>
           </div>
