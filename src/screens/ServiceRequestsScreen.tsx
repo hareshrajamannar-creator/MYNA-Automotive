@@ -1,19 +1,21 @@
 import { useMemo, useState } from 'react'
 import {
-  Chip,
+  // Chip,
   CustomizeColumnsDrawer,
   DataTable,
+  DateChange,
   FilterPanel,
   FormDrawer,
   Icon,
-  MetricTiles,
+  // MetricTiles,
+  Tabs,
   TopNav,
-  type ChipVariant,
+  // type ChipVariant,
   type Column,
   type ColumnOption,
   type FilterField,
   type FormField,
-  type Metric,
+  // type Metric,
 } from '../components'
 
 interface ServiceRequest {
@@ -24,38 +26,59 @@ interface ServiceRequest {
   status: string
   promisedBy: string
   priority: string
+  insuranceStatus: string
+  time: string
   phone: string
   email: string
   [key: string]: string
 }
 
-const METRICS: Metric[] = [
-  { id: 'new', value: 9, label: 'New' },
-  { id: 'scheduled', value: 7, label: 'Scheduled' },
-  { id: 'in-service', value: 5, label: 'In service' },
-  { id: 'awaiting-parts', value: 3, label: 'Awaiting parts' },
-  { id: 'completed', value: 11, label: 'Completed' },
+// const METRICS: Metric[] = [
+//   { id: 'new',            value: 9,  label: 'New'            },
+//   { id: 'scheduled',      value: 7,  label: 'Scheduled'      },
+//   { id: 'in-service',     value: 5,  label: 'In service'     },
+//   { id: 'awaiting-parts', value: 3,  label: 'Awaiting parts' },
+//   { id: 'completed',      value: 11, label: 'Completed'      },
+// ]
+
+const TABS = [
+  { id: 'confirmed',     label: 'Confirmed',     count: 13 },
+  { id: 'cancellations', label: 'Cancellations', count: 5  },
+  { id: 'no-shows',      label: 'No-shows',      count: 1  },
 ]
 
-const STATUS_VARIANT: Record<string, ChipVariant> = {
-  New: 'neutral',
-  Scheduled: 'warning',
-  'In service': 'success',
-  'Awaiting parts': 'danger',
-  Completed: 'success',
+const TAB_STATUS_MAP: Record<string, string> = {
+  confirmed:     'Confirmed',
+  cancellations: 'Cancellations',
+  'no-shows':    'No-shows',
 }
 
+// const STATUS_VARIANT: Record<string, ChipVariant> = {
+//   New:              'neutral',
+//   Scheduled:        'warning',
+//   'In service':     'success',
+//   'Awaiting parts': 'danger',
+//   Completed:        'success',
+// }
+
 const REQUESTS: ServiceRequest[] = [
-  { customer: 'John Carter', vehicle: 'Toyota RAV4 2021', serviceType: 'Oil change', advisor: 'Smith', status: 'Scheduled', promisedBy: 'Jun 06, 2026 09:00 AM', priority: 'Medium', phone: '(415) 555-0132', email: 'j.carter@email.com' },
-  { customer: 'Maria Lopez', vehicle: 'Honda CR-V 2020', serviceType: 'Brake repair', advisor: 'Johnson', status: 'In service', promisedBy: 'Jun 04, 2026 02:00 PM', priority: 'High', phone: '(415) 555-0190', email: 'm.lopez@email.com' },
-  { customer: 'David Brown', vehicle: 'Ford F-150 2019', serviceType: 'Recall service', advisor: 'Williams', status: 'Awaiting parts', promisedBy: 'Jun 09, 2026 11:30 AM', priority: 'High', phone: '(408) 555-0117', email: 'd.brown@email.com' },
-  { customer: 'Emily Davis', vehicle: 'Chevrolet Equinox 2022', serviceType: 'Tire rotation', advisor: 'Brown', status: 'New', promisedBy: 'Jun 05, 2026 10:00 AM', priority: 'Low', phone: '(650) 555-0144', email: 'e.davis@email.com' },
-  { customer: 'Michael Wilson', vehicle: 'Toyota Camry 2018', serviceType: 'Diagnostics', advisor: 'Jones', status: 'In service', promisedBy: 'Jun 04, 2026 04:15 PM', priority: 'Medium', phone: '(408) 555-0188', email: 'm.wilson@email.com' },
-  { customer: 'Jessica Taylor', vehicle: 'Honda Civic 2021', serviceType: 'Battery replacement', advisor: 'Garcia', status: 'Completed', promisedBy: 'Jun 03, 2026 01:00 PM', priority: 'Low', phone: '(415) 555-0155', email: 'j.taylor@email.com' },
-  { customer: 'James Rodriguez', vehicle: 'Ford Explorer 2020', serviceType: 'AC repair', advisor: 'Rodriguez', status: 'Scheduled', promisedBy: 'Jun 07, 2026 09:30 AM', priority: 'Medium', phone: '(669) 555-0123', email: 'j.rodriguez@email.com' },
-  { customer: 'Sarah Anderson', vehicle: 'Nissan Altima 2019', serviceType: 'Transmission service', advisor: 'Miller', status: 'Awaiting parts', promisedBy: 'Jun 10, 2026 03:00 PM', priority: 'High', phone: '(650) 555-0177', email: 's.anderson@email.com' },
-  { customer: 'Robert King', vehicle: 'Jeep Wrangler 2022', serviceType: 'Oil change', advisor: 'Davis', status: 'New', promisedBy: 'Jun 05, 2026 08:30 AM', priority: 'Low', phone: '(408) 555-0166', email: 'r.king@email.com' },
-  { customer: 'Linda White', vehicle: 'Subaru Outback 2021', serviceType: 'Brake repair', advisor: 'Martinez', status: 'Completed', promisedBy: 'Jun 02, 2026 11:00 AM', priority: 'Medium', phone: '(415) 555-0199', email: 'l.white@email.com' },
+  { customer: 'John Carter',    vehicle: 'Toyota RAV4 2021',      serviceType: 'Service',          advisor: 'Smith',    status: 'Confirmed',     promisedBy: 'Jun 06, 2026', priority: 'Medium', insuranceStatus: 'Verified',    time: '08:00 AM', phone: '(415) 555-0132', email: 'j.carter@email.com' },
+  { customer: 'Maria Lopez',    vehicle: 'Honda CR-V 2020',       serviceType: 'Sale - Test drive', advisor: 'Johnson',  status: 'Confirmed',     promisedBy: 'Jun 06, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '08:30 AM', phone: '(415) 555-0190', email: 'm.lopez@email.com' },
+  { customer: 'Grace Kim',      vehicle: 'Chevrolet Malibu 2020', serviceType: 'Service',          advisor: 'Edwards',  status: 'No-shows',      promisedBy: 'Jun 06, 2026', priority: 'Low',    insuranceStatus: 'Verified',    time: '08:45 AM', phone: '(408) 555-0166', email: 'g.kim@email.com' },
+  { customer: 'David Brown',    vehicle: 'Ford F-150 2019',       serviceType: 'Sale - Prospect',  advisor: 'Williams', status: 'Confirmed',     promisedBy: 'Jun 07, 2026', priority: 'Low',    insuranceStatus: 'NA',          time: '09:00 AM', phone: '(408) 555-0117', email: 'd.brown@email.com' },
+  { customer: 'Robert King',    vehicle: 'Jeep Wrangler 2022',    serviceType: 'Sale - Prospect',  advisor: 'Davis',    status: 'Cancellations', promisedBy: 'Jun 06, 2026', priority: 'Low',    insuranceStatus: 'NA',          time: '09:15 AM', phone: '(408) 555-0166', email: 'r.king@email.com' },
+  { customer: 'Emily Davis',    vehicle: 'Chevrolet Equinox 2022',serviceType: 'Service',          advisor: 'Brown',    status: 'Confirmed',     promisedBy: 'Jun 07, 2026', priority: 'Medium', insuranceStatus: 'In Progress', time: '09:30 AM', phone: '(650) 555-0144', email: 'e.davis@email.com' },
+  { customer: 'Michael Wilson', vehicle: 'Toyota Camry 2018',     serviceType: 'Sale - Parts',     advisor: 'Jones',    status: 'Confirmed',     promisedBy: 'Jun 08, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '10:00 AM', phone: '(408) 555-0188', email: 'm.wilson@email.com' },
+  { customer: 'Linda White',    vehicle: 'Subaru Outback 2021',   serviceType: 'Service',          advisor: 'Martinez', status: 'Cancellations', promisedBy: 'Jun 06, 2026', priority: 'Medium', insuranceStatus: 'In Progress', time: '10:15 AM', phone: '(415) 555-0199', email: 'l.white@email.com' },
+  { customer: 'Jessica Taylor', vehicle: 'Honda Civic 2021',      serviceType: 'Service',          advisor: 'Garcia',   status: 'Confirmed',     promisedBy: 'Jun 08, 2026', priority: 'Low',    insuranceStatus: 'Unverified',  time: '10:30 AM', phone: '(415) 555-0155', email: 'j.taylor@email.com' },
+  { customer: 'Chris Evans',    vehicle: 'Toyota Corolla 2022',   serviceType: 'Sale - Parts',     advisor: 'Wilson',   status: 'No-shows',      promisedBy: 'Jun 07, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '10:45 AM', phone: '(415) 555-0132', email: 'c.evans@email.com' },
+  { customer: 'James Rodriguez',vehicle: 'Ford Explorer 2020',    serviceType: 'Sale - Test drive', advisor: 'Rodriguez',status: 'Confirmed',     promisedBy: 'Jun 09, 2026', priority: 'Medium', insuranceStatus: 'NA',          time: '11:00 AM', phone: '(669) 555-0123', email: 'j.rodriguez@email.com' },
+  { customer: 'Patricia Clark', vehicle: 'Honda Pilot 2021',      serviceType: 'Sale - Prospect',  advisor: 'Thompson', status: 'No-shows',      promisedBy: 'Jun 08, 2026', priority: 'Medium', insuranceStatus: 'NA',          time: '11:15 AM', phone: '(415) 555-0199', email: 'p.clark@email.com' },
+  { customer: 'Sarah Anderson', vehicle: 'Nissan Altima 2019',    serviceType: 'Service',          advisor: 'Miller',   status: 'Confirmed',     promisedBy: 'Jun 09, 2026', priority: 'High',   insuranceStatus: 'Verified',    time: '11:30 AM', phone: '(650) 555-0177', email: 's.anderson@email.com' },
+  { customer: 'Nathan Lee',     vehicle: 'Toyota RAV4 2020',      serviceType: 'Sale - Parts',     advisor: 'Adams',    status: 'Cancellations', promisedBy: 'Jun 07, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '12:00 PM', phone: '(408) 555-0117', email: 'n.lee@email.com' },
+  { customer: 'Kevin Moore',    vehicle: 'Nissan Sentra 2019',    serviceType: 'Service',          advisor: 'Harris',   status: 'No-shows',      promisedBy: 'Jun 09, 2026', priority: 'Low',    insuranceStatus: 'In Progress', time: '01:00 PM', phone: '(408) 555-0188', email: 'k.moore@email.com' },
+  { customer: 'Amy Chen',       vehicle: 'Honda CR-V 2019',       serviceType: 'Service',          advisor: 'Baker',    status: 'Cancellations', promisedBy: 'Jun 07, 2026', priority: 'Low',    insuranceStatus: 'Unverified',  time: '01:30 PM', phone: '(415) 555-0190', email: 'a.chen@email.com' },
+  { customer: 'Tom Wilson',     vehicle: 'Ford Mustang 2021',     serviceType: 'Sale - Test drive', advisor: 'Carter',   status: 'Cancellations', promisedBy: 'Jun 08, 2026', priority: 'Medium', insuranceStatus: 'NA',          time: '02:00 PM', phone: '(669) 555-0101', email: 't.wilson@email.com' },
 ]
 
 interface ColumnDef extends Column<ServiceRequest> {
@@ -63,25 +86,20 @@ interface ColumnDef extends Column<ServiceRequest> {
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'customer', label: 'Customer', width: 220, sortable: true, locked: true },
-  {
-    key: 'status',
-    label: 'Status',
-    width: 160,
-    sortable: true,
-    render: (value) => <Chip label={String(value)} variant={STATUS_VARIANT[String(value)] ?? 'neutral'} />,
-  },
-  { key: 'vehicle', label: 'Vehicle', width: 190, sortable: true },
-  { key: 'serviceType', label: 'Service type', width: 170, sortable: true },
-  { key: 'advisor', label: 'Service advisor', width: 160, sortable: true },
-  { key: 'promisedBy', label: 'Promised by', width: 190, sortable: true },
-  { key: 'priority', label: 'Priority', width: 130, sortable: true },
-  { key: 'phone', label: 'Phone', width: 160, sortable: true },
-  { key: 'email', label: 'Email', width: 210, sortable: true },
+  { key: 'customer',        label: 'Customer',         width: 220, sortable: true, locked: true },
+  { key: 'vehicle',         label: 'Vehicle',          width: 190, sortable: true },
+  { key: 'serviceType',     label: 'Appt type',        width: 160, sortable: true },
+  { key: 'advisor',         label: 'Service advisor',  width: 160, sortable: true },
+  { key: 'insuranceStatus', label: 'Insurance status', width: 160, sortable: true },
+  { key: 'time',            label: 'Time',             width: 110, sortable: true },
+  { key: 'promisedBy',      label: 'Promised by',      width: 150, sortable: true },
+  { key: 'priority',        label: 'Priority',         width: 110, sortable: true },
+  { key: 'phone',           label: 'Phone',            width: 160, sortable: true },
+  { key: 'email',           label: 'Email',            width: 210, sortable: true },
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['customer', 'status', 'vehicle', 'serviceType', 'advisor', 'promisedBy']
+const DEFAULT_VISIBLE = ['customer', 'vehicle', 'serviceType', 'advisor', 'insuranceStatus', 'time']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
@@ -121,8 +139,16 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'vehicle-make', label: 'Vehicle make', options: opts('Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Jeep', 'Subaru') },
 ]
 
+const BASE_DATE = new Date(2026, 4, 25)
+
 export function ServiceRequestsScreen() {
+  const [date, setDate] = useState(new Date(BASE_DATE))
+  const [activeTab, setActiveTab] = useState('confirmed')
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER)
+
+  const isToday = date.toDateString() === BASE_DATE.toDateString()
+  function prevDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n }) }
+  function nextDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n }) }
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -143,15 +169,20 @@ export function ServiceRequestsScreen() {
     [order],
   )
 
+  const filteredData = useMemo(
+    () => REQUESTS.filter((r) => r.status === TAB_STATUS_MAP[activeTab]),
+    [activeTab],
+  )
+
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
-          {/* Header: title + actions */}
-          <div className="flex h-16 items-center justify-between bg-surface px-2xl">
-            <h1 className="text-h3 text-text-primary">Service requests</h1>
+          {/* Header: date nav + actions */}
+          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+            <DateChange date={date} isToday={isToday} onPrev={prevDay} onNext={nextDay} />
             <div className="flex items-center gap-sm">
               <button
                 type="button"
@@ -186,14 +217,18 @@ export function ServiceRequestsScreen() {
             </div>
           </div>
 
-          <div className="px-2xl pt-lg">
+          {/* <div className="px-2xl pt-lg">
             <MetricTiles metrics={METRICS} />
+          </div> */}
+
+          <div className="px-2xl">
+            <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
           </div>
 
           <div className="px-lg py-lg">
             <DataTable
               columns={columns}
-              data={REQUESTS}
+              data={filteredData}
               rowAction={{
                 icon: 'build',
                 label: 'Schedule service',

@@ -1,5 +1,6 @@
 export { Chip } from './Chip/Chip'
 export { CustomizeColumnsDrawer } from './CustomizeColumnsDrawer/CustomizeColumnsDrawer'
+export { DateChange } from './DateChange/DateChange'
 export { FilterPanel } from './FilterPanel/FilterPanel'
 export { FormDrawer } from './FormDrawer/FormDrawer'
 export { Icon } from './Icon/Icon'
@@ -45,3 +46,4 @@ export type { SetupAppointmentDrawerProps, SetupAppointmentValues } from './Setu
 export type { DataTableProps, Column, RowAction, RowMenuItem } from './DataTable/DataTable.types'
 export type { MetricTilesProps, Metric } from './MetricTiles/MetricTiles.types'
 export type { TabsProps, Tab } from './Tabs/Tabs.types'
+export type { DateChangeProps } from './DateChange/DateChange.types'

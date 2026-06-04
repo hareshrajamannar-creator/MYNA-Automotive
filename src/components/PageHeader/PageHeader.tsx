@@ -1,3 +1,4 @@
+import { DateChange } from '../DateChange/DateChange'
 import { Icon } from '../Icon/Icon'
 import { AppointmentView, PageHeaderProps } from './PageHeader.types'
 
@@ -37,48 +38,24 @@ function ViewToggle({
 
 export function PageHeader({
   date,
-  providerLabel = 'All providers',
+  providerLabel: _providerLabel = 'All customer reps',
   view = 'table',
+  isToday = true,
   onPrev,
   onNext,
   onToday,
-  onProviderClick,
+  onProviderClick: _onProviderClick,
   onViewChange,
   onCustomizeColumns,
   onFilter,
 }: PageHeaderProps) {
   return (
-    <div className="flex h-16 items-center justify-between bg-surface px-2xl">
-      {/* Date navigation */}
-      <div className="flex items-center gap-sm">
-        <button
-          type="button"
-          aria-label="Previous day"
-          onClick={onPrev}
-          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-selected"
-        >
-          <Icon name="chevron_left" size={20} />
-        </button>
-        <span className="text-h3 text-text-primary">{date}</span>
-        <button
-          type="button"
-          aria-label="Next day"
-          onClick={onNext}
-          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-selected"
-        >
-          <Icon name="chevron_right" size={20} />
-        </button>
-        <button
-          type="button"
-          onClick={onToday}
-          className="ml-sm rounded-sm px-sm py-xs text-body font-medium text-text-action hover:bg-surface-selected"
-        >
-          Today
-        </button>
-      </div>
+    <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+      <DateChange date={date} isToday={isToday} onPrev={onPrev ?? (() => {})} onNext={onNext ?? (() => {})} onToday={onToday} />
 
       {/* Controls */}
       <div className="flex items-center gap-sm">
+        {/* All customer reps dropdown — hidden, restore by uncommenting
         <button
           type="button"
           onClick={onProviderClick}
@@ -87,6 +64,7 @@ export function PageHeader({
           {providerLabel}
           <Icon name="expand_more" size={20} className="text-text-icon" />
         </button>
+        */}
 
         <ViewToggle view={view} onViewChange={onViewChange} />
 

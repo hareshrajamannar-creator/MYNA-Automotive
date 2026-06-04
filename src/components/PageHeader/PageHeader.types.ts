@@ -1,9 +1,10 @@
 export type AppointmentView = 'table' | 'calendar'
 
 export interface PageHeaderProps {
-  date: string
+  date: Date
   providerLabel?: string
   view?: AppointmentView
+  isToday?: boolean
   onPrev?: () => void
   onNext?: () => void
   onToday?: () => void

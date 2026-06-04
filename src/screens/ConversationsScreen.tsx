@@ -151,7 +151,7 @@ export function ConversationsScreen() {
       <TopNav initials="S" />
 
       {/* page header */}
-      <div className="flex h-16 shrink-0 items-center justify-between bg-surface px-2xl">
+      <div className="flex shrink-0 items-center justify-between bg-surface px-2xl py-xl">
         <h1 className="text-h3 text-text-primary">Conversations</h1>
         <button
           type="button"

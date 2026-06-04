@@ -1,20 +1,22 @@
 import { useMemo, useState } from 'react'
 import {
-  Chip,
+  // Chip,
   CustomizeColumnsDrawer,
   DataTable,
+  DateChange,
   FilterPanel,
   FormDrawer,
   Icon,
-  MetricTiles,
+  // MetricTiles,
   SetupAppointmentDrawer,
+  Tabs,
   TopNav,
-  type ChipVariant,
+  // type ChipVariant,
   type Column,
   type ColumnOption,
   type FilterField,
   type FormField,
-  type Metric,
+  // type Metric,
 } from '../components'
 
 interface Lead {
@@ -24,41 +26,61 @@ interface Lead {
   lookingFor: string
   status: string
   updatedOn: string
+  time: string
   phone: string
   email: string
   [key: string]: string
 }
 
-const METRICS: Metric[] = [
-  { id: 'prospects', value: 13, label: 'Prospects' },
-  { id: 'test-drive', value: 6, label: 'Test drive' },
-  { id: 'in-process', value: 4, label: 'In process' },
-  { id: 'won', value: 4, label: 'Won' },
-  { id: 'dropped-off', value: 8, label: 'Dropped off' },
+// const METRICS: Metric[] = [
+//   { id: 'prospects',   value: 13, label: 'Prospects'   },
+//   { id: 'test-drive',  value: 6,  label: 'Test drive'  },
+//   { id: 'in-process',  value: 4,  label: 'In process'  },
+//   { id: 'won',         value: 4,  label: 'Won'         },
+//   { id: 'dropped-off', value: 8,  label: 'Dropped off' },
+// ]
+
+const TABS = [
+  { id: 'confirmed',     label: 'Confirmed',     count: 13 },
+  { id: 'cancellations', label: 'Cancellations', count: 5  },
+  { id: 'no-shows',      label: 'No-shows',      count: 1  },
 ]
 
-const STATUS_VARIANT: Record<string, ChipVariant> = {
-  'Test drive pending': 'success',
-  'Test drive completed': 'success',
-  'Test drive': 'success',
-  Prospect: 'warning',
-  'Dropped off': 'neutral',
-  Won: 'success',
+const TAB_STATUS_MAP: Record<string, string> = {
+  confirmed:     'Confirmed',
+  cancellations: 'Cancellations',
+  'no-shows':    'No-shows',
 }
+
+// const STATUS_VARIANT: Record<string, ChipVariant> = {
+//   'Test drive pending':   'success',
+//   'Test drive completed': 'success',
+//   'Test drive':           'success',
+//   Prospect:               'warning',
+//   'Dropped off':          'neutral',
+//   Won:                    'success',
+// }
 
 const CHANNEL_ICON: Record<string, string> = { sms: 'sms', call: 'call', mail: 'mail' }
 
 const LEADS: Lead[] = [
-  { name: 'Michael Smith', channel: 'sms', apptType: 'Sale - Trade-in', lookingFor: 'Toyota RAV4', status: 'Test drive pending', updatedOn: 'Nov 12, 2023 09:00 AM', phone: '(415) 555-0132', email: 'm.smith@email.com' },
-  { name: 'Jessica Williams', channel: 'call', apptType: 'Sale - First visit', lookingFor: 'Ford F-Series', status: 'Test drive completed', updatedOn: 'Oct 29, 2023 05:30 PM', phone: '(415) 555-0190', email: 'j.williams@email.com' },
-  { name: 'David Brown', channel: 'sms', apptType: 'Sale - Parts', lookingFor: 'Ford F-Series - Serpentine belt', status: 'Prospect', updatedOn: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'd.brown@email.com' },
-  { name: 'Emily Davis', channel: 'mail', apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4', status: 'Test drive completed', updatedOn: 'Jan 15, 2024 07:15 PM', phone: '(650) 555-0144', email: 'e.davis@email.com' },
-  { name: 'Christopher Garcia', channel: 'sms', apptType: 'Service', lookingFor: 'Honda CR-V', status: 'Prospect', updatedOn: 'Feb 20, 2024 02:00 PM', phone: '(408) 555-0188', email: 'c.garcia@email.com' },
-  { name: 'Sarah Martinez', channel: 'call', apptType: 'Service', lookingFor: 'Honda CR-V - Battery', status: 'Dropped off', updatedOn: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 's.martinez@email.com' },
-  { name: 'James Rodriguez', channel: 'call', apptType: 'Sale - Trade-in', lookingFor: 'Chevrolet Equinox', status: 'Prospect', updatedOn: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'j.rodriguez@email.com' },
-  { name: 'Linda White', channel: 'mail', apptType: 'Sale', lookingFor: 'Honda CR-V', status: 'Test drive', updatedOn: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 'l.white@email.com' },
-  { name: 'William Harris', channel: 'mail', apptType: 'Sale', lookingFor: 'Toyota RAV4', status: 'Dropped off', updatedOn: 'Jun 23, 2024 01:00 PM', phone: '(408) 555-0166', email: 'w.harris@email.com' },
-  { name: 'Patricia Clark', channel: 'sms', apptType: 'Sale', lookingFor: 'Ford F-Series', status: 'Prospect', updatedOn: 'Jul 30, 2024 06:40 AM', phone: '(415) 555-0199', email: 'p.clark@email.com' },
+  { name: 'Michael Smith',   channel: 'sms',  apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4',       status: 'Confirmed',     updatedOn: 'May 25, 2026 08:00 AM', time: '08:00 AM', phone: '(415) 555-0132', email: 'm.smith@email.com' },
+  { name: 'Alex Turner',     channel: 'call', apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'Confirmed',     updatedOn: 'May 25, 2026 08:15 AM', time: '08:15 AM', phone: '(415) 555-0144', email: 'a.turner@email.com' },
+  { name: 'Marcus Reid',     channel: 'sms',  apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'No-shows',      updatedOn: 'May 25, 2026 08:45 AM', time: '08:45 AM', phone: '(408) 555-0155', email: 'm.reid@email.com' },
+  { name: 'David Brown',     channel: 'sms',  apptType: 'Sale - Prospect',   lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 09:00 AM', time: '09:00 AM', phone: '(408) 555-0117', email: 'd.brown@email.com' },
+  { name: 'Olivia Scott',    channel: 'mail', apptType: 'Sale - Prospect',   lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 09:15 AM', time: '09:15 AM', phone: '(650) 555-0133', email: 'o.scott@email.com' },
+  { name: 'Emily Davis',     channel: 'mail', apptType: 'Sale - Parts',      lookingFor: 'Toyota RAV4',       status: 'Confirmed',     updatedOn: 'May 25, 2026 09:30 AM', time: '09:30 AM', phone: '(650) 555-0144', email: 'e.davis@email.com' },
+  { name: 'Ryan Chen',       channel: 'sms',  apptType: 'Sale - Parts',      lookingFor: 'Chevrolet Equinox', status: 'Confirmed',     updatedOn: 'May 25, 2026 09:45 AM', time: '09:45 AM', phone: '(408) 555-0177', email: 'r.chen@email.com' },
+  { name: 'Diana Park',      channel: 'call', apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 10:00 AM', time: '10:00 AM', phone: '(415) 555-0188', email: 'd.park@email.com' },
+  { name: 'James Rodriguez', channel: 'call', apptType: 'Sale - Parts',      lookingFor: 'Chevrolet Equinox', status: 'Cancellations', updatedOn: 'May 25, 2026 10:15 AM', time: '10:15 AM', phone: '(669) 555-0123', email: 'j.rodriguez@email.com' },
+  { name: 'Linda White',     channel: 'mail', apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 10:30 AM', time: '10:30 AM', phone: '(650) 555-0177', email: 'l.white@email.com' },
+  { name: 'Amy Chen',        channel: 'mail', apptType: 'Sale - Parts',      lookingFor: 'Honda CR-V',        status: 'No-shows',      updatedOn: 'May 25, 2026 10:45 AM', time: '10:45 AM', phone: '(415) 555-0190', email: 'a.chen@email.com' },
+  { name: 'Tom Wilson',      channel: 'call', apptType: 'Sale - Test drive', lookingFor: 'Chevrolet Equinox', status: 'No-shows',      updatedOn: 'May 25, 2026 11:00 AM', time: '11:00 AM', phone: '(669) 555-0123', email: 't.wilson@email.com' },
+  { name: 'Patricia Clark',  channel: 'sms',  apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'Confirmed',     updatedOn: 'May 25, 2026 11:15 AM', time: '11:15 AM', phone: '(415) 555-0199', email: 'p.clark@email.com' },
+  { name: 'Brandon Lee',     channel: 'sms',  apptType: 'Sale - Parts',      lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 11:30 AM', time: '11:30 AM', phone: '(408) 555-0111', email: 'b.lee@email.com' },
+  { name: 'Kevin Moore',     channel: 'mail', apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 12:00 PM', time: '12:00 PM', phone: '(408) 555-0117', email: 'k.moore@email.com' },
+  { name: 'Samantha Fox',    channel: 'call', apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'No-shows',      updatedOn: 'May 25, 2026 12:30 PM', time: '12:30 PM', phone: '(415) 555-0166', email: 's.fox@email.com' },
+  { name: 'Chris Evans',     channel: 'call', apptType: 'Sale - Prospect',   lookingFor: 'Honda Civic',       status: 'Cancellations', updatedOn: 'May 25, 2026 02:00 PM', time: '02:00 PM', phone: '(669) 555-0101', email: 'c.evans@email.com' },
 ]
 
 interface ColumnDef extends Column<Lead> {
@@ -66,15 +88,8 @@ interface ColumnDef extends Column<Lead> {
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'name', label: 'Name', width: 240, sortable: true, locked: true },
-  {
-    key: 'status',
-    label: 'Status',
-    width: 180,
-    sortable: true,
-    render: (value) => <Chip label={String(value)} variant={STATUS_VARIANT[String(value)] ?? 'neutral'} />,
-  },
-  { key: 'lookingFor', label: 'Looking for', width: 200, sortable: true },
+  { key: 'name',       label: 'Name',             width: 220, sortable: true, locked: true },
+  { key: 'lookingFor', label: 'Looking for',      width: 200, sortable: true },
   {
     key: 'channel',
     label: 'Outreach channel',
@@ -82,14 +97,15 @@ const COLUMN_DEFS: ColumnDef[] = [
     sortable: true,
     render: (value) => <Icon name={CHANNEL_ICON[String(value)] ?? 'chat'} size={20} className="text-text-icon" />,
   },
-  { key: 'apptType', label: 'Appt type', width: 150, sortable: true },
-  { key: 'updatedOn', label: 'Updated on', width: 180, sortable: true },
-  { key: 'phone', label: 'Phone', width: 160, sortable: true },
-  { key: 'email', label: 'Email', width: 210, sortable: true },
+  { key: 'apptType',   label: 'Appt type',        width: 160, sortable: true },
+  { key: 'time',       label: 'Time',             width: 110, sortable: true },
+  { key: 'updatedOn',  label: 'Updated on',       width: 180, sortable: true },
+  { key: 'phone',      label: 'Phone',            width: 160, sortable: true },
+  { key: 'email',      label: 'Email',            width: 210, sortable: true },
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['name', 'status', 'lookingFor', 'channel', 'apptType', 'updatedOn']
+const DEFAULT_VISIBLE = ['name', 'lookingFor', 'channel', 'apptType', 'time']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
@@ -113,8 +129,16 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'looking-for', label: 'Looking for', options: opts('Toyota RAV4', 'Ford F-Series', 'Honda CR-V', 'Chevrolet Equinox') },
 ]
 
+const BASE_DATE = new Date(2026, 4, 25)
+
 export function SalesPipelineScreen() {
+  const [date, setDate] = useState(new Date(BASE_DATE))
+  const [activeTab, setActiveTab] = useState('confirmed')
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER)
+
+  const isToday = date.toDateString() === BASE_DATE.toDateString()
+  function prevDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n }) }
+  function nextDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n }) }
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -135,15 +159,20 @@ export function SalesPipelineScreen() {
     [order],
   )
 
+  const filteredData = useMemo(
+    () => LEADS.filter((l) => l.status === TAB_STATUS_MAP[activeTab]),
+    [activeTab],
+  )
+
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
-          {/* Header: title + actions */}
-          <div className="flex h-16 items-center justify-between bg-surface px-2xl">
-            <h1 className="text-h3 text-text-primary">Sales pipeline</h1>
+          {/* Header: date nav + actions */}
+          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+            <DateChange date={date} isToday={isToday} onPrev={prevDay} onNext={nextDay} />
             <div className="flex items-center gap-sm">
               <button
                 type="button"
@@ -178,14 +207,18 @@ export function SalesPipelineScreen() {
             </div>
           </div>
 
-          <div className="px-2xl pt-lg">
+          {/* <div className="px-2xl pt-lg">
             <MetricTiles metrics={METRICS} />
+          </div> */}
+
+          <div className="px-2xl">
+            <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
           </div>
 
           <div className="px-lg py-lg">
             <DataTable
               columns={columns}
-              data={LEADS}
+              data={filteredData}
               rowAction={{
                 icon: 'calendar_add_on',
                 label: 'Setup appointment',

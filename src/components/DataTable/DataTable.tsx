@@ -102,7 +102,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     onClick={() => toggleSort(col)}
                     className={`flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
                   >
-                    <span className={`truncate text-body ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
+                    <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {col.label}
                     </span>
                     {col.sortable && (
@@ -141,7 +141,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={() => onRowClick?.(row)}
               className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
                 onRowClick ? 'cursor-pointer' : ''
-              }`}
+              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''}`}
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
@@ -157,7 +157,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
-                      <div className="absolute right-sm top-1/2 z-20 hidden -translate-y-1/2 items-center rounded-md border border-border bg-surface shadow-card group-hover/row:flex">
+                      <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
                         {rowAction && (
                           <button
                             type="button"
@@ -167,13 +167,10 @@ export function DataTable<T extends Record<string, unknown>>({
                               e.stopPropagation()
                               rowAction.onClick(row)
                             }}
-                            className="flex size-8 items-center justify-center rounded-l-md text-text-icon hover:bg-surface-hover"
+                            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                           >
                             <Icon name={rowAction.icon} size={20} />
                           </button>
-                        )}
-                        {rowAction && rowMenuItems && rowMenuItems.length > 0 && (
-                          <span className="h-5 w-px bg-border" />
                         )}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button
@@ -188,7 +185,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                   : { rowIndex: i, top: r.bottom + 4, left: r.right - 168 },
                               )
                             }}
-                            className="flex size-8 items-center justify-center rounded-r-md text-text-icon hover:bg-surface-hover"
+                            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                           >
                             <Icon name="more_vert" size={20} />
                           </button>
