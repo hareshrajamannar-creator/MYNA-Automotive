@@ -5,6 +5,7 @@ import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
 // import { ConversationsScreen } from './screens/ConversationsScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
+import { SalesScreen } from './screens/SalesScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -133,6 +134,8 @@ export function App() {
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
           <AppointmentOverviewScreen />
+        ) : navActive === 'sales' ? (
+          <SalesScreen />
         ) : (
           <ManageAppointmentsScreen />
         )}

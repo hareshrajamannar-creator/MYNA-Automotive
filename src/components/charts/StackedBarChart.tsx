@@ -21,16 +21,25 @@ export interface StackedBarChartProps {
   series: BarSeries[]
   xKey: string
   height?: number
+  /** Render bars side-by-side instead of stacked. */
+  grouped?: boolean
+  /** Rotate x-axis labels by this angle (e.g. -45). */
+  xAxisAngle?: number
 }
 
 const axisTick = { fontSize: 12, fill: chartColors.axis, fontFamily: 'Roboto' }
 
-export function StackedBarChart({ data, series, xKey, height = 300 }: StackedBarChartProps) {
+export function StackedBarChart({ data, series, xKey, height = 300, grouped = false, xAxisAngle }: StackedBarChartProps) {
+  const xTick = xAxisAngle
+    ? { ...axisTick, angle: xAxisAngle, textAnchor: 'end' as const, dy: 4 }
+    : axisTick
+  const xAxisHeight = xAxisAngle ? 60 : undefined
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }} barCategoryGap="28%">
         <CartesianGrid stroke={chartColors.grid} vertical={false} />
-        <XAxis dataKey={xKey} tick={axisTick} tickLine={false} axisLine={{ stroke: chartColors.grid }} />
+        <XAxis dataKey={xKey} tick={xTick} tickLine={false} axisLine={{ stroke: chartColors.grid }} height={xAxisHeight} />
         <YAxis tick={axisTick} tickLine={false} axisLine={false} width={40} />
         <Tooltip
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
@@ -50,9 +59,9 @@ export function StackedBarChart({ data, series, xKey, height = 300 }: StackedBar
             key={s.key}
             dataKey={s.key}
             name={s.label}
-            stackId="a"
+            stackId={grouped ? undefined : 'a'}
             fill={s.color}
-            radius={i === series.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+            radius={grouped || i === series.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
             maxBarSize={32}
             isAnimationActive={false}
           />
