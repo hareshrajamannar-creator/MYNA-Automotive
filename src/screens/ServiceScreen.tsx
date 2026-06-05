@@ -40,16 +40,16 @@ const WEEKLY_SERIES = [
 
 // ── Reminder channel effectiveness (individual channels only) ─────────────────
 const REMINDER_CHANNELS = [
-  { label: 'SMS — T-immediate', pct: 62, color: '#4cae3d' },
-  { label: 'SMS — T-24h',       pct: 71, color: '#4cae3d' },
-  { label: 'Email — T-24h',     pct: 48, color: '#42a5f5' },
-  { label: 'Voice — T-2h',      pct: 85, color: '#4cae3d' },
+  { label: 'SMS — T-immediate', pct: 62, color: '#1976d2' },
+  { label: 'SMS — T-24h',       pct: 71, color: '#1976d2' },
+  { label: 'Email — T-24h',     pct: 48, color: '#1976d2' },
+  { label: 'Voice — T-2h',      pct: 85, color: '#1976d2' },
 ]
 
 // ── Communication mode effectiveness ─────────────────────────────────────────
 const COMM_MODES = [
   { label: 'Concurrent mode',  pct: 84.7, color: '#4cae3d' },
-  { label: 'Sequential mode',  pct: 71.0, color: '#9e9e9e' },
+  { label: 'Sequential mode',  pct: 71.0, color: '#4cae3d' },
 ]
 
 // ── CSI rating chart ──────────────────────────────────────────────────────────
@@ -64,15 +64,23 @@ const CSI_DATA = [
 
 // ── Service lapse re-engagement ───────────────────────────────────────────────
 const LAPSE_DATA = [
-  { week: 'Wk 1', booked: 25, noResponse: 65, optedOut: 10 },
-  { week: 'Wk 2', booked: 22, noResponse: 68, optedOut: 10 },
-  { week: 'Wk 3', booked: 26, noResponse: 64, optedOut: 10 },
-  { week: 'Wk 4', booked: 24, noResponse: 66, optedOut: 10 },
+  { week: 'Week 1', booked: 25, noResponse: 65, optedOut: 10 },
+  { week: 'Week 2', booked: 22, noResponse: 68, optedOut: 10 },
+  { week: 'Week 3', booked: 26, noResponse: 64, optedOut: 10 },
+  { week: 'Week 4', booked: 24, noResponse: 66, optedOut: 10 },
 ]
 const LAPSE_SERIES = [
   { key: 'booked',     label: 'Booked appt',  color: '#4cae3d' },
-  { key: 'noResponse', label: 'No response',  color: '#9e9e9e' },
+  { key: 'noResponse', label: 'No response',  color: '#de1b0c' },
   { key: 'optedOut',   label: 'Opted out',    color: '#f59e0b' },
+]
+
+// ── NHTSA summary stats ───────────────────────────────────────────────────────
+const NHTSA_STATS = [
+  { id: 'campaigns', value: '3',     label: 'Active campaigns'    },
+  { id: 'vins',      value: '847',   label: 'Affected VINs'       },
+  { id: 'contact',   value: '83.1%', label: 'Contact rate',       delta: '3.1%',  trend: 'up' as const },
+  { id: 'repairs',   value: '512',   label: 'Repairs scheduled',  delta: '60.4%', trend: 'up' as const },
 ]
 
 // ── NHTSA campaigns ───────────────────────────────────────────────────────────
@@ -183,7 +191,7 @@ export function ServiceScreen() {
                 </div>
               }
             >
-              <div className="flex flex-col justify-between gap-md">
+              <div className="flex flex-1 flex-col justify-between">
                 {REMINDER_CHANNELS.map((row) => (
                   <div key={row.label}>
                     <p className="mb-xs text-small text-text-primary">{row.label}</p>
@@ -213,7 +221,7 @@ export function ServiceScreen() {
                 </div>
               }
             >
-              <div className="flex flex-col justify-between gap-xl">
+              <div className="flex flex-1 flex-col items-stretch justify-center gap-[80px]">
                 {COMM_MODES.map((row) => (
                   <div key={row.label}>
                     <p className="mb-xs text-small text-text-primary">{row.label}</p>
@@ -247,43 +255,16 @@ export function ServiceScreen() {
             />
           </ChartCard>
 
-          {/* NHTSA Recall Campaign Tracker */}
-          <div>
-            <p className="mb-md text-small font-medium uppercase tracking-widest text-text-secondary">
-              NHTSA Recall Campaign Tracker
-            </p>
-            <section className="rounded-md border border-border bg-surface p-2xl">
-              <div className="mb-lg grid grid-cols-4 divide-x divide-border">
-                <div className="px-lg first:pl-0">
-                  <p className="mb-xs text-small text-text-secondary">Active campaigns</p>
-                  <p className="text-[28px] font-medium text-text-primary">3</p>
-                </div>
-                <div className="px-lg">
-                  <p className="mb-xs text-small text-text-secondary">Affected VINs</p>
-                  <p className="text-[28px] font-medium text-text-primary">847</p>
-                </div>
-                <div className="px-lg">
-                  <p className="mb-xs text-small text-text-secondary">Contact rate</p>
-                  <p className="text-[28px] font-medium text-text-primary">83.1%</p>
-                  <p className="text-small text-chip-success-text">Target: 80% ✓</p>
-                </div>
-                <div className="px-lg">
-                  <p className="mb-xs text-small text-text-secondary">Repairs scheduled</p>
-                  <p className="text-[28px] font-medium text-text-primary">512</p>
-                  <p className="text-small text-text-secondary">60.4% of affected</p>
-                </div>
-              </div>
-              <p className="mb-sm text-small font-medium uppercase tracking-widest text-text-secondary">Campaign Detail</p>
-              <DataTable columns={CAMPAIGN_COLUMNS} data={CAMPAIGNS} />
-            </section>
-          </div>
+          {/* NHTSA summary */}
+          <SummaryStats title="NHTSA recall campaign performance" stats={NHTSA_STATS} />
+
+          {/* Campaign detail */}
+          <ChartCard title="Campaign detail">
+            <DataTable columns={CAMPAIGN_COLUMNS} data={CAMPAIGNS} />
+          </ChartCard>
 
           {/* Service type breakdown */}
-          <div>
-            <p className="mb-md text-small font-medium uppercase tracking-widest text-text-secondary">
-              Service Type Breakdown — Booked via Myna
-            </p>
-            <div className="grid grid-cols-2 gap-lg">
+          <div className="grid grid-cols-2 gap-lg">
               <ChartCard title="Service type breakdown">
                 <ChartStatRow stats={[
                   { value: '2,104', label: 'Total appointments' },
@@ -294,12 +275,10 @@ export function ServiceScreen() {
               </ChartCard>
               <ChartCard title="Monthly appointment trend">
                 <ChartStatRow stats={[
-                  { value: '2,104', label: 'Jun bookings' },
-                  { value: '+48%',  label: 'vs Jan'       },
+                  { value: '1752', label: 'Avg booking' },
                 ]} />
                 <TrendLineChart data={TREND_DATA} height={260} />
               </ChartCard>
-            </div>
           </div>
 
         </div>

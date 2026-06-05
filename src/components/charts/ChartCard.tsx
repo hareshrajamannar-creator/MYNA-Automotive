@@ -15,8 +15,8 @@ export interface ChartCardProps {
 
 export function ChartCard({ title, titleSuffix, toolbar, showActions = true, className = '', children }: ChartCardProps) {
   return (
-    <section className={`rounded-md border border-border bg-surface p-2xl ${className}`}>
-      <header className="mb-lg flex items-center justify-between gap-md">
+    <section className={`flex flex-col rounded-md border border-border bg-surface p-2xl ${className}`}>
+      <header className="mb-lg flex shrink-0 items-center justify-between gap-md">
         <div className="flex items-center gap-xs">
           <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
           {titleSuffix}
