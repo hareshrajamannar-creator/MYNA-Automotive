@@ -12,6 +12,38 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
+function formatDate(d: Date): string {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function parseProtoDate(str: string): Date {
+  return new Date(`${str}, 2026`)
+}
+
+function buildDefaultSummary(p: PatientDetail): string[] {
+  const bullets: string[] = []
+  if (p.appointmentDate) bullets.push(`Appointment for ${p.appointmentDate}`)
+  bullets.push('Insurance verification is in progress')
+  if (p.sentOn) bullets.push(`Intake form will be sent on ${p.sentOn}`)
+
+  if (p.appointmentDate) {
+    const appt = parseProtoDate(p.appointmentDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const offsets = [3, 2, 1]
+    for (const days of offsets) {
+      const reminderDate = new Date(appt)
+      reminderDate.setDate(reminderDate.getDate() - days)
+      if (reminderDate <= today) {
+        bullets.push(`SMS reminder sent on ${formatDate(reminderDate)}`)
+      }
+    }
+  }
+
+  return bullets
+}
+
 function FieldRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="mb-md last:mb-0">
@@ -189,7 +221,12 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
   const name = patient.patient
   const hasName = Boolean(name?.trim())
   const initials = hasName ? getInitials(name) : '--'
-  const hasSummary = Boolean(patient.aiSummary?.length)
+  const isOverdueOrNotStarted = patient.status === 'Not started' || patient.status === 'Overdue'
+  const summaryBullets = patient.aiSummary?.length
+    ? patient.aiSummary
+    : isOverdueOrNotStarted
+      ? buildDefaultSummary(patient)
+      : null
 
   return (
     <div className={`fixed inset-0 z-[100] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
@@ -265,14 +302,14 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           </div>
 
           {/* AI Summary */}
-          {hasSummary ? (
+          {summaryBullets ? (
             <div className="mx-2xl mb-lg rounded-lg border border-violet-200 bg-violet-50 p-lg">
               <div className="mb-sm flex items-center gap-xs">
                 <Icon name="auto_awesome" size={16} className="text-violet-500" />
                 <span className="text-body text-text-primary">Summary</span>
               </div>
               <ul className="space-y-xs">
-                {patient.aiSummary!.map((bullet, i) => (
+                {summaryBullets.map((bullet, i) => (
                   <li key={i} className="flex gap-xs text-body text-text-secondary">
                     <span className="mt-[6px] size-1 shrink-0 rounded-full bg-text-secondary" />
                     {bullet}

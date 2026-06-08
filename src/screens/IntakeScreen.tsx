@@ -250,7 +250,7 @@ export function IntakeScreen() {
                   label: 'Quick view',
                   onClick: (row) => {
                     const detail = PATIENT_DETAILS[row.patient] ?? {}
-                    setQuickViewPatient({ patient: row.patient, status: row.status, ...detail })
+                    setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, sentOn: row.sentOn, ...detail })
                   },
                 },
                 { label: 'View activity',  onClick: () => {} },

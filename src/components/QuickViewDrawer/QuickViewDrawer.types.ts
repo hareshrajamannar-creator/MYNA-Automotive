@@ -34,6 +34,9 @@ export interface PatientDetail {
   alcohol?: string
   drugUsage?: string
   exercise?: string
+  // Row data for dynamic summary
+  appointmentDate?: string
+  sentOn?: string
   // AI summary bullets
   aiSummary?: string[]
 }
