@@ -1,16 +1,15 @@
 import React from 'react';
 import { Button } from '../../../elemental-stubs';
 import PlayArrowIcon from './icons/play_arrow.svg';
-import ExpandAllIcon from './icons/expand_all.svg';
 import CloseIcon from './icons/close.svg';
 
 export default function RHSPanelHeader({
   title = 'Title',
   onPreview,
-  onExpand,
   onClose,
   onBack,
   showActions = true,
+  showMoreMenu = false,
 }) {
   const svgStyle = { width: 24, height: 24, display: 'block' };
 
@@ -22,8 +21,8 @@ export default function RHSPanelHeader({
       padding: '0 15px',
       height: 60,
       background: '#ffffff',
-      borderBottom: '1px solid #f0f0f0',
       boxSizing: 'border-box',
+      flexShrink: 0,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: 1 }}>
         {onBack && (
@@ -53,20 +52,24 @@ export default function RHSPanelHeader({
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Button
-          type="link"
-          customIcon={<img src={PlayArrowIcon} alt="Preview" style={svgStyle} />}
-          onClick={onPreview}
-          noHover
-          aria-label="Preview"
-        />
-        <Button
-          type="link"
-          customIcon={<img src={ExpandAllIcon} alt="Expand" style={svgStyle} />}
-          onClick={onExpand}
-          noHover
-          aria-label="Expand"
-        />
+        {showMoreMenu && (
+          <button
+            type="button"
+            aria-label="More actions"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: '#555', borderRadius: 4 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>more_vert</span>
+          </button>
+        )}
+        {showActions && onPreview && (
+          <Button
+            type="link"
+            customIcon={<img src={PlayArrowIcon} alt="Preview" style={svgStyle} />}
+            onClick={onPreview}
+            noHover
+            aria-label="Preview"
+          />
+        )}
         <Button
           type="link"
           customIcon={<img src={CloseIcon} alt="Close" style={svgStyle} />}

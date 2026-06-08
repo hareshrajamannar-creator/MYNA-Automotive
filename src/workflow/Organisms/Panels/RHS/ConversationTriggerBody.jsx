@@ -23,17 +23,18 @@ const TIME_OPTIONS = [
   { value: 'all_hours', label: 'All hours' },
 ];
 
-function ConditionDropdown({ value, options, onChange, placeholder, disabled }) {
+function ConditionDropdown({ value, options, onChange, placeholder, readOnly }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
+    if (readOnly) return undefined;
     const close = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
-  }, []);
+  }, [readOnly]);
 
   const selectedLabel = options.find((o) => o.value === value)?.label;
 
@@ -41,9 +42,10 @@ function ConditionDropdown({ value, options, onChange, placeholder, disabled }) 
     <div className="tc-dropdown" ref={ref}>
       <button
         type="button"
-        className={`tc-dropdown__trigger${open ? ' tc-dropdown__trigger--open' : ''}`}
-        onClick={() => { if (!disabled) setOpen((v) => !v); }}
-        disabled={disabled}
+        className={`tc-dropdown__trigger${open ? ' tc-dropdown__trigger--open' : ''}${readOnly ? ' tc-dropdown__trigger--readonly' : ''}`}
+        onClick={() => { if (!readOnly) setOpen((v) => !v); }}
+        aria-readonly={readOnly || undefined}
+        tabIndex={readOnly ? -1 : undefined}
       >
         <span className={`tc-dropdown__value${!selectedLabel ? ' tc-dropdown__value--placeholder' : ''}`}>
           {selectedLabel || placeholder}
@@ -76,7 +78,7 @@ function makeRow(conditionValue = '', timeValue = '') {
   return { id: Date.now() + Math.random(), condition: conditionValue, time: timeValue };
 }
 
-function ChannelSection({ icon, title, conditionOptions, rows, onRowChange, onAddRow, onRemoveRow, viewOnly }) {
+function ChannelSection({ icon, title, conditionsLabel, conditionOptions, rows, onRowChange, onAddRow, onRemoveRow, viewOnly }) {
   return (
     <div className={styles.channelSection}>
       <div className={styles.channelHeader}>
@@ -85,6 +87,9 @@ function ChannelSection({ icon, title, conditionOptions, rows, onRowChange, onAd
       </div>
 
       <div className="trigger-conditions__card">
+        {conditionsLabel && (
+          <span className={styles.conditionsLabel}>{conditionsLabel}</span>
+        )}
         <div className="trigger-conditions__conditions">
           {rows.map((row, idx) => (
             <div key={row.id}>
@@ -94,14 +99,14 @@ function ChannelSection({ icon, title, conditionOptions, rows, onRowChange, onAd
                   options={conditionOptions}
                   onChange={(val) => onRowChange(row.id, 'condition', val)}
                   placeholder="Select condition"
-                  disabled={viewOnly}
+                  readOnly={viewOnly}
                 />
                 <ConditionDropdown
                   value={row.time}
                   options={TIME_OPTIONS}
                   onChange={(val) => onRowChange(row.id, 'time', val)}
                   placeholder="Select time"
-                  disabled={viewOnly}
+                  readOnly={viewOnly}
                 />
               </div>
               {!viewOnly && rows.length > 1 && idx < rows.length - 1 && (
@@ -198,6 +203,7 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
         value={triggerName}
         onChange={handleTriggerName}
         required
+        readOnly={viewOnly}
       />
       <TextArea
         name="description"
@@ -207,11 +213,13 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
         onChange={handleDescription}
         noFloatingLabel
         required
+        readOnly={viewOnly}
       />
 
       <ChannelSection
         icon="call"
         title="Voice call"
+        conditionsLabel="Trigger conditions for voice"
         conditionOptions={VOICE_OPTIONS}
         rows={voiceRows}
         onRowChange={(id, key, val) => updateRows(setVoiceRows, 'voiceRows', voiceRows, id, key, val)}
@@ -223,6 +231,7 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
       <ChannelSection
         icon="chat"
         title="Web chat"
+        conditionsLabel="Trigger conditions for web chat"
         conditionOptions={WEBCHAT_OPTIONS}
         rows={webChatRows}
         onRowChange={(id, key, val) => updateRows(setWebChatRows, 'webChatRows', webChatRows, id, key, val)}

@@ -18,7 +18,7 @@ const DEFAULT_LOCATIONS = [
 
 const VISIBLE_COUNT = 4;
 
-export default function AgentDetailsBody({ values: externalValues, onChange }) {
+export default function AgentDetailsBody({ values: externalValues, onChange, viewOnly = false }) {
   const [internalValues, setInternalValues] = useState({
     agentName: '',
     goals: '',
@@ -89,6 +89,7 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
         value={values.agentName}
         onChange={set('agentName')}
         required
+        readOnly={viewOnly}
       />
       <TextArea
         name="goals"
@@ -98,6 +99,7 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
         required
         noFloatingLabel
         rows={6}
+        readOnly={viewOnly}
       />
       <TextArea
         name="outcomes"
@@ -105,26 +107,27 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
         value={values.outcomes}
         onChange={set('outcomes')}
         noFloatingLabel
-        rows={6}
+        rows={viewOnly ? 12 : 6}
+        readOnly={viewOnly}
       />
 
       {/* ─── Locations ─── */}
       <div className={styles.locationsField}>
-        {/* Header row: "Locations * ⓘ" + pencil icon (opens drawer) */}
         <div className={styles.locationsLabel}>
           <span className={styles.locationsLabelText}>Locations</span>
           <span className={styles.locationsRequired}>*</span>
-          <span className={`material-symbols-outlined ${styles.locationsInfoIcon}`}>info</span>
-          <button
-            className={styles.locationsEditBtn}
-            type="button"
-            onClick={() => setShowLocations(true)}
-            title="Edit locations"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
-              edit
-            </span>
-          </button>
+          {!viewOnly && (
+            <button
+              className={styles.locationsEditBtn}
+              type="button"
+              onClick={() => setShowLocations(true)}
+              title="Edit locations"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                edit
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Location chips — grey pill with name + × remove button */}
@@ -132,16 +135,18 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
           {visibleLocations.map((loc) => (
             <span key={loc.id} className={styles.locationChip}>
               <span className={styles.locationChipName}>{loc.name}</span>
-              <button
-                type="button"
-                className={styles.locationChipClose}
-                onClick={() => handleRemoveChip(loc.id)}
-                title="Remove"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 12, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
-                  close
-                </span>
-              </button>
+              {!viewOnly && (
+                <button
+                  type="button"
+                  className={styles.locationChipClose}
+                  onClick={() => handleRemoveChip(loc.id)}
+                  title="Remove"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                    close
+                  </span>
+                </button>
+              )}
             </span>
           ))}
         </div>

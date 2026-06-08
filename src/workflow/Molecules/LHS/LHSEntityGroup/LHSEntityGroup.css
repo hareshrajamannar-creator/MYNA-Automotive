@@ -152,6 +152,10 @@
   opacity: 1;
 }
 
+.lhs-entity-group__item-drag--visible {
+  opacity: 1;
+}
+
 .lhs-entity-group__add-btn {
   display: flex;
   align-items: center;

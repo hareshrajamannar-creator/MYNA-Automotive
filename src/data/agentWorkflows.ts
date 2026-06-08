@@ -21,7 +21,7 @@ const CONV_TRIGGER = {
 // Workflow: Conversation trigger → Procedures (greet, detect intent, route)
 
 const FRONTDESK_NODES = [
-  { id: 'fd-1', ...CONV_TRIGGER, data: { ...CONV_TRIGGER.data, title: 'Inbound call, chat, or text' } },
+  { id: 'fd-1', ...CONV_TRIGGER, data: { ...CONV_TRIGGER.data, title: 'Channel' } },
   {
     id: 'fd-2',
     flowType: 'procedures',
@@ -32,24 +32,26 @@ const FRONTDESK_NODES = [
 const FRONTDESK_NODE_DETAILS: Record<string, any> = {
   '__start__': {
     agentName: 'Frontdesk agent',
-    goals: "Handle all inbound customer interactions via voice, webchat, and text. Serve as the dealership's intelligent receptionist, routing calls, answering questions, and scheduling appointments.",
-    outcomes: 'Callers are greeted with a branded message, intent is detected and confirmed, and each caller is routed to the appropriate procedure — all within the first 30 seconds.',
+    goals: 'Serves as the first point of contact for inbound calls, texts, and chats — routing customer inquiries, scheduling service and sales appointments, answering vehicle and inventory questions, and escalating complex cases to the right department.',
+    outcomes: `1. Customer inquiry is resolved or routed without human intervention
+2. Service or sales appointment is confirmed, modified, or cancelled and reflected in the DMS
+3. Vehicle availability and pricing questions are answered instantly from inventory data
+4. No customer is left waiting without a response or a clear next step
+5. Escalations include a full summary of the conversation and identified customer intent`,
     locations: ['1001 - Mountain View, CA', '1002 - Seattle, WA', '1004 - Chicago, IL', '1006 - Las Vegas, NV'],
   },
   'fd-1': {
-    triggerName: 'Inbound call, chat, or text',
-    description: 'Fires when any inbound customer interaction is received — voice call, webchat message, or SMS text.',
-    voiceConditions: [{ field: 'channel', operator: 'is', value: 'Inbound voice call' }],
-    webchatConditions: [{ field: 'channel', operator: 'is', value: 'Web chat or SMS message' }],
+    triggerName: 'Channel',
+    description: 'Agent triggers when a voice, chat, or text conversations start',
+    voiceRows: [{ id: 'voice-1', condition: 'incoming_call', time: 'during_business' }],
+    webChatRows: [{ id: 'web-1', condition: 'message_received', time: 'during_business' }],
   },
   'fd-2': {
     procedureIds: [
-      'Greeting & Intent Detection',
-      'Talk to Human',
-      'General Inquiry',
-      'Handle Unclear Message',
-      'Emergency / Urgent Handling',
-      'Spanish Language Handling',
+      'Handle general inquiry',
+      'Talk to human',
+      'Handle unclear message',
+      'Handle emergency or urgent concern',
     ],
   },
 }
@@ -249,10 +251,74 @@ const OUTREACH_NODE_DETAILS: Record<string, any> = {
   },
 }
 
+// ─── Healthcare / Dental Frontdesk node details ───────────────────────────────
+
+const FRONTDESK_HC_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Front desk agent - North region',
+    goals: 'Serves as the first point of contact for inbound calls, texts, and chats, resolving patient inquiries, managing appointments, verifying insurance, and escalating complex cases when needed',
+    outcomes: [
+      "1. Patient's query is resolved or routed without human intervention",
+      '2. Appointment is confirmed, modified, or cancelled and reflected in the system',
+      '3. Insurance verification is completed prior to appointment confirmation',
+      '4. No patient is left waiting without a response or a clear next step',
+      '5. Escalations include a full summary of the conversation and identified intent',
+    ].join('\n'),
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1008 - Houston, TX',
+      '1009 - Phoenix, AZ',
+      '1010 - San Diego, CA',
+      '1011 - Portland, OR',
+      '1012 - Denver, CO',
+      '1013 - Atlanta, GA',
+      '1014 - Miami, FL',
+    ],
+  },
+  'fd-1': { ...FRONTDESK_NODE_DETAILS['fd-1'] },
+  'fd-2': {
+    procedureIds: [
+      'Handle general inquiry',
+      'Talk to human',
+      'Book new appointment',
+      'Reschedule appointment',
+      'Cancel appointment',
+      'Handle slot conflict',
+      'Handle booking failure',
+      'Verify insurance',
+      'Appointment confirmation',
+      'Waitlist slot confirmation',
+      'Handle emergency or urgent concern',
+      'Handle unclear message',
+    ],
+  },
+}
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
-export const AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
+export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Frontdesk agent': { nodes: FRONTDESK_NODES, nodeDetails: FRONTDESK_NODE_DETAILS },
   'Reminder agent':  { nodes: REMINDER_NODES,  nodeDetails: REMINDER_NODE_DETAILS  },
   'Outreach agent':  { nodes: OUTREACH_NODES,  nodeDetails: OUTREACH_NODE_DETAILS  },
+}
+
+export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
+  'Frontdesk agent': { nodes: FRONTDESK_NODES, nodeDetails: FRONTDESK_HC_NODE_DETAILS },
+  'Reminder agent':  { nodes: REMINDER_NODES,  nodeDetails: REMINDER_NODE_DETAILS     },
+  'Outreach agent':  { nodes: OUTREACH_NODES,  nodeDetails: OUTREACH_NODE_DETAILS     },
+}
+
+// Dental shares the healthcare configuration
+export const DENTAL_AGENT_WORKFLOWS = HEALTHCARE_AGENT_WORKFLOWS
+
+// Default export kept for backward compat
+export const AGENT_WORKFLOWS = AUTOMOTIVE_AGENT_WORKFLOWS
+
+export function getAgentWorkflows(product?: string) {
+  if (product === 'healthcare' || product === 'dental') return HEALTHCARE_AGENT_WORKFLOWS
+  return AUTOMOTIVE_AGENT_WORKFLOWS
 }

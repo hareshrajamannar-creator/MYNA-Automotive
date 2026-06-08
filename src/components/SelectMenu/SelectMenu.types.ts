@@ -4,8 +4,6 @@ export interface SelectOption {
 }
 
 export interface SelectMenuProps {
-  /** Small label shown at the top of the menu. */
-  title: string
   options: SelectOption[]
   /** Currently selected values. */
   value: string[]

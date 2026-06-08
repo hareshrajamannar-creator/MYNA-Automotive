@@ -6,7 +6,8 @@
  * - Canvas has left/right padding and rounded corners
  */
 import React, { Suspense } from 'react'
-import { AGENT_WORKFLOWS } from '../data/agentWorkflows'
+import { AUTOMOTIVE_AGENT_WORKFLOWS, HEALTHCARE_AGENT_WORKFLOWS, DENTAL_AGENT_WORKFLOWS } from '../data/agentWorkflows'
+import { useProcedureStore } from '../data/ProcedureStoreContext'
 
 // @ts-ignore
 import AgentBuilderRaw from '../workflow/AgentBuilder/AgentBuilder'
@@ -20,12 +21,22 @@ const EMPTY_WORKFLOW = {
 interface WorkflowViewerTabProps {
   instanceName: string
   onEdit: () => void
+  product?: string
 }
 
-export function WorkflowViewerTab({ instanceName, onEdit }: WorkflowViewerTabProps) {
+export function WorkflowViewerTab({ instanceName, onEdit, product }: WorkflowViewerTabProps) {
+  const { procedures } = useProcedureStore()
   // instanceName is e.g. "Frontdesk agent - North region"; extract the agent name prefix
   const agentName = instanceName.replace(/ - .+$/, '')
-  const workflow = AGENT_WORKFLOWS[agentName] ?? EMPTY_WORKFLOW
+  const isHCProduct = product === 'healthcare' || product === 'dental'
+  const filteredProcedures = procedures.filter((p) =>
+    isHCProduct ? p.category === 'Healthcare Frontdesk' : p.category !== 'Healthcare Frontdesk'
+  )
+  const workflowMap =
+    product === 'healthcare' ? HEALTHCARE_AGENT_WORKFLOWS :
+    product === 'dental'     ? DENTAL_AGENT_WORKFLOWS     :
+                               AUTOMOTIVE_AGENT_WORKFLOWS
+  const workflow = workflowMap[agentName] ?? EMPTY_WORKFLOW
 
   return (
     <div className="relative flex-1 overflow-hidden" style={{ height: '100%' }}>
@@ -50,16 +61,19 @@ export function WorkflowViewerTab({ instanceName, onEdit }: WorkflowViewerTabPro
           </div>
         }>
           <AgentBuilder
+            key={`${agentName}::${product ?? 'automotive'}`}
             pageTitle={instanceName}
             appTitle={instanceName}
             viewOnly={true}
             onEdit={onEdit}
+            product={product ?? 'automotive'}
             moduleSlug="myna"
             moduleContext="myna"
             sectionContext="workflow"
             navItems={[]}
             initialNodes={workflow.nodes}
             initialNodeDetails={workflow.nodeDetails}
+            procedures={filteredProcedures}
           />
         </Suspense>
       </div>

@@ -11,6 +11,7 @@ import {
   type Tab,
 } from '../components'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
+import { AgentLogsTab } from './AgentLogsTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 
 interface AgentInstanceScreenProps {
@@ -18,6 +19,7 @@ interface AgentInstanceScreenProps {
   status?: string
   onBack: () => void
   onEditAgent?: (agentName: string) => void
+  product?: string
 }
 
 interface LocationRow {
@@ -93,7 +95,7 @@ const COLUMNS: Column<LocationRow>[] = [
   },
 ]
 
-export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent }: AgentInstanceScreenProps) {
+export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent, product }: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
 
   // Derive agent name from instance name (e.g. "Frontdesk agent - North region" → "Frontdesk agent")
@@ -101,6 +103,8 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
   const isWorkflowTab = activeTab === 'workflow'
+  const showHealthcareLogs =
+    activeTab === 'logs' && product === 'healthcare' && agentName === 'Frontdesk agent'
 
   return (
     <div className="flex h-full flex-col">
@@ -139,6 +143,7 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
         <WorkflowViewerTab
           instanceName={instanceName}
           onEdit={() => onEditAgent?.(instanceName)}
+          product={product}
         />
       ) : (
         <div className="flex-1 overflow-auto">
@@ -151,6 +156,8 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
                 <DataTable columns={COLUMNS} data={LOCATIONS} />
               </div>
             </>
+          ) : showHealthcareLogs ? (
+            <AgentLogsTab />
           ) : (
             <div className="flex h-64 items-center justify-center text-body text-text-secondary">
               No {TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} data yet.

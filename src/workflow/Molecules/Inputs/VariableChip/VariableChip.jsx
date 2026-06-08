@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './VariableChip.module.css';
 
+export function ProcedureBookIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M13.1984 4.19922H9.59844C9.28795 4.19922 8.98172 4.27151 8.70401 4.41036C8.4263 4.54922 8.18473 4.75083 7.99844 4.99922C7.81214 4.75083 7.57057 4.54922 7.29286 4.41036C7.01515 4.27151 6.70893 4.19922 6.39844 4.19922H2.79844C2.69235 4.19922 2.59061 4.24136 2.51559 4.31638C2.44058 4.39139 2.39844 4.49313 2.39844 4.59922V11.7992C2.39844 11.9053 2.44058 12.007 2.51559 12.0821C2.59061 12.1571 2.69235 12.1992 2.79844 12.1992H6.39844C6.7167 12.1992 7.02192 12.3256 7.24697 12.5507C7.47201 12.7757 7.59844 13.081 7.59844 13.3992C7.59844 13.5053 7.64058 13.607 7.71559 13.6821C7.79061 13.7571 7.89235 13.7992 7.99844 13.7992C8.10452 13.7992 8.20627 13.7571 8.28128 13.6821C8.35629 13.607 8.39844 13.5053 8.39844 13.3992C8.39844 13.081 8.52486 12.7757 8.74991 12.5507C8.97495 12.3256 9.28018 12.1992 9.59844 12.1992H13.1984C13.3045 12.1992 13.4063 12.1571 13.4813 12.0821C13.5563 12.007 13.5984 11.9053 13.5984 11.7992V4.59922C13.5984 4.49313 13.5563 4.39139 13.4813 4.31638C13.4063 4.24136 13.3045 4.19922 13.1984 4.19922ZM6.39844 11.3992H3.19844V4.99922H6.39844C6.7167 4.99922 7.02192 5.12565 7.24697 5.35069C7.47201 5.57573 7.59844 5.88096 7.59844 6.19922V11.7992C7.25257 11.539 6.83129 11.3985 6.39844 11.3992ZM12.7984 11.3992H9.59844C9.16558 11.3985 8.7443 11.539 8.39844 11.7992V6.19922C8.39844 5.88096 8.52486 5.57573 8.74991 5.35069C8.97495 5.12565 9.28018 4.99922 9.59844 4.99922H12.7984V11.3992Z" fill="#37A248" />
+    </svg>
+  );
+}
+
 export function DataTypeIcon() {
   return (
     <svg width="16" height="15" viewBox="5 5.5 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -22,8 +30,8 @@ export const CHIP_TYPES = [
   { type: 'variable', label: 'Variable', icon: null },
   { type: 'attachment', label: 'Attachment', icon: 'attach_file' },
   { type: 'link', label: 'Link URL', icon: 'link' },
-  { type: 'address', label: 'Brand', icon: 'home' },
-  { type: 'product', label: 'Industry', icon: 'deployed_code' },
+  { type: 'address', label: 'Sub-agent', icon: 'smart_toy' },
+  { type: 'product', label: 'Procedure', icon: 'menu_book' },
   { type: 'tool', label: 'Tool', icon: 'build' },
 ];
 
@@ -31,6 +39,7 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function SwatchIcon({ type }) {
   if (!type || type === 'variable') return <DataTypeIcon />;
+  if (type === 'product') return <ProcedureBookIcon />;
   const info = CHIP_TYPES.find((ct) => ct.type === type);
   if (!info?.icon) return <DataTypeIcon />;
   return (
@@ -40,7 +49,8 @@ function SwatchIcon({ type }) {
   );
 }
 
-export default function VariableChip({ value, type = 'variable', onChange, onDelete, onSwatchClick, autoFocus = false, fullWidth = false }) {
+export default function VariableChip({ value, type = 'variable', onChange, onDelete, onSwatchClick, autoFocus = false, fullWidth = false, readOnly = false }) {
+  const isEditable = !readOnly && typeof onChange === 'function';
   const [editing, setEditing] = useState(autoFocus);
   const [draft, setDraft] = useState(value ?? '');
   const inputRef = useRef(null);
@@ -118,19 +128,21 @@ export default function VariableChip({ value, type = 'variable', onChange, onDel
         <SwatchIcon type={type} />
       </span>
       <span
-        className={`${styles.chipLabel} ${fullWidth ? styles.chipLabelWrap : ''}`}
-        onClick={() => setEditing(true)}
+        className={`${styles.chipLabel} ${fullWidth ? styles.chipLabelWrap : ''}${isEditable ? '' : ` ${styles.chipLabelReadOnly}`}`}
+        onClick={isEditable ? () => setEditing(true) : undefined}
       >
         {value}
       </span>
-      <button
-        className={styles.deleteBtn}
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-      >
-        <CloseIcon />
-      </button>
+      {onDelete && (
+        <button
+          className={styles.deleteBtn}
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        >
+          <CloseIcon />
+        </button>
+      )}
     </span>
   );
 }

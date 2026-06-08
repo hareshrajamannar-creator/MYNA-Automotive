@@ -20,11 +20,16 @@ export interface RowAction<T> {
   icon: string
   label: string
   onClick: (row: T) => void
+  /** When provided, the button is only rendered for rows where this returns true. */
+  visible?: (row: T) => boolean
 }
 
 export interface RowMenuItem<T> {
   label: string
   onClick: (row: T) => void
+  /** When omitted, the item is always shown. */
+  visible?: (row: T) => boolean
+  variant?: 'default' | 'danger'
 }
 
 export interface DataTableProps<T = Record<string, unknown>> {

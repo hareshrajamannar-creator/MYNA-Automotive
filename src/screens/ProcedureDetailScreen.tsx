@@ -1,64 +1,129 @@
-import React, { useState } from 'react'
-import { TopNav, Icon, RefChip } from '../components'
+import React, { useState, useRef, useEffect } from 'react'
+import { TopNav, Icon, RefChip, ContextModal, EmptyHintField } from '../components'
+import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
-// @ts-ignore
-import UserPromptInputRaw from '../workflow/Molecules/Inputs/UserPromptInput/UserPromptInput'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const UserPromptInput = UserPromptInputRaw as React.ComponentType<any>
-import { type Procedure, type ProcedureStep, type ContextItem } from '../data/procedureData'
+import UserPromptInput from '../workflow/Molecules/Inputs/UserPromptInput/UserPromptInput'
+import { type Procedure, type ProcedureStep, type ContextItem, type RefKind, type Token } from '../data/procedureData'
+import { useProcedureStore } from '../data/ProcedureStoreContext'
+
+function parseStepsText(text: string): ProcedureStep[] {
+  if (!text.trim()) return []
+  return text
+    .split('\n')
+    .filter((l) => l.trim())
+    .map((l) => ({ title: l.replace(/^[\d•.\-\s]+/, '').trim(), bullets: [] }))
+}
+
+function stepsToEditorText(steps: ProcedureStep[]): string {
+  return steps
+    .map((step, i) => {
+      const bullets = step.bullets
+        .map((b) => {
+          const content = b.tokens
+            .map((t) => (typeof t === 'string' ? t : `{{${t.label}}}`))
+            .join('')
+          return content.trim() ? `• ${content.trim()}` : ''
+        })
+        .filter(Boolean)
+        .join('\n')
+      return bullets ? `${i + 1}. ${step.title}\n${bullets}` : `${i + 1}. ${step.title}`
+    })
+    .join('\n')
+}
 
 interface ProcedureDetailScreenProps {
   /** null = create a new procedure. */
   procedure: Procedure | null
   onBack: () => void
+  product?: string
 }
 
-const WHEN_PLACEHOLDER = `Describe the customer situation or trigger that should activate this procedure.
+const TITLE_PLACEHOLDER = 'Enter procedure title'
+
+const WHEN_PLACEHOLDER = `Describe the trigger that should activate this procedure.
 
 Examples:
 • Customer wants to reschedule an appointment
-• Caller reports a billing issue
-• Customer asks about parts availability`
+• User reports a payment issue`
 
-export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScreenProps) {
+const STEPS_PLACEHOLDER = `Start writing instructions…
+Type "/" to insert a tool, field, or procedure.`
+
+
+const STEPS_FIELD_MIN_HEIGHT = 360
+
+export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive' }: ProcedureDetailScreenProps) {
+  const { addProcedure, updateProcedure, deleteProcedure } = useProcedureStore()
   const isNew = procedure === null
+  const isHC = product === 'healthcare' || product === 'dental'
+  const defaultCategory = isHC ? 'Healthcare Frontdesk' : 'Inbound General'
 
   const [title, setTitle] = useState(procedure?.name ?? '')
   const [whenToUse, setWhenToUse] = useState(procedure?.whenToUse ?? '')
-  // Convert structured ProcedureStep[] → plain numbered text for UserPromptInput
-  const stepsToText = (s: ProcedureStep[]): string =>
-    s.map((step, i) => {
-      const bullets = step.bullets
-        .map((b) =>
-          b.tokens.map((t) => (typeof t === 'string' ? t : t.label)).join('')
-        )
-        .filter(Boolean)
-        .join('\n')
-      return bullets ? `${i + 1}. ${step.title}\n${bullets}` : `${i + 1}. ${step.title}`
-    }).join('\n')
-
-  const [stepsText, setStepsText] = useState(() =>
-    procedure?.steps?.length ? stepsToText(procedure.steps) : ''
-  )
-  const [tools, setTools] = useState<string[]>(procedure?.tools ?? [])
+  const initialStepsText = stepsToEditorText(procedure?.steps ?? [])
+  const [stepsText, setStepsText] = useState(initialStepsText)
   const [context, setContext] = useState<ContextItem[]>(procedure?.context ?? [])
+  const [showAllContext, setShowAllContext] = useState(false)
   const [actionsOpen, setActionsOpen] = useState(false)
+  const [contextModalOpen, setContextModalOpen] = useState(false)
 
-  // For existing procedures, Save stays disabled until something changes.
-  const dirty =
-    isNew ||
-    title !== procedure.name ||
-    whenToUse !== procedure.whenToUse ||
-    tools.length !== procedure.tools.length ||
-    context.length !== procedure.context.length
+  function handleContextSave(result: ContextModalResult) {
+    const items: ContextItem[] = []
+    result.fields
+      .filter((f) => f.enabled)
+      .forEach((f) => items.push({ kind: 'context', label: f.name.replace(/\s+/g, '.') }))
+    result.knowledge.files.forEach((f) => items.push({ kind: 'file', label: f.name }))
+    result.knowledge.links.forEach((l) => items.push({ kind: 'link', label: l.url }))
+    result.brandItems
+      .filter((b) => b.enabled)
+      .forEach((b) => items.push({ kind: 'context', label: b.name }))
+    if (result.industryEnabled) items.push({ kind: 'context', label: 'Industry.context' })
+    setContext(items)
+  }
+
+  function handleSave() {
+    const now = new Date()
+    const saved: Procedure = {
+      id: isNew ? `p-${Date.now()}` : procedure!.id,
+      name: title.trim() || 'Untitled procedure',
+      category: procedure?.category ?? defaultCategory,
+      description: whenToUse.trim().split(/[.!?]/)[0].trim() || title.trim() || 'No description',
+      lastEdited: now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      whenToUse: whenToUse.trim(),
+      steps: parseStepsText(stepsText),
+      tools: procedure?.tools ?? [],
+      context,
+    }
+    if (isNew) {
+      addProcedure(saved)
+    } else {
+      updateProcedure(saved)
+    }
+    onBack()
+  }
+
+  function handleDelete() {
+    if (procedure) deleteProcedure(procedure.id)
+    setActionsOpen(false)
+    onBack()
+  }
+
+  const dirty = isNew
+    ? Boolean(title.trim() || whenToUse.trim() || stepsText.trim() || context.length)
+    : (
+      title !== procedure?.name ||
+      whenToUse !== procedure?.whenToUse ||
+      stepsText !== initialStepsText ||
+      context.length !== (procedure?.context.length ?? 0)
+    )
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
       <div className="flex-1 overflow-auto bg-surface">
-        {/* Header — same bar treatment as the Human actions pages */}
-        <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+        {/* Header — sticky while the form body scrolls */}
+        <div className="sticky top-0 z-20 flex items-center justify-between bg-surface px-2xl py-xl">
           <div className="flex min-w-0 items-center gap-sm">
             <button
               type="button"
@@ -87,18 +152,18 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
                 <button
                   type="button"
                   onClick={() => setActionsOpen((o) => !o)}
-                  className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary transition-colors hover:bg-surface-l2"
+                  className="flex h-9 items-center rounded-sm border border-[#ccc] bg-surface px-lg text-body text-text-primary transition-colors hover:bg-surface-l2"
                 >
                   Actions
                 </button>
                 {actionsOpen && (
                   <>
                     <div className="fixed inset-0 z-[105]" onClick={() => setActionsOpen(false)} />
-                    <div className="absolute right-0 top-11 z-[110] min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-                      <button className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => setActionsOpen(false)}>
+                    <div className="absolute right-0 top-11 z-[110] min-w-[168px] rounded-sm bg-surface py-xs shadow-dropdown">
+                      <button className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => setActionsOpen(false)}>
                         Duplicate
                       </button>
-                      <button className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover" onClick={() => setActionsOpen(false)}>
+                      <button className="block w-full px-md py-md text-left text-body text-chip-danger-text hover:bg-surface-hover" onClick={handleDelete}>
                         Delete
                       </button>
                     </div>
@@ -110,6 +175,7 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
             <button
               type="button"
               disabled={!dirty}
+              onClick={dirty ? handleSave : undefined}
               className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
                 dirty
                   ? 'bg-primary text-white hover:bg-primary-hover'
@@ -121,81 +187,102 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
           </div>
         </div>
 
-        {/* Body — two columns */}
+        {/* Body — wide left column + fixed context sidebar */}
         <div className="flex gap-2xl px-2xl pb-2xl pt-md">
-          {/* Left column */}
-          <div className="min-w-0 flex-1 space-y-xl">
-            {/* Title */}
+
+          {/* Left — takes remaining space */}
+          <div className="flex min-w-0 flex-1 flex-col gap-xl">
             <Field label="Procedure title">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter"
-                className="h-10 w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
-              />
+              <EmptyHintField
+                hint={TITLE_PLACEHOLDER}
+                isEmpty={!title.trim()}
+                className="h-10 rounded-sm border border-border-selected bg-surface transition-colors hover:border-border focus-within:border-primary"
+                hintClassName="flex items-center px-md"
+              >
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="h-10 w-full bg-transparent px-md text-body text-text-primary outline-none"
+                />
+              </EmptyHintField>
             </Field>
 
-            {/* When to use */}
             <Field label="When to use this procedure?">
-              <textarea
-                value={whenToUse}
-                onChange={(e) => setWhenToUse(e.target.value)}
-                placeholder={WHEN_PLACEHOLDER}
-                rows={isNew ? 5 : 3}
-                className="w-full resize-y rounded-sm border border-border-selected bg-surface p-md text-body leading-relaxed text-text-primary placeholder:text-text-tertiary focus:outline-none"
-              />
+              <EmptyHintField
+                hint={WHEN_PLACEHOLDER}
+                isEmpty={!whenToUse.trim()}
+                className="rounded-sm border border-border-selected bg-surface transition-colors hover:border-border focus-within:border-primary"
+                hintClassName="p-md"
+              >
+                <textarea
+                  value={whenToUse}
+                  onChange={(e) => setWhenToUse(e.target.value)}
+                  rows={isNew ? 5 : 4}
+                  className="w-full resize-y bg-transparent p-md text-body leading-relaxed text-text-primary outline-none"
+                />
+              </EmptyHintField>
             </Field>
 
-            {/* Steps — always uses UserPromptInput (same as system/user prompt) */}
             <Field label="Steps" info>
-              <UserPromptInput
-                hideLabel
+              <ProcedureStepsPanel
+                initialSteps={procedure?.steps ?? []}
                 value={stepsText}
-                onChange={(val: string) => setStepsText(val)}
+                onChange={setStepsText}
+                isNew={isNew}
               />
             </Field>
           </div>
 
-          {/* Right column */}
-          <div className="w-[340px] shrink-0 space-y-xl">
-            <Field label="Tools" info>
-              <SidebarCard
-                emptyLabel="No tools added"
-                empty={tools.length === 0}
-                onAdd={() => setTools((t) => [...t, 'New tool'])}
-              >
-                {tools.map((t, i) => (
-                  <RefChip
-                    key={`${t}-${i}`}
-                    kind="tool"
-                    label={t}
-                    onRemove={() => setTools((arr) => arr.filter((_, idx) => idx !== i))}
-                  />
-                ))}
-              </SidebarCard>
-            </Field>
-
+          {/* Right — fixed 400px context sidebar (auto-fills space freed from left) */}
+          <div className="w-[400px] shrink-0">
             <Field label="Context" info>
-              <SidebarCard
-                emptyLabel="No context added"
-                empty={context.length === 0}
-                onAdd={() => setContext((c) => [...c, { kind: 'context', label: 'New.variable' }])}
-                footer={context.length > 4 ? `+ ${context.length - 4} more` : undefined}
-              >
-                {context.slice(0, 4).map((c, i) => (
-                  <RefChip
-                    key={`${c.label}-${i}`}
-                    kind={c.kind}
-                    label={c.label}
-                    onRemove={() => setContext((arr) => arr.filter((_, idx) => idx !== i))}
-                  />
-                ))}
-              </SidebarCard>
+              <div className="rounded-sm border border-border-selected bg-surface">
+                {context.length === 0 ? (
+                  <p className="px-lg py-md text-body text-text-tertiary">No context added</p>
+                ) : (
+                  <div className="flex flex-wrap gap-sm px-lg pb-sm pt-md">
+                    {(showAllContext ? context : context.slice(0, 20)).map((c, i) => (
+                      <RefChip
+                        key={`${c.label}-${i}`}
+                        kind={c.kind}
+                        label={c.label}
+                        onRemove={() => setContext((arr) => arr.filter((_, idx) => idx !== i))}
+                      />
+                    ))}
+                    {!showAllContext && context.length > 20 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllContext(true)}
+                        className="self-center text-body text-text-action hover:text-primary-hover"
+                      >
+                        + {context.length - 20} more
+                      </button>
+                    )}
+                  </div>
+                )}
+                <div className="px-lg py-sm">
+                  <button
+                    type="button"
+                    onClick={() => setContextModalOpen(true)}
+                    className="flex items-center gap-xs text-body text-text-action transition-colors hover:text-primary-hover"
+                  >
+                    <Icon name="add_circle" size={16} />
+                    Add
+                  </button>
+                </div>
+              </div>
             </Field>
           </div>
+
         </div>
       </div>
+
+      <ContextModal
+        open={contextModalOpen}
+        onClose={() => setContextModalOpen(false)}
+        onSave={handleContextSave}
+      />
     </div>
   )
 }
@@ -203,52 +290,317 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
 // ── Field label wrapper ─────────────────────────────────────────
 function Field({ label, info = false, children }: { label: string; info?: boolean; children: React.ReactNode }) {
   return (
-    <div>
-      <div className="mb-xs flex items-center gap-xs">
-        <span className="text-body text-text-primary">{label}</span>
-        {info && <Icon name="info" size={14} className="text-text-tertiary" />}
+    <div className="flex flex-col gap-xs">
+      <div className="flex h-[18px] items-center gap-xs">
+        <span className="text-small text-text-primary">{label}</span>
+        {info && <Icon name="info" size={16} className="text-text-tertiary" />}
       </div>
       {children}
     </div>
   )
 }
 
-// ── Sidebar card (Tools / Context) ──────────────────────────────
-function SidebarCard({
-  empty,
-  emptyLabel,
-  onAdd,
-  footer,
-  children,
+
+// Mirrors the token type resolver in ProcedureDetailBody.jsx
+const KNOWN_TOKENS: Record<string, string> = {
+  agent_turn: 'tool',
+  Escalate_to_staff: 'tool',
+  escalate_to_staff: 'tool',
+  'End conversation': 'product',
+  Close_session: 'product',
+  close_session: 'product',
+  'Talk to Human': 'product',
+  Appointment_Management_agent: 'address',
+  appointment_management_agent: 'address',
+}
+
+function bulletIsEmpty(tokens: Token[]): boolean {
+  return !tokens.some((t) => (typeof t === 'string' ? t.trim().length > 0 : Boolean(t.label?.trim())))
+}
+
+function resolveTokenType(label: string): string {
+  if (KNOWN_TOKENS[label]) return KNOWN_TOKENS[label]
+  if (/_agent$/i.test(label)) return 'address'
+  if (/^[a-z][a-z0-9_]+$/.test(label)) return 'tool'
+  if (label.includes('=')) return 'variable'
+  return 'variable'
+}
+
+// ── Bullet serializer ───────────────────────────────────────────────────────
+// Walk a contentEditable bullet div and reconstruct Token[] from its childNodes.
+// Text nodes → string tokens. Chip wrapper spans (data-chip-kind) → Ref tokens.
+function serializeBulletEl(el: HTMLElement): Token[] {
+  const tokens: Token[] = []
+  el.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent) tokens.push(node.textContent)
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const elem = node as HTMLElement
+      const kind = elem.dataset.chipKind as RefKind | undefined
+      if (kind) {
+        tokens.push({ kind, label: elem.dataset.chipLabel ?? '' })
+      } else {
+        const text = elem.textContent
+        if (text) tokens.push(text)
+      }
+    }
+  })
+  return tokens.filter((t) => t !== '')
+}
+
+// ── Editable bullet with stable placeholder ─────────────────────────────────
+// IMPORTANT: never call setState inside onInput — doing so triggers a React
+// re-render which reconciles the contentEditable children against the original
+// token spans, erasing whatever the user just typed.
+// The placeholder visibility is controlled via CSS `visibility` (not conditional
+// rendering) so the contentEditable's DOM position stays fixed across renders.
+function EditableBulletLine({
+  bullet,
+  bulletRef,
+  onBlur,
+  onRemoveChip,
 }: {
-  empty: boolean
-  emptyLabel: string
-  onAdd: () => void
-  footer?: string
-  children: React.ReactNode
+  bullet: { tokens: Token[] }
+  bulletRef: (el: HTMLDivElement | null) => void
+  onBlur: (el: HTMLElement) => void
+  onRemoveChip: (tokenIdx: number) => void
 }) {
+  // Derived only from the tokens prop — no local state, no onInput setState
+  const showHint = bulletIsEmpty(bullet.tokens)
+
   return (
-    <div className="rounded-sm border border-border-selected bg-surface p-md">
-      {empty ? (
-        <p className="mb-sm text-body text-text-tertiary">{emptyLabel}</p>
-      ) : (
-        <div className="mb-sm flex flex-wrap gap-xs">{children}</div>
-      )}
-      <button
-        type="button"
-        onClick={onAdd}
-        className="flex items-center gap-xs text-body text-text-action transition-colors hover:text-primary-hover"
+    <div className="relative min-h-[24px] flex-1">
+      {/* Always in DOM — visibility toggle never shifts sibling positions */}
+      <div
+        className="pointer-events-none absolute inset-0 select-none text-body leading-relaxed text-text-tertiary"
+        style={{ visibility: showHint ? 'visible' : 'hidden' }}
+        aria-hidden
       >
-        <Icon name="add_circle" size={16} />
-        Add
-      </button>
-      {footer && (
-        <button type="button" className="mt-sm block text-body text-text-action hover:text-primary-hover">
-          {footer}
-        </button>
-      )}
+        Write instruction…
+      </div>
+      <div
+        ref={bulletRef}
+        contentEditable
+        suppressContentEditableWarning
+        className="relative text-body leading-relaxed text-text-secondary outline-none"
+        onBlur={(e) => onBlur(e.currentTarget)}
+      >
+        {bullet.tokens.map((token, k) =>
+          typeof token === 'string' ? (
+            <span key={k}>{token}</span>
+          ) : (
+            <span
+              key={k}
+              contentEditable={false}
+              data-chip-kind={token.kind}
+              data-chip-label={token.label}
+              style={{ display: 'inline-block', userSelect: 'none' }}
+            >
+              <RefChip
+                kind={token.kind}
+                label={token.label}
+                onRemove={() => onRemoveChip(k)}
+              />
+            </span>
+          )
+        )}
+      </div>
     </div>
   )
 }
 
-// ── Steps rich view ─────────────────────────────────────────────
+// ── Steps panel ─────────────────────────────────────────────────────────────
+// Identical visual layout in read + edit mode. Text is directly editable in-place:
+// step titles via <input>, bullet lines via contentEditable divs with inline chips.
+function ProcedureStepsPanel({
+  initialSteps,
+  value,
+  onChange,
+  isNew,
+}: {
+  initialSteps: ProcedureStep[]
+  value: string
+  onChange: (v: string) => void
+  isNew: boolean
+}) {
+  const hasStructure = !isNew && initialSteps.length > 0
+  const [isEditing, setIsEditing] = useState(isNew)
+  const [editSteps, setEditSteps] = useState<ProcedureStep[]>(initialSteps)
+  const [isFocused, setIsFocused] = useState(false)
+
+  // Refs to every title input and bullet div so we can focus them precisely
+  const titleRefs = useRef<Record<number, HTMLInputElement | null>>({})
+  const bulletRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  // Remembers which element to focus once edit mode activates
+  const pendingFocusKey = useRef<string | null>(null)
+
+  // After isEditing flips to true, focus the element the user clicked on
+  useEffect(() => {
+    if (!isEditing || !pendingFocusKey.current) return
+    const key = pendingFocusKey.current
+    pendingFocusKey.current = null
+    requestAnimationFrame(() => {
+      if (key.startsWith('t-')) {
+        titleRefs.current[parseInt(key.slice(2))]?.focus()
+      } else if (key.startsWith('b-')) {
+        const [, si, bi] = key.split('-')
+        bulletRefs.current[`${si}-${bi}`]?.focus()
+      }
+    })
+  }, [isEditing])
+
+  function enterEditAt(key: string) {
+    pendingFocusKey.current = key
+    setIsEditing(true)
+  }
+
+  function updateTitle(i: number, title: string) {
+    const updated = editSteps.map((s, idx) => (idx === i ? { ...s, title } : s))
+    setEditSteps(updated)
+    onChange(stepsToEditorText(updated))
+  }
+
+  function updateBulletOnBlur(si: number, bi: number, el: HTMLElement) {
+    const tokens = serializeBulletEl(el)
+    const updated = editSteps.map((s, i) =>
+      i === si
+        ? { ...s, bullets: s.bullets.map((b, j) => (j === bi ? { tokens } : b)) }
+        : s
+    )
+    setEditSteps(updated)
+    onChange(stepsToEditorText(updated))
+  }
+
+  function removeChipFromBullet(si: number, bi: number, tokenIdx: number) {
+    const bKey = `${si}-${bi}`
+    const updated = editSteps.map((s, i) =>
+      i === si
+        ? {
+            ...s,
+            bullets: s.bullets.map((b, j) =>
+              j === bi ? { tokens: b.tokens.filter((_, k) => k !== tokenIdx) } : b
+            ),
+          }
+        : s
+    )
+    setEditSteps(updated)
+    onChange(stepsToEditorText(updated))
+    // Restore focus to the bullet after chip removal re-render
+    setTimeout(() => bulletRefs.current[bKey]?.focus(), 0)
+  }
+
+  const borderCls = isFocused ? 'border-primary' : 'border-border-selected'
+
+  function handleFocus() { setIsFocused(true) }
+  function handleBlur(e: React.FocusEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setIsFocused(false)
+  }
+
+  // New procedures (no structure yet) — use UserPromptInput inside the same shell
+  if (!hasStructure) {
+    return (
+      <div
+        className={`min-h-[360px] rounded-sm border bg-surface p-md transition-colors ${borderCls}`}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+      >
+        <div className="steps-editor-shell">
+          <UserPromptInput
+            hideLabel autoHeight
+            value={value} onChange={onChange}
+            resolveType={resolveTokenType}
+            minEditorHeight={STEPS_FIELD_MIN_HEIGHT}
+            placeholder={STEPS_PLACEHOLDER}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`min-h-[360px] rounded-sm border bg-surface p-md transition-colors ${borderCls}`}
+      style={{ cursor: !isEditing ? 'text' : 'default' }}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
+      <div className="flex flex-col gap-lg">
+        {editSteps.map((step, i) => (
+          <div key={i} className="flex flex-col gap-sm">
+
+            {/* ── Step title ── */}
+            <div className="flex items-start gap-sm">
+              <span className="w-5 shrink-0 text-right text-body leading-relaxed text-text-primary">
+                {i + 1}.
+              </span>
+              {isEditing ? (
+                <div className="relative min-h-[24px] flex-1">
+                  <div
+                    className="pointer-events-none absolute inset-0 select-none text-body leading-relaxed text-text-tertiary"
+                    style={{ visibility: step.title.trim() ? 'hidden' : 'visible' }}
+                    aria-hidden
+                  >
+                    Step title
+                  </div>
+                  <input
+                    ref={(el) => { titleRefs.current[i] = el }}
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => updateTitle(i, e.target.value)}
+                    className="relative w-full bg-transparent text-body leading-relaxed text-text-primary outline-none"
+                  />
+                </div>
+              ) : (
+                <span
+                  data-target-key={`t-${i}`}
+                  className="flex-1 text-body leading-relaxed text-text-primary"
+                  onClick={() => enterEditAt(`t-${i}`)}
+                >
+                  {step.title}
+                </span>
+              )}
+            </div>
+
+            {/* ── Bullets ── */}
+            {step.bullets.length > 0 && (
+              <div className="flex flex-col gap-xs pl-[28px]">
+                {step.bullets.map((bullet, j) => {
+                  const bKey = `${i}-${j}`
+                  return (
+                    <div key={j} className="flex items-baseline gap-sm">
+                      <span className="shrink-0 text-body leading-relaxed text-text-tertiary">•</span>
+
+                      {isEditing ? (
+                        <EditableBulletLine
+                          bullet={bullet}
+                          bulletRef={(el) => { bulletRefs.current[bKey] = el }}
+                          onBlur={(el) => updateBulletOnBlur(i, j, el)}
+                          onRemoveChip={(k) => removeChipFromBullet(i, j, k)}
+                        />
+                      ) : (
+                        <span
+                          data-target-key={`b-${i}-${j}`}
+                          className="flex-1 text-body leading-relaxed text-text-secondary"
+                          onClick={() => enterEditAt(`b-${i}-${j}`)}
+                        >
+                          {bullet.tokens.map((token, k) =>
+                            typeof token === 'string' ? (
+                              <span key={k}>{token}</span>
+                            ) : (
+                              <RefChip key={k} kind={token.kind} label={token.label} className="mx-[2px] align-middle" />
+                            )
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+

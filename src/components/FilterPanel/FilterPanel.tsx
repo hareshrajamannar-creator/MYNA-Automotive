@@ -93,7 +93,6 @@ export function FilterPanel({
             style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
           >
             <SelectMenu
-              title={activeField.label}
               options={activeField.options ?? []}
               value={selections[activeField.id] ?? []}
               multi={activeField.multi ?? true}

@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
+import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
+import { IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
+import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
@@ -19,6 +21,7 @@ function EmptyResourceScreen({ label }: { label: string }) {
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
+import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -70,31 +73,31 @@ const RAIL_GROUPS: RailGroup[] = [
   },
 ]
 
-const NAV_SECTIONS: NavSection[] = [
+const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
     defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'sales-pipeline', label: 'Sales pipeline' },
-      { id: 'service-requests', label: 'Service requests' },
+      { id: 'sales-pipeline',      label: 'Sales pipeline'      },
+      { id: 'service-requests',    label: 'Service requests'    },
     ],
   },
   {
     id: 'agent',
-    label: 'Agent',
-    defaultExpanded: false,
+    label: 'Agents',
+    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent', label: 'Frontdesk agent' },
-      { id: 'reminder-agent', label: 'Reminder agent' },
-      { id: 'outreach-agent', label: 'Outreach agent' },
+      { id: 'reminder-agent',  label: 'Reminder agent'  },
+      { id: 'outreach-agent',  label: 'Outreach agent'  },
     ],
   },
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
       { id: 'conversations', label: 'Appointment overview' },
       { id: 'sales',         label: 'Sales'                },
@@ -104,16 +107,138 @@ const NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
-      { id: 'knowledge-base', label: 'Knowledge base' },
+      { id: 'providers',         label: 'Providers'  },
       { id: 'procedure-library', label: 'Procedures' },
-      { id: 'widgets', label: 'Widgets' },
-      { id: 'phone-number', label: 'Phone number' },
-      { id: 'voices', label: 'Voices' },
+      { id: 'widgets',           label: 'Widgets'    },
     ],
   },
 ]
+
+const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'human-actions',
+    label: 'Human actions',
+    defaultExpanded: true,
+    items: [
+      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'review-waitlist',     label: 'Review waitlist'     },
+      { id: 'manage-intake',       label: 'Manage intake'       },
+    ],
+  },
+  {
+    id: 'agent',
+    label: 'Agents',
+    defaultExpanded: true,
+    items: [
+      { id: 'frontdesk-agent',              label: 'Frontdesk agent'             },
+      { id: 'appointment-agent',            label: 'Appointment agent'           },
+      { id: 'insurance-verification-agent', label: 'Insurance verification agent'},
+      { id: 'waitlist-agent',               label: 'Waitlist agent'              },
+      { id: 'pre-visit-agent',              label: 'Pre-visit agent'             },
+      { id: 'reminder-agent',               label: 'Reminder agent'              },
+    ],
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
+      { id: 'hc-no-shows',           label: 'No shows prevented' },
+      { id: 'hc-waitlist',           label: 'Waitlist filled'    },
+      { id: 'hc-intakes',            label: 'Intakes completed'  },
+    ],
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    defaultExpanded: true,
+    items: [
+      { id: 'knowledge-base',    label: 'Knowledge base',      external: true },
+      { id: 'procedure-library', label: 'Procedures'           },
+      { id: 'phone-number',      label: 'Phone number'         },
+      { id: 'web-widget',        label: 'Web widget'           },
+      { id: 'appointment-widget',label: 'Appointment widget'   },
+      { id: 'providers',         label: 'Providers'            },
+      { id: 'forms',             label: 'Forms'                },
+    ],
+  },
+]
+
+const DENTAL_NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'human-actions',
+    label: 'Human actions',
+    defaultExpanded: true,
+    items: [
+      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'review-waitlist',     label: 'Review waitlist'     },
+      { id: 'manage-intake',       label: 'Manage intake'       },
+    ],
+  },
+  {
+    id: 'agent',
+    label: 'Agents',
+    defaultExpanded: true,
+    items: [
+      { id: 'frontdesk-agent',             label: 'Frontdesk agent'             },
+      { id: 'appointment-agent',           label: 'Appointment agent'           },
+      { id: 'insurance-verification-agent',label: 'Insurance verification agent'},
+      { id: 'waitlist-agent',              label: 'Waitlist agent'              },
+      { id: 'pre-visit-agent',             label: 'Pre-visit agent'             },
+      { id: 'reminder-agent',              label: 'Reminder agent'              },
+      { id: 'recall-agent',                label: 'Recall agent'                },
+      { id: 'revenue-agent',               label: 'Revenue agent'               },
+      { id: 'treatment-plan-agent',        label: 'Treatment plan agent'        },
+    ],
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
+      { id: 'dental-no-shows',           label: 'No shows prevented'   },
+      { id: 'dental-waitlist',           label: 'Waitlist filled'       },
+      { id: 'dental-intakes',            label: 'Intakes completed'     },
+    ],
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    defaultExpanded: true,
+    items: [
+      { id: 'providers',         label: 'Providers'  },
+      { id: 'procedure-library', label: 'Procedures' },
+    ],
+  },
+]
+
+const NAV_SECTIONS_BY_PRODUCT: Record<string, NavSection[]> = {
+  automotive: AUTOMOTIVE_NAV_SECTIONS,
+  healthcare:  HEALTHCARE_NAV_SECTIONS,
+  dental:      DENTAL_NAV_SECTIONS,
+}
+
+const DEFAULT_NAV_BY_PRODUCT: Record<string, string> = {
+  automotive: 'manage-appointments',
+  healthcare:  'manage-appointment',
+  dental:      'manage-appointments',
+}
+
+const PRODUCTS: Product[] = [
+  { id: 'healthcare', label: 'Birdeye Healthcare' },
+  { id: 'dental',     label: 'Birdeye Dental'     },
+  { id: 'automotive', label: 'Birdeye Automotive'  },
+]
+
+const PRODUCT_BRAND: Record<string, string> = {
+  healthcare: 'Birdeye Healthcare',
+  dental:     'Birdeye Dental',
+  automotive: 'Birdeye Automotive',
+}
 
 const AGENT_NAMES: Record<string, string> = {
   'frontdesk-agent': 'Frontdesk agent',
@@ -123,24 +248,35 @@ const AGENT_NAMES: Record<string, string> = {
 
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
-  const [navActive, setNavActive] = useState('manage-appointments')
+  const [navActive, setNavActive] = useState('manage-appointment')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [activeProduct, setActiveProduct] = useState('automotive')
+
+  function handleProductChange(id: string) {
+    setActiveProduct(id)
+    setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
+    setEditingAgentName(null)
+  }
 
   const isEditingWorkflow = editingAgentName !== null
 
   return (
+    <ProcedureStoreProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
       <IconRail
         logoSrc={logoSrc}
-        brand="Birdeye"
+        brand={PRODUCT_BRAND[activeProduct]}
         groups={RAIL_GROUPS}
         activeId={railActive}
         onSelect={setRailActive}
+        products={PRODUCTS}
+        activeProduct={activeProduct}
+        onProductChange={handleProductChange}
       />
       {!isEditingWorkflow && (
         <SideNav
           title="Frontdesk"
-          sections={NAV_SECTIONS}
+          sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
           activeId={navActive}
           onSelect={setNavActive}
         />
@@ -153,11 +289,16 @@ export function App() {
               <WorkflowEditorScreen
                 agentName={editingAgentName}
                 onClose={() => setEditingAgentName(null)}
+                product={activeProduct}
               />
             </div>
           </>
+        ) : navActive === 'review-waitlist' ? (
+          <ReviewWaitlistScreen />
         ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
+        ) : navActive === 'manage-intake' ? (
+          <ManageIntakeScreen />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
@@ -167,7 +308,7 @@ export function App() {
         ) : navActive === 'service' ? (
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
-          <ProceduresScreen />
+          <ProceduresScreen product={activeProduct} />
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'widgets' ? (
@@ -181,11 +322,13 @@ export function App() {
             key={navActive}
             agentName={AGENT_NAMES[navActive]}
             onEditAgent={setEditingAgentName}
+            product={activeProduct}
           />
         ) : (
           <ManageAppointmentsScreen />
         )}
       </main>
     </div>
+    </ProcedureStoreProvider>
   )
 }

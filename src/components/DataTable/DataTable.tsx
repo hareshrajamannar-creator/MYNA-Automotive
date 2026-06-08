@@ -158,7 +158,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
                       <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
-                        {rowAction && (
+                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (
                           <button
                             type="button"
                             title={rowAction.label}
@@ -205,22 +205,29 @@ export function DataTable<T extends Record<string, unknown>>({
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setMenu(null)} />
           <div
-            className="fixed z-[110] min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+            className="fixed z-[110] min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
             style={{ top: menu.top, left: menu.left }}
           >
-            {rowMenuItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => {
-                  item.onClick(sortedData[menu.rowIndex])
-                  setMenu(null)
-                }}
-                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
-              >
-                {item.label}
-              </button>
-            ))}
+            {rowMenuItems
+              .filter((item) => {
+                const row = sortedData[menu.rowIndex]
+                return item.visible ? item.visible(row) : true
+              })
+              .map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    item.onClick(sortedData[menu.rowIndex])
+                    setMenu(null)
+                  }}
+                  className={`block w-full px-md py-md text-left text-body hover:bg-surface-hover ${
+                    item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
           </div>
         </>
       )}

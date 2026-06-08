@@ -144,10 +144,11 @@ If a component exists here, import it — do not recreate it.
 | Tabs        | components/Tabs/Tabs.tsx               | tabs[], activeTab, onChange                                         |
 | DataTable   | components/DataTable/DataTable.tsx     | columns[] (width?, sortable?, resizable?, render?), data, loading?, onRowClick?, rowAction? (icon,label,onClick), rowMenuItems? — built-in resize + sort + row-hover CTAs (page CTA + 3-dots menu) |
 | FormDrawer | components/FormDrawer/FormDrawer.tsx | open, title, fields[] (key,label,type 'text'\|'select',options?), submitLabel, requiredKeys?, initialValues?, onClose, onSubmit — generic 650px right form drawer (text inputs + select dropdowns) |
+| IntakeFormPreviewDrawer | components/IntakeFormPreviewDrawer/IntakeFormPreviewDrawer.tsx | open, patient (IntakePreviewPatient), onClose — 650px intake quick-view overlay (profile, AI summary, accordions) |
 | SetupAppointmentDrawer | components/SetupAppointmentDrawer/SetupAppointmentDrawer.tsx | open, subject?, onClose, onOfferSlot — thin wrapper over FormDrawer (Customer rep / Appointment type / Date / Time) |
 | CustomizeColumnsDrawer | components/CustomizeColumnsDrawer/CustomizeColumnsDrawer.tsx | open, options[] (key,label,locked?), visibleKeys[], onClose, onSave, onRestoreDefault |
 | FilterPanel | components/FilterPanel/FilterPanel.tsx | open, fields[] (id,label,options?,multi?), onClose?, onSaveView?, onAdvancedFilters? — 280px right push-panel; opens SelectMenu per field |
-| SelectMenu | components/SelectMenu/SelectMenu.tsx | title, options[] (value,label), value[], multi?, searchable?, onChange, onApply? — single/multi-select dropdown menu |
+| SelectMenu | components/SelectMenu/SelectMenu.tsx | options[] (value,label), value[], multi?, searchable?, onChange, onApply? — single/multi-select dropdown menu (no redundant field label inside) |
 | ChartCard | components/charts/ChartCard.tsx | title, toolbar?, showActions?, children — titled card shell for charts |
 | SummaryStats | components/charts/SummaryStats.tsx | title?, stats[] ({id,value,label,delta?,trend?}) — KPI row with up/down deltas |
 | StackedBarChart | components/charts/StackedBarChart.tsx | data, series[] ({key,label,color}), xKey, height? — Recharts stacked bars |
@@ -155,8 +156,10 @@ If a component exists here, import it — do not recreate it.
 | SankeyChart | components/charts/SankeyChart.tsx | nodes[], links[] ({source,target,value}), height? — Recharts Sankey flow |
 | Heatmap | components/charts/Heatmap.tsx | rowLabels[], colLabels[], values[][] — CSS-grid intensity heatmap |
 | chartColors | components/charts/chartColors.ts | shared on-brand chart palette (import as `chartColors`) |
-| InfoCard | components/InfoCard/InfoCard.tsx | title, description, actionLabel?, onAction? — bordered card for capability/library grids |
+| InfoCard | components/InfoCard/InfoCard.tsx | title, description, actionLabel?, onAction? — library grid card; layout spec in `InfoCard.types.ts` (`INFO_CARD_LAYOUT`: 192px height, p-lg/16px padding, title line-clamp-2, description line-clamp-3, CTA fades in on hover) |
+| InfoCardListItem | components/InfoCard/InfoCardListItem.tsx | title, description, actionLabel?, onAction?, first? — library list row; title text-text-primary, description line-clamp-2, three-dot menu + "Use agent" on row hover (`INFO_CARD_LIST_ITEM_LAYOUT`) |
 | RefChip | components/RefChip/RefChip.tsx | kind ('tool'\|'context'\|'subagent'\|'procedure'\|'file'\|'link'), label, onRemove?, className? — reference chip that **reuses the workflow editor's `VariableChip.module.css`** (left colored swatch + divider, white body, per-type border) so procedure Tools/Context chips match the workflow variable fields. Maps kind→workflow chip type: context→variable (blue brackets), tool→Tool, file→Attachment, link→Link, subagent→Address, procedure→Product. Used inline in the Steps editor and in the Tools/Context side panels |
+| ContextModal | components/ContextModal/ContextModal.tsx | open, onClose, onSave(result) — centered 1200px modal for adding LLM context: Fields (search + Business accordion with Name/Source/Sample/Anonymize/Show-in-output), Knowledge (files/links), Brand (checkbox list), Industry (toggle); Save commits enabled selections |
 
 ### How to add a component to this registry
 
@@ -258,6 +261,18 @@ Before styling any header, button, switcher, menu, or input, copy the **exact cl
 - **Text button (Cancel):** `rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover`.
 - **Dropdown menu:** `min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown`; items `block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover` (danger item → `text-chip-danger-text`). Matches `DataTable`'s row menu.
 - Use **`rounded-sm`** for chrome (buttons/inputs/menus) and spacing **tokens** (`gap-sm`, `px-2xl`, `py-xl`, `px-md`) — never raw `rounded-md`/`gap-1.5`/`px-4`.
+
+### 6.8 Copy capitalization — sentence case (hard rule)
+All UI copy uses **sentence case**: capitalize **only the first word** (plus proper nouns and acronyms such as AI, CRM, VIN). Applies to page titles, drawer headers, section labels, buttons, tabs, column headers, menu items, and empty states.
+
+| ❌ Wrong | ✅ Correct |
+|---------|-----------|
+| Intake Details | Intake details |
+| AI Summary | AI summary |
+| Quick View | Quick view |
+| Appointment Date | Appointment date |
+
+When implementing from Figma, **override Title Case** in the design to match this product rule unless the string is a single word or a proper noun.
 
 ---
 
@@ -560,6 +575,7 @@ Use the existing Tabs and DataTable components from the registry. Do not create 
 Before calling any screen done, verify:
 
 - [ ] Matches Figma design (spacing, colors, typography, border radius)
+- [ ] UI copy uses sentence case — first word capitalized only (§6.8)
 - [ ] Uses only Tailwind config tokens — no hardcoded values
 - [ ] All new components are in `src/components/` with types file
 - [ ] All new components exported from `src/components/index.ts`
@@ -583,6 +599,7 @@ Before calling any screen done, verify:
 | Forget to update the Component Registry | Update Section 5 every time a component is created |
 | Use `any` in TypeScript | Define a proper interface in `.types.ts` |
 | Use `font-medium`/`font-semibold`/`font-bold` | Regular weight only — build hierarchy with color/size tokens (§6.6) |
+| Copy Figma Title Case into labels ("Intake Details") | Sentence case — first word only ("Intake details") — see §6.8 |
 | Invent a new header / button / switcher / menu look | Copy the exact shared-chrome classes (§6.7) from the Human-actions pages |
 | Build the full screen at once without checking components | Audit registry → build missing components → compose screen |
 

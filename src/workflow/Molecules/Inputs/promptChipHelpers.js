@@ -12,12 +12,15 @@ const CLOSE_ICON_SVG = `<svg width="16" height="16" viewBox="158 5 16 16" fill="
   <path d="M166 13.6188L163.151 16.4675C163.059 16.5598 162.959 16.6042 162.853 16.6008C162.747 16.5974 162.645 16.5474 162.549 16.4508C162.452 16.3542 162.404 16.251 162.404 16.1412C162.404 16.0314 162.452 15.9282 162.549 15.8316L165.381 12.9995L162.532 10.1508C162.44 10.0585 162.395 9.95637 162.399 9.8444C162.402 9.73245 162.452 9.62818 162.549 9.5316C162.645 9.43501 162.748 9.38672 162.858 9.38672C162.968 9.38672 163.071 9.43501 163.168 9.5316L166 12.3803L168.849 9.5316C168.941 9.43929 169.043 9.39207 169.155 9.38994C169.267 9.38779 169.371 9.43501 169.468 9.5316C169.564 9.62818 169.613 9.73138 169.613 9.8412C169.613 9.95102 169.564 10.0542 169.468 10.1508L166.619 12.9995L169.468 15.8483C169.56 15.9406 169.607 16.0399 169.609 16.1463C169.612 16.2527 169.564 16.3542 169.468 16.4508C169.371 16.5474 169.268 16.5957 169.158 16.5957C169.048 16.5957 168.945 16.5474 168.849 16.4508L166 13.6188Z" fill="#303030"/>
 </svg>`;
 
+const PROCEDURE_BOOK_ICON_SVG = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.1984 4.19922H9.59844C9.28795 4.19922 8.98172 4.27151 8.70401 4.41036C8.4263 4.54922 8.18473 4.75083 7.99844 4.99922C7.81214 4.75083 7.57057 4.54922 7.29286 4.41036C7.01515 4.27151 6.70893 4.19922 6.39844 4.19922H2.79844C2.69235 4.19922 2.59061 4.24136 2.51559 4.31638C2.44058 4.39139 2.39844 4.49313 2.39844 4.59922V11.7992C2.39844 11.9053 2.44058 12.007 2.51559 12.0821C2.59061 12.1571 2.69235 12.1992 2.79844 12.1992H6.39844C6.7167 12.1992 7.02192 12.3256 7.24697 12.5507C7.47201 12.7757 7.59844 13.081 7.59844 13.3992C7.59844 13.5053 7.64058 13.607 7.71559 13.6821C7.79061 13.7571 7.89235 13.7992 7.99844 13.7992C8.10452 13.7992 8.20627 13.7571 8.28128 13.6821C8.35629 13.607 8.39844 13.5053 8.39844 13.3992C8.39844 13.081 8.52486 12.7757 8.74991 12.5507C8.97495 12.3256 9.28018 12.1992 9.59844 12.1992H13.1984C13.3045 12.1992 13.4063 12.1571 13.4813 12.0821C13.5563 12.007 13.5984 11.9053 13.5984 11.7992V4.59922C13.5984 4.49313 13.5563 4.39139 13.4813 4.31638C13.4063 4.24136 13.3045 4.19922 13.1984 4.19922ZM6.39844 11.3992H3.19844V4.99922H6.39844C6.7167 4.99922 7.02192 5.12565 7.24697 5.35069C7.47201 5.57573 7.59844 5.88096 7.59844 6.19922V11.7992C7.25257 11.539 6.83129 11.3985 6.39844 11.3992ZM12.7984 11.3992H9.59844C9.16558 11.3985 8.7443 11.539 8.39844 11.7992V6.19922C8.39844 5.88096 8.52486 5.57573 8.74991 5.35069C8.97495 5.12565 9.28018 4.99922 9.59844 4.99922H12.7984V11.3992Z" fill="#37A248"/></svg>`;
+
 const CHIP_TYPE_MAP = {
-  variable:   { chipMod: '',                       swatchMod: '',                           iconHtml: null },
+  variable:   { chipMod: '',                       swatchMod: '',                                iconHtml: null },
   attachment: { chipMod: 'prompt-chip--attachment', swatchMod: 'prompt-chip-swatch--attachment', iconHtml: '<span class="material-symbols-outlined prompt-chip-mat-icon">attach_file</span>' },
   link:       { chipMod: 'prompt-chip--link',       swatchMod: 'prompt-chip-swatch--link',       iconHtml: '<span class="material-symbols-outlined prompt-chip-mat-icon">link</span>' },
-  address:    { chipMod: 'prompt-chip--address',    swatchMod: 'prompt-chip-swatch--address',    iconHtml: '<span class="material-symbols-outlined prompt-chip-mat-icon">home</span>' },
-  product:    { chipMod: 'prompt-chip--product',    swatchMod: 'prompt-chip-swatch--product',    iconHtml: '<span class="material-symbols-outlined prompt-chip-mat-icon">deployed_code</span>' },
+  address:    { chipMod: 'prompt-chip--address',    swatchMod: 'prompt-chip-swatch--address',    iconHtml: '<span class="material-symbols-outlined prompt-chip-mat-icon">smart_toy</span>' },
+  product:    { chipMod: 'prompt-chip--product',    swatchMod: 'prompt-chip-swatch--product',    iconHtml: PROCEDURE_BOOK_ICON_SVG },
+  tool:       { chipMod: 'prompt-chip--tool',       swatchMod: 'prompt-chip-swatch--tool',       iconHtml: '<span class="material-symbols-outlined prompt-chip-mat-icon">build</span>' },
 };
 
 export function serializeFrom(el) {
@@ -53,13 +56,15 @@ function buildViewChipContents(chip, name, onDelete, type = 'variable') {
   label.textContent = name;
   chip.appendChild(label);
 
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'prompt-chip-del';
-  btn.onmousedown = (e) => e.preventDefault();
-  btn.onclick = () => { chip.remove(); onDelete?.(); };
-  btn.innerHTML = CLOSE_ICON_SVG;
-  chip.appendChild(btn);
+  if (onDelete) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'prompt-chip-del';
+    btn.onmousedown = (e) => e.preventDefault();
+    btn.onclick = () => { chip.remove(); onDelete(); };
+    btn.innerHTML = CLOSE_ICON_SVG;
+    chip.appendChild(btn);
+  }
 }
 
 export function createViewChip(name, onDelete) {
@@ -78,6 +83,30 @@ export function deserializeInto(el, value, onDelete) {
     const m = part.match(/^{{(.+)}}$/);
     if (m) {
       el.appendChild(createViewChip(m[1], onDelete));
+    } else {
+      const lines = part.split('\n');
+      lines.forEach((line, i) => {
+        if (line) el.appendChild(document.createTextNode(line));
+        if (i < lines.length - 1) el.appendChild(document.createElement('br'));
+      });
+    }
+  });
+}
+
+/** Like deserializeInto but resolves each chip's type via a caller-supplied function. */
+export function deserializeIntoTyped(el, value, onDelete, resolveType) {
+  el.innerHTML = '';
+  if (!value) return;
+  const parts = value.split(/({{[^}]+}})/);
+  parts.forEach((part) => {
+    const m = part.match(/^{{(.+)}}$/);
+    if (m) {
+      const name = m[1];
+      const type = resolveType ? resolveType(name) : 'variable';
+      const chip = document.createElement('span');
+      chip.contentEditable = 'false';
+      buildViewChipContents(chip, name, onDelete, type);
+      el.appendChild(chip);
     } else {
       const lines = part.split('\n');
       lines.forEach((line, i) => {

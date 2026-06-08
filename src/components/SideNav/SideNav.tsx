@@ -66,8 +66,6 @@ function Section({
 }
 
 export function SideNav({ title, sections, activeId, onSelect }: SideNavProps) {
-  // Accordion: only one section open at a time.
-  // Initialise to the first section that has defaultExpanded: true, or the first section.
   const defaultOpen = sections.find((s) => s.defaultExpanded)?.id ?? sections[0]?.id ?? null
   const [expandedId, setExpandedId] = useState<string | null>(defaultOpen)
 

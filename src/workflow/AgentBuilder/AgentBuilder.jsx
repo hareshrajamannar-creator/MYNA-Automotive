@@ -8,8 +8,24 @@ import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
-import { getProcedureById, PROCEDURES } from '../services/procedureService';
+import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
+import {
+  getProcedureById,
+  getProcedureDetailContent,
+  resolveProcedurePanelText,
+  PROCEDURES,
+  setLiveProcedures,
+  CUSTOM_PROCEDURE_ID,
+  isCustomProcedureId,
+} from '../services/procedureService';
 import { getModuleNav } from '../Modules/moduleNavigation';
+import {
+  FLOW_NODE_STEP,
+  FLOW_START_GAP,
+  FLOW_STANDARD_NODE_HEIGHT,
+  FLOW_CONNECTOR_GAP,
+  FLOW_START_NODE_HEIGHT,
+} from '../flowLayoutConstants';
 import './AgentBuilder.css';
 
 const START_NODE_ID = '__start__';
@@ -75,10 +91,25 @@ function makeNodeDetails(type, label) {
     };
   }
   if (type === 'procedures') {
+    if (isCustomProcedureId(label)) {
+      return {
+        procedureIds: [CUSTOM_PROCEDURE_ID],
+        procedureOverrides: {
+          [CUSTOM_PROCEDURE_ID]: {
+            name: 'Custom',
+            whenToUse: '',
+            stepsText: '',
+            contextChips: [],
+            addToLibrary: false,
+          },
+        },
+      };
+    }
     const firstId = label && label !== 'Custom' ? label : null;
     return { procedureIds: firstId ? [firstId] : [] };
   }
   if (type === 'branch') return { basedOn: 'conditions', branches: [] };
+  if (type === 'subagent') return { selectedAgent: '', name: '', description: '' };
   if (type === 'delay') return { name: '', duration: '', unit: '' };
   if (type === 'parallel') return { nodeName: '', description: '', branches: [{ name: '' }, { name: '' }] };
   if (type === 'loop') return { name: '', description: '', loopMode: 'manual', loopOver: null };
@@ -97,6 +128,20 @@ function makeNodeDetails(type, label) {
   };
 }
 
+const TASK_DROP_DEFAULTS = {
+  'Initiate voice call': { description: 'Call the customer' },
+  'Schedule appointment': { description: 'Book a new appointment for the customer' },
+  'Reschedule appointment': { description: 'Change an existing appointment date or time' },
+  'Cancel appointment': { description: 'Cancel a scheduled appointment' },
+  'Confirm appointment': { description: 'Confirm appointment details with the customer' },
+  'Update contact property': { description: 'Update a field on the contact record' },
+  'Add contact to list': { description: 'Add the contact to a marketing or CRM list' },
+  'Remove contact from list': { description: 'Remove the contact from a list' },
+  'Send data to external app': { description: 'Push data to a connected external application' },
+  'Fetch data from external app': { description: 'Retrieve data from a connected external application' },
+  'Trigger external webhook': { description: 'Fire a webhook to an external system' },
+};
+
 function makeNodeConfig(id, type, label, description) {
   let flowType = 'task';
   let hasAiIcon = false;
@@ -109,12 +154,21 @@ function makeNodeConfig(id, type, label, description) {
   } else if (type === 'branch') {
     flowType = 'branch';
     titlePlaceholder = 'Enter branch name';
+  } else if (type === 'subagent') {
+    flowType = 'subagent';
+    titlePlaceholder = 'Call subagent';
+    descriptionPlaceholder = 'Call subagent workflow.';
   } else if (type === 'delay') {
     flowType = 'delay';
+    titlePlaceholder = 'Configure delay settings';
+    descriptionPlaceholder = 'Wait for specific time or event.';
   } else if (type === 'parallel') {
     flowType = 'parallel';
   } else if (type === 'loop') {
     flowType = 'loop';
+  } else if (type === 'voiceCall') {
+    flowType = 'voiceCall';
+    titlePlaceholder = 'Enter name';
   } else if (type === 'procedures') {
     flowType = 'procedures';
   } else if (type === 'task') {
@@ -142,7 +196,71 @@ function makeNodeConfig(id, type, label, description) {
   };
 }
 
-function buildFlow(nodeList, startData, nodeDetails = {}) {
+const PROCEDURE_CARD_INNER_WIDTH = 376; // 400px card minus horizontal padding
+const PROCEDURE_SHELL_HEIGHT = 94; // padding + header + step + body gaps (excludes chip grid)
+const PROCEDURE_CHIP_HEIGHT = 30;
+const PROCEDURE_CHIP_ROW_GAP = 8;
+const PROCEDURE_CHIP_BASE_WIDTH = 56; // icon + padding + close + gaps
+const PROCEDURE_CHIP_CHAR_WIDTH = 7; // ~13px nowrap label
+
+/** Estimate a single chip's width for flex-wrap row packing (matches ProceduresNode layout). */
+function estimateProcedureChipWidth(name = '') {
+  return PROCEDURE_CHIP_BASE_WIDTH + name.length * PROCEDURE_CHIP_CHAR_WIDTH;
+}
+
+/** Pack chips into rows the same way flex-wrap does inside the 400px procedure card. */
+function countProcedureChipRows(procedureIds = [], nodeDetails, nodeId, product) {
+  const items = mapProcedureItems(procedureIds, nodeDetails, nodeId, product);
+  if (!items.length) return 0;
+
+  let rows = 1;
+  let rowUsed = 0;
+  items.forEach(({ name }) => {
+    const chipWidth = estimateProcedureChipWidth(name);
+    const gap = rowUsed > 0 ? PROCEDURE_CHIP_ROW_GAP : 0;
+    if (rowUsed > 0 && rowUsed + gap + chipWidth > PROCEDURE_CARD_INNER_WIDTH) {
+      rows += 1;
+      rowUsed = chipWidth;
+    } else {
+      rowUsed += gap + chipWidth;
+    }
+  });
+  return rows;
+}
+
+function estimateProceduresNodeHeight(procedureIds = [], nodeDetails, nodeId, product) {
+  const rows = countProcedureChipRows(procedureIds, nodeDetails, nodeId, product);
+  if (rows === 0) return PROCEDURE_SHELL_HEIGHT + 20;
+  const chipBlock = rows * PROCEDURE_CHIP_HEIGHT + Math.max(0, rows - 1) * PROCEDURE_CHIP_ROW_GAP;
+  return PROCEDURE_SHELL_HEIGHT + chipBlock;
+}
+
+function getNodeBlockHeight(item, nodeId, nodeDetails, product = 'automotive') {
+  if (item?.flowType === 'procedures') {
+    const ids = nodeDetails?.[nodeId]?.procedureIds ?? [];
+    return estimateProceduresNodeHeight(ids, nodeDetails, nodeId, product);
+  }
+  return FLOW_STANDARD_NODE_HEIGHT;
+}
+
+function getFlowVerticalStep(item, nodeId, nodeDetails, product = 'automotive') {
+  return getNodeBlockHeight(item, nodeId, nodeDetails, product) + FLOW_CONNECTOR_GAP;
+}
+
+function mapProcedureItems(procedureIds = [], nodeDetails, nodeId, product) {
+  const panelOverrides = nodeDetails?.[nodeId]?.procedureOverrides || {};
+  return procedureIds.map((pid) => {
+    const p = getProcedureById(pid);
+    const { name } = resolveProcedurePanelText(
+      p || { id: pid, name: pid },
+      panelOverrides,
+      product,
+    );
+    return { id: pid, name };
+  });
+}
+
+function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive') {
   let y = 0;
   const nodes = [];
   const edges = [];
@@ -153,11 +271,16 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
     position: { x: 0, y },
     data: { title: startData.title, subtitle: startData.subtitle },
   });
-  y += 150;
+  y += FLOW_START_GAP;
+
+  let lastNodeY = 0;
+  let lastNodeBlockHeight = FLOW_START_NODE_HEIGHT;
 
   nodeList.forEach((item, i) => {
     const nodeId = item.id;
     const prevId = i === 0 ? START_NODE_ID : nodeList[i - 1].id;
+    lastNodeY = y;
+    lastNodeBlockHeight = getNodeBlockHeight(item, nodeId, nodeDetails, product);
     nodes.push({
       id: nodeId,
       type: item.flowType,
@@ -165,12 +288,14 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
       data: item.flowType === 'branch'
         ? {
             ...item.data,
+            stepNumber: i + 1,
             title: 'Based on conditions',
             subtitle: 'Build condition-specific flows',
           }
         : item.data?.subtype === 'Schedule-based'
           ? {
               ...item.data,
+              stepNumber: i + 1,
               headerLabel: 'Schedule-based trigger',
               title: nodeDetails[nodeId]?.triggerName ?? item.data.title,
               subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
@@ -178,13 +303,28 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
           : item.flowType === 'procedures'
             ? {
                 ...item.data,
-                procedureItems: (nodeDetails[nodeId]?.procedureIds || []).map((pid) => {
-                  const p = getProcedureById(pid);
-                  return { id: pid, name: p ? p.name : pid };
-                }),
+                stepNumber: i + 1,
+                procedureItems: mapProcedureItems(
+                  nodeDetails[nodeId]?.procedureIds,
+                  nodeDetails,
+                  nodeId,
+                  product,
+                ),
               }
             : {
                 ...item.data,
+                stepNumber: i + 1,
+                ...(item.flowType === 'delay'
+                  ? {
+                      titlePlaceholder: 'Configure delay settings',
+                      descriptionPlaceholder: 'Wait for specific time or event.',
+                    }
+                  : item.flowType === 'subagent'
+                    ? {
+                        titlePlaceholder: 'Call subagent',
+                        descriptionPlaceholder: 'Call subagent workflow.',
+                      }
+                    : {}),
                 // Pull title and subtitle from saved nodeDetails so canvas nodes
                 // show real content instead of placeholder text
                 title: nodeDetails[nodeId]?.taskName
@@ -193,29 +333,30 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
                 subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
               },
     });
+    const prevIsProcedures = i > 0 && nodeList[i - 1].flowType === 'procedures';
     edges.push({
       id: `e-${prevId}-${nodeId}`,
       source: prevId,
       target: nodeId,
       type: 'addButton',
+      ...(prevIsProcedures ? { data: { hideAddButton: true } } : {}),
     });
 
-    if (item.flowType === 'branch') {
+    if (item.flowType === 'branch' || item.flowType === 'voiceCall') {
+      const isVoiceCall = item.flowType === 'voiceCall';
       const branches = nodeDetails[nodeId]?.branches || [];
       const spacing = 480;
       const startX = -((branches.length - 1) * spacing) / 2;
       const branchChipY = y + 150;
       const branchNodeStartY = y + 260;
-      let maxBranchNodes = 0;
       branches.forEach((branch, bi) => {
         const branchX = startX + bi * spacing;
         const branchNodes = nodeDetails[branch.id]?.nodes || [];
-        maxBranchNodes = Math.max(maxBranchNodes, branchNodes.length);
         nodes.push({
           id: branch.id,
           type: 'branchPath',
           position: { x: branchX, y: branchChipY },
-          data: { label: branch.name, parentId: nodeId, isFallback: !!branch.isFallback },
+          data: { label: branch.name, parentId: nodeId, isFallback: !!branch.isFallback, isVoiceCallBranch: isVoiceCall || !!branch.isVoiceCallBranch },
         });
         edges.push({
           id: `e-${nodeId}-${branch.id}`,
@@ -225,6 +366,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
         });
 
         let previousId = branch.id;
+        let previousChildFlowType = null;
         branchNodes.forEach((childNode, childIndex) => {
           const childId = childNode.id;
           const childDet = nodeDetails[childId] || {};
@@ -233,10 +375,13 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
           if (childNode.flowType === 'procedures') {
             childData = {
               ...childData,
-              procedureItems: (childDet.procedureIds || []).map((pid) => {
-                const p = getProcedureById(pid);
-                return { id: pid, name: p ? p.name : pid };
-              }),
+              toggleEnabled: childNode.data?.toggleEnabled ?? true,
+              procedureItems: mapProcedureItems(
+                childDet.procedureIds,
+                nodeDetails,
+                childId,
+                product,
+              ),
             };
           } else if (childNode.flowType !== 'delay' && childNode.flowType !== 'branch') {
             childData = {
@@ -259,9 +404,11 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
             data: {
               branchPathId: branch.id,
               afterNodeId: previousId === branch.id ? null : previousId,
+              ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
             },
           });
           previousId = childNode.id;
+          previousChildFlowType = childNode.flowType;
         });
 
         const branchEndId = `${branch.id}-end`;
@@ -280,22 +427,27 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
             branchPathId: branch.id,
             afterNodeId: previousId === branch.id ? null : previousId,
             viewOnly: !!branch.isFallback,
+            ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
           },
         });
       });
-      y += 150 + (maxBranchNodes + 1) * 250;
+      // Branch paths fan out to the side — do not inflate main-spine y or spine edges stretch.
     }
 
-    y += 250;
+    y += getFlowVerticalStep(item, nodeId, nodeDetails, product);
   });
 
   const lastId = nodeList.length > 0 ? nodeList[nodeList.length - 1].id : START_NODE_ID;
-  if (!nodeList.length || nodeList[nodeList.length - 1].flowType !== 'branch') {
+  const lastNodeIsProcedures = nodeList.length > 0 && nodeList[nodeList.length - 1].flowType === 'procedures';
+  const lastFlowType = nodeList.length > 0 ? nodeList[nodeList.length - 1].flowType : null;
+  if (!nodeList.length || (lastFlowType !== 'branch' && lastFlowType !== 'voiceCall')) {
+    const endY = lastNodeY + lastNodeBlockHeight;
     nodes.push({
       id: END_NODE_ID,
       type: 'end',
-      position: { x: 0, y },
-      data: {},
+      // Top of End node aligns with the bottom of the preceding block; connector fills FLOW_CONNECTOR_GAP
+      position: { x: 0, y: endY },
+      data: { afterNodeId: lastId, hideAddBeforeEnd: lastNodeIsProcedures },
     });
     edges.push({
       id: `e-${lastId}-${END_NODE_ID}`,
@@ -335,6 +487,9 @@ export default function AgentBuilder({
   onClose,
   onEdit,
   viewOnly = false,
+  product = 'automotive',
+  procedures = null,
+  onAddProcedure,
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -361,6 +516,7 @@ export default function AgentBuilder({
   const [activeProcedureId, setActiveProcedureId] = useState(null);
   // Tool viewer state
   const [viewingTool, setViewingTool] = useState(null); // full tool object
+  const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
@@ -381,6 +537,37 @@ export default function AgentBuilder({
     return base;
   });
   const [agentStatus, setAgentStatus] = useState(initialStatus || 'Draft');
+
+  /* ─── Sync live procedure library into the procedureService registry ─── */
+  useEffect(() => {
+    setLiveProcedures(procedures);
+  }, [procedures]);
+
+  /* ─── View-only: keep canvas state in sync when workflow props change ─── */
+  useEffect(() => {
+    if (!viewOnly) return;
+    if (initialNodes) setNodeList(initialNodes);
+    if (initialNodeDetails) {
+      setNodeDetails((prev) => {
+        const base = initialNodeDetails;
+        const startNode = base[START_NODE_ID];
+        const pageTitleStr = (typeof pageTitle === 'string' ? pageTitle : '') || '';
+        if (!startNode || !startNode.agentName) {
+          return {
+            ...base,
+            [START_NODE_ID]: {
+              goals: '',
+              outcomes: '',
+              locations: [],
+              ...(startNode || {}),
+              agentName: startNode?.agentName || pageTitleStr,
+            },
+          };
+        }
+        return base;
+      });
+    }
+  }, [viewOnly, initialNodes, initialNodeDetails, pageTitle]);
 
   /* ─── Load agent from URL slugs — re-runs whenever the URL params change ─── */
   useEffect(() => {
@@ -784,6 +971,33 @@ export default function AgentBuilder({
     });
   }, []);
 
+  const handleNodeToggleChange = useCallback((nodeId, enabled) => {
+    setNodeList((prev) => {
+      const inMain = prev.some((n) => n.id === nodeId);
+      if (inMain) {
+        return prev.map((n) =>
+          n.id === nodeId ? { ...n, data: { ...n.data, toggleEnabled: enabled } } : n,
+        );
+      }
+      return prev;
+    });
+    setNodeDetails((prev) => {
+      let updated = false;
+      const copy = { ...prev };
+      Object.keys(copy).forEach((key) => {
+        const branchNodes = copy[key]?.nodes;
+        if (!branchNodes?.length) return;
+        const idx = branchNodes.findIndex((n) => n.id === nodeId);
+        if (idx === -1) return;
+        const nodes = [...branchNodes];
+        nodes[idx] = { ...nodes[idx], data: { ...nodes[idx].data, toggleEnabled: enabled } };
+        copy[key] = { ...copy[key], nodes };
+        updated = true;
+      });
+      return updated ? copy : prev;
+    });
+  }, []);
+
   const handleDeleteBranchPath = useCallback((branchPathId) => {
     setNodeDetails((prev) => {
       const copy = { ...prev };
@@ -807,7 +1021,7 @@ export default function AgentBuilder({
 
   const startAgentName = nodeDetails[START_NODE_ID]?.agentName || pageTitle;
   const startData = { title: startAgentName, subtitle: 'All locations' };
-  const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails);
+  const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails, product);
 
   const nodes = rawNodes.map((n) => {
     if (n.id === START_NODE_ID || n.id === END_NODE_ID) return n;
@@ -824,14 +1038,60 @@ export default function AgentBuilder({
       canMoveDown: !viewOnly && nodeIdx !== -1 && nodeIdx < nodeList.length - 1,
     };
     if (n.type === 'branch') extra.onAddBranch = () => handleAddBranchPath(n.id);
-    if (n.type === 'procedures' && !viewOnly) {
-      extra.onDropProcedure = (procedureId) => {
-        setNodeDetails((prev) => {
-          const existing = prev[n.id]?.procedureIds || [];
-          if (existing.includes(procedureId)) return prev;
-          return { ...prev, [n.id]: { ...(prev[n.id] || {}), procedureIds: [...existing, procedureId] } };
-        });
+    if (n.type === 'task' && !viewOnly) {
+      extra.onToggleChange = (enabled) => handleNodeToggleChange(n.id, enabled);
+    }
+    if (n.type === 'procedures') {
+      extra.selectedProcedureId = n.id === selectedNodeId ? activeProcedureId : null;
+      extra.onSelectProcedure = (procedureId) => {
+        setSelectedNodeId(n.id);
+        setDrawerOpen(true);
+        setActiveProcedureId(procedureId);
       };
+      if (!viewOnly) {
+        extra.onToggleChange = (enabled) => handleNodeToggleChange(n.id, enabled);
+        extra.onDropProcedure = (procedureId) => {
+          const resolvedId = isCustomProcedureId(procedureId) ? CUSTOM_PROCEDURE_ID : procedureId;
+          setNodeDetails((prev) => {
+            const existing = prev[n.id]?.procedureIds || [];
+            if (existing.includes(resolvedId)) return prev;
+            const nodePatch = {
+              ...(prev[n.id] || {}),
+              procedureIds: [...existing, resolvedId],
+            };
+            if (resolvedId === CUSTOM_PROCEDURE_ID) {
+              nodePatch.procedureOverrides = {
+                ...(prev[n.id]?.procedureOverrides || {}),
+                [CUSTOM_PROCEDURE_ID]: {
+                  name: 'Custom',
+                  whenToUse: '',
+                  stepsText: '',
+                  contextChips: [],
+                  addToLibrary: false,
+                  ...(prev[n.id]?.procedureOverrides?.[CUSTOM_PROCEDURE_ID] || {}),
+                },
+              };
+            }
+            return { ...prev, [n.id]: nodePatch };
+          });
+          // Open the RHS detail panel for the dropped procedure
+          setSelectedNodeId(n.id);
+          setDrawerOpen(true);
+          setActiveProcedureId(resolvedId);
+        };
+        extra.onRemoveProcedure = (procedureId) => {
+          setNodeDetails((prev) => {
+            const existing = prev[n.id]?.procedureIds || [];
+            return {
+              ...prev,
+              [n.id]: {
+                ...(prev[n.id] || {}),
+                procedureIds: existing.filter((pid) => pid !== procedureId),
+              },
+            };
+          });
+        };
+      }
     }
     return { ...n, data: { ...n.data, ...extra } };
   });
@@ -849,11 +1109,29 @@ export default function AgentBuilder({
   }, []);
 
   const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, position, insertAtBeginning }) => {
+    // Nothing can be inserted above the first trigger — start node is always the entry point
+    if (insertAtBeginning || afterNodeId === START_NODE_ID) return;
+
+    const isVoiceCallDrop = type === 'task' && (description === 'Initiate voice call' || label === 'Initiate voice call');
+    const effectiveType = isVoiceCallDrop ? 'voiceCall' : type;
+
     const id = nextId();
-    const newNode = makeNodeConfig(id, type, label, description);
+    const newNode = makeNodeConfig(id, effectiveType, label, description);
     // For procedures, `description` is the procedure name from the sub-item dropdown
     // while `label` is the category name — use the procedure name as the seed ID
-    const details = makeNodeDetails(type, type === 'procedures' ? description : label);
+    const procedureSeed = effectiveType === 'procedures'
+      ? (isCustomProcedureId(description) || isCustomProcedureId(label)
+        ? CUSTOM_PROCEDURE_ID
+        : (description || label))
+      : label;
+    let details = makeNodeDetails(effectiveType, effectiveType === 'procedures' ? procedureSeed : label);
+    if (effectiveType === 'task' && description && label !== 'Custom') {
+      details = {
+        ...details,
+        taskName: description,
+        description: TASK_DROP_DEFAULTS[description]?.description ?? '',
+      };
+    }
 
     if (branchPathId) {
       setNodeDetails((prev) => {
@@ -875,6 +1153,11 @@ export default function AgentBuilder({
           [id]: details,
         };
       });
+      if (type === 'procedures' && procedureSeed === CUSTOM_PROCEDURE_ID) {
+        setSelectedNodeId(id);
+        setDrawerOpen(true);
+        setActiveProcedureId(CUSTOM_PROCEDURE_ID);
+      }
       return;
     }
 
@@ -884,33 +1167,22 @@ export default function AgentBuilder({
     if (position && !afterNodeId) {
       const currentNodeList = latestRef.current.nodeList || [];
       const currentNodeDetails = latestRef.current.nodeDetails || {};
-      let y = 150; // first content node starts here (start node is at y=0, +150 gap)
+      let y = FLOW_START_GAP;
       for (let i = 0; i < currentNodeList.length; i++) {
         if (position.y < y) {
           dropInsertIdx = i;
           break;
         }
         const item = currentNodeList[i];
-        if (item.flowType === 'branch') {
-          const branches = currentNodeDetails[item.id]?.branches || [];
-          let maxBranchNodes = 0;
-          branches.forEach((b) => {
-            const bNodes = currentNodeDetails[b.id]?.nodes || [];
-            maxBranchNodes = Math.max(maxBranchNodes, bNodes.length);
-          });
-          y += 150 + (maxBranchNodes + 1) * 250;
-        }
-        y += 250;
+        y += getFlowVerticalStep(item, item.id, currentNodeDetails, product);
       }
       if (dropInsertIdx === null) dropInsertIdx = currentNodeList.length;
+      if (dropInsertIdx === 0 && currentNodeList.length > 0) dropInsertIdx = 1;
     }
 
     setNodeList((prev) => {
       let updated;
-      if (insertAtBeginning) {
-        // Dropped above the first node — insert at position 0
-        updated = [newNode, ...prev];
-      } else if (afterNodeId) {
+      if (afterNodeId) {
         const idx = prev.findIndex((n) => n.id === afterNodeId);
         updated = idx !== -1
           ? [...prev.slice(0, idx + 1), newNode, ...prev.slice(idx + 1)]
@@ -944,15 +1216,45 @@ export default function AgentBuilder({
       };
     }
 
+    if (effectiveType === 'voiceCall') {
+      const acceptedId = `${id}-vc-accepted`;
+      const rejectedId = `${id}-vc-rejected`;
+      const missedId  = `${id}-vc-missed`;
+      details = {
+        taskName: 'Initiate voice call',
+        description: 'Call the customer',
+        toolId: 'initiate-voice-call',
+        selectedTools: ['initiate-voice-call'],
+        branches: [
+          { id: acceptedId, name: 'Call accepted', isVoiceCallBranch: true },
+          { id: rejectedId, name: 'Call rejected', isVoiceCallBranch: true },
+          { id: missedId,   name: 'Call missed',   isVoiceCallBranch: true },
+        ],
+      };
+      extraDetails = {
+        [acceptedId]: { branchName: 'Call accepted', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [rejectedId]: { branchName: 'Call rejected', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [missedId]:   { branchName: 'Call missed',   parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+      };
+    }
+
     setNodeDetails((prev) => ({
       ...prev,
       [id]: details,
       ...extraDetails,
     }));
+
+    if (type === 'procedures' && procedureSeed === CUSTOM_PROCEDURE_ID) {
+      setSelectedNodeId(id);
+      setDrawerOpen(true);
+      setActiveProcedureId(CUSTOM_PROCEDURE_ID);
+    }
   }, []);
 
   const handleNodeClick = useCallback((node) => {
     if (node.type === 'end' || node.type === 'branchEnd') return;
+    // Voice call branches are hard-coded and non-editable — block RHS open
+    if (node.data?.isVoiceCallBranch) return;
     setSelectedNodeId(node.id);
     setDrawerOpen(true);
   }, []);
@@ -971,6 +1273,83 @@ export default function AgentBuilder({
     [selectedNodeId, handleNodeFieldChange]
   );
 
+  const handleSaveCustomProcedure = useCallback(() => {
+    if (!selectedNodeId) return;
+    const nodeData = nodeDetails[selectedNodeId] || {};
+    const overrides = nodeData.procedureOverrides?.[CUSTOM_PROCEDURE_ID] || {};
+    const title = (overrides.name || '').trim() || 'Custom';
+    const whenToUse = overrides.whenToUse || '';
+    const stepsText = overrides.stepsText || '';
+    const contextChips = overrides.contextChips || [];
+    const addToLibrary = Boolean(overrides.addToLibrary);
+
+    const chipsToContextItems = (chips) => {
+      const kindMap = { variable: 'context', attachment: 'file', link: 'link' };
+      return (chips || []).map((c) => ({
+        kind: kindMap[c.type] || 'context',
+        label: c.value,
+      }));
+    };
+
+    const parseStepsText = (text) => {
+      if (!text?.trim()) return [];
+      return text
+        .split('\n')
+        .filter((l) => l.trim())
+        .map((l) => ({ title: l.replace(/^[\d•.\-\s]+/, '').trim(), bullets: [] }));
+    };
+
+    if (addToLibrary && onAddProcedure) {
+      const isHC = product === 'healthcare' || product === 'dental';
+      const newId = title;
+      onAddProcedure({
+        id: newId,
+        name: title,
+        category: isHC ? 'Healthcare Frontdesk' : 'Inbound General',
+        description: whenToUse.trim().split(/[.!?]/)[0].trim() || title,
+        lastEdited: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        whenToUse: whenToUse.trim(),
+        steps: parseStepsText(stepsText),
+        tools: [],
+        context: chipsToContextItems(contextChips),
+      });
+
+      setNodeDetails((prev) => {
+        const node = prev[selectedNodeId] || {};
+        const ids = (node.procedureIds || []).map((pid) =>
+          pid === CUSTOM_PROCEDURE_ID ? newId : pid,
+        );
+        const overridesNext = { ...(node.procedureOverrides || {}) };
+        delete overridesNext[CUSTOM_PROCEDURE_ID];
+        overridesNext[newId] = { name: title, whenToUse, stepsText, contextChips };
+        return {
+          ...prev,
+          [selectedNodeId]: { ...node, procedureIds: ids, procedureOverrides: overridesNext },
+        };
+      });
+    } else {
+      setNodeDetails((prev) => ({
+        ...prev,
+        [selectedNodeId]: {
+          ...(prev[selectedNodeId] || {}),
+          procedureOverrides: {
+            ...(prev[selectedNodeId]?.procedureOverrides || {}),
+            [CUSTOM_PROCEDURE_ID]: {
+              ...(prev[selectedNodeId]?.procedureOverrides?.[CUSTOM_PROCEDURE_ID] || {}),
+              name: title,
+              whenToUse,
+              stepsText,
+              contextChips,
+              addToLibrary,
+            },
+          },
+        },
+      }));
+    }
+
+    setActiveProcedureId(null);
+  }, [selectedNodeId, nodeDetails, onAddProcedure, product]);
+
   const renderRHSPanel = () => {
     if (!selectedNodeId) return null;
 
@@ -986,6 +1365,7 @@ export default function AgentBuilder({
           variant="agentDetails"
           title="Agent details"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{
             values: startDetails,
             onChange: (field, value) => {
@@ -1007,6 +1387,7 @@ export default function AgentBuilder({
           variant="branch"
           title="Branch"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
@@ -1049,6 +1430,7 @@ export default function AgentBuilder({
           variant="conversationTrigger"
           title="Trigger"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
@@ -1062,6 +1444,7 @@ export default function AgentBuilder({
           variant="entityTrigger"
           title="Trigger"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
@@ -1075,11 +1458,26 @@ export default function AgentBuilder({
           variant="controlBranch"
           title="Branch details"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{
             initialValues: { ...currentDetails, branchNodeId: selectedNodeId },
             onFieldChange: activeFieldChange,
             onDeleteBranch: (branchId) => handleDeleteBranchPath(branchId),
           }}
+          onClose={handleCloseDrawer}
+          onSave={handleCloseDrawer}
+        />
+      );
+    }
+
+    if (flowType === 'subagent') {
+      return (
+        <RHS
+          variant="subagent"
+          title="Sub-agent"
+          viewOnly={viewOnly}
+          product={product}
+          bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
         />
@@ -1092,6 +1490,7 @@ export default function AgentBuilder({
           variant="delay"
           title="Delay"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
@@ -1105,6 +1504,7 @@ export default function AgentBuilder({
           variant="parallel"
           title="Parallel tasks"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
@@ -1118,6 +1518,7 @@ export default function AgentBuilder({
           variant="loop"
           title="Loop"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
@@ -1127,28 +1528,48 @@ export default function AgentBuilder({
 
     if (flowType === 'procedures') {
       if (activeProcedureId) {
-        const proc = getProcedureById(activeProcedureId);
         const overrides = currentDetails.procedureOverrides?.[activeProcedureId] || {};
-        // Transform procedureService shape → ProcedureDetailBody shape:
-        //   proc.tools (string[])  → toolChips ({ value, type:'tool' }[])
-        //   proc.steps (string[])  → stepsText (newline-joined string)
-        const procFormatted = proc ? {
-          ...proc,
-          toolChips: (proc.tools || []).map((t) => ({ value: t, type: 'tool' })),
-          contextChips: (proc.context || []).map((c) => ({ value: c, type: 'variable' })),
-          stepsText: Array.isArray(proc.steps)
-            ? proc.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')
-            : (proc.steps || ''),
-        } : null;
-        const mergedProc = procFormatted
-          ? { ...procFormatted, ...overrides }
-          : { id: activeProcedureId, name: activeProcedureId, ...overrides };
+        const mergedProc = getProcedureDetailContent(activeProcedureId, overrides, product);
+        const isCustom = isCustomProcedureId(activeProcedureId);
+
+        if (isCustom) {
+          return (
+            <RHS
+              key="proc-create-custom"
+              variant="createCustomProcedure"
+              title="Create custom procedure"
+              viewOnly={viewOnly}
+              product={product}
+              onBack={() => setActiveProcedureId(null)}
+              bodyProps={{
+                initialValues: mergedProc,
+                showTitle: true,
+                showLibraryCheckbox: true,
+                contextEditable: true,
+                onFieldChange: (field, value) => {
+                  const overridesNext = {
+                    ...(currentDetails.procedureOverrides || {}),
+                    [activeProcedureId]: {
+                      ...(currentDetails.procedureOverrides?.[activeProcedureId] || {}),
+                      [field]: value,
+                    },
+                  };
+                  activeFieldChange('procedureOverrides', overridesNext);
+                },
+              }}
+              onClose={handleCloseDrawer}
+              onSave={handleSaveCustomProcedure}
+            />
+          );
+        }
+
         return (
           <RHS
             key={`proc-detail-${activeProcedureId}`}
             variant="procedureDetail"
             title={mergedProc.name}
             viewOnly={viewOnly}
+            product={product}
             onBack={() => setActiveProcedureId(null)}
             bodyProps={{
               initialValues: mergedProc,
@@ -1171,6 +1592,7 @@ export default function AgentBuilder({
           variant="procedureTask"
           title="Procedures"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{
             initialValues: currentDetails,
             onFieldChange: activeFieldChange,
@@ -1188,7 +1610,31 @@ export default function AgentBuilder({
           variant="llmTask"
           title="LLM Task"
           viewOnly={viewOnly}
+          product={product}
           bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
+          onClose={handleCloseDrawer}
+          onSave={handleCloseDrawer}
+        />
+      );
+    }
+
+    if (flowType === 'voiceCall') {
+      return (
+        <RHS
+          variant="voiceCallTask"
+          title="Task"
+          viewOnly={viewOnly}
+          product={product}
+          bodyProps={{
+            initialValues: currentDetails,
+            onFieldChange: activeFieldChange,
+            onEditTool: (toolId) => {
+              getCustomToolsByIds([toolId]).then((tools) => {
+                if (tools[0]) setViewingTool(tools[0]);
+              });
+            },
+            onSwapTool: () => setToolPickerOpen(true),
+          }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
         />
@@ -1241,21 +1687,12 @@ export default function AgentBuilder({
     </div>
   );
 
-  const editableName = viewOnly ? agentName : (
-    <input
-      className="ab-name-input"
-      value={agentName}
-      placeholder="Untitled agent"
-      onChange={(e) => {
-        const val = e.target.value;
-        setNodeDetails((prev) => ({
-          ...prev,
-          [START_NODE_ID]: { ...(prev[START_NODE_ID] || {}), agentName: val },
-        }));
-      }}
-      onClick={(e) => e.stopPropagation()}
-    />
-  );
+  const STATUS_BADGE_CLASS = {
+    Running: 'ab-header-status--running',
+    Paused: 'ab-header-status--paused',
+    Draft: 'ab-header-status--draft',
+  };
+  const statusBadgeClass = STATUS_BADGE_CLASS[agentStatus] || 'ab-header-status--draft';
 
   /* ─── Loading / not-found guards ─── */
   if (isLoadingFromSlug) {
@@ -1289,23 +1726,23 @@ export default function AgentBuilder({
         flexShrink: 0,
         gap: 8,
       }}>
-        {/* Back button */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, color: '#555' }}
-            title="Back to agents"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
-            </svg>
-          </button>
-        )}
-        {/* Agent name */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {editableName}
+        <div className="ab-header-left">
+          {onClose && (
+            <button
+              type="button"
+              className="ab-header-back-btn"
+              onClick={onClose}
+              title="Back to agents"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
+              </svg>
+            </button>
+          )}
+          <span className="ab-header-title">{agentName || 'Untitled agent'}</span>
+          <span className={`ab-header-status ${statusBadgeClass}`}>{agentStatus}</span>
         </div>
-        {/* Header actions */}
+        <div className="ab-header-spacer" aria-hidden />
         {headerActions}
       </div>
 
@@ -1332,6 +1769,8 @@ export default function AgentBuilder({
               tasksOpen={false}
               controlsOpen={false}
               viewOnly={viewOnly}
+              product={product}
+              procedures={procedures}
             />
           </div>
 
@@ -1369,12 +1808,36 @@ export default function AgentBuilder({
         />
       )}
 
-      {/* ─── Tool detail viewer ─── */}
+      {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (
         <CustomToolViewer
           isOpen={!!viewingTool}
           tool={viewingTool}
           onClose={() => setViewingTool(null)}
+        />
+      )}
+
+      {/* ─── Tool picker (swap tool) ─── */}
+      {toolPickerOpen && selectedNodeId && (
+        <ToolLibraryDrawer
+          isOpen={toolPickerOpen}
+          onClose={() => setToolPickerOpen(false)}
+          selectedToolIds={[
+            nodeDetails[selectedNodeId]?.toolId
+              ?? nodeDetails[selectedNodeId]?.selectedTools?.[0]
+              ?? 'initiate-voice-call',
+          ]}
+          onToggleTool={(toolId) => {
+            setNodeDetails((prev) => ({
+              ...prev,
+              [selectedNodeId]: {
+                ...(prev[selectedNodeId] || {}),
+                toolId,
+                selectedTools: [toolId],
+              },
+            }));
+            setToolPickerOpen(false);
+          }}
         />
       )}
 

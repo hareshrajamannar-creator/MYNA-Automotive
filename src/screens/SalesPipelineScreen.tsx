@@ -61,24 +61,24 @@ const TAB_STATUS_MAP: Record<string, string> = {
 //   Won:                    'success',
 // }
 
-const CHANNEL_ICON: Record<string, string> = { sms: 'sms', call: 'call', mail: 'mail' }
+const CHANNEL_ICON: Record<string, string> = { chat: 'chat', call: 'call', text: 'sms' }
 
 const LEADS: Lead[] = [
-  { name: 'Michael Smith',   channel: 'sms',  apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4',       status: 'Confirmed',     updatedOn: 'May 25, 2026 08:00 AM', time: '08:00 AM', phone: '(415) 555-0132', email: 'm.smith@email.com' },
+  { name: 'Michael Smith',   channel: 'text', apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4',       status: 'Confirmed',     updatedOn: 'May 25, 2026 08:00 AM', time: '08:00 AM', phone: '(415) 555-0132', email: 'm.smith@email.com' },
   { name: 'Alex Turner',     channel: 'call', apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'Confirmed',     updatedOn: 'May 25, 2026 08:15 AM', time: '08:15 AM', phone: '(415) 555-0144', email: 'a.turner@email.com' },
-  { name: 'Marcus Reid',     channel: 'sms',  apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'No-shows',      updatedOn: 'May 25, 2026 08:45 AM', time: '08:45 AM', phone: '(408) 555-0155', email: 'm.reid@email.com' },
-  { name: 'David Brown',     channel: 'sms',  apptType: 'Sale - Prospect',   lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 09:00 AM', time: '09:00 AM', phone: '(408) 555-0117', email: 'd.brown@email.com' },
-  { name: 'Olivia Scott',    channel: 'mail', apptType: 'Sale - Prospect',   lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 09:15 AM', time: '09:15 AM', phone: '(650) 555-0133', email: 'o.scott@email.com' },
-  { name: 'Emily Davis',     channel: 'mail', apptType: 'Sale - Parts',      lookingFor: 'Toyota RAV4',       status: 'Confirmed',     updatedOn: 'May 25, 2026 09:30 AM', time: '09:30 AM', phone: '(650) 555-0144', email: 'e.davis@email.com' },
-  { name: 'Ryan Chen',       channel: 'sms',  apptType: 'Sale - Parts',      lookingFor: 'Chevrolet Equinox', status: 'Confirmed',     updatedOn: 'May 25, 2026 09:45 AM', time: '09:45 AM', phone: '(408) 555-0177', email: 'r.chen@email.com' },
+  { name: 'Marcus Reid',     channel: 'text', apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'No-shows',      updatedOn: 'May 25, 2026 08:45 AM', time: '08:45 AM', phone: '(408) 555-0155', email: 'm.reid@email.com' },
+  { name: 'David Brown',     channel: 'chat', apptType: 'Sale - Prospect',   lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 09:00 AM', time: '09:00 AM', phone: '(408) 555-0117', email: 'd.brown@email.com' },
+  { name: 'Olivia Scott',    channel: 'text', apptType: 'Sale - Prospect',   lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 09:15 AM', time: '09:15 AM', phone: '(650) 555-0133', email: 'o.scott@email.com' },
+  { name: 'Emily Davis',     channel: 'text', apptType: 'Sale - Parts',      lookingFor: 'Toyota RAV4',       status: 'Confirmed',     updatedOn: 'May 25, 2026 09:30 AM', time: '09:30 AM', phone: '(650) 555-0144', email: 'e.davis@email.com' },
+  { name: 'Ryan Chen',       channel: 'chat', apptType: 'Sale - Parts',      lookingFor: 'Chevrolet Equinox', status: 'Confirmed',     updatedOn: 'May 25, 2026 09:45 AM', time: '09:45 AM', phone: '(408) 555-0177', email: 'r.chen@email.com' },
   { name: 'Diana Park',      channel: 'call', apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 10:00 AM', time: '10:00 AM', phone: '(415) 555-0188', email: 'd.park@email.com' },
   { name: 'James Rodriguez', channel: 'call', apptType: 'Sale - Parts',      lookingFor: 'Chevrolet Equinox', status: 'Cancellations', updatedOn: 'May 25, 2026 10:15 AM', time: '10:15 AM', phone: '(669) 555-0123', email: 'j.rodriguez@email.com' },
-  { name: 'Linda White',     channel: 'mail', apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 10:30 AM', time: '10:30 AM', phone: '(650) 555-0177', email: 'l.white@email.com' },
-  { name: 'Amy Chen',        channel: 'mail', apptType: 'Sale - Parts',      lookingFor: 'Honda CR-V',        status: 'No-shows',      updatedOn: 'May 25, 2026 10:45 AM', time: '10:45 AM', phone: '(415) 555-0190', email: 'a.chen@email.com' },
+  { name: 'Linda White',     channel: 'text', apptType: 'Sale - Test drive', lookingFor: 'Honda CR-V',        status: 'Confirmed',     updatedOn: 'May 25, 2026 10:30 AM', time: '10:30 AM', phone: '(650) 555-0177', email: 'l.white@email.com' },
+  { name: 'Amy Chen',        channel: 'text', apptType: 'Sale - Parts',      lookingFor: 'Honda CR-V',        status: 'No-shows',      updatedOn: 'May 25, 2026 10:45 AM', time: '10:45 AM', phone: '(415) 555-0190', email: 'a.chen@email.com' },
   { name: 'Tom Wilson',      channel: 'call', apptType: 'Sale - Test drive', lookingFor: 'Chevrolet Equinox', status: 'No-shows',      updatedOn: 'May 25, 2026 11:00 AM', time: '11:00 AM', phone: '(669) 555-0123', email: 't.wilson@email.com' },
-  { name: 'Patricia Clark',  channel: 'sms',  apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'Confirmed',     updatedOn: 'May 25, 2026 11:15 AM', time: '11:15 AM', phone: '(415) 555-0199', email: 'p.clark@email.com' },
-  { name: 'Brandon Lee',     channel: 'sms',  apptType: 'Sale - Parts',      lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 11:30 AM', time: '11:30 AM', phone: '(408) 555-0111', email: 'b.lee@email.com' },
-  { name: 'Kevin Moore',     channel: 'mail', apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 12:00 PM', time: '12:00 PM', phone: '(408) 555-0117', email: 'k.moore@email.com' },
+  { name: 'Patricia Clark',  channel: 'chat', apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'Confirmed',     updatedOn: 'May 25, 2026 11:15 AM', time: '11:15 AM', phone: '(415) 555-0199', email: 'p.clark@email.com' },
+  { name: 'Brandon Lee',     channel: 'text', apptType: 'Sale - Parts',      lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 11:30 AM', time: '11:30 AM', phone: '(408) 555-0111', email: 'b.lee@email.com' },
+  { name: 'Kevin Moore',     channel: 'text', apptType: 'Sale - Test drive', lookingFor: 'Toyota RAV4',       status: 'Cancellations', updatedOn: 'May 25, 2026 12:00 PM', time: '12:00 PM', phone: '(408) 555-0117', email: 'k.moore@email.com' },
   { name: 'Samantha Fox',    channel: 'call', apptType: 'Sale - Prospect',   lookingFor: 'Ford F-Series',     status: 'No-shows',      updatedOn: 'May 25, 2026 12:30 PM', time: '12:30 PM', phone: '(415) 555-0166', email: 's.fox@email.com' },
   { name: 'Chris Evans',     channel: 'call', apptType: 'Sale - Prospect',   lookingFor: 'Honda Civic',       status: 'Cancellations', updatedOn: 'May 25, 2026 02:00 PM', time: '02:00 PM', phone: '(669) 555-0101', email: 'c.evans@email.com' },
 ]
@@ -95,9 +95,11 @@ const COLUMN_DEFS: ColumnDef[] = [
     label: 'Outreach channel',
     width: 150,
     sortable: true,
-    render: (value) => <Icon name={CHANNEL_ICON[String(value)] ?? 'chat'} size={20} className="text-text-icon" />,
+    render: (value) => (
+      <Icon name={CHANNEL_ICON[String(value)] ?? 'chat'} size={20} className="text-text-icon" />
+    ),
   },
-  { key: 'apptType',   label: 'Appt type',        width: 160, sortable: true },
+  { key: 'apptType',   label: 'Appointment type', width: 160, sortable: true },
   { key: 'time',       label: 'Time',             width: 110, sortable: true },
   { key: 'updatedOn',  label: 'Updated on',       width: 180, sortable: true },
   { key: 'phone',      label: 'Phone',            width: 160, sortable: true },
@@ -123,8 +125,8 @@ const ADD_PROSPECT_FIELDS: FormField[] = [
 const FILTER_FIELDS: FilterField[] = [
   { id: 'groups', label: 'Groups', options: opts('All dealerships', 'Northeast', 'Southeast', 'Midwest', 'West') },
   { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
-  { id: 'channel', label: 'Outreach channel', options: opts('SMS', 'Call', 'Email') },
-  { id: 'appt-type', label: 'Appt type', options: opts('Service', 'Sale', 'Sale - First visit', 'Sale - Test drive', 'Sale - Trade-in', 'Sale - Parts') },
+  { id: 'channel', label: 'Outreach channel', options: opts('Chat', 'Call', 'Text') },
+  { id: 'appt-type', label: 'Appointment type', options: opts('Service', 'Sale', 'Sale - First visit', 'Sale - Test drive', 'Sale - Trade-in', 'Sale - Parts') },
   { id: 'status', label: 'Status', options: opts('Prospect', 'Test drive pending', 'Test drive completed', 'Dropped off', 'Won') },
   { id: 'looking-for', label: 'Looking for', options: opts('Toyota RAV4', 'Ford F-Series', 'Honda CR-V', 'Chevrolet Equinox') },
 ]

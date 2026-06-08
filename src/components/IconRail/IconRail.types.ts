@@ -15,6 +15,11 @@ export interface RailGroup {
   items: RailNavItem[]
 }
 
+export interface Product {
+  id: string
+  label: string
+}
+
 export interface IconRailProps {
   /** Imported brand logo (SVG/PNG URL) shown in the header cell. */
   logoSrc: string
@@ -23,4 +28,10 @@ export interface IconRailProps {
   groups: RailGroup[]
   activeId: string
   onSelect?: (id: string) => void
+  /** Product switcher — list of products to show in the logo popover. */
+  products?: Product[]
+  /** Currently active product id. */
+  activeProduct?: string
+  /** Called when the user picks a different product. */
+  onProductChange?: (id: string) => void
 }

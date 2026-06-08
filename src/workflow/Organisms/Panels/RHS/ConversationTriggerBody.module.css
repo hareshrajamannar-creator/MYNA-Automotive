@@ -32,6 +32,14 @@
   font-family: 'Roboto', sans-serif;
 }
 
+.conditionsLabel {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #757575;
+  font-family: 'Roboto', sans-serif;
+}
+
 /* ─── AND connector between rows ─── */
 .connectorRow {
   display: flex;

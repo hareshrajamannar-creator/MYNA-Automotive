@@ -88,6 +88,25 @@
   border-color: #aaa;
 }
 
+.tc-dropdown__trigger--readonly {
+  height: 36px;
+  padding: 0 8px 0 12px;
+  background: #fafafa;
+  border-color: #c5cad3;
+  cursor: default;
+}
+
+.tc-dropdown__trigger--readonly:hover {
+  border-color: #c5cad3;
+}
+
+.tc-dropdown__trigger--readonly .tc-dropdown__chevron {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #c5c9d0;
+}
+
 .tc-dropdown__value {
   flex: 1;
   font-size: 14px;

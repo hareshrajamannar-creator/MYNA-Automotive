@@ -7,6 +7,7 @@ import { FormDrawerProps } from './FormDrawer.types'
 export function FormDrawer({
   open,
   title,
+  subtitle,
   fields,
   submitLabel,
   requiredKeys,
@@ -63,7 +64,10 @@ export function FormDrawer({
             >
               <BackArrowIcon />
             </button>
-            <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h2>
+            <div className="flex flex-col">
+              <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h2>
+              {subtitle && <span className="text-small text-text-secondary">{subtitle}</span>}
+            </div>
           </div>
           <div className="flex items-center gap-sm">
             <button
@@ -128,7 +132,6 @@ export function FormDrawer({
           <div className="fixed inset-0 z-[105]" onClick={() => setOpenField(null)} />
           <div className="fixed z-[110]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
             <SelectMenu
-              title={activeField.label}
               options={(activeField.options ?? []).map((o) => ({ value: o, label: o }))}
               value={values[activeField.key] ? [values[activeField.key]] : []}
               searchable={(activeField.options ?? []).length > 6}

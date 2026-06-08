@@ -46,6 +46,105 @@ const _SEED_TOOLS = [
     outputs: [{ name: 'outcome', type: 'string', description: 'answered | voicemail | no-answer' }],
   },
   {
+    id: 'initiate-voice-call',
+    name: 'Initiate voice call',
+    icon: 'call',
+    description: 'Places an outbound voice call to the customer and routes the outcome to Call accepted, Call rejected, or Call missed.',
+    category: 'Communication',
+    fields: [
+      {
+        id: 'initiate-voice-call-phone',
+        label: 'Phone number',
+        type: 'variable',
+        defaultValue: 'Contact.PhoneNumber',
+      },
+      {
+        id: 'initiate-voice-call-from-number',
+        label: 'Call from',
+        type: 'select',
+        placeholder: 'Select',
+        showInfoIcon: true,
+        options: [
+          'Main dealership line',
+          'Service department',
+          'Sales department',
+          'Parts department',
+        ],
+      },
+      {
+        id: 'initiate-voice-call-calling-window',
+        label: 'Calling window',
+        type: 'radio',
+        defaultValue: 'Custom range',
+        options: ['During business hours', 'Custom range'],
+        showWhenValue: 'Custom range',
+        conditionalLayout: 'row',
+        conditionalFields: [
+          {
+            id: 'initiate-voice-call-from',
+            label: 'From',
+            type: 'select',
+            placeholder: 'Select',
+            defaultValue: '9:00 AM',
+            options: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'],
+          },
+          {
+            id: 'initiate-voice-call-to',
+            label: 'To',
+            type: 'select',
+            placeholder: 'Select',
+            defaultValue: '10:00 PM',
+            options: ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM'],
+          },
+        ],
+      },
+      {
+        id: 'initiate-voice-call-retry',
+        label: 'Retry settings',
+        type: 'checkbox',
+        layout: 'row',
+        helpText: 'Enable automatic retry if customer does not connect on the first attempt',
+        options: ['No answer', 'Call rejected', 'Voice mail'],
+        defaultValue: ['No answer', 'Voice mail'],
+        conditionalFields: [
+          {
+            id: 'initiate-voice-call-max-attempts',
+            label: 'Max attempts',
+            type: 'select',
+            defaultValue: '2',
+            options: ['1', '2', '3', '4', '5'],
+          },
+          {
+            id: 'initiate-voice-call-retry-interval',
+            label: 'Interval between retries',
+            type: 'selectRow',
+            selects: [
+              {
+                defaultValue: '24',
+                options: ['1', '2', '4', '6', '12', '24', '48'],
+              },
+              {
+                defaultValue: 'Hours',
+                options: ['Minutes', 'Hours', 'Days'],
+              },
+            ],
+          },
+          {
+            id: 'initiate-voice-call-voicemail',
+            label: 'Configure voice mail message',
+            type: 'textarea',
+            placeholder: 'Enter your message here',
+            showVariableToolbar: true,
+            rows: 5,
+            showWhenIncludes: 'Voice mail',
+          },
+        ],
+      },
+    ],
+    inputs: [{ name: 'phoneNumber', type: 'string' }],
+    outputs: [{ name: 'outcome', type: 'string', description: 'accepted | rejected | missed' }],
+  },
+  {
     id: 'crm-update',
     name: 'CRM Update',
     icon: 'sync_alt',
@@ -188,11 +287,19 @@ export async function getCustomTools() {
   return Array.from(_customTools.values());
 }
 
+function _formatInputLabel(name, explicitLabel) {
+  if (explicitLabel) return explicitLabel;
+  const spaced = name
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+}
+
 // Transform agentService tool → CustomToolViewer field format
 function _toolToViewerFields(tool) {
   if (tool.fields) return tool; // already in viewer format
   const fields = (tool.inputs || []).map((inp, i) => {
-    const label = inp.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const label = _formatInputLabel(inp.name, inp.label);
     const id = `${tool.id}-in-${i}`;
 
     // Boolean → toggle

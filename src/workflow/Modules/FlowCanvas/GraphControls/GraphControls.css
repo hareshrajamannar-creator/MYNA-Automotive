@@ -45,7 +45,7 @@
 }
 
 .graph-controls__toggle-btn:hover {
-  background: #f5f5f5;
+  background: #f2f4f7;
 }
 
 .graph-controls__toggle-btn--active {
@@ -82,7 +82,7 @@
 }
 
 .graph-controls__zoom-btn:hover {
-  background: #f5f5f5;
+  background: #f2f4f7;
 }
 
 .graph-controls__zoom-label {
@@ -118,7 +118,7 @@
 }
 
 .graph-controls__zoom-option:hover {
-  background: #f5f5f5;
+  background: #f2f4f7;
 }
 
 .graph-controls__zoom-option--active {
@@ -147,5 +147,5 @@
 }
 
 .graph-controls__run:hover {
-  background: #f5f5f5;
+  background: #f2f4f7;
 }
