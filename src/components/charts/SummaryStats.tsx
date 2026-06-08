@@ -25,11 +25,11 @@ export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
   return (
     <section className="rounded-md border border-border bg-surface p-2xl">
       <h3 className="mb-lg text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
-      <div className="flex flex-wrap gap-x-[40px] gap-y-lg">
+      <div className="grid gap-y-lg" style={{ gridTemplateColumns: `repeat(${stats.length}, 1fr)` }}>
         {stats.map((s) => {
           const { display, tooltip } = kFormat(s.value)
           return (
-            <div key={s.id} className="min-w-[150px]" title={tooltip}>
+            <div key={s.id} title={tooltip}>
               <div className="flex items-end gap-sm">
                 <span className="text-[24px] leading-8 text-text-primary">{display}</span>
                 {s.delta && (

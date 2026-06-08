@@ -15,7 +15,17 @@ export interface SankeyChartProps {
   height?: number
 }
 
-const colorAt = (i: number) => chartColors.categorical[i % chartColors.categorical.length]
+const SANKEY_COLORS = [
+  '#7c4dff', // Voice — purple
+  '#e056c7', // Text — pink
+  '#4cae3d', // Chat — green
+  '#5b9bd5', // Agent involved — blue
+  '#e056c7', // Human involved — pink
+  '#8bc34a', // Resolved — light green
+  '#4cae3d', // Routed — green
+  '#f5a623', // Unresolved — orange
+]
+const colorAt = (i: number) => SANKEY_COLORS[i] ?? chartColors.categorical[i % chartColors.categorical.length]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Node({ x, y, width, height, index, payload, containerWidth }: any) {
@@ -64,7 +74,7 @@ export function SankeyChart({ nodes, links, height = 360 }: SankeyChartProps) {
         data={{ nodes, links }}
         nodePadding={26}
         nodeWidth={12}
-        margin={{ top: 8, right: 90, bottom: 8, left: 60 }}
+        margin={{ top: 8, right: 100, bottom: 8, left: 8 }}
         node={<Node />}
         link={<Link />}
       >
