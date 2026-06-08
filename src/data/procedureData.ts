@@ -54,456 +54,1340 @@ export interface Procedure {
 // Helper to build a chip token quickly inside step bullets.
 const ref = (kind: RefKind, label: string): Ref => ({ kind, label })
 
-// ── Raw source data (automotive frontdesk procedures) ───────────
-interface RawProcedure {
-  id: string
-  name: string
-  category: ProcedureCategory
-  description: string
-  whenToUse: string
-  steps: string[]
-  tools: string[]
-}
+// ── Rich procedures (automotive frontdesk) ──────────────────────
 
-const RAW: RawProcedure[] = [
+const RICH_PROCEDURES: Procedure[] = [
+  // ── p-001 ──────────────────────────────────────────────────────
   {
     id: 'p-001',
     name: 'Greet and open conversation',
     category: 'Inbound General',
     description: 'Identifies the caller, screens for urgency, and routes them to the right procedure.',
+    lastEdited: 'May 18',
     whenToUse: 'Every inbound call, chat, or text session begins.',
     steps: [
-      'Answer with the dealership-branded greeting including the agent name.',
-      'Ask how the caller can be helped today.',
-      'Use the intent classifier to detect department and purpose.',
-      'Confirm the detected intent with the caller.',
-      'Route to the appropriate procedure based on intent.',
+      {
+        title: 'Deliver branded greeting',
+        bullets: [
+          { tokens: ['Answer with the dealership name and agent name — pull ', ref('context', 'Location.name'), ' and ', ref('context', 'Agent.name'), ' from context.'] },
+          { tokens: ['Keep the greeting warm and under 10 seconds.'] },
+        ],
+      },
+      {
+        title: 'Invite the request',
+        bullets: [
+          { tokens: ['Ask an open-ended "How can I help you today?" — do not suggest a topic.'] },
+          { tokens: ['Listen to the full opening statement before processing intent.'] },
+        ],
+      },
+      {
+        title: 'Classify intent',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Intent classifier'), ' on the caller\'s opening message.'] },
+          { tokens: ['Map the result to one of the registered intent categories (service, sales, parts, general, emergency).'] },
+        ],
+      },
+      {
+        title: 'Confirm and route',
+        bullets: [
+          { tokens: ['Confirm detected intent with the caller: "It sounds like you\'d like to [intent] — is that right?"'] },
+          { tokens: ['On confirmation, invoke the appropriate procedure for the detected intent.'] },
+        ],
+      },
     ],
     tools: ['Intent classifier', 'Knowledge base'],
+    context: [
+      { kind: 'context', label: 'Location.name' },
+      { kind: 'context', label: 'Agent.name' },
+    ],
   },
+
+  // ── p-002 ──────────────────────────────────────────────────────
   {
     id: 'p-002',
     name: 'Handle general inquiry',
     category: 'Inbound General',
     description: 'Answers informational questions like hours, location, financing, and services.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller has a question that does not match a specific procedure.',
     steps: [
-      'Listen to the full question before responding.',
-      'Search the knowledge base for a matching answer.',
-      'Provide a concise answer with source attribution.',
-      'Ask if the caller has additional questions.',
-      'Log the inquiry topic in CRM for analytics.',
+      {
+        title: 'Fully hear the question',
+        bullets: [
+          { tokens: ['Let the caller finish their full question without interruption.'] },
+          { tokens: ['Restate the question briefly to confirm understanding.'] },
+        ],
+      },
+      {
+        title: 'Search for an answer',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Knowledge base'), ' with the caller\'s question as the query.'] },
+          { tokens: ['Use ', ref('context', 'Location.name'), ' as a filter to surface location-specific answers (hours, address, services).'] },
+        ],
+      },
+      {
+        title: 'Deliver the answer',
+        bullets: [
+          { tokens: ['Provide a concise answer — one or two sentences maximum.'] },
+          { tokens: ['Include the source if relevant (e.g., "According to our service page…").'] },
+        ],
+      },
+      {
+        title: 'Wrap and log',
+        bullets: [
+          { tokens: ['Ask if the caller has additional questions.'] },
+          { tokens: ['Log the inquiry topic via ', ref('tool', 'CRM update'), ' for analytics and routing improvements.'] },
+        ],
+      },
     ],
     tools: ['Knowledge base', 'CRM update'],
+    context: [
+      { kind: 'context', label: 'Location.name' },
+      { kind: 'context', label: 'Location.hours' },
+    ],
   },
+
+  // ── p-003 ──────────────────────────────────────────────────────
   {
     id: 'p-003',
     name: 'Department transfer',
     category: 'Inbound General',
     description: 'Routes the caller to the right department with a warm, context-rich handoff.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller requests a specific department or intent maps to another department.',
     steps: [
-      'Confirm the department the caller wants to reach.',
-      'Check business hours for the target department.',
-      'If open, perform a warm transfer with a context summary.',
-      'If closed, offer voicemail or callback scheduling.',
-      'Log the transfer in CRM with a reason code.',
+      {
+        title: 'Confirm destination',
+        bullets: [
+          { tokens: ['Confirm which department the caller wants: Service, Sales, Parts, Finance, or Management.'] },
+          { tokens: ['If ambiguous, ask one clarifying question only.'] },
+        ],
+      },
+      {
+        title: 'Check availability',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Check business hours'), ' with the target department ID.'] },
+          { tokens: ['Compare against ', ref('context', 'Location.hours'), ' to determine whether the department is open.'] },
+        ],
+      },
+      {
+        title: 'Transfer or offer alternatives',
+        bullets: [
+          { tokens: ['If the department is open: perform a warm transfer with a one-sentence context summary for the receiving agent.'] },
+          { tokens: ['If the department is closed: offer voicemail, callback scheduling, or escalate via ', ref('tool', 'Trigger escalation'), '.'] },
+        ],
+      },
+      {
+        title: 'Log the transfer',
+        bullets: [
+          { tokens: ['Record the transfer outcome and reason code via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['Check business hours', 'CRM update', 'Trigger escalation'],
+    context: [
+      { kind: 'context', label: 'Location.name' },
+      { kind: 'context', label: 'Location.hours' },
+    ],
   },
+
+  // ── p-004 ──────────────────────────────────────────────────────
   {
     id: 'p-004',
     name: 'Handle unclear message',
     category: 'Inbound General',
     description: "Clarifies vague or out-of-scope messages to recover the caller's intent.",
+    lastEdited: 'May 18',
     whenToUse: 'Speech-to-text confidence is low or caller intent is ambiguous.',
     steps: [
-      'Apologize and ask the caller to rephrase.',
-      'Offer 2–3 common intent options as suggestions.',
-      'If still unclear, attempt one more rephrasing request.',
-      'If unresolved, transfer to a human agent.',
+      {
+        title: 'Apologize and prompt rephrasing',
+        bullets: [
+          { tokens: ['Apologize without blaming the caller: "I\'m sorry — I didn\'t quite catch that."'] },
+          { tokens: ['Ask the caller to rephrase using different words.'] },
+        ],
+      },
+      {
+        title: 'Offer intent suggestions',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Intent classifier'), ' on the low-confidence transcript to surface the top 3 candidate intents.'] },
+          { tokens: ['Present the top 2–3 options to the caller: "Were you calling about service, sales, or something else?"'] },
+        ],
+      },
+      {
+        title: 'Final clarification attempt',
+        bullets: [
+          { tokens: ['If still unclear after two attempts, make one final open-ended rephrasing request.'] },
+          { tokens: ['If unresolved, invoke ', ref('tool', 'Trigger escalation'), ' to hand off to a human agent.'] },
+        ],
+      },
     ],
     tools: ['ElevenLabs STT', 'Intent classifier', 'Trigger escalation'],
+    context: [
+      { kind: 'context', label: 'Location.name' },
+      { kind: 'context', label: 'Location.hours' },
+    ],
   },
+
+  // ── p-006 ──────────────────────────────────────────────────────
   {
     id: 'p-006',
     name: 'Talk to human',
     category: 'Inbound General',
     description: 'Hands off to a live agent when the caller asks for a person or shows frustration.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller explicitly requests a human agent.',
     steps: [
-      'Acknowledge the request without resistance.',
-      'Ask if there is a specific person or department they need.',
-      'Attempt a warm transfer with conversation context.',
-      'If no one is available, offer a callback with an estimated wait time.',
-      'Log the request and outcome in CRM.',
+      {
+        title: 'Acknowledge without resistance',
+        bullets: [
+          { tokens: ['Confirm the request immediately: "Of course — let me connect you with a team member."'] },
+          { tokens: ['Do not attempt to deflect or resolve the issue before transferring.'] },
+        ],
+      },
+      {
+        title: 'Identify the right person',
+        bullets: [
+          { tokens: ['Ask if the caller has a specific person or department in mind.'] },
+          { tokens: ['Invoke ', ref('tool', 'Check business hours'), ' to confirm the team is available.'] },
+        ],
+      },
+      {
+        title: 'Warm transfer',
+        bullets: [
+          { tokens: ['Initiate a warm transfer via ', ref('tool', 'Trigger escalation'), ' with a conversation context summary.'] },
+          { tokens: ['If no one is available, offer a callback with an estimated wait time based on ', ref('context', 'Location.hours'), '.'] },
+        ],
+      },
+      {
+        title: 'Log the request',
+        bullets: [
+          { tokens: ['Record the escalation request and outcome via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['Trigger escalation', 'CRM update', 'Check business hours'],
+    context: [
+      { kind: 'context', label: 'Location.name' },
+      { kind: 'context', label: 'Location.hours' },
+    ],
   },
+
+  // ── p-007 ──────────────────────────────────────────────────────
   {
     id: 'p-007',
     name: 'Identify caller',
     category: 'Inbound General',
     description: 'Confirms caller identity before any account or appointment action is taken.',
+    lastEdited: 'May 18',
     whenToUse: 'Before performing any account-specific or appointment action.',
     steps: [
-      'Ask for the name and phone number on the account.',
-      'Match the details against the CRM record.',
-      'Confirm the vehicle on file if relevant.',
-      'Proceed only once identity is verified.',
+      {
+        title: 'Collect identity details',
+        bullets: [
+          { tokens: ['Ask for the name and phone number associated with the account.'] },
+          { tokens: ['Store collected values as ', ref('context', 'Customer_name'), ' and ', ref('context', 'Customer_phone'), '.'] },
+        ],
+      },
+      {
+        title: 'Verify against CRM',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Voice identity'), ' to match the caller\'s voice profile if available.'] },
+          { tokens: ['Cross-reference name and phone against the CRM record via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
+      {
+        title: 'Confirm vehicle on file',
+        bullets: [
+          { tokens: ['If the task is vehicle-related, confirm the vehicle on file matches the caller\'s description.'] },
+          { tokens: ['Store as ', ref('context', 'Vehicle_details'), ' for use in downstream steps.'] },
+        ],
+      },
+      {
+        title: 'Proceed on verified identity',
+        bullets: [
+          { tokens: ['Only proceed to the requested action after identity is confirmed.'] },
+          { tokens: ['If identity cannot be verified, invoke ', ref('procedure', 'Talk to human'), ' to hand off.'] },
+        ],
+      },
     ],
     tools: ['Voice identity', 'CRM update'],
+    context: [
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Customer_phone' },
+      { kind: 'context', label: 'Vehicle_details' },
+    ],
   },
+
+  // ── p-008 ──────────────────────────────────────────────────────
   {
     id: 'p-008',
     name: 'Schedule service appointment',
     category: 'Service',
     description: 'Finds availability and schedules a new service visit for the customer.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller wants to book a service appointment.',
     steps: [
-      'Collect vehicle year, make, model, and mileage.',
-      'Ask for the type of service needed.',
-      'Look up the VIN if available for service-history context.',
-      'Check available appointment slots in the DMS.',
-      'Confirm date, time, and service advisor.',
-      'Send confirmation via SMS or email.',
-      'Create the appointment record in the DMS.',
+      {
+        title: 'Collect vehicle details',
+        bullets: [
+          { tokens: ['Ask for year, make, model, and mileage → store as ', ref('context', 'Vehicle_details'), '.'] },
+          { tokens: ['If VIN is available, invoke ', ref('tool', 'VIN decode'), ' for service-history context.'] },
+        ],
+      },
+      {
+        title: 'Identify service type',
+        bullets: [
+          { tokens: ['Ask what type of service is needed (oil change, repair, recall, etc.).'] },
+          { tokens: ['Cross-reference ', ref('context', 'Vehicle_details'), ' with known maintenance schedules.'] },
+        ],
+      },
+      {
+        title: 'Find and confirm slot',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'DMS integration'), ' and ', ref('tool', 'Schedule appointment'), ' to pull available slots.'] },
+          { tokens: ['Offer the soonest 2–3 options that fit the caller\'s preference.'] },
+          { tokens: ['Confirm date, time, and service advisor with the caller.'] },
+        ],
+      },
+      {
+        title: 'Confirm and log',
+        bullets: [
+          { tokens: ['Send SMS/email via ', ref('tool', 'Send confirmation'), ' with appointment details.'] },
+          { tokens: ['Create the appointment record in DMS and update ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Schedule appointment', 'VIN decode', 'Send confirmation', 'CRM update'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-012 ──────────────────────────────────────────────────────
   {
     id: 'p-012',
     name: 'Reschedule appointment',
     category: 'Service',
     description: 'Moves an existing upcoming appointment to a new time.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller wants to change an existing appointment.',
     steps: [
-      'Verify caller identity and locate the appointment.',
-      'Confirm which appointment to modify.',
-      'Offer the next available slots.',
-      'Update the DMS record and send confirmation.',
+      {
+        title: 'Verify identity and locate appointment',
+        bullets: [
+          { tokens: ['Invoke ', ref('procedure', 'Identify caller'), ' to confirm identity.'] },
+          { tokens: ['Look up the existing appointment via ', ref('tool', 'DMS integration'), ' → store as ', ref('context', 'Appointment_id'), '.'] },
+        ],
+      },
+      {
+        title: 'Confirm which appointment to change',
+        bullets: [
+          { tokens: ['If the customer has multiple upcoming appointments, present them and confirm which one to modify.'] },
+        ],
+      },
+      {
+        title: 'Offer new slots',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Schedule appointment'), ' to retrieve the next available slots.'] },
+          { tokens: ['Offer the closest 2–3 options to the original time.'] },
+        ],
+      },
+      {
+        title: 'Update and confirm',
+        bullets: [
+          { tokens: ['Update the DMS record via ', ref('tool', 'DMS integration'), ' with the new date and time.'] },
+          { tokens: ['Send an updated confirmation via ', ref('tool', 'Send confirmation'), ' and log via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Schedule appointment', 'Send confirmation', 'CRM update'],
+    context: [
+      { kind: 'context', label: 'Appointment_id' },
+      { kind: 'context', label: 'Customer_name' },
+    ],
   },
+
+  // ── p-012b ─────────────────────────────────────────────────────
   {
     id: 'p-012b',
     name: 'Cancel appointment',
     category: 'Service',
     description: 'Cancels an existing appointment and releases the slot.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller wants to cancel an existing appointment.',
     steps: [
-      'Verify caller identity and locate the appointment.',
-      'Confirm the cancellation and capture the reason.',
-      'Release the slot back to availability.',
-      'Update the DMS record and send confirmation.',
+      {
+        title: 'Verify identity and locate appointment',
+        bullets: [
+          { tokens: ['Invoke ', ref('procedure', 'Identify caller'), ' to confirm identity.'] },
+          { tokens: ['Look up the appointment via ', ref('tool', 'DMS integration'), ' using ', ref('context', 'Customer_name'), ' or ', ref('context', 'Appointment_id'), '.'] },
+        ],
+      },
+      {
+        title: 'Confirm cancellation and capture reason',
+        bullets: [
+          { tokens: ['Read back the appointment details and ask the caller to confirm cancellation.'] },
+          { tokens: ['Capture the cancellation reason — store for reporting.'] },
+        ],
+      },
+      {
+        title: 'Release the slot',
+        bullets: [
+          { tokens: ['Cancel the appointment in ', ref('tool', 'DMS integration'), ' to release the slot back to availability.'] },
+        ],
+      },
+      {
+        title: 'Send confirmation',
+        bullets: [
+          { tokens: ['Send a cancellation confirmation via ', ref('tool', 'Send confirmation'), '.'] },
+          { tokens: ['Log the cancellation via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Send confirmation', 'CRM update'],
+    context: [
+      { kind: 'context', label: 'Appointment_id' },
+      { kind: 'context', label: 'Customer_name' },
+    ],
   },
+
+  // ── p-008b ─────────────────────────────────────────────────────
   {
     id: 'p-008b',
     name: 'Book new appointment',
     category: 'Service',
     description: 'Finds availability and schedules a new visit for the customer.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller has no existing appointment and wants to book a visit.',
     steps: [
-      'Confirm the reason for the visit.',
-      'Check available appointment slots in the DMS.',
-      'Offer the soonest options that fit the request.',
-      'Confirm the booking and send confirmation.',
+      {
+        title: 'Confirm reason for visit',
+        bullets: [
+          { tokens: ['Ask the caller what brings them in — maintenance, repair, recall, or other.'] },
+          { tokens: ['Store the reason as ', ref('context', 'Visit_reason'), ' for downstream scheduling.'] },
+        ],
+      },
+      {
+        title: 'Check availability',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'DMS integration'), ' with the visit reason to find open slots.'] },
+          { tokens: ['Offer the soonest slots that match the requested service type.'] },
+        ],
+      },
+      {
+        title: 'Confirm and book',
+        bullets: [
+          { tokens: ['Confirm the chosen date and time with the caller.'] },
+          { tokens: ['Invoke ', ref('tool', 'Schedule appointment'), ' to create the booking record.'] },
+        ],
+      },
+      {
+        title: 'Send confirmation',
+        bullets: [
+          { tokens: ['Send appointment confirmation via ', ref('tool', 'Send confirmation'), ' with date, time, and location ', ref('context', 'Location.name'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Schedule appointment', 'Send confirmation'],
+    context: [
+      { kind: 'context', label: 'Visit_reason' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-013b ─────────────────────────────────────────────────────
   {
     id: 'p-013b',
     name: 'Handle slot conflict',
     category: 'Service',
     description: 'Re-offers availability when the chosen slot was already taken.',
+    lastEdited: 'May 18',
     whenToUse: 'The slot the caller picked is no longer available.',
     steps: [
-      'Apologize for the conflict.',
-      'Pull the next available slots from the DMS.',
-      'Offer the closest alternatives to the original request.',
-      'Confirm the new booking and send confirmation.',
+      {
+        title: 'Apologize for the conflict',
+        bullets: [
+          { tokens: ['Inform the caller that the requested slot is no longer available — do not over-explain.'] },
+          { tokens: ['Keep the tone positive: "Let me find you the next best option."'] },
+        ],
+      },
+      {
+        title: 'Pull alternative slots',
+        bullets: [
+          { tokens: ['Re-invoke ', ref('tool', 'DMS integration'), ' to fetch the next available openings.'] },
+          { tokens: ['Filter results to slots closest to the caller\'s original preference.'] },
+        ],
+      },
+      {
+        title: 'Offer alternatives',
+        bullets: [
+          { tokens: ['Present 2–3 alternative slots via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Let the caller choose; do not push a specific option.'] },
+        ],
+      },
+      {
+        title: 'Confirm the new booking',
+        bullets: [
+          { tokens: ['Book the selected slot and send an updated confirmation via ', ref('tool', 'Send confirmation'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Schedule appointment', 'Send confirmation'],
+    context: [
+      { kind: 'context', label: 'Appointment_id' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-009 ──────────────────────────────────────────────────────
   {
     id: 'p-009',
     name: 'Repair / diagnostic triage',
     category: 'Service',
     description: 'Triages a described vehicle problem and books the right level of service.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller describes a vehicle problem or warning light.',
     steps: [
-      'Collect the symptom description and vehicle information.',
-      'Ask clarifying questions about onset, frequency, and severity.',
-      'Check the knowledge base for common diagnostic guidance.',
-      'Assess urgency (safe to drive vs. immediate attention).',
-      'Book a same-day or next-available appointment.',
-      'Provide interim safety guidance.',
+      {
+        title: 'Collect symptom and vehicle info',
+        bullets: [
+          { tokens: ['Ask the caller to describe the symptom as specifically as possible.'] },
+          { tokens: ['Collect vehicle year, make, model, and mileage → store as ', ref('context', 'Vehicle_details'), '.'] },
+          { tokens: ['If VIN is available, invoke ', ref('tool', 'VIN decode'), ' for service-history context.'] },
+        ],
+      },
+      {
+        title: 'Clarify onset and severity',
+        bullets: [
+          { tokens: ['Ask when the problem started, how often it occurs, and whether warning lights are on.'] },
+          { tokens: ['Do not diagnose — only gather detail for the technician.'] },
+        ],
+      },
+      {
+        title: 'Check guidance and assess urgency',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Knowledge base'), ' with the symptom description to surface common diagnostic notes.'] },
+          { tokens: ['Assess urgency: safe to drive (schedule next available) vs. immediate attention needed (same-day or tow).'] },
+        ],
+      },
+      {
+        title: 'Book appointment and advise',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'DMS integration'), ' and ', ref('tool', 'Schedule appointment'), ' with appropriate urgency flag.'] },
+          { tokens: ['Provide interim safety guidance if warranted (e.g., "Do not drive the vehicle").'] },
+        ],
+      },
     ],
     tools: ['Knowledge base', 'DMS integration', 'Schedule appointment', 'VIN decode'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-010 ──────────────────────────────────────────────────────
   {
     id: 'p-010',
     name: 'Recall inquiry',
     category: 'Service',
     description: 'Checks for open recalls on a vehicle and books recall service.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller asks about recalls on their vehicle.',
     steps: [
-      'Collect the VIN or year/make/model.',
-      'Query the NHTSA recall database for open recalls.',
-      'Report the recall status and description to the caller.',
-      'Offer to schedule recall service if an open recall exists.',
-      'Book the appointment and send confirmation.',
+      {
+        title: 'Collect vehicle identifier',
+        bullets: [
+          { tokens: ['Ask for the VIN or year/make/model → store as ', ref('context', 'Vehicle_details'), '.'] },
+          { tokens: ['Invoke ', ref('tool', 'VIN decode'), ' to normalize the vehicle identifier.'] },
+        ],
+      },
+      {
+        title: 'Query recall database',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'NHTSA recall lookup'), ' with the decoded VIN.'] },
+          { tokens: ['Retrieve all open and closed recalls for the vehicle.'] },
+        ],
+      },
+      {
+        title: 'Report recall status',
+        bullets: [
+          { tokens: ['Summarize open recalls by name and safety impact to the caller.'] },
+          { tokens: ['Clarify that recall repairs are performed at no cost to the customer.'] },
+        ],
+      },
+      {
+        title: 'Book recall service if applicable',
+        bullets: [
+          { tokens: ['If an open recall exists, offer to schedule immediately via ', ref('tool', 'DMS integration'), ' and ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Send the appointment confirmation via ', ref('tool', 'Send confirmation'), '.'] },
+        ],
+      },
     ],
     tools: ['VIN decode', 'NHTSA recall lookup', 'DMS integration', 'Schedule appointment', 'Send confirmation'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-011 ──────────────────────────────────────────────────────
   {
     id: 'p-011',
     name: 'Service status check',
     category: 'Service',
     description: 'Reports the status and estimated completion of an in-progress repair.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller inquires about an in-progress repair.',
     steps: [
-      'Verify caller identity and vehicle.',
-      'Look up the active repair order in the DMS.',
-      'Provide the current status and estimated completion time.',
-      'Relay any additional work found and its cost.',
-      'Offer to send a status update via text.',
+      {
+        title: 'Verify identity and vehicle',
+        bullets: [
+          { tokens: ['Invoke ', ref('procedure', 'Identify caller'), ' to confirm identity and link to vehicle.'] },
+          { tokens: ['Confirm ', ref('context', 'Vehicle_details'), ' matches the active repair order.'] },
+        ],
+      },
+      {
+        title: 'Look up repair order',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'DMS integration'), ' to retrieve the active repair order by vehicle or appointment ID.'] },
+          { tokens: ['Optionally invoke ', ref('tool', 'Voice identity'), ' for identity confirmation if not already done.'] },
+        ],
+      },
+      {
+        title: 'Provide status update',
+        bullets: [
+          { tokens: ['Report the current repair status and estimated completion time.'] },
+          { tokens: ['If additional work was found, relay the description and cost estimate before proceeding.'] },
+        ],
+      },
+      {
+        title: 'Send status update',
+        bullets: [
+          { tokens: ['Offer to send a status update via text using ', ref('tool', 'Send confirmation'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Voice identity', 'Send confirmation'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Customer_name' },
+    ],
   },
+
+  // ── p-013 ──────────────────────────────────────────────────────
   {
     id: 'p-013',
     name: 'Warranty inquiry',
     category: 'Service',
     description: 'Explains warranty coverage and books work under warranty when eligible.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller asks about warranty coverage.',
     steps: [
-      'Collect the VIN and current mileage.',
-      'Look up warranty status via DMS/OEM integration.',
-      'Explain coverage periods and what is and is not covered.',
-      'Offer to schedule under warranty if service is needed.',
+      {
+        title: 'Collect vehicle and mileage',
+        bullets: [
+          { tokens: ['Ask for the VIN and current mileage → store as ', ref('context', 'Vehicle_details'), '.'] },
+          { tokens: ['Invoke ', ref('tool', 'VIN decode'), ' to retrieve vehicle production date and original warranty start.'] },
+        ],
+      },
+      {
+        title: 'Look up warranty status',
+        bullets: [
+          { tokens: ['Query warranty status via ', ref('tool', 'DMS integration'), ' using the VIN and mileage.'] },
+          { tokens: ['Retrieve coverage periods for basic, powertrain, and any extended plans.'] },
+        ],
+      },
+      {
+        title: 'Explain coverage',
+        bullets: [
+          { tokens: ['Summarize what is and is not covered under active warranties.'] },
+          { tokens: ['Reference ', ref('tool', 'Knowledge base'), ' for OEM warranty terms if detailed explanation is needed.'] },
+        ],
+      },
+      {
+        title: 'Offer warranty service booking',
+        bullets: [
+          { tokens: ['If a covered repair is needed, offer to schedule immediately — note the warranty coverage on the appointment.'] },
+        ],
+      },
     ],
     tools: ['VIN decode', 'DMS integration', 'Knowledge base'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-014 ──────────────────────────────────────────────────────
   {
     id: 'p-014',
     name: 'New vehicle inquiry',
     category: 'Sales',
     description: 'Matches interest to inventory and captures a sales lead.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller is interested in purchasing a new vehicle.',
     steps: [
-      'Ask about desired vehicle type, features, and budget.',
-      'Search real-time inventory for matching vehicles.',
-      'Present the top 2–3 options with key specs and pricing.',
-      'Offer to schedule a test drive.',
-      'Capture the lead in CRM and route to a sales consultant.',
+      {
+        title: 'Understand preferences',
+        bullets: [
+          { tokens: ['Ask about desired vehicle type, key features, and budget range.'] },
+          { tokens: ['Store preferences as ', ref('context', 'Vehicle_details'), ' for inventory matching.'] },
+        ],
+      },
+      {
+        title: 'Search inventory',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Inventory search'), ' with the collected preferences.'] },
+          { tokens: ['Filter results to new vehicles in stock at ', ref('context', 'Location.name'), '.'] },
+        ],
+      },
+      {
+        title: 'Present options',
+        bullets: [
+          { tokens: ['Present the top 2–3 matching vehicles with key specs and pricing.'] },
+          { tokens: ['Ask which option most closely matches what the caller had in mind.'] },
+        ],
+      },
+      {
+        title: 'Capture lead and route',
+        bullets: [
+          { tokens: ['Offer to schedule a test drive via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Capture the lead via ', ref('tool', 'CRM update'), ' and route to a sales consultant via ', ref('tool', 'Lead routing'), '.'] },
+        ],
+      },
     ],
     tools: ['Inventory search', 'CRM update', 'Lead routing', 'Schedule appointment'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-015 ──────────────────────────────────────────────────────
   {
     id: 'p-015',
     name: 'Used / CPO vehicle inquiry',
     category: 'Sales',
     description: 'Matches pre-owned interest to inventory and shares vehicle history.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller is interested in pre-owned or certified vehicles.',
     steps: [
-      'Ask about preferences: make, model, year range, budget, features.',
-      'Search used/CPO inventory for matches.',
-      'Highlight CPO certification benefits if applicable.',
-      'Share a vehicle history summary.',
-      'Offer to schedule a viewing or test drive.',
+      {
+        title: 'Capture preferences',
+        bullets: [
+          { tokens: ['Ask about preferred make, model, year range, budget, and must-have features.'] },
+          { tokens: ['Note whether CPO certification is a priority.'] },
+        ],
+      },
+      {
+        title: 'Search used/CPO inventory',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Inventory search'), ' filtered to used and CPO stock at ', ref('context', 'Location.name'), '.'] },
+          { tokens: ['If CPO is desired, highlight certification benefits in the result summary.'] },
+        ],
+      },
+      {
+        title: 'Share vehicle history',
+        bullets: [
+          { tokens: ['For top matches, invoke ', ref('tool', 'VIN decode'), ' to retrieve accident and service history.'] },
+          { tokens: ['Summarize history highlights — one-owner, accident-free, service records — relevant to the caller.'] },
+        ],
+      },
+      {
+        title: 'Capture lead',
+        bullets: [
+          { tokens: ['Offer to schedule a viewing or test drive.'] },
+          { tokens: ['Capture the lead via ', ref('tool', 'CRM update'), ' and route via ', ref('tool', 'Lead routing'), '.'] },
+        ],
+      },
     ],
     tools: ['Inventory search', 'VIN decode', 'CRM update', 'Lead routing'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-016 ──────────────────────────────────────────────────────
   {
     id: 'p-016',
     name: 'Trade-in valuation',
     category: 'Sales',
     description: 'Provides an estimated trade-in range and offers an in-person appraisal.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller wants to know the trade-in value of their current vehicle.',
     steps: [
-      'Collect vehicle year, make, model, trim, and mileage.',
-      'Ask about vehicle condition.',
-      'Provide an estimated range based on market data.',
-      'Add a disclaimer that the final value requires inspection.',
-      'Offer to schedule an in-person appraisal.',
+      {
+        title: 'Collect vehicle details',
+        bullets: [
+          { tokens: ['Ask for year, make, model, trim level, and current mileage → store as ', ref('context', 'Vehicle_details'), '.'] },
+        ],
+      },
+      {
+        title: 'Assess condition',
+        bullets: [
+          { tokens: ['Ask the caller to describe condition: excellent, good, fair, or rough.'] },
+          { tokens: ['Reference ', ref('tool', 'Knowledge base'), ' for condition-grading definitions if needed.'] },
+        ],
+      },
+      {
+        title: 'Provide estimated range',
+        bullets: [
+          { tokens: ['Generate an estimated trade-in range based on market data from ', ref('tool', 'Knowledge base'), '.'] },
+          { tokens: ['Add a disclaimer: final value is subject to in-person inspection.'] },
+        ],
+      },
+      {
+        title: 'Offer appraisal appointment',
+        bullets: [
+          { tokens: ['Offer to schedule an in-person appraisal via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Log the trade-in interest via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['Knowledge base', 'CRM update', 'Schedule appointment'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-017 ──────────────────────────────────────────────────────
   {
     id: 'p-017',
     name: 'Finance pre-qualification',
     category: 'Sales',
     description: 'Explains financing options and routes to F&I for detailed review.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller asks about financing options or payment estimates.',
     steps: [
-      'Explain the general financing options available.',
-      'Provide typical rate ranges without committing to specifics.',
-      'Explain that pre-qualification requires F&I review.',
-      'Offer to schedule with a finance manager.',
+      {
+        title: 'Explain financing options',
+        bullets: [
+          { tokens: ['Summarize available options: dealership finance, manufacturer incentives, lease, and balloon.'] },
+          { tokens: ['Reference ', ref('tool', 'Knowledge base'), ' for current promotional rates.'] },
+        ],
+      },
+      {
+        title: 'Provide indicative ranges',
+        bullets: [
+          { tokens: ['Provide typical APR and term ranges without committing to specific figures.'] },
+          { tokens: ['Clarify that rates depend on credit profile, which requires F&I review.'] },
+        ],
+      },
+      {
+        title: 'Set expectations for pre-qualification',
+        bullets: [
+          { tokens: ['Explain that pre-qualification is non-binding and does not impact credit score.'] },
+          { tokens: ['Describe the documents needed: proof of income, ID, and current registration.'] },
+        ],
+      },
+      {
+        title: 'Schedule with finance manager',
+        bullets: [
+          { tokens: ['Offer to schedule an appointment with a finance manager via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Capture the lead via ', ref('tool', 'CRM update'), ' and route via ', ref('tool', 'Lead routing'), '.'] },
+        ],
+      },
     ],
     tools: ['Knowledge base', 'CRM update', 'Lead routing', 'Schedule appointment'],
+    context: [
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-018 ──────────────────────────────────────────────────────
   {
     id: 'p-018',
     name: 'Test drive scheduling',
     category: 'Sales',
     description: 'Confirms availability and books a test drive for the vehicles of interest.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller wants to schedule a test drive.',
     steps: [
-      'Confirm the vehicle(s) of interest.',
-      'Verify vehicle availability on the lot.',
-      'Collect name, phone, and preferred date/time.',
-      'Check sales consultant availability.',
-      'Book the test drive and send confirmation.',
+      {
+        title: 'Confirm vehicle of interest',
+        bullets: [
+          { tokens: ['Ask which vehicle(s) the caller wants to test drive → store as ', ref('context', 'Vehicle_details'), '.'] },
+        ],
+      },
+      {
+        title: 'Verify vehicle availability',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Inventory search'), ' to confirm the vehicle is in stock at ', ref('context', 'Location.name'), '.'] },
+        ],
+      },
+      {
+        title: 'Collect contact and preference',
+        bullets: [
+          { tokens: ['Collect name, phone, and preferred date/time → store as ', ref('context', 'Customer_name'), '.'] },
+        ],
+      },
+      {
+        title: 'Book and confirm',
+        bullets: [
+          { tokens: ['Check sales consultant availability and book via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Send a confirmation via ', ref('tool', 'Send confirmation'), ' and capture the lead via ', ref('tool', 'CRM update'), ' and ', ref('tool', 'Lead routing'), '.'] },
+        ],
+      },
     ],
     tools: ['Inventory search', 'Schedule appointment', 'Send confirmation', 'CRM update', 'Lead routing'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-019 ──────────────────────────────────────────────────────
   {
     id: 'p-019',
     name: 'Internet lead qualification',
     category: 'Sales',
     description: 'Follows up on an online inquiry and qualifies the lead.',
+    lastEdited: 'May 18',
     whenToUse: 'Following up on an online form submission or website inquiry.',
     steps: [
-      'Reference the specific vehicle or inquiry from the lead source.',
-      'Confirm continued interest and timeline.',
-      'Ask qualifying questions: budget, trade-in, financing.',
-      'Present relevant inventory matches.',
-      'Offer an immediate test drive or appointment.',
+      {
+        title: 'Reference the inquiry',
+        bullets: [
+          { tokens: ['Open by referencing the specific vehicle or topic from the lead submission → use ', ref('context', 'Vehicle_details'), '.'] },
+          { tokens: ['Do not make the caller repeat information already submitted online.'] },
+        ],
+      },
+      {
+        title: 'Confirm interest and timeline',
+        bullets: [
+          { tokens: ['Ask whether the caller is still interested and their purchase timeline.'] },
+          { tokens: ['Capture urgency level: within a week, this month, or just browsing.'] },
+        ],
+      },
+      {
+        title: 'Ask qualifying questions',
+        bullets: [
+          { tokens: ['Confirm budget range, trade-in vehicle, and financing preference.'] },
+          { tokens: ['Update lead record via ', ref('tool', 'CRM update'), ' with qualification responses.'] },
+        ],
+      },
+      {
+        title: 'Present matches and close',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Inventory search'), ' for matching vehicles.'] },
+          { tokens: ['Offer a test drive or appointment via ', ref('tool', 'Schedule appointment'), ' and route the qualified lead via ', ref('tool', 'Lead routing'), '.'] },
+          { tokens: ['Send a follow-up summary via ', ref('tool', 'Send confirmation'), '.'] },
+        ],
+      },
     ],
     tools: ['CRM update', 'Inventory search', 'Lead routing', 'Schedule appointment', 'Send confirmation'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Customer_name' },
+    ],
   },
+
+  // ── p-020 ──────────────────────────────────────────────────────
   {
     id: 'p-020',
     name: 'Parts availability & pricing',
     category: 'Parts',
     description: 'Checks parts availability and pricing and offers to place an order.',
+    lastEdited: 'May 18',
     whenToUse: 'Caller inquires about parts availability or pricing.',
     steps: [
-      'Collect the part description or part number.',
-      'Decode the VIN for exact fitment if available.',
-      'Search the parts inventory in the DMS.',
-      'Provide availability status and price range.',
-      'Offer to place an order if not in stock.',
+      {
+        title: 'Collect part details',
+        bullets: [
+          { tokens: ['Ask for the part description or OEM part number.'] },
+          { tokens: ['If the caller doesn\'t have the part number, ask for the vehicle year/make/model and affected component.'] },
+        ],
+      },
+      {
+        title: 'Confirm fitment via VIN',
+        bullets: [
+          { tokens: ['If a VIN is available, invoke ', ref('tool', 'VIN decode'), ' to confirm exact part fitment for the vehicle.'] },
+          { tokens: ['Store the decoded vehicle as ', ref('context', 'Vehicle_details'), ' to avoid re-collecting during the same call.'] },
+        ],
+      },
+      {
+        title: 'Search parts inventory',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'DMS integration'), ' to look up availability and price in the parts management system.'] },
+          { tokens: ['Also check ', ref('tool', 'Knowledge base'), ' for any OEM supersession notes.'] },
+        ],
+      },
+      {
+        title: 'Present availability and offer ordering',
+        bullets: [
+          { tokens: ['Report in-stock status, price, and lead time.'] },
+          { tokens: ['If not in stock, offer to place a special order and provide an estimated arrival date.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'VIN decode', 'Knowledge base'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-021 ──────────────────────────────────────────────────────
   {
     id: 'p-021',
     name: 'After-hours lead capture',
     category: 'After-Hours',
     description: 'Captures a sales inquiry received outside business hours for next-day follow-up.',
+    lastEdited: 'May 18',
     whenToUse: 'A sales inquiry is received outside business hours.',
     steps: [
-      'Inform the caller of current business hours.',
-      'Capture name, phone, email, and vehicle interest.',
-      'Assure a callback first thing the next business day.',
-      'Send a confirmation text with business hours.',
-      'Create a priority lead in CRM for morning follow-up.',
+      {
+        title: 'Communicate hours',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Check business hours'), ' to retrieve actual opening time.'] },
+          { tokens: ['Inform the caller of ', ref('context', 'Location.hours'), ' and the next available opening time.'] },
+        ],
+      },
+      {
+        title: 'Capture inquiry details',
+        bullets: [
+          { tokens: ['Collect name, phone, email, and vehicle of interest → store as ', ref('context', 'Customer_name'), ' and ', ref('context', 'Vehicle_details'), '.'] },
+          { tokens: ['Assure the caller that a team member will follow up the next business morning.'] },
+        ],
+      },
+      {
+        title: 'Send confirmation',
+        bullets: [
+          { tokens: ['Send a confirmation text via ', ref('tool', 'Send confirmation'), ' with ', ref('context', 'Location.hours'), ' and a brief summary of the inquiry.'] },
+        ],
+      },
+      {
+        title: 'Create priority lead',
+        bullets: [
+          { tokens: ['Create a priority lead in CRM via ', ref('tool', 'CRM update'), ' flagged for morning follow-up.'] },
+          { tokens: ['Route the lead via ', ref('tool', 'Lead routing'), ' to the appropriate sales team.'] },
+        ],
+      },
     ],
     tools: ['Check business hours', 'CRM update', 'Send confirmation', 'Lead routing'],
+    context: [
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Location.hours' },
+    ],
   },
+
+  // ── p-022 ──────────────────────────────────────────────────────
   {
     id: 'p-022',
     name: 'After-hours service request',
     category: 'After-Hours',
     description: 'Triages a service inquiry received outside business hours.',
+    lastEdited: 'May 18',
     whenToUse: 'A service inquiry is received outside business hours.',
     steps: [
-      'Inform the caller of service department hours.',
-      'Assess the urgency of the service need.',
-      'Provide the roadside assistance number for emergencies.',
-      'Capture details and schedule a callback for non-urgent needs.',
+      {
+        title: 'Communicate service hours',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Check business hours'), ' to retrieve the service department schedule.'] },
+          { tokens: ['Inform the caller of ', ref('context', 'Location.hours'), ' and the next available service window.'] },
+        ],
+      },
+      {
+        title: 'Assess urgency',
+        bullets: [
+          { tokens: ['Ask if the vehicle is driveable or if there is an immediate safety concern.'] },
+          { tokens: ['If urgent/unsafe, provide the roadside assistance number immediately.'] },
+        ],
+      },
+      {
+        title: 'Handle non-urgent requests',
+        bullets: [
+          { tokens: ['For non-urgent needs, collect contact details and the service description.'] },
+          { tokens: ['Log via ', ref('tool', 'CRM update'), ' for next-morning callback scheduling.'] },
+        ],
+      },
+      {
+        title: 'Confirm and close',
+        bullets: [
+          { tokens: ['Send a confirmation via ', ref('tool', 'Send confirmation'), ' with service hours and expected callback time.'] },
+        ],
+      },
     ],
     tools: ['Check business hours', 'CRM update', 'Send confirmation'],
+    context: [
+      { kind: 'context', label: 'Location.hours' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-023 ──────────────────────────────────────────────────────
   {
     id: 'p-023',
     name: 'Lead follow-up call',
     category: 'Outbound',
     description: 'Calls an internet lead within minutes to confirm interest and book a visit.',
+    lastEdited: 'May 18',
     whenToUse: 'An internet lead is received and an outbound call is initiated within 5 minutes.',
     steps: [
-      'Introduce yourself and reference the specific inquiry.',
-      'Confirm interest and ask qualifying questions.',
-      'Present matching inventory options.',
-      'Offer to schedule a test drive or appointment.',
-      'Leave a voicemail and send a follow-up SMS if no answer.',
+      {
+        title: 'Introduce and reference inquiry',
+        bullets: [
+          { tokens: ['Introduce by name and mention the specific vehicle or inquiry from the lead source.'] },
+          { tokens: ['Reference ', ref('context', 'Vehicle_details'), ' so the caller knows you reviewed their submission.'] },
+        ],
+      },
+      {
+        title: 'Confirm interest and qualify',
+        bullets: [
+          { tokens: ['Ask qualifying questions: purchase timeline, budget, trade-in, and financing.'] },
+          { tokens: ['Update ', ref('tool', 'CRM update'), ' with qualification responses in real time.'] },
+        ],
+      },
+      {
+        title: 'Present inventory matches',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Inventory search'), ' with the caller\'s stated preferences.'] },
+          { tokens: ['Present the top 2 matches briefly — make, trim, and price.'] },
+        ],
+      },
+      {
+        title: 'Convert or follow up',
+        bullets: [
+          { tokens: ['Offer an immediate test drive or appointment via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['If no answer: leave a voicemail and send an SMS follow-up via ', ref('tool', 'Send confirmation'), '.'] },
+          { tokens: ['Route the lead via ', ref('tool', 'Lead routing'), ' for continued follow-up.'] },
+        ],
+      },
     ],
     tools: ['CRM update', 'Inventory search', 'Schedule appointment', 'Send confirmation', 'Lead routing'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Customer_name' },
+    ],
   },
+
+  // ── p-025 ──────────────────────────────────────────────────────
   {
     id: 'p-025',
     name: 'Appointment confirmation',
     category: 'Outbound',
     description: 'Runs the reminder journey that confirms a scheduled appointment.',
+    lastEdited: 'May 18',
     whenToUse: 'An appointment is scheduled and the confirmation journey begins.',
     steps: [
-      'Send an immediate SMS confirmation with appointment details.',
-      'Send an SMS reminder 24 hours before with confirm/reschedule options.',
-      'Place a final confirmation call 2 hours before.',
-      'Process the response and update the appointment status in the DMS.',
+      {
+        title: 'Send immediate confirmation',
+        bullets: [
+          { tokens: ['Send an SMS confirmation immediately after booking via ', ref('tool', 'Send confirmation'), '.'] },
+          { tokens: ['Include ', ref('context', 'Appointment_id'), ', date, time, service type, and ', ref('context', 'Location.name'), '.'] },
+        ],
+      },
+      {
+        title: 'Send 24-hour reminder',
+        bullets: [
+          { tokens: ['Send an SMS reminder 24 hours before via ', ref('tool', 'Send confirmation'), ' with confirm/reschedule options.'] },
+          { tokens: ['Include a quick-reply link to reschedule if needed.'] },
+        ],
+      },
+      {
+        title: 'Final confirmation call',
+        bullets: [
+          { tokens: ['Place a voice confirmation call 2 hours before the appointment.'] },
+          { tokens: ['Allow the customer to confirm, reschedule, or cancel via voice response.'] },
+        ],
+      },
+      {
+        title: 'Update appointment status',
+        bullets: [
+          { tokens: ['Process the response and update appointment status in DMS via ', ref('tool', 'DMS integration'), '.'] },
+          { tokens: ['If no response is received, invoke ', ref('tool', 'Schedule appointment'), ' to flag for manual follow-up.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'Send confirmation', 'Schedule appointment'],
+    context: [
+      { kind: 'context', label: 'Appointment_id' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-026 ──────────────────────────────────────────────────────
   {
     id: 'p-026',
     name: 'No-show re-engagement',
     category: 'Outbound',
     description: 'Re-engages a customer who missed an appointment and offers easy rebooking.',
+    lastEdited: 'May 18',
     whenToUse: 'Customer missed a scheduled appointment without canceling.',
     steps: [
-      'Wait 2 hours after the missed appointment time.',
-      'Send an empathetic SMS acknowledging the missed appointment.',
-      'Offer a one-click rescheduling link.',
-      'Follow up with a voice call if there is no response in 24 hours.',
+      {
+        title: 'Wait before outreach',
+        bullets: [
+          { tokens: ['Wait 2 hours after the scheduled appointment time before sending outreach.'] },
+          { tokens: ['Confirm no-show status in DMS via ', ref('tool', 'DMS integration'), ' before contacting.'] },
+        ],
+      },
+      {
+        title: 'Send empathetic SMS',
+        bullets: [
+          { tokens: ['Send an SMS via ', ref('tool', 'Send confirmation'), ' acknowledging the missed appointment without blame.'] },
+          { tokens: ['Keep the tone warm: "We noticed you weren\'t able to make it — no worries at all."'] },
+        ],
+      },
+      {
+        title: 'Offer rescheduling',
+        bullets: [
+          { tokens: ['Include a one-click rescheduling link pointing to the next available slots via ', ref('tool', 'Schedule appointment'), '.'] },
+        ],
+      },
+      {
+        title: 'Voice follow-up',
+        bullets: [
+          { tokens: ['If no response within 24 hours, place a follow-up voice call.'] },
+          { tokens: ['Log all outreach attempts via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'CRM update', 'Send confirmation', 'Schedule appointment'],
+    context: [
+      { kind: 'context', label: 'Appointment_id' },
+      { kind: 'context', label: 'Customer_name' },
+    ],
   },
+
+  // ── p-027 ──────────────────────────────────────────────────────
   {
     id: 'p-027',
     name: 'Lease maturity outreach',
     category: 'Outbound',
     description: 'Proactively presents lease-end options before a lease matures.',
+    lastEdited: 'May 18',
     whenToUse: 'A customer lease matures within 90 days.',
     steps: [
-      'Send an initial SMS introducing lease-end options.',
-      'Present three paths: lease new, purchase, or return.',
-      'Offer to schedule a consultation with a sales consultant.',
-      'Follow up at 60, 30, and 14 days if there is no response.',
+      {
+        title: 'Initial outreach',
+        bullets: [
+          { tokens: ['Send an SMS via ', ref('tool', 'Send confirmation'), ' introducing lease-end options at the 90-day mark.'] },
+          { tokens: ['Reference ', ref('context', 'Vehicle_details'), ' and the lease maturity date so the message is personalized.'] },
+        ],
+      },
+      {
+        title: 'Present lease-end paths',
+        bullets: [
+          { tokens: ['Present the three options clearly: lease a new vehicle, purchase the current vehicle, or return and walk away.'] },
+          { tokens: ['Invoke ', ref('tool', 'Inventory search'), ' to surface relevant new models for the "lease new" path.'] },
+        ],
+      },
+      {
+        title: 'Offer consultation',
+        bullets: [
+          { tokens: ['Offer to schedule a consultation with a sales consultant via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['Route the lead via ', ref('tool', 'Lead routing'), ' and log via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
+      {
+        title: 'Cadenced follow-up',
+        bullets: [
+          { tokens: ['Schedule follow-up touchpoints at 60, 30, and 14 days via ', ref('tool', 'DMS integration'), ' if no response.'] },
+        ],
+      },
     ],
     tools: ['CRM update', 'DMS integration', 'Inventory search', 'Lead routing', 'Send confirmation', 'Schedule appointment'],
+    context: [
+      { kind: 'context', label: 'Vehicle_details' },
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Location.name' },
+    ],
   },
+
+  // ── p-029 ──────────────────────────────────────────────────────
   {
     id: 'p-029',
     name: 'Service lapse re-engagement',
     category: 'Outbound',
     description: 'Re-engages customers who have not visited for service in a while.',
+    lastEdited: 'May 18',
     whenToUse: 'A customer has not visited for service in 6 or more months.',
     steps: [
-      'Send a friendly SMS noting time since the last visit.',
-      'Highlight recommended maintenance based on mileage estimate.',
-      'Offer a convenient scheduling link.',
-      'Include any current service specials or coupons.',
+      {
+        title: 'Personalized outreach SMS',
+        bullets: [
+          { tokens: ['Send an SMS via ', ref('tool', 'Send confirmation'), ' noting time since last visit — reference ', ref('context', 'Customer_name'), ' and vehicle from ', ref('tool', 'DMS integration'), '.'] },
+          { tokens: ['Keep the tone friendly and non-pressuring.'] },
+        ],
+      },
+      {
+        title: 'Highlight recommended maintenance',
+        bullets: [
+          { tokens: ['Reference ', ref('tool', 'Knowledge base'), ' for maintenance intervals based on mileage estimate.'] },
+          { tokens: ['Mention the most relevant service (e.g., oil change, brake inspection, tire rotation).'] },
+        ],
+      },
+      {
+        title: 'Offer scheduling and specials',
+        bullets: [
+          { tokens: ['Include a scheduling link via ', ref('tool', 'Schedule appointment'), '.'] },
+          { tokens: ['If applicable, include current service specials sourced from ', ref('tool', 'Knowledge base'), '.'] },
+        ],
+      },
+      {
+        title: 'Log outreach',
+        bullets: [
+          { tokens: ['Log the outreach event via ', ref('tool', 'CRM update'), ' to track response rates.'] },
+        ],
+      },
     ],
     tools: ['DMS integration', 'CRM update', 'Send confirmation', 'Schedule appointment', 'Knowledge base'],
+    context: [
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Vehicle_details' },
+    ],
   },
+
+  // ── p-030 ──────────────────────────────────────────────────────
   {
     id: 'p-030',
     name: 'CSI follow-up',
     category: 'Outbound',
     description: 'Sends a satisfaction survey and escalates negative responses.',
+    lastEdited: 'May 18',
     whenToUse: 'A customer completed a service or purchase within the last 48 hours.',
     steps: [
-      'Send a satisfaction survey via SMS.',
-      'Alert the service/sales manager immediately on a negative response.',
-      'Thank the customer and request an online review on a positive response.',
-      'Log the survey response in CRM.',
+      {
+        title: 'Send satisfaction survey',
+        bullets: [
+          { tokens: ['Send a satisfaction survey via SMS through ', ref('tool', 'Send confirmation'), ' within 48 hours of completion.'] },
+          { tokens: ['Personalize with ', ref('context', 'Customer_name'), ' and service/purchase details from ', ref('context', 'Appointment_id'), '.'] },
+        ],
+      },
+      {
+        title: 'Handle negative response',
+        bullets: [
+          { tokens: ['Invoke ', ref('tool', 'Tone analysis'), ' on the survey response to classify sentiment.'] },
+          { tokens: ['On a negative response, alert the service or sales manager immediately via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
+      {
+        title: 'Handle positive response',
+        bullets: [
+          { tokens: ['Thank the customer and request an online review — include a direct link in the follow-up message.'] },
+          { tokens: ['Log the positive response in ', ref('tool', 'CRM update'), ' for reporting.'] },
+        ],
+      },
+      {
+        title: 'Log all survey outcomes',
+        bullets: [
+          { tokens: ['Record the survey response, sentiment, and any actions taken via ', ref('tool', 'CRM update'), '.'] },
+        ],
+      },
     ],
     tools: ['CRM update', 'Send confirmation', 'Tone analysis'],
+    context: [
+      { kind: 'context', label: 'Customer_name' },
+      { kind: 'context', label: 'Appointment_id' },
+    ],
   },
 ]
 
@@ -583,32 +1467,11 @@ const EMERGENCY: Procedure = {
   ],
 }
 
-// Default context set used to fill out non-featured procedures.
-const DEFAULT_CONTEXT: ContextItem[] = [
-  { kind: 'context', label: 'Location.name' },
-  { kind: 'context', label: 'Location.hours' },
-]
-
-function transform(raw: RawProcedure): Procedure {
-  return {
-    id: raw.id,
-    name: raw.name,
-    category: raw.category,
-    description: raw.description,
-    lastEdited: 'May 18',
-    whenToUse: raw.whenToUse,
-    steps: raw.steps.map((title) => ({ title, bullets: [] })),
-    tools: raw.tools,
-    context: DEFAULT_CONTEXT,
-  }
-}
-
 // Final list — emergency procedure inserted at position 3 to mirror Figma.
-const transformed = RAW.map(transform)
 export const PROCEDURES: Procedure[] = [
-  ...transformed.slice(0, 2),
+  ...RICH_PROCEDURES.slice(0, 2),
   EMERGENCY,
-  ...transformed.slice(2),
+  ...RICH_PROCEDURES.slice(2),
 ]
 
 export const ALL_CATEGORIES: ProcedureCategory[] = [

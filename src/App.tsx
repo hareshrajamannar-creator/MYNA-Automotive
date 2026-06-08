@@ -246,6 +246,7 @@ const AGENT_NAMES: Record<string, string> = {
   'outreach-agent':  'Outreach agent',
 }
 
+
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointment')
