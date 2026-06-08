@@ -1,12 +1,7 @@
 import { useState } from 'react'
 import { IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
-import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
-import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { IntakeScreen } from './screens/IntakeScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
-import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
-import { SalesScreen } from './screens/SalesScreen'
-import { ServiceScreen } from './screens/ServiceScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -153,18 +148,10 @@ export function App() {
           </>
         ) : navActive === 'manage-appointments' ? (
           <HealthcareManageAppointmentsScreen />
-        ) : navActive === 'sales-pipeline' ? (
-          <SalesPipelineScreen />
         ) : navActive === 'manage-intake' ? (
           <IntakeScreen />
         ) : navActive === 'review-waitlist' ? (
           <ReviewWaitlistScreen />
-        ) : navActive === 'conversations' ? (
-          <AppointmentOverviewScreen />
-        ) : navActive === 'sales' ? (
-          <SalesScreen />
-        ) : navActive === 'service' ? (
-          <ServiceScreen />
         ) : navActive === 'intakes-completed' ? (
           <IntakeOutcomeScreen />
         ) : navActive === 'procedure-library' ? (
@@ -176,7 +163,7 @@ export function App() {
             onEditAgent={setEditingAgentName}
           />
         ) : (
-          <ManageAppointmentsScreen />
+          <HealthcareManageAppointmentsScreen />
         )}
       </main>
     </div>
