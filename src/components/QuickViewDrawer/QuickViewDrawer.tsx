@@ -115,6 +115,24 @@ function AccordionSection({
   )
 }
 
+function AppointmentInfoSection({ p }: { p: PatientDetail }) {
+  return (
+    <>
+      <FieldRow label="Booked for" value={p.patient} />
+      <FieldRow label="Status" value="Booked" />
+      <FieldRow label="Email" value={p.email} />
+      <FieldRow label="Phone number" value={p.phone} />
+      <FieldRow label="Date of birth" value={p.dateOfBirth} />
+      <FieldRow label="Insurance provider" value={p.insuranceProvider} />
+      <FieldRow label="Insurance name" value={p.insuranceName} />
+      <FieldRow label="Appointment type" value={p.appointmentType} />
+      <FieldRow label="Appointment time" value={p.appointmentTime} />
+      <FieldRow label="Location" value={p.location} />
+      <FieldRow label="Question / statement" value={p.questionText} />
+    </>
+  )
+}
+
 function BasicDetailsSection({ p }: { p: PatientDetail }) {
   return (
     <>
@@ -355,7 +373,11 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
 
           {/* Accordion sections — inset container, no outer border */}
           <div className="mx-2xl mb-xl">
-            <AccordionSection title="Basic details" defaultOpen isFirst>
+            <AccordionSection title="Appointment information" defaultOpen isFirst>
+              <AppointmentInfoSection p={patient} />
+            </AccordionSection>
+
+            <AccordionSection title="Basic details">
               <BasicDetailsSection p={patient} />
             </AccordionSection>
 

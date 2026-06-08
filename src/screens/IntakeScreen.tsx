@@ -125,8 +125,17 @@ const FILTER_FIELDS: FilterField[] = [
 
 // Keyed by patient name — merged with row data when Quick view is opened
 const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 'status'>>> = {
+  'John Smith': {
+    phone: '+1 (555) 123-4567', email: 'john.smith@gmail.com', dateOfBirth: 'Mar 15, 1998',
+    insuranceProvider: 'Aetna', insuranceName: 'Aetna PPO Gold',
+    appointmentType: 'New consult', appointmentTime: '10:30 AM', location: 'Atlanta, GA',
+    questionText: 'I have been experiencing headaches for the past week',
+  },
   'Betty Hall': {
     age: '45 years', gender: 'Female', phone: '+1 (555) 234-5678', email: 'betty.hall@gmail.com',
+    dateOfBirth: 'Jun 12, 1981', insuranceName: 'Aetna PPO Gold',
+    appointmentType: 'Follow-up', appointmentTime: '02:00 PM', location: 'Dallas, TX',
+    questionText: 'Follow-up for blood pressure management',
     emergencyContact: 'Tom Hall', emergencyRelationship: 'Husband', emergencyPhone: '+1 (555) 234-5679', emergencyEmail: 'tom.hall@gmail.com',
     insuranceProvider: 'Aetna', memberId: 'AET-9823714', groupNumber: 'GRP-00147',
     consentTreatment: 'Accepted', consentHipaa: 'Accepted', consentFinancial: 'Accepted',
@@ -143,6 +152,9 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   },
   'Emily White': {
     age: '28 years', gender: 'Female', phone: '+1 (555) 876-5432', email: 'emily.white@gmail.com',
+    dateOfBirth: 'Sep 22, 1997', insuranceName: 'UnitedHealth Choice Plus',
+    appointmentType: 'Annual physical', appointmentTime: '09:00 AM', location: 'Chicago, IL',
+    questionText: 'Annual checkup and flu shot',
     emergencyContact: 'Jake White', emergencyRelationship: 'Brother', emergencyPhone: '+1 (555) 876-5433', emergencyEmail: 'jake.white@gmail.com',
     consentTreatment: 'Accepted', consentHipaa: 'Accepted', consentFinancial: 'Accepted',
     tobacco: 'No', alcohol: 'No', drugUsage: 'No', exercise: 'Daily',
@@ -150,6 +162,9 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   },
   'James Harris': {
     age: '52 years', gender: 'Male', phone: '+1 (555) 345-6789', email: 'james.harris@gmail.com',
+    dateOfBirth: 'Jan 08, 1974', insuranceName: 'BCBS Preferred',
+    appointmentType: 'Procedure', appointmentTime: '11:00 AM', location: 'Miami, FL',
+    questionText: 'Knee replacement consultation',
     insuranceProvider: 'Blue Cross Blue Shield', memberId: 'BCBS-4412839', groupNumber: 'GRP-00482',
     aiSummary: ['Patient has started the form. Insurance section is complete.', 'Basic details, consent, medical history, and social history are pending.'],
   },

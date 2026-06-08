@@ -34,6 +34,13 @@ export interface PatientDetail {
   alcohol?: string
   drugUsage?: string
   exercise?: string
+  // Appointment information
+  dateOfBirth?: string
+  insuranceName?: string
+  appointmentType?: string
+  appointmentTime?: string
+  location?: string
+  questionText?: string
   // Row data for dynamic summary
   appointmentDate?: string
   bookedOn?: string
