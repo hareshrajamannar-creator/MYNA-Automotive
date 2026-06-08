@@ -178,7 +178,7 @@ export function IntakeScreen() {
   const [customizeOpen, setCustomizeOpen]         = useState(false)
   const [filterOpen, setFilterOpen]               = useState(false)
   const [quickViewPatient, setQuickViewPatient]   = useState<PatientDetail | null>(null)
-  const [activityPatient, setActivityPatient]     = useState<string | null>(null)
+  const [activityRow, setActivityRow]               = useState<IntakePatient | null>(null)
 
   const columns = useMemo<Column<IntakePatient>[]>(() => {
     const base = order
@@ -271,7 +271,7 @@ export function IntakeScreen() {
                     setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail })
                   },
                 },
-                { label: 'View activity',  onClick: (row) => setActivityPatient(row.patient) },
+                { label: 'View activity',  onClick: (row) => setActivityRow(row) },
                 { label: 'View form',      onClick: () => {} },
               ]}
             />
@@ -303,9 +303,15 @@ export function IntakeScreen() {
       />
 
       <ViewActivityDrawer
-        open={!!activityPatient}
-        patient={activityPatient ?? ''}
-        onClose={() => setActivityPatient(null)}
+        open={!!activityRow}
+        patient={activityRow?.patient ?? ''}
+        appointmentDate={activityRow?.appointmentDate}
+        appointmentTime={PATIENT_DETAILS[activityRow?.patient ?? '']?.appointmentTime}
+        appointmentType={PATIENT_DETAILS[activityRow?.patient ?? '']?.appointmentType ?? 'Consultation'}
+        formType={activityRow?.formType}
+        status={activeTab === 'overdue' ? 'Overdue' : activityRow?.status}
+        bookedOn={activityRow?.bookedOn}
+        onClose={() => setActivityRow(null)}
       />
     </div>
   )
