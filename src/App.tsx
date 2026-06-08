@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
-import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
+import { IntakeScreen } from './screens/IntakeScreen'
+import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
+import { HealthcareManageAppointmentsScreen } from './screens/HealthcareManageAppointmentsScreen'
+import { IntakeOutcomeScreen } from './screens/IntakeOutcomeScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -67,18 +70,18 @@ const NAV_SECTIONS: NavSection[] = [
     defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'sales-pipeline', label: 'Sales pipeline' },
-      { id: 'service-requests', label: 'Service requests' },
+      { id: 'review-waitlist',     label: 'Review waitlist'     },
+      { id: 'manage-intake',       label: 'Manage intake'       },
     ],
   },
   {
     id: 'agent',
-    label: 'Agent',
+    label: 'Agents',
     defaultExpanded: false,
     items: [
       { id: 'frontdesk-agent', label: 'Frontdesk agent' },
-      { id: 'reminder-agent', label: 'Reminder agent' },
-      { id: 'outreach-agent', label: 'Outreach agent' },
+      { id: 'waitlist-agent',  label: 'Waitlist agent'  },
+      { id: 'reminder-agent',  label: 'Reminder agent'  },
     ],
   },
   {
@@ -86,9 +89,10 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     defaultExpanded: false,
     items: [
-      { id: 'conversations', label: 'Appointment overview' },
-      { id: 'sales',         label: 'Sales'                },
-      { id: 'service',       label: 'Service'              },
+      { id: 'frontdesk-overview',  label: 'Frontdesk overview'  },
+      { id: 'no-shows-prevented',  label: 'No shows prevented'  },
+      { id: 'waitlist-filled',     label: 'Waitlist filled'     },
+      { id: 'intakes-completed',   label: 'Intakes completed'   },
     ],
   },
   {
@@ -96,19 +100,20 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: false,
     items: [
-      { id: 'knowledge-base', label: 'Knowledge base' },
-      { id: 'procedure-library', label: 'Procedures' },
-      { id: 'widgets', label: 'Widgets' },
-      { id: 'phone-number', label: 'Phone number' },
-      { id: 'voices', label: 'Voices' },
+      { id: 'knowledge-base',     label: 'Knowledge base'     },
+      { id: 'procedure-library',  label: 'Procedures'         },
+      { id: 'phone-number',       label: 'Phone number'       },
+      { id: 'web-widget',         label: 'Web widget'         },
+      { id: 'appointment-widget', label: 'Appointment widget' },
+      { id: 'providers',          label: 'Providers'          },
     ],
   },
 ]
 
 const AGENT_NAMES: Record<string, string> = {
   'frontdesk-agent': 'Frontdesk agent',
+  'waitlist-agent':  'Waitlist agent',
   'reminder-agent':  'Reminder agent',
-  'outreach-agent':  'Outreach agent',
 }
 
 export function App() {
@@ -146,16 +151,22 @@ export function App() {
               />
             </div>
           </>
+        ) : navActive === 'manage-appointments' ? (
+          <HealthcareManageAppointmentsScreen />
         ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
-        ) : navActive === 'service-requests' ? (
-          <ServiceRequestsScreen />
+        ) : navActive === 'manage-intake' ? (
+          <IntakeScreen />
+        ) : navActive === 'review-waitlist' ? (
+          <ReviewWaitlistScreen />
         ) : navActive === 'conversations' ? (
           <AppointmentOverviewScreen />
         ) : navActive === 'sales' ? (
           <SalesScreen />
         ) : navActive === 'service' ? (
           <ServiceScreen />
+        ) : navActive === 'intakes-completed' ? (
+          <IntakeOutcomeScreen />
         ) : navActive === 'procedure-library' ? (
           <ProceduresScreen />
         ) : AGENT_NAMES[navActive] ? (
