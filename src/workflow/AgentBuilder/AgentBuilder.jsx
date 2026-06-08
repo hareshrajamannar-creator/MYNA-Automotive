@@ -8,6 +8,7 @@ import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
+import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
 import {
   getProcedureById,
@@ -518,6 +519,8 @@ export default function AgentBuilder({
   const [viewingTool, setViewingTool] = useState(null); // full tool object
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewActive, setPreviewActive] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
     const startNode = base[START_NODE_ID];
@@ -1217,24 +1220,27 @@ export default function AgentBuilder({
     }
 
     if (effectiveType === 'voiceCall') {
-      const acceptedId = `${id}-vc-accepted`;
-      const rejectedId = `${id}-vc-rejected`;
-      const missedId  = `${id}-vc-missed`;
+      const completedId  = `${id}-vc-completed`;
+      const rejectedId   = `${id}-vc-rejected`;
+      const missedId     = `${id}-vc-missed`;
+      const voicemailId  = `${id}-vc-voicemail`;
       details = {
         taskName: 'Initiate voice call',
         description: 'Call the customer',
         toolId: 'initiate-voice-call',
         selectedTools: ['initiate-voice-call'],
         branches: [
-          { id: acceptedId, name: 'Call accepted', isVoiceCallBranch: true },
-          { id: rejectedId, name: 'Call rejected', isVoiceCallBranch: true },
-          { id: missedId,   name: 'Call missed',   isVoiceCallBranch: true },
+          { id: completedId,  name: 'Call completed', isVoiceCallBranch: true },
+          { id: rejectedId,   name: 'Call rejected',  isVoiceCallBranch: true },
+          { id: missedId,     name: 'Call missed',    isVoiceCallBranch: true },
+          { id: voicemailId,  name: 'Voicemail',      isVoiceCallBranch: true },
         ],
       };
       extraDetails = {
-        [acceptedId]: { branchName: 'Call accepted', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [rejectedId]: { branchName: 'Call rejected', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [missedId]:   { branchName: 'Call missed',   parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [completedId]:  { branchName: 'Call completed', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [rejectedId]:   { branchName: 'Call rejected',  parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [missedId]:     { branchName: 'Call missed',    parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [voicemailId]:  { branchName: 'Voicemail',      parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
       };
     }
 
@@ -1785,6 +1791,9 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               onEdit={viewOnly ? onEdit : undefined}
+              onRun={() => setPreviewOpen((v) => !v)}
+              previewOpen={previewOpen}
+              previewActive={previewActive}
             />
           </div>
 
@@ -1793,6 +1802,18 @@ export default function AgentBuilder({
               <RHSErrorBoundary key={selectedNodeId}>
                 {renderRHSPanel()}
               </RHSErrorBoundary>
+            </div>
+          )}
+
+          {previewOpen && (
+            <div className="agent-builder__preview">
+              <PreviewPanel
+                onClose={() => {
+                  setPreviewOpen(false);
+                  setPreviewActive(false);
+                }}
+                onPreviewActiveChange={setPreviewActive}
+              />
             </div>
           )}
         </div>

@@ -74,7 +74,7 @@ const _SEED_TOOLS = [
     id: 'initiate-voice-call',
     name: 'Initiate voice call',
     icon: 'call',
-    description: 'Places an outbound voice call to the customer and routes the outcome to Call accepted, Call rejected, or Call missed.',
+    description: 'Places an outbound voice call to the customer and routes the outcome to Call completed, Call rejected, Call missed, or Voicemail.',
     category: 'Communication',
     fields: [
       {
@@ -95,6 +95,49 @@ const _SEED_TOOLS = [
           'Sales department',
           'Parts department',
         ],
+      },
+      {
+        id: 'initiate-voice-call-handler-mode',
+        label: 'Calling window',
+        type: 'radio',
+        defaultValue: 'Call sub-agent',
+        options: ['Call sub-agent', 'Follow procedures'],
+        conditionalFields: [
+          {
+            id: 'initiate-voice-call-select-agent',
+            label: 'Select agent',
+            type: 'select',
+            showWhenEquals: 'Call sub-agent',
+            showInfoIcon: true,
+            placeholder: 'Select agent',
+            defaultValue: 'Front desk agent - North region',
+            options: [
+              'Front desk agent - North region',
+              'Front desk agent - East region',
+              'Front desk agent - West region',
+              'Service coordinator - Main branch',
+              'Sales agent - Tier 1',
+            ],
+          },
+          {
+            id: 'initiate-voice-call-procedures',
+            label: 'Select procedures',
+            type: 'multiSelect',
+            showWhenEquals: 'Follow procedures',
+            placeholder: 'Select procedures',
+            optionsSource: 'procedures',
+            defaultValue: [],
+          },
+        ],
+      },
+      {
+        id: 'initiate-voice-call-initial-message',
+        label: 'Configure initial message',
+        type: 'textarea',
+        placeholder: 'Enter your message here',
+        showVariableToolbar: true,
+        rows: 5,
+        showWhen: { fieldId: 'initiate-voice-call-handler-mode', equals: 'Call sub-agent' },
       },
       {
         id: 'initiate-voice-call-calling-window',

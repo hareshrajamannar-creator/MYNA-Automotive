@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Chip, DataTable, MetricTiles, type ChipVariant, type Column } from '../components'
 import {
   HEALTHCARE_LOGS_METRICS,
   HEALTHCARE_LOGS_ROWS,
   type HealthcareLogRow,
 } from '../data/healthcareAgentLogs'
+import { RunDetailView } from './RunDetailView'
 
 const STATUS_VARIANT: Record<string, ChipVariant> = {
   Resolved: 'success',
@@ -27,6 +29,12 @@ const LOG_COLUMNS: Column<HealthcareLogRow>[] = [
 ]
 
 export function AgentLogsTab() {
+  const [selectedRun, setSelectedRun] = useState<HealthcareLogRow | null>(null)
+
+  if (selectedRun) {
+    return <RunDetailView row={selectedRun} onBack={() => setSelectedRun(null)} />
+  }
+
   return (
     <>
       <div className="px-2xl pt-lg">
@@ -39,7 +47,7 @@ export function AgentLogsTab() {
           rowAction={{
             icon: 'visibility',
             label: 'View run',
-            onClick: () => {},
+            onClick: (row) => setSelectedRun(row as HealthcareLogRow),
           }}
         />
       </div>

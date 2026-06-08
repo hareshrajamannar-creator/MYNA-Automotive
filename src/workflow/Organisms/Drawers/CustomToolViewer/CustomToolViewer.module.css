@@ -504,3 +504,32 @@
 .variableBtnX {
   font-size: 13px;
 }
+
+/* ─── Multi-select procedures dropdown ─── */
+
+.multiSelectMenu {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.multiSelectMenu :global(.tc-dropdown__option) {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.multiSelectCheck {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #212121;
+  flex-shrink: 0;
+}
+
+.multiSelectCheckHidden {
+  visibility: hidden;
+}
+
+.multiSelectOptionLabel {
+  flex: 1;
+  min-width: 0;
+}
