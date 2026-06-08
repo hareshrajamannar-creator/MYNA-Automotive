@@ -17,6 +17,7 @@ import {
 } from '../components'
 import iconInbox from '../assets/icon-inbox.svg'
 import iconMail from '../assets/icon-mail.svg'
+import { IntakePatientDetailScreen } from './IntakePatientDetailScreen'
 
 interface IntakePatient {
   patient: string
@@ -179,6 +180,7 @@ export function IntakeScreen() {
   const [filterOpen, setFilterOpen]               = useState(false)
   const [quickViewPatient, setQuickViewPatient]   = useState<PatientDetail | null>(null)
   const [activityRow, setActivityRow]               = useState<IntakePatient | null>(null)
+  const [detailRow, setDetailRow]                   = useState<{ detail: PatientDetail; row: IntakePatient } | null>(null)
 
   const columns = useMemo<Column<IntakePatient>[]>(() => {
     const base = order
@@ -204,6 +206,22 @@ export function IntakeScreen() {
     if (activeTab === 'overdue') return PATIENTS.filter((r) => r.appointmentDate === TODAY_DATE)
     return PATIENTS.filter((r) => r.status === TAB_STATUS_MAP[activeTab])
   }, [activeTab])
+
+  if (detailRow) {
+    return (
+      <IntakePatientDetailScreen
+        patient={detailRow.detail}
+        appointmentTime={PATIENT_DETAILS[detailRow.row.patient]?.appointmentTime}
+        appointmentType={PATIENT_DETAILS[detailRow.row.patient]?.appointmentType ?? 'Consultation'}
+        formType={detailRow.row.formType}
+        status={detailRow.detail.status}
+        bookedOn={detailRow.row.bookedOn}
+        insuranceProvider={PATIENT_DETAILS[detailRow.row.patient]?.insuranceProvider}
+        sentVia={detailRow.row.sentVia}
+        onBack={() => setDetailRow(null)}
+      />
+    )
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -264,6 +282,16 @@ export function IntakeScreen() {
                 onClick: () => {},
               }}
               rowMenuItems={[
+                {
+                  label: 'View details',
+                  onClick: (row) => {
+                    const detail = PATIENT_DETAILS[row.patient] ?? {}
+                    setDetailRow({
+                      detail: { patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail },
+                      row,
+                    })
+                  },
+                },
                 {
                   label: 'Quick view',
                   onClick: (row) => {
