@@ -85,14 +85,28 @@ export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOp
                 </div>
                 <span className={styles.toolName}>{tool.name}</span>
               </div>
-              {onOpenTool && (
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 16, color: '#9e9e9e' }}
+              {/* Hover icons: edit (open config) + swap (replace tool) */}
+              <div className={styles.toolRowActions}>
+                <button
+                  type="button"
+                  className={styles.toolActionBtn}
+                  onClick={(e) => { e.stopPropagation(); onOpenTool?.(tool.id); }}
+                  title="Edit tool configuration"
                 >
-                  chevron_right
-                </span>
-              )}
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                    edit
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.toolActionBtn}
+                  title="Replace tool"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                    swap_horiz
+                  </span>
+                </button>
+              </div>
             </div>
           ))}
         </div>
