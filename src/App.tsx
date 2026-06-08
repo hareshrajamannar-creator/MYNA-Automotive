@@ -163,13 +163,13 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'knowledge-base',    label: 'Knowledge base',      external: true },
-      { id: 'procedure-library', label: 'Procedures'           },
-      { id: 'phone-number',      label: 'Phone number'         },
-      { id: 'web-widget',        label: 'Web widget'           },
-      { id: 'appointment-widget',label: 'Appointment widget'   },
-      { id: 'providers',         label: 'Providers'            },
-      { id: 'forms',             label: 'Forms'                },
+      { id: 'providers',         label: 'Providers'                       },
+      { id: 'appointment-type',  label: 'Appointment type'                },
+      { id: 'availability',      label: 'Availability'                    },
+      { id: 'procedure-library', label: 'Procedures'                      },
+      { id: 'phone-number',      label: 'Phone number'                    },
+      { id: 'knowledge-base',    label: 'Knowledge base', external: true  },
+      { id: 'widgets',           label: 'Widgets',        external: true  },
     ],
   },
 ]
@@ -317,6 +317,10 @@ export function App() {
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
           <ProceduresScreen product={activeProduct} />
+        ) : navActive === 'appointment-type' ? (
+          <EmptyResourceScreen label="Appointment type" />
+        ) : navActive === 'availability' ? (
+          <EmptyResourceScreen label="Availability" />
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'phone-number' ? (
