@@ -7,7 +7,7 @@ export interface ChartCardProps {
   titleSuffix?: ReactNode
   /** Optional content shown between the title and the menu (e.g. mini KPIs). */
   toolbar?: ReactNode
-  /** Show the trailing table/menu icons (decorative on the prototype). */
+  /** Show the trailing customize/menu icons (decorative on the prototype). */
   showActions?: boolean
   className?: string
   children: ReactNode
@@ -24,12 +24,20 @@ export function ChartCard({ title, titleSuffix, toolbar, showActions = true, cla
         <div className="flex items-center gap-sm">
           {toolbar}
           {showActions && (
-            <div className="flex items-center gap-xs text-text-icon">
-              <button type="button" aria-label="Table view" className="flex size-7 items-center justify-center rounded-sm hover:bg-surface-hover">
-                <Icon name="table_rows" size={18} />
+            <div className="flex items-center gap-xs">
+              <button
+                type="button"
+                aria-label="Customize chart"
+                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="instant_mix" size={20} />
               </button>
-              <button type="button" aria-label="More" className="flex size-7 items-center justify-center rounded-sm hover:bg-surface-hover">
-                <Icon name="more_vert" size={18} />
+              <button
+                type="button"
+                aria-label="More"
+                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="more_vert" size={20} />
               </button>
             </div>
           )}

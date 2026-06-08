@@ -1,4 +1,5 @@
 import { Bar, BarChart, Cell, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { ChartTooltip } from './ChartTooltip'
 
 export interface RatingBar {
   label: string
@@ -30,11 +31,20 @@ export function RatingBarChart({ data, height = 300 }: RatingBarChartProps) {
         />
         <YAxis hide width={0} />
         <Tooltip
-          formatter={(v) => kFormat(v as number)}
-          contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }}
-          labelStyle={{ color: '#212121' }}
-          itemStyle={{ color: '#555555' }}
+          shared={false}
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null
+            const entry = payload[0]
+            const color = (entry.payload as RatingBar | undefined)?.color ?? entry.color ?? '#4cae3d'
+            return (
+              <ChartTooltip
+                label={String(label ?? '')}
+                items={[{ color, label: String(entry.payload?.label ?? label ?? ''), value: Number(entry.value ?? 0) }]}
+                accentColor={color}
+              />
+            )
+          }}
         />
         <Bar dataKey="value" maxBarSize={24} radius={[4, 4, 0, 0]} isAnimationActive={false}>
           {data.map((entry, i) => <Cell key={i} fill={entry.color} />)}

@@ -22,6 +22,7 @@ import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { InboxScreen } from './screens/InboxScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -273,7 +274,7 @@ export function App() {
         activeProduct={activeProduct}
         onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && (
+      {!isEditingWorkflow && railActive !== 'inbox' && (
         <SideNav
           title="Frontdesk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
@@ -282,7 +283,9 @@ export function App() {
         />
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
-        {isEditingWorkflow ? (
+        {railActive === 'inbox' ? (
+          <InboxScreen />
+        ) : isEditingWorkflow ? (
           <>
             <TopNav title="Front desk" initials="S" />
             <div className="flex-1 overflow-hidden">
