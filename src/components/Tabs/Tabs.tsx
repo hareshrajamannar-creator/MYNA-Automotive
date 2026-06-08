@@ -2,7 +2,7 @@ import { TabsProps } from './Tabs.types'
 
 export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
   return (
-    <div className="flex items-end gap-xs pt-lg">
+    <div className="flex items-end gap-xs">
       {tabs.map((tab) => {
         const active = tab.id === activeTab
         return (
