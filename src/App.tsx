@@ -259,6 +259,7 @@ export function App() {
   const [navActive, setNavActive] = useState('manage-appointment')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
   const [activeProduct, setActiveProduct] = useState('healthcare')
+  const [settingsTab, setSettingsTab] = useState<string | null>(null)
 
   function handleProductChange(id: string) {
     setActiveProduct(id)
@@ -322,7 +323,7 @@ export function App() {
         ) : navActive === 'availability' ? (
           <EmptyResourceScreen label="Availability" />
         ) : navActive === 'knowledge-base' ? (
-          <EmptyResourceScreen label="Knowledge base" />
+          <SettingsScreen initialTab="Knowledge" onTabConsumed={() => {}} />
         ) : navActive === 'phone-number' ? (
           <PhoneNumberScreen />
         ) : navActive === 'web-widget' ? (
@@ -333,10 +334,12 @@ export function App() {
           <EmptyResourceScreen label="Providers" />
         ) : navActive === 'forms' ? (
           <EmptyResourceScreen label="Forms" />
-        ) : navActive === 'widgets' || navActive === 'voices' ? (
-          <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
+        ) : navActive === 'widgets' ? (
+          <SettingsScreen initialTab="Widgets" onTabConsumed={() => {}} />
+        ) : navActive === 'voices' ? (
+          <EmptyResourceScreen label="Voices" />
         ) : navActive === 'settings' ? (
-          <SettingsScreen />
+          <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}
