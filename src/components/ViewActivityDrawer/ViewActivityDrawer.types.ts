@@ -1,4 +1,4 @@
-export type ActivityType = 'booked' | 'check'
+export type ActivityType = 'booked' | 'check' | 'form-sent' | 'reminder' | 'completed'
 
 export interface Activity {
   id: string
