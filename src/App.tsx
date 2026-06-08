@@ -110,9 +110,13 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'providers',         label: 'Providers'  },
-      { id: 'procedure-library', label: 'Procedures' },
-      { id: 'widgets',           label: 'Widgets'    },
+      { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
+      { id: 'procedure-library',  label: 'Procedures'          },
+      { id: 'phone-number',       label: 'Phone number'        },
+      { id: 'web-widget',         label: 'Web widget'          },
+      { id: 'appointment-widget', label: 'Appointment widget'  },
+      { id: 'providers',          label: 'Providers'           },
+      { id: 'forms',              label: 'Forms'               },
     ],
   },
 ]
@@ -313,12 +317,18 @@ export function App() {
           <ProceduresScreen product={activeProduct} />
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
-        ) : navActive === 'widgets' ? (
-          <EmptyResourceScreen label="Widgets" />
         ) : navActive === 'phone-number' ? (
           <EmptyResourceScreen label="Phone number" />
-        ) : navActive === 'voices' ? (
-          <EmptyResourceScreen label="Voices" />
+        ) : navActive === 'web-widget' ? (
+          <EmptyResourceScreen label="Web widget" />
+        ) : navActive === 'appointment-widget' ? (
+          <EmptyResourceScreen label="Appointment widget" />
+        ) : navActive === 'providers' ? (
+          <EmptyResourceScreen label="Providers" />
+        ) : navActive === 'forms' ? (
+          <EmptyResourceScreen label="Forms" />
+        ) : navActive === 'widgets' || navActive === 'voices' ? (
+          <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}
