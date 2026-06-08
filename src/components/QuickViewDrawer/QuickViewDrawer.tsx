@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BackArrowIcon } from '../../assets/BackArrowIcon'
 import { Icon } from '../Icon/Icon'
+import iconAi from '../../assets/icon-ai.svg'
 import type { PatientDetail, QuickViewDrawerProps } from './QuickViewDrawer.types'
 
 function getInitials(name: string): string {
@@ -47,12 +48,13 @@ function buildDefaultSummary(p: PatientDetail): string[] {
     )
 
     if (formWasSent) {
-      const offsets = [3, 2, 1]
+      const offsets = [1, 2, 3]
       for (const days of offsets) {
         const reminderDate = new Date(appt)
         reminderDate.setDate(reminderDate.getDate() - days)
         if (reminderDate <= today) {
-          bullets.push(`SMS reminder sent on ${formatDate(reminderDate)}`)
+          bullets.push(`Last reminder sent via Email on ${formatDate(reminderDate)}`)
+          break
         }
       }
     }
@@ -280,7 +282,7 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
             type="button"
             className="text-small text-text-action hover:underline"
           >
-            View form
+            View details
           </button>
         </div>
 
@@ -322,7 +324,7 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           {summaryBullets ? (
             <div className="mx-2xl mb-lg rounded-lg border border-violet-200 bg-violet-50 p-lg">
               <div className="mb-sm flex items-center gap-xs">
-                <Icon name="auto_awesome" size={16} className="text-violet-500" />
+                <img src={iconAi} alt="AI" className="size-5" />
                 <span className="text-body text-text-primary">Summary</span>
               </div>
               <ul className="space-y-xs">
@@ -337,7 +339,7 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           ) : (
             <div className="mx-2xl mb-lg rounded-lg border border-border bg-surface-subtle p-lg">
               <div className="mb-md flex items-center gap-xs">
-                <Icon name="auto_awesome" size={16} className="text-text-icon" />
+                <img src={iconAi} alt="AI" className="size-5 opacity-50" />
                 <p className="text-body text-text-secondary">
                   Get insights and actions for {hasName ? name : 'this patient'}
                 </p>
