@@ -20,6 +20,7 @@ import iconMail from '../assets/icon-mail.svg'
 interface IntakePatient {
   patient: string
   appointmentDate: string
+  bookedOn: string
   formType: string
   sentVia: string
   sentOn: string
@@ -44,29 +45,29 @@ const TAB_STATUS_MAP: Record<string, string> = {
 const TODAY_DATE = 'May 27'
 
 const PATIENTS: IntakePatient[] = [
-  { patient: 'John Smith',          appointmentDate: 'May 27', formType: 'New patient', sentVia: 'sms',   sentOn: 'Apr 27', status: 'Not started' },
-  { patient: 'Alice Johnson',       appointmentDate: 'May 27', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'Apr 27', status: 'Not started' },
-  { patient: 'Robert Williams',     appointmentDate: 'May 27', formType: 'Referral',    sentVia: 'sms',   sentOn: 'May 18', status: 'Not started' },
-  { patient: 'Mary Brown',          appointmentDate: 'May 27', formType: 'New patient', sentVia: 'email', sentOn: 'May 18', status: 'Not started' },
-  { patient: 'Michael Davis',       appointmentDate: 'May 27', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 18', status: 'Not started' },
-  { patient: 'Jennifer Wilson',     appointmentDate: 'May 27', formType: 'Referral',    sentVia: 'email', sentOn: 'May 18', status: 'Not started' },
-  { patient: 'David Garcia',        appointmentDate: 'May 27', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 18', status: 'Not started' },
-  { patient: 'Linda Rodriguez',     appointmentDate: 'May 27', formType: 'Referral',    sentVia: 'email', sentOn: 'May 18', status: 'Not started' },
-  { patient: 'Christopher Martinez',appointmentDate: 'May 27', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
-  { patient: 'Angela Anderson',     appointmentDate: 'May 27', formType: 'Follow-up',   sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
-  { patient: 'Thomas Taylor',       appointmentDate: 'May 27', formType: 'Text/Number', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
-  { patient: 'Sarah Moore',         appointmentDate: 'May 28', formType: 'New patient', sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
-  { patient: 'Kevin Jackson',       appointmentDate: 'May 28', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 21', status: 'Not started' },
-  { patient: 'Emily White',         appointmentDate: 'May 28', formType: 'Referral',    sentVia: 'email', sentOn: 'May 21', status: 'In progress' },
-  { patient: 'James Harris',        appointmentDate: 'May 28', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 21', status: 'In progress' },
-  { patient: 'Patricia Clark',      appointmentDate: 'May 29', formType: 'Follow-up',   sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
-  { patient: 'Daniel Lewis',        appointmentDate: 'May 29', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 22', status: 'In progress' },
-  { patient: 'Nancy Robinson',      appointmentDate: 'May 29', formType: 'Text/Number', sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
-  { patient: 'Mark Walker',         appointmentDate: 'May 30', formType: 'Referral',    sentVia: 'sms',   sentOn: 'May 23', status: 'In progress' },
-  { patient: 'Betty Hall',          appointmentDate: 'May 30', formType: 'New patient', sentVia: 'email', sentOn: 'May 23', status: 'Completed' },
-  { patient: 'Steven Allen',        appointmentDate: 'May 30', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 23', status: 'Completed' },
-  { patient: 'Sandra Young',        appointmentDate: 'May 31', formType: 'Referral',    sentVia: 'email', sentOn: 'May 24', status: 'Completed' },
-  { patient: 'Joseph Hernandez',    appointmentDate: 'May 31', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 24', status: 'Completed' },
+  { patient: 'John Smith',          appointmentDate: 'May 27', bookedOn: 'Apr 10', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Alice Johnson',       appointmentDate: 'May 27', bookedOn: 'Apr 12', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Robert Williams',     appointmentDate: 'May 27', bookedOn: 'Apr 15', formType: 'Referral',    sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Mary Brown',          appointmentDate: 'May 27', bookedOn: 'Apr 18', formType: 'New patient', sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Michael Davis',       appointmentDate: 'May 27', bookedOn: 'Apr 20', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Jennifer Wilson',     appointmentDate: 'May 27', bookedOn: 'Apr 22', formType: 'Referral',    sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
+  { patient: 'David Garcia',        appointmentDate: 'May 27', bookedOn: 'Apr 25', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Linda Rodriguez',     appointmentDate: 'May 27', bookedOn: 'Apr 28', formType: 'Referral',    sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Christopher Martinez',appointmentDate: 'May 27', bookedOn: 'May 01', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Angela Anderson',     appointmentDate: 'May 27', bookedOn: 'May 03', formType: 'Follow-up',   sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Thomas Taylor',       appointmentDate: 'May 27', bookedOn: 'May 05', formType: 'Text/Number', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Sarah Moore',         appointmentDate: 'May 28', bookedOn: 'Apr 14', formType: 'New patient', sentVia: 'email', sentOn: 'May 21', status: 'Not started' },
+  { patient: 'Kevin Jackson',       appointmentDate: 'May 28', bookedOn: 'Apr 16', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 21', status: 'Not started' },
+  { patient: 'Emily White',         appointmentDate: 'May 28', bookedOn: 'Apr 18', formType: 'Referral',    sentVia: 'email', sentOn: 'May 21', status: 'In progress' },
+  { patient: 'James Harris',        appointmentDate: 'May 28', bookedOn: 'Apr 20', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 21', status: 'In progress' },
+  { patient: 'Patricia Clark',      appointmentDate: 'May 29', bookedOn: 'Apr 22', formType: 'Follow-up',   sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
+  { patient: 'Daniel Lewis',        appointmentDate: 'May 29', bookedOn: 'Apr 24', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 22', status: 'In progress' },
+  { patient: 'Nancy Robinson',      appointmentDate: 'May 29', bookedOn: 'Apr 26', formType: 'Text/Number', sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
+  { patient: 'Mark Walker',         appointmentDate: 'May 30', bookedOn: 'Apr 28', formType: 'Referral',    sentVia: 'sms',   sentOn: 'May 23', status: 'In progress' },
+  { patient: 'Betty Hall',          appointmentDate: 'May 30', bookedOn: 'Apr 30', formType: 'New patient', sentVia: 'email', sentOn: 'May 23', status: 'Completed' },
+  { patient: 'Steven Allen',        appointmentDate: 'May 30', bookedOn: 'May 02', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 23', status: 'Completed' },
+  { patient: 'Sandra Young',        appointmentDate: 'May 31', bookedOn: 'May 04', formType: 'Referral',    sentVia: 'email', sentOn: 'May 24', status: 'Completed' },
+  { patient: 'Joseph Hernandez',    appointmentDate: 'May 31', bookedOn: 'May 06', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 24', status: 'Completed' },
 ]
 
 interface ColumnDef extends Column<IntakePatient> {
@@ -250,7 +251,7 @@ export function IntakeScreen() {
                   label: 'Quick view',
                   onClick: (row) => {
                     const detail = PATIENT_DETAILS[row.patient] ?? {}
-                    setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, sentOn: row.sentOn, ...detail })
+                    setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail })
                   },
                 },
                 { label: 'View activity',  onClick: () => {} },

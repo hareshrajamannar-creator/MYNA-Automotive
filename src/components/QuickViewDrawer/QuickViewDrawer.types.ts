@@ -36,6 +36,7 @@ export interface PatientDetail {
   exercise?: string
   // Row data for dynamic summary
   appointmentDate?: string
+  bookedOn?: string
   sentOn?: string
   // AI summary bullets
   aiSummary?: string[]

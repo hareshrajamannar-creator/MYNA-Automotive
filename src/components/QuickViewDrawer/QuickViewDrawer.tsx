@@ -22,21 +22,38 @@ function parseProtoDate(str: string): Date {
 
 function buildDefaultSummary(p: PatientDetail): string[] {
   const bullets: string[] = []
-  if (p.appointmentDate) bullets.push(`Appointment for ${p.appointmentDate}`)
-  bullets.push('Insurance verification is in progress')
-  if (p.sentOn) bullets.push(`Intake form will be sent on ${p.sentOn}`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const bookedLabel = p.bookedOn ? ` booked on ${p.bookedOn}` : ''
+  if (p.appointmentDate) bullets.push(`Appointment for ${p.appointmentDate}${bookedLabel}`)
 
   if (p.appointmentDate) {
     const appt = parseProtoDate(p.appointmentDate)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const formSentDate = new Date(appt)
+    formSentDate.setDate(formSentDate.getDate() - 7)
 
-    const offsets = [3, 2, 1]
-    for (const days of offsets) {
-      const reminderDate = new Date(appt)
-      reminderDate.setDate(reminderDate.getDate() - days)
-      if (reminderDate <= today) {
-        bullets.push(`SMS reminder sent on ${formatDate(reminderDate)}`)
+    const formWasSent = formSentDate <= today
+    bullets.push(
+      formWasSent
+        ? `Intake form sent on ${formatDate(formSentDate)}`
+        : `Intake form will be sent on ${formatDate(formSentDate)}`,
+    )
+
+    bullets.push(
+      p.status === 'Overdue'
+        ? 'Insurance verification completed'
+        : 'Insurance verification is in progress',
+    )
+
+    if (formWasSent) {
+      const offsets = [3, 2, 1]
+      for (const days of offsets) {
+        const reminderDate = new Date(appt)
+        reminderDate.setDate(reminderDate.getDate() - days)
+        if (reminderDate <= today) {
+          bullets.push(`SMS reminder sent on ${formatDate(reminderDate)}`)
+        }
       }
     }
   }
