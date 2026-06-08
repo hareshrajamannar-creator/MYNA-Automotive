@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { BackArrowIcon } from '../../assets/BackArrowIcon'
 import { Icon } from '../Icon/Icon'
-import type { PatientDetail, QuickViewDrawerProps, SectionStatus } from './QuickViewDrawer.types'
+import type { PatientDetail, QuickViewDrawerProps } from './QuickViewDrawer.types'
 
 function getInitials(name: string): string {
   return name
@@ -12,74 +12,27 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
-function deriveSectionStatus(hasData: boolean, rowStatus: string): SectionStatus {
-  if (rowStatus === 'Not started') return 'not-started'
-  return hasData ? 'completed' : 'not-filled'
-}
-
-function StatusBadge({ status }: { status: SectionStatus }) {
-  if (status === 'completed') {
-    return (
-      <span className="flex items-center gap-xs text-small text-chip-success-text">
-        <span className="size-[6px] rounded-full bg-chip-success-text" />
-        Completed
-      </span>
-    )
-  }
-  if (status === 'not-filled') {
-    return (
-      <span className="flex items-center gap-xs text-small text-amber-600">
-        <span className="size-[6px] rounded-full bg-amber-600" />
-        Not filled
-      </span>
-    )
-  }
-  return (
-    <span className="flex items-center gap-xs text-small text-text-tertiary">
-      <span className="size-[6px] rounded-full bg-text-tertiary" />
-      Not started
-    </span>
-  )
-}
-
 function FieldRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="border-b border-border py-sm last:border-0">
       <p className="text-small text-text-secondary">{label}</p>
-      <p className="text-body text-text-primary">{value || '—'}</p>
+      <p className="text-body text-text-primary">{value || '-'}</p>
     </div>
   )
 }
 
 function SubHeader({ label }: { label: string }) {
   return (
-    <p className="mb-xs mt-lg text-small text-text-tertiary uppercase tracking-wider">{label}</p>
-  )
-}
-
-function EmptyState({ status }: { status: SectionStatus }) {
-  return (
-    <div className="py-lg text-center">
-      <p className="text-body text-text-secondary">
-        {status === 'not-started'
-          ? "Patient hasn't started the form yet."
-          : 'Patient skipped this section.'}
-      </p>
-      <p className="mt-xs text-small text-text-tertiary">
-        Data will appear once the form is submitted.
-      </p>
-    </div>
+    <p className="mb-xs mt-lg text-small uppercase tracking-wider text-text-tertiary">{label}</p>
   )
 }
 
 function AccordionSection({
   title,
-  status,
   defaultOpen = false,
   children,
 }: {
   title: string
-  status: SectionStatus
   defaultOpen?: boolean
   children: React.ReactNode
 }) {
@@ -90,18 +43,26 @@ function AccordionSection({
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center justify-between px-2xl py-sm hover:bg-surface-hover"
+        className="flex w-full items-center gap-sm px-2xl py-sm hover:bg-surface-hover"
       >
+        <Icon
+          name={expanded ? 'expand_less' : 'expand_more'}
+          size={20}
+          className="shrink-0 text-text-icon"
+        />
         <span className="text-body text-text-primary">{title}</span>
-        <div className="flex items-center gap-sm">
-          <StatusBadge status={status} />
-          <Icon name={expanded ? 'expand_less' : 'expand_more'} size={20} className="text-text-icon" />
-        </div>
       </button>
 
       {expanded && (
-        <div className="px-2xl pb-lg pt-sm">
-          {status !== 'completed' ? <EmptyState status={status} /> : children}
+        <div className="relative px-2xl pb-lg pt-sm">
+          <button
+            type="button"
+            aria-label="Edit"
+            className="absolute right-2xl top-sm text-text-icon hover:text-text-primary"
+          >
+            <Icon name="edit" size={16} />
+          </button>
+          {children}
         </div>
       )}
     </div>
@@ -129,7 +90,7 @@ function InsuranceSection({ p }: { p: PatientDetail }) {
       <FieldRow label="Insurance provider" value={p.insuranceProvider} />
       <FieldRow label="Member / Subscriber ID" value={p.memberId} />
       <FieldRow label="Group number" value={p.groupNumber} />
-      <FieldRow label="Secondary insurance" value={p.secondaryInsurance ?? 'None'} />
+      <FieldRow label="Secondary insurance" value={p.secondaryInsurance ?? '-'} />
     </>
   )
 }
@@ -153,7 +114,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label={m.name} value={`${m.dosage} · ${m.frequency}`} />
         ))
       ) : (
-        <FieldRow label="Medications" value="None reported" />
+        <FieldRow label="Medications" value="-" />
       )}
 
       <SubHeader label="Drug allergies" />
@@ -162,7 +123,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label={a.medicine} value={a.reaction} />
         ))
       ) : (
-        <FieldRow label="Drug allergies" value="None reported" />
+        <FieldRow label="Drug allergies" value="-" />
       )}
 
       <SubHeader label="Non-drug allergies" />
@@ -171,7 +132,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label={a.allergen} value={a.reaction} />
         ))
       ) : (
-        <FieldRow label="Non-drug allergies" value="None reported" />
+        <FieldRow label="Non-drug allergies" value="-" />
       )}
 
       <SubHeader label="Preferred pharmacy" />
@@ -183,7 +144,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label="Condition" value={c} />
         ))
       ) : (
-        <FieldRow label="Medical conditions" value="None reported" />
+        <FieldRow label="Medical conditions" value="-" />
       )}
 
       <SubHeader label="Surgical history" />
@@ -192,7 +153,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label={s.procedure} value={s.year} />
         ))
       ) : (
-        <FieldRow label="Surgical history" value="None reported" />
+        <FieldRow label="Surgical history" value="-" />
       )}
 
       <SubHeader label="Family history" />
@@ -201,7 +162,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label={f.condition} value={f.relation} />
         ))
       ) : (
-        <FieldRow label="Family history" value="None reported" />
+        <FieldRow label="Family history" value="-" />
       )}
 
       <SubHeader label="Hospitalizations" />
@@ -210,7 +171,7 @@ function MedicalHistorySection({ p }: { p: PatientDetail }) {
           <FieldRow key={i} label={h.condition} value={h.year} />
         ))
       ) : (
-        <FieldRow label="Hospitalizations" value="None reported" />
+        <FieldRow label="Hospitalizations" value="-" />
       )}
     </>
   )
@@ -230,38 +191,20 @@ function SocialHistorySection({ p }: { p: PatientDetail }) {
 export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps) {
   if (!patient) return null
 
-  const initials = getInitials(patient.patient)
-  const rowStatus = patient.status
-
-  const hasBasic = !!(patient.age || patient.gender || patient.phone || patient.email)
-  const hasInsurance = !!(patient.insuranceProvider || patient.memberId)
-  const hasConsent = !!(patient.consentTreatment || patient.consentHipaa)
-  const hasMedical = !!(
-    patient.medications?.length ||
-    patient.drugAllergies?.length ||
-    patient.nonDrugAllergies?.length ||
-    patient.preferredPharmacy ||
-    patient.medicalConditions?.length ||
-    patient.surgicalHistory?.length ||
-    patient.familyHistory?.length ||
-    patient.hospitalizations?.length
-  )
-  const hasSocial = !!(
-    patient.tobacco || patient.alcohol || patient.drugUsage || patient.exercise
-  )
-
-  const basicStatus     = deriveSectionStatus(hasBasic,     rowStatus)
-  const insuranceStatus = deriveSectionStatus(hasInsurance, rowStatus)
-  const consentStatus   = deriveSectionStatus(hasConsent,   rowStatus)
-  const medicalStatus   = deriveSectionStatus(hasMedical,   rowStatus)
-  const socialStatus    = deriveSectionStatus(hasSocial,    rowStatus)
+  const name = patient.patient
+  const hasName = Boolean(name?.trim())
+  const initials = hasName ? getInitials(name) : '--'
+  const hasPhone = Boolean(patient.phone)
+  const hasSummary = Boolean(patient.aiSummary?.length)
 
   return (
     <div className={`fixed inset-0 z-[100] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`absolute inset-0 bg-black/20 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/20 transition-opacity duration-200 ${
+          open ? 'opacity-100' : 'opacity-0'
+        }`}
       />
 
       {/* Panel */}
@@ -271,85 +214,131 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
         }`}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between px-2xl pb-lg pt-2xl">
-          <div className="flex items-center gap-sm">
-            <button
-              type="button"
-              aria-label="Back"
-              onClick={onClose}
-              className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-            >
-              <BackArrowIcon />
-            </button>
+        <div className="flex shrink-0 items-start gap-sm px-2xl pb-lg pt-2xl">
+          <button
+            type="button"
+            aria-label="Back"
+            onClick={onClose}
+            className="mt-0.5 flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+          >
+            <BackArrowIcon />
+          </button>
+          <div>
             <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">
               Quick view
             </h2>
+            <button
+              type="button"
+              className="text-small text-text-action hover:underline"
+            >
+              View form
+            </button>
           </div>
-          <button
-            type="button"
-            className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
-          >
-            View form
-          </button>
         </div>
 
         {/* Scrollable body */}
         <div className="flex flex-1 flex-col overflow-y-auto">
           {/* Patient identity */}
           <div className="flex flex-col items-center gap-sm px-2xl pb-lg pt-sm">
-            <div className="flex size-14 items-center justify-center rounded-full bg-green-100 text-[18px] text-green-700">
+            <div
+              className={`flex size-14 items-center justify-center rounded-full text-[18px] ${
+                hasName
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-surface-subtle text-text-tertiary'
+              }`}
+            >
               {initials}
             </div>
-            <p className="text-[18px] text-text-primary">{patient.patient}</p>
+            <p className="text-[18px] text-text-primary">{name}</p>
             <div className="flex items-center gap-sm">
-              {(['send', 'chat_bubble', 'mail'] as const).map((icon) => (
+              <button
+                type="button"
+                className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="send" size={18} />
+              </button>
+              {hasPhone && (
                 <button
-                  key={icon}
                   type="button"
                   className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
                 >
-                  <Icon name={icon} size={18} />
+                  <Icon name="chat_bubble" size={18} />
                 </button>
-              ))}
+              )}
+              <button
+                type="button"
+                className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="mail" size={18} />
+              </button>
+              <button
+                type="button"
+                className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="download" size={18} />
+              </button>
             </div>
           </div>
 
           {/* AI Summary */}
-          {patient.aiSummary && patient.aiSummary.length > 0 && (
+          {hasSummary ? (
             <div className="mx-2xl mb-lg rounded-lg border border-violet-200 bg-violet-50 p-lg">
-              <div className="mb-sm flex items-center gap-xs">
+              <div className="mb-xs flex items-center gap-xs">
                 <Icon name="auto_awesome" size={16} className="text-violet-500" />
                 <span className="text-body text-text-primary">Summary</span>
               </div>
+              <p className="mb-sm text-small text-text-secondary">Highlights</p>
               <ul className="space-y-xs">
-                {patient.aiSummary.map((bullet, i) => (
+                {patient.aiSummary!.map((bullet, i) => (
                   <li key={i} className="flex gap-xs text-body text-text-secondary">
                     <span className="mt-[6px] size-1 shrink-0 rounded-full bg-text-secondary" />
                     {bullet}
                   </li>
                 ))}
               </ul>
+              <button
+                type="button"
+                className="mt-md flex items-center gap-xs text-small text-text-action hover:underline"
+              >
+                <Icon name="refresh" size={14} />
+                Regenerate
+              </button>
+            </div>
+          ) : (
+            <div className="mx-2xl mb-lg rounded-lg border border-border bg-surface-subtle p-lg">
+              <div className="mb-md flex items-center gap-xs">
+                <Icon name="auto_awesome" size={16} className="text-text-icon" />
+                <p className="text-body text-text-secondary">
+                  Get insights and actions for {hasName ? name : 'this patient'}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white hover:bg-primary-hover"
+              >
+                Generate summary
+              </button>
             </div>
           )}
 
           {/* Accordion sections */}
-          <AccordionSection title="Basic details" status={basicStatus} defaultOpen={hasBasic}>
+          <AccordionSection title="Basic details" defaultOpen>
             <BasicDetailsSection p={patient} />
           </AccordionSection>
 
-          <AccordionSection title="Insurance" status={insuranceStatus}>
+          <AccordionSection title="Insurance">
             <InsuranceSection p={patient} />
           </AccordionSection>
 
-          <AccordionSection title="Consent" status={consentStatus}>
+          <AccordionSection title="Consent">
             <ConsentSection p={patient} />
           </AccordionSection>
 
-          <AccordionSection title="Medical history" status={medicalStatus}>
+          <AccordionSection title="Medical history">
             <MedicalHistorySection p={patient} />
           </AccordionSection>
 
-          <AccordionSection title="Social history" status={socialStatus}>
+          <AccordionSection title="Social history">
             <SocialHistorySection p={patient} />
           </AccordionSection>
         </div>

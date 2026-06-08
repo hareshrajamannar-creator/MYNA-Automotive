@@ -1,5 +1,3 @@
-export type SectionStatus = 'completed' | 'not-filled' | 'not-started'
-
 export interface PatientDetail {
   // from the row (required)
   patient: string
