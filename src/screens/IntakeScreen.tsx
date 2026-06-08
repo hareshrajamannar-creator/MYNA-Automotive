@@ -311,6 +311,8 @@ export function IntakeScreen() {
         formType={activityRow?.formType}
         status={activeTab === 'overdue' ? 'Overdue' : activityRow?.status}
         bookedOn={activityRow?.bookedOn}
+        insuranceProvider={PATIENT_DETAILS[activityRow?.patient ?? '']?.insuranceProvider}
+        sentVia={activityRow?.sentVia}
         onClose={() => setActivityRow(null)}
       />
     </div>

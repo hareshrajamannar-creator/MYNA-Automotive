@@ -1,4 +1,4 @@
-export type ActivityType = 'booked' | 'check' | 'form-sent' | 'reminder' | 'completed'
+export type ActivityType = 'booked' | 'check'
 
 export interface Activity {
   id: string
@@ -19,4 +19,6 @@ export interface ViewActivityDrawerProps {
   formType?: string
   status?: string
   bookedOn?: string
+  insuranceProvider?: string
+  sentVia?: string
 }

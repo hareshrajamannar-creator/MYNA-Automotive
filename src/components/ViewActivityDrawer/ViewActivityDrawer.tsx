@@ -11,7 +11,7 @@ function fmt(d: Date): string {
 }
 
 function buildActivities(props: ViewActivityDrawerProps): Activity[] {
-  const { patient, appointmentDate, appointmentTime, appointmentType, formType, status, bookedOn } = props
+  const { patient, appointmentDate, appointmentTime, appointmentType, formType, status, bookedOn, insuranceProvider, sentVia } = props
   const activities: Activity[] = []
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -19,8 +19,9 @@ function buildActivities(props: ViewActivityDrawerProps): Activity[] {
   const appt = appointmentDate ? parseDate(appointmentDate) : null
   const formSentDate = appt ? new Date(appt.getTime() - 7 * 86400000) : null
   const formWasSent = formSentDate ? formSentDate <= today : false
+  const providerName = insuranceProvider ?? 'Insurance'
+  const channel = sentVia === 'email' ? 'Email' : 'SMS'
 
-  // 1. Booked appointment
   activities.push({
     id: '1',
     type: 'booked',
@@ -31,75 +32,73 @@ function buildActivities(props: ViewActivityDrawerProps): Activity[] {
     date: bookedOn ? `${bookedOn}, 2026` : '',
   })
 
-  // 2. Insurance verification initiated
   activities.push({
     id: '2',
     type: 'check',
     title: 'Insurance verification initiated',
+    subtitle: `${providerName} verification started`,
     date: bookedOn ? `${bookedOn}, 2026` : '',
   })
 
-  // 3. Intake form sent (only if form was sent)
   if (formWasSent && formSentDate) {
     activities.push({
       id: '3',
-      type: 'form-sent',
-      title: `Intake form sent on ${fmt(formSentDate)}`,
-      subtitle: formType ? `(${formType})` : undefined,
+      type: 'check',
+      title: 'Intake form sent',
+      subtitle: `${formType ?? 'New patient'} forms sent via ${channel}`,
       date: fmt(formSentDate),
     })
   }
 
   if (formWasSent && appt) {
-    // 4. Reminder at t-3
     const t3 = new Date(appt.getTime() - 3 * 86400000)
     if (t3 <= today) {
       activities.push({
         id: '4',
-        type: 'reminder',
+        type: 'check',
         title: 'Intake form reminder sent',
+        subtitle: `Reminder sent via SMS on ${fmt(t3)}`,
         date: fmt(t3),
       })
     }
 
-    // 5. Insurance verified (Overdue or Completed)
     if (status === 'Overdue' || status === 'Completed') {
       activities.push({
         id: '5',
         type: 'check',
         title: 'Insurance verified',
+        subtitle: `${providerName} verified`,
         date: fmt(t3),
       })
     }
 
-    // 6. Reminder at t-2
     const t2 = new Date(appt.getTime() - 2 * 86400000)
     if (t2 <= today) {
       activities.push({
         id: '6',
-        type: 'reminder',
-        title: 'Intake reminder sent',
+        type: 'check',
+        title: 'Follow-up reminder sent',
+        subtitle: `Reminder sent via SMS on ${fmt(t2)}`,
         date: fmt(t2),
       })
     }
 
-    // 7. Reminder at t-1
     const t1 = new Date(appt.getTime() - 1 * 86400000)
     if (t1 <= today) {
       activities.push({
         id: '7',
-        type: 'reminder',
+        type: 'check',
         title: 'Intake reminder sent',
+        subtitle: `Reminder sent via SMS on ${fmt(t1)}`,
         date: fmt(t1),
       })
     }
   }
 
-  // 8. Intake form completed (only for Completed status)
   if (status === 'Completed' && appt) {
     activities.push({
       id: '8',
-      type: 'completed',
+      type: 'check',
       title: 'Intake form completed',
       actionLabel: 'View form',
       date: appointmentDate ? `${appointmentDate}, 2026` : '',
@@ -110,17 +109,11 @@ function buildActivities(props: ViewActivityDrawerProps): Activity[] {
 }
 
 function ActivityIcon({ type }: { type: ActivityType }) {
-  const iconMap: Record<ActivityType, string> = {
-    booked:      'calendar_today',
-    check:       'check',
-    'form-sent': 'mail',
-    reminder:    'notifications',
-    completed:   'check',
-  }
+  const icon = type === 'booked' ? 'calendar_today' : 'check'
 
   return (
-    <div className="flex size-9 shrink-0 items-center justify-center rounded-full">
-      <Icon name={iconMap[type]} size={18} className="text-text-primary" />
+    <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface">
+      <Icon name={icon} size={18} className="text-text-primary" />
     </div>
   )
 }
