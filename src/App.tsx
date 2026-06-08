@@ -22,6 +22,13 @@ import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
+import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
+import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
+import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -156,13 +163,13 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'knowledge-base',    label: 'Knowledge base',      external: true },
-      { id: 'procedure-library', label: 'Procedures'           },
-      { id: 'phone-number',      label: 'Phone number'         },
-      { id: 'web-widget',        label: 'Web widget'           },
-      { id: 'appointment-widget',label: 'Appointment widget'   },
-      { id: 'providers',         label: 'Providers'            },
-      { id: 'forms',             label: 'Forms'                },
+      { id: 'hc-providers',         label: 'Providers'         },
+      { id: 'hc-appointment-type',  label: 'Appointment type'  },
+      { id: 'hc-availability',      label: 'Availability'      },
+      { id: 'procedure-library',    label: 'Procedure'         },
+      { id: 'phone-number',         label: 'Phone number'      },
+      { id: 'knowledge-base',       label: 'Knowledge base',   external: true },
+      { id: 'widgets',              label: 'Widgets',          external: true },
     ],
   },
 ]
@@ -210,8 +217,13 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'providers',         label: 'Providers'  },
-      { id: 'procedure-library', label: 'Procedures' },
+      { id: 'providers',            label: 'Providers'         },
+      { id: 'hc-appointment-type',  label: 'Appointment type'  },
+      { id: 'hc-availability',      label: 'Availability'      },
+      { id: 'procedure-library',    label: 'Procedure'         },
+      { id: 'phone-number',         label: 'Phone number'      },
+      { id: 'knowledge-base',       label: 'Knowledge base',   external: true },
+      { id: 'widgets',              label: 'Widgets',          external: true },
     ],
   },
 ]
@@ -317,6 +329,20 @@ export function App() {
           <EmptyResourceScreen label="Phone number" />
         ) : navActive === 'voices' ? (
           <EmptyResourceScreen label="Voices" />
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+          <HCFrontdeskOverviewScreen />
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+          <HCNoShowsScreen />
+        ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
+          <HCWaitlistFilledScreen />
+        ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
+          <HCIntakesCompletedScreen />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' ? (
+          <AvailabilityScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

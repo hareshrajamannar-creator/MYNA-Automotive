@@ -29,6 +29,7 @@ export function WorkflowViewerTab({ instanceName, onEdit, product }: WorkflowVie
   // instanceName is e.g. "Frontdesk agent - North region"; extract the agent name prefix
   const agentName = instanceName.replace(/ - .+$/, '')
   const isHCProduct = product === 'healthcare' || product === 'dental'
+
   const filteredProcedures = procedures.filter((p) =>
     isHCProduct ? p.category === 'Healthcare Frontdesk' : p.category !== 'Healthcare Frontdesk'
   )

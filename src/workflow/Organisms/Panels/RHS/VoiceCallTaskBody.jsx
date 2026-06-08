@@ -5,7 +5,7 @@ import styles from './VoiceCallTaskBody.module.css';
 
 export const VOICE_CALL_TOOL_ID = 'initiate-voice-call';
 const DEFAULT_TASK_NAME = 'Initiate voice call';
-const DEFAULT_DESCRIPTION = 'Call the customer';
+const DEFAULT_DESCRIPTION = 'Call the patient for their upcoming appointment';
 
 function resolveToolId(initialValues) {
   return initialValues.toolId ?? initialValues.selectedTools?.[0] ?? VOICE_CALL_TOOL_ID;

@@ -216,6 +216,15 @@ const _SEED_TOOLS = [
     inputs: [{ name: 'vin', type: 'string' }],
     outputs: [{ name: 'recalls', type: 'array' }],
   },
+  {
+    id: 'reminder-tool',
+    name: 'Reminder tool',
+    icon: 'notifications',
+    description: 'Sends automated multi-channel appointment reminders at configurable intervals before the appointment.',
+    category: 'Healthcare',
+    inputs: [{ name: 'appointmentId', type: 'string' }],
+    outputs: [{ name: 'sent', type: 'boolean' }],
+  },
 ];
 
 const _customTools = new Map(_SEED_TOOLS.map(t => [t.id, t]));

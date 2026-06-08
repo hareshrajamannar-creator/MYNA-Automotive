@@ -25,11 +25,11 @@ export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
   return (
     <section className="rounded-md border border-border bg-surface p-2xl">
       <h3 className="mb-lg text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
-      <div className="flex flex-wrap gap-x-[40px] gap-y-lg">
+      <div className="flex flex-wrap gap-y-lg justify-between">
         {stats.map((s) => {
           const { display, tooltip } = kFormat(s.value)
           return (
-            <div key={s.id} className="min-w-[150px]" title={tooltip}>
+            <div key={s.id} className="flex-1 min-w-[120px]" title={tooltip}>
               <div className="flex items-end gap-sm">
                 <span className="text-[24px] leading-8 text-text-primary">{display}</span>
                 {s.delta && (
@@ -38,7 +38,7 @@ export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
                       s.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
                     }`}
                   >
-                    {s.trend === 'down' ? '-' : '+'}{s.delta}
+                    {s.trend === 'down' ? '-' : '+'}{s.delta.replace(/^[+-]/, '')}
                   </span>
                 )}
               </div>

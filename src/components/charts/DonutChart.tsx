@@ -11,9 +11,26 @@ export interface DonutChartProps {
   centerValue?: string
   centerLabel?: string
   height?: number
+  /** Show percentage labels inside each segment */
+  showLabels?: boolean
 }
 
-export function DonutChart({ data, centerValue, centerLabel, height = 260 }: DonutChartProps) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function PctLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) {
+  const RADIAN = Math.PI / 180
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.55
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  const pct = Math.round(percent * 100)
+  if (pct < 5) return null
+  return (
+    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={11} fontFamily="Roboto">
+      {pct}%
+    </text>
+  )
+}
+
+export function DonutChart({ data, centerValue, centerLabel, height = 260, showLabels = true }: DonutChartProps) {
   return (
     <div className="relative" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -27,6 +44,8 @@ export function DonutChart({ data, centerValue, centerLabel, height = 260 }: Don
             paddingAngle={1}
             stroke="none"
             isAnimationActive={false}
+            labelLine={false}
+            label={showLabels ? PctLabel : undefined}
           >
             {data.map((d) => (
               <Cell key={d.name} fill={d.color} />

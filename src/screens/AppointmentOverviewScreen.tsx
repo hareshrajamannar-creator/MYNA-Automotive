@@ -36,6 +36,14 @@ const FUNNEL_NODES: SankeyNode[] = [
   { name: 'Confirmed' }, { name: 'Booking' }, { name: 'Reschedule' },
   { name: 'No-show' }, { name: 'Cancel' },
 ]
+// 0=Website(dark-orange), 1=Voice(light-orange), 2=Text(blue), 3=Email(teal)
+// 4=Agent-driven(purple), 5=Human-driven(gray)
+// 6=Confirmed(green), 7=Booking(blue), 8=Reschedule(orange), 9=No-show(red), 10=Cancel(red)
+const FUNNEL_NODE_COLORS: Record<number, string> = {
+  0: '#f5a623', 1: '#fbbf24', 2: '#1976d2', 3: '#00bcd4',
+  4: '#7c4dff', 5: '#bdbdbd',
+  6: '#4cae3d', 7: '#1976d2', 8: '#f59e0b', 9: '#f97316', 10: '#ef4444',
+}
 const FUNNEL_LINKS: SankeyLink[] = [
   { source: 0, target: 4, value: 20 }, { source: 0, target: 5, value: 8  },
   { source: 1, target: 4, value: 21 }, { source: 1, target: 5, value: 8  },
@@ -159,7 +167,13 @@ export function AppointmentOverviewScreen() {
 
           {/* Appointments funnel */}
           <ChartCard title="Appointments funnel">
-            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={380} />
+            <SankeyChart
+              nodes={FUNNEL_NODES}
+              links={FUNNEL_LINKS}
+              height={380}
+              nodeColors={FUNNEL_NODE_COLORS}
+              columnHeaders={['Source', 'Handler', 'Outcome']}
+            />
           </ChartCard>
 
           {/* Appointments overtime */}

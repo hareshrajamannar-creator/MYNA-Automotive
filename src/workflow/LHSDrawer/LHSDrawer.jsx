@@ -176,6 +176,7 @@ const HEALTHCARE_TASK_SUB_ITEMS = {
       'Reschedule appointment',
       'Cancel appointment',
       'Confirm appointment',
+      'Appointment reminder',
     ],
   },
   Contact: {

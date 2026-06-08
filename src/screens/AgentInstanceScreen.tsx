@@ -50,7 +50,7 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
   'Reminder agent': [
     { id: 'confirmed', value: '3,847', label: 'Appointments confirmed', delta: '4.2%', trend: 'up', info: true },
     { id: 'reschedule', value: '12%', label: 'Reschedule rate', delta: '0.5%', trend: 'down', info: true },
-    { id: 'noshow', value: '34%', label: 'No-show reduction', delta: '6.1%', trend: 'up', info: true },
+    { id: 'noshow', value: '34%', label: 'No-show rate', delta: '1.3%', trend: 'down', info: true },
     { id: 'messages', value: '11,541', label: 'Messages sent', delta: '2.3%', trend: 'up', info: true },
   ],
   'Outreach agent': [

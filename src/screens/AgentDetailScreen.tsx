@@ -75,7 +75,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     'Reminder agent': [
       { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
       { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
-      { id: 'noshow', value: '34%', label: 'No-show reduction' },
+      { id: 'noshow', value: '34%', label: 'No-show rate' },
       { id: 'messages', value: '11,541', label: 'Messages sent' },
     ],
     'Outreach agent': [
