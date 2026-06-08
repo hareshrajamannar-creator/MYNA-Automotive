@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { ChartTooltip } from './ChartTooltip'
 import { chartColors } from './chartColors'
 
 export interface TrendPoint {
@@ -30,9 +31,16 @@ export function TrendLineChart({ data, height = 300, color = chartColors.resolve
         <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={{ stroke: chartColors.grid }} />
         <YAxis tick={axisTick} tickLine={false} axisLine={false} width={44} />
         <Tooltip
-          contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }}
-          labelStyle={{ color: '#212121' }}
-          itemStyle={{ color: '#555555' }}
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null
+            return (
+              <ChartTooltip
+                label={String(label ?? '')}
+                items={[{ color, label: 'Value', value: Number(payload[0]?.value ?? 0) }]}
+                accentColor={color}
+              />
+            )
+          }}
         />
         <Line
           type="monotone"

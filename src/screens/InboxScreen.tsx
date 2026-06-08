@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 import HighchartsSankey from 'highcharts/modules/sankey'
-import { ChartCard, DataTable, DonutChart, Icon, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
+import { ChartCard, DataTable, DonutChart, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (!(Highcharts as any).seriesTypes?.sankey) { (HighchartsSankey as any)(Highcharts) }
@@ -17,11 +17,10 @@ interface Conversation {
   assignee?: string
   date: string
   unread?: boolean
-  replyIcon?: boolean
 }
 
 const CONVERSATIONS: Conversation[] = [
-  { id: '1', name: 'Cameron Williamson', verified: true, message: 'You can find more details here: https://birdeye.com', location: 'Austin', sublocation: 'Savannah', date: '03:25 PM', replyIcon: true },
+  { id: '1', name: 'Cameron Williamson', verified: true, message: 'You can find more details here: https://birdeye.com', location: 'Austin', sublocation: 'Savannah', date: '03:25 PM' },
   { id: '2', name: 'Annette Black',      verified: true, message: 'Kelsy Hiltz: yes',                                   location: 'San Francisco', assignee: 'Kelsy Hiltz', date: 'Dec 31, 2022', unread: true },
   { id: '3', name: 'Wade Warren',                        message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022', unread: true },
   { id: '4', name: 'Floyd Miles',                        message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022', unread: true },
@@ -403,38 +402,38 @@ function ResponsesPanel() {
           title="Performance funnel"
           showActions={false}
           toolbar={
-            <button type="button" aria-label="More" className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-              <Icon name="more_vert" size={18} />
+            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="more_vert" size={20} />
             </button>
           }
         >
-          <div className="mb-sm flex items-center justify-between text-small text-text-secondary">
-            <span>Channel</span>
-            <span>Handler</span>
-            <span>Status</span>
+          <div className="relative mb-sm h-5 text-small text-text-secondary">
+            <span className="absolute left-0">Channel</span>
+            <span className="absolute" style={{ left: '50%', transform: 'translateX(-50%)' }}>Handler</span>
+            <span className="absolute right-0">Status</span>
           </div>
           <div className="-mx-lg">
             <HighchartsReact highcharts={Highcharts} options={sankeyOpts} />
           </div>
         </ChartCard>
 
-        {/* Conversations overtime — table icon + 3-dot menu */}
-        <ChartCard title="Conversations overtime">
-          <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={300} showBarLabels />
+        {/* Conversations overtime — customize + 3-dot menu */}
+        <ChartCard title="Conversations overtime" className="h-[556px]">
+          <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={430} showBarLabels />
         </ChartCard>
 
         {/* Conversation by channel — filter dropdown + 3-dot menu */}
         <ChartCard
           title="Conversation by channel"
+          className="h-[556px]"
           showActions={false}
           toolbar={
             <div className="flex items-center gap-xs text-text-icon">
-              <button type="button" className="flex items-center gap-xs rounded-sm px-sm py-xs hover:bg-surface-hover">
-                <Icon name="tune" size={16} />
-                <Icon name="expand_more" size={14} />
+              <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+                <Icon name="tune" size={20} />
               </button>
-              <button type="button" aria-label="More" className="flex size-7 items-center justify-center rounded-sm hover:bg-surface-hover">
-                <Icon name="more_vert" size={18} />
+              <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+                <Icon name="more_vert" size={20} />
               </button>
             </div>
           }
@@ -452,7 +451,7 @@ function ResponsesPanel() {
               </div>
             ))}
           </div>
-          <DonutChart data={DONUT_DATA} centerValue="7.9k" centerLabel="Total conversations" height={340} />
+          <DonutChart data={DONUT_DATA} centerValue="7.9k" centerLabel="Total conversations" height={380} />
         </ChartCard>
 
         {/* Conversation across locations — only 3-dot menu */}
@@ -460,12 +459,189 @@ function ResponsesPanel() {
           title="Conversation across locations"
           showActions={false}
           toolbar={
-            <button type="button" aria-label="More" className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-              <Icon name="more_vert" size={18} />
+            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="more_vert" size={20} />
             </button>
           }
         >
           <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+        </ChartCard>
+      </div>
+    </div>
+  )
+}
+
+// ─── Conversation Managed dashboard ───────────────────────────────────────────
+
+const CM_SUMMARY = [
+  { id: 'total',   value: '7.9K',  label: 'Total Conversations', delta: '+36.6%', trend: 'up' as const },
+  { id: 'tagged',  value: '4.2k',  label: 'Conversations tagged', delta: '-40%',  trend: 'down' as const },
+  { id: 'routed',  value: '3.6k',  label: 'Conversations routed', delta: '+20%',  trend: 'up' as const },
+]
+
+const CM_SANKEY_NODES = [
+  { name: 'Calls' },      // 0 — pink/magenta
+  { name: 'SMS' },         // 1 — dark purple
+  { name: 'Email' },       // 2 — blue
+  { name: 'Tagged' },      // 3 — green
+  { name: 'Untagged' },    // 4 — gray
+  { name: 'Routed' },      // 5 — blue
+  { name: 'Pending' },     // 6 — yellow/amber
+  { name: 'Missed' },      // 7 — dark red
+  { name: 'Resolved' },    // 8 — green
+  { name: 'Unresolved' },  // 9 — gray
+]
+const CM_SANKEY_LINKS = [
+  // Channel → Tagging status
+  { source: 0, target: 3, value: 2800 }, { source: 0, target: 4, value: 800 },
+  { source: 1, target: 3, value: 2200 }, { source: 1, target: 4, value: 1000 },
+  { source: 2, target: 3, value: 1200 }, { source: 2, target: 4, value: 800 },
+  // Tagging status → Routing status
+  { source: 3, target: 5, value: 3800 }, { source: 3, target: 6, value: 1600 }, { source: 3, target: 7, value: 800 },
+  { source: 4, target: 5, value: 1000 }, { source: 4, target: 6, value: 800 }, { source: 4, target: 7, value: 800 },
+  // Routing status → Outcome
+  { source: 5, target: 8, value: 4200 }, { source: 5, target: 9, value: 600 },
+  { source: 6, target: 8, value: 1400 }, { source: 6, target: 9, value: 1000 },
+  { source: 7, target: 8, value: 200 },  { source: 7, target: 9, value: 1400 },
+]
+
+const CM_STATUS_DATA = [
+  { week: 'Mar\n3',  'Missed Call': 60,  'Scheduling': 100, 'Follow-up': 80, 'Resolved': 130, 'Routed': 64 },
+  { week: '2',       'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 40, 'Resolved': 60,  'Routed': 44 },
+  { week: '3',       'Missed Call': 60,  'Scheduling': 90,  'Follow-up': 80, 'Resolved': 120, 'Routed': 62 },
+  { week: '4',       'Missed Call': 50,  'Scheduling': 80,  'Follow-up': 70, 'Resolved': 110, 'Routed': 88 },
+  { week: '5',       'Missed Call': 30,  'Scheduling': 40,  'Follow-up': 30, 'Resolved': 60,  'Routed': 38 },
+  { week: '6',       'Missed Call': 50,  'Scheduling': 70,  'Follow-up': 60, 'Resolved': 110, 'Routed': 88 },
+  { week: '7',       'Missed Call': 60,  'Scheduling': 90,  'Follow-up': 70, 'Resolved': 120, 'Routed': 72 },
+  { week: '8',       'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 40, 'Resolved': 80,  'Routed': 68 },
+  { week: '9',       'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 50, 'Resolved': 80,  'Routed': 78 },
+  { week: '10',      'Missed Call': 40,  'Scheduling': 60,  'Follow-up': 50, 'Resolved': 90,  'Routed': 62 },
+  { week: '11',      'Missed Call': 40,  'Scheduling': 60,  'Follow-up': 50, 'Resolved': 90,  'Routed': 62 },
+  { week: '12',      'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 40, 'Resolved': 80,  'Routed': 68 },
+]
+
+const CM_STATUS_SERIES = [
+  { key: 'Missed Call', label: 'Missed Call', color: '#42A5F5' },
+  { key: 'Scheduling',  label: 'Scheduling',  color: '#7E57C2' },
+  { key: 'Follow-up',   label: 'Follow-up',   color: '#4cae3d' },
+  { key: 'Resolved',    label: 'Resolved',     color: '#F5A623' },
+  { key: 'Routed',      label: 'Routed',       color: '#FF7043' },
+]
+
+const CM_ROUTING_SERIES = [
+  { key: 'Missed Call', label: 'AI agent',    color: '#42A5F5' },
+  { key: 'Scheduling',  label: 'Reception',   color: '#7E57C2' },
+  { key: 'Follow-up',   label: 'Billing',     color: '#4cae3d' },
+  { key: 'Resolved',    label: 'Clinical',    color: '#F5A623' },
+  { key: 'Routed',      label: 'Humans',      color: '#FF7043' },
+]
+
+interface CmLocationRow {
+  location: string
+  totalConversation: string
+  conversationTagged: string
+  conversationRouted: string
+  [key: string]: string
+}
+
+const CM_LOCATION_DATA: CmLocationRow[] = [
+  { location: 'Atlanta, GA', totalConversation: '234', conversationTagged: '15', conversationRouted: '2'  },
+  { location: 'Dallas, TX',  totalConversation: '352', conversationTagged: '22', conversationRouted: '4'  },
+  { location: 'Chicago, IL', totalConversation: '244', conversationTagged: '4',  conversationRouted: '22' },
+  { location: 'Miami, FL',   totalConversation: '53',  conversationTagged: '27', conversationRouted: '4'  },
+  { location: 'Phoenix, AZ', totalConversation: '324', conversationTagged: '19', conversationRouted: '10' },
+  { location: 'Austin, TX',  totalConversation: '665', conversationTagged: '25', conversationRouted: '12' },
+  { location: 'Denver, CO',  totalConversation: '44',  conversationTagged: '30', conversationRouted: '14' },
+  { location: 'Seattle, WA', totalConversation: '656', conversationTagged: '21', conversationRouted: '16' },
+]
+
+const CM_LOCATION_COLUMNS: Column<CmLocationRow>[] = [
+  { key: 'location',           label: 'Location',             sortable: true },
+  { key: 'totalConversation',  label: 'Total conversation',   sortable: true },
+  { key: 'conversationTagged', label: 'Conversation tagged',  sortable: true },
+  { key: 'conversationRouted', label: 'Conversation routed',  sortable: true },
+]
+
+function ConversationManagedPanel() {
+  return (
+    <div className="flex flex-1 flex-col overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between px-2xl py-xl">
+        <div>
+          <h1 className="text-h3 text-text-primary">Conversation managed</h1>
+          <p className="mt-xs text-body text-text-secondary">Insights into conversation management outcomes across different channels and locations</p>
+        </div>
+        <div className="flex items-center gap-sm">
+          <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
+            <Icon name="calendar_today" size={16} className="text-text-icon" />
+            Last 3 months
+          </button>
+          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+            <Icon name="filter_list" size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-lg px-2xl pb-2xl">
+        {/* Summary */}
+        <SummaryStats title="Summary" stats={CM_SUMMARY} />
+
+        {/* Performance funnel */}
+        <ChartCard
+          title="Performance funnel"
+          showActions={false}
+          toolbar={
+            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="more_vert" size={20} />
+            </button>
+          }
+        >
+          <div className="relative mb-sm h-5 text-small text-text-secondary">
+            <span className="absolute left-0">Channel</span>
+            <span className="absolute" style={{ left: '33%' }}>Tagging status</span>
+            <span className="absolute" style={{ left: '66%' }}>Routing status</span>
+            <span className="absolute right-0">Outcome</span>
+          </div>
+          <SankeyChart
+            nodes={CM_SANKEY_NODES}
+            links={CM_SANKEY_LINKS}
+            height={340}
+            colors={[
+              '#CE5ECE', // Calls — pink/magenta
+              '#4A2D7A', // SMS — dark purple
+              '#42A5F5', // Email — blue
+              '#4cae3d', // Tagged — green
+              '#BDBDBD', // Untagged — gray
+              '#5C6BC0', // Routed — blue
+              '#F5A623', // Pending — amber
+              '#C62828', // Missed — dark red
+              '#8BC34A', // Resolved — green
+              '#BDBDBD', // Unresolved — gray
+            ]}
+          />
+        </ChartCard>
+
+        {/* Conversations by status */}
+        <ChartCard title="Conversations by status" className="h-[556px]">
+          <StackedBarChart data={CM_STATUS_DATA} series={CM_STATUS_SERIES} xKey="week" height={430} showBarLabels wrapXLabels />
+        </ChartCard>
+
+        {/* Routing distribution */}
+        <ChartCard title="Routing distribution" className="h-[556px]">
+          <StackedBarChart data={CM_STATUS_DATA} series={CM_ROUTING_SERIES} xKey="week" height={430} showBarLabels wrapXLabels />
+        </ChartCard>
+
+        {/* Conversation across locations */}
+        <ChartCard
+          title="Conversation across locations"
+          showActions={false}
+          toolbar={
+            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="more_vert" size={20} />
+            </button>
+          }
+        >
+          <DataTable columns={CM_LOCATION_COLUMNS} data={CM_LOCATION_DATA} />
         </ChartCard>
       </div>
     </div>
@@ -482,7 +658,7 @@ function InboxSideNav({ activeId, onSelect }: { activeId: string; onSelect: (id:
 
   return (
     <aside className="flex h-full w-[222px] shrink-0 flex-col border-r border-border bg-surface-l2">
-      <div className="flex h-[52px] shrink-0 flex-col justify-center px-lg">
+      <div className="flex h-[52px] shrink-0 flex-col justify-center px-2xl">
         <h1 className="text-h3 text-text-primary">Inbox</h1>
       </div>
 
@@ -537,7 +713,6 @@ export function InboxScreen() {
   const [message, setMessage] = useState('')
 
   const isInternalChat = activeNav === 'chat-internal-team'
-  const isOutcomesScreen = activeNav === 'responses' || activeNav === 'conversation-managed' || activeNav === 'all-reports'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
 
   function handleNavSelect(id: string) {
@@ -555,8 +730,10 @@ export function InboxScreen() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopNav initials="S" />
 
-        {isOutcomesScreen ? (
+        {activeNav === 'responses' ? (
           <ResponsesPanel />
+        ) : activeNav === 'conversation-managed' ? (
+          <ConversationManagedPanel />
         ) : (
         <div className="flex flex-1 overflow-hidden">
           {/* Middle panel — conversation list */}
@@ -609,8 +786,7 @@ export function InboxScreen() {
                     <div className="flex items-center gap-xs">
                       {convo.unread && <span className="size-[6px] rounded-full bg-primary" />}
                       <span className="text-body text-text-primary">{convo.name}</span>
-                      {convo.verified && <Icon name="verified" size={14} className="text-text-icon" />}
-                      {convo.replyIcon && <Icon name="reply" size={14} className="text-text-icon" />}
+                      {convo.verified && <Icon name="mode_heat" size={14} className="text-text-icon" />}
                     </div>
                     <span className="text-small text-text-secondary">{convo.date}</span>
                   </div>
@@ -642,7 +818,7 @@ export function InboxScreen() {
             <div className="flex items-center justify-between px-2xl py-md">
               <div className="flex items-center gap-sm">
                 <span className="text-h3 text-text-primary">{selectedConvo.name}</span>
-                {selectedConvo.verified && <Icon name="verified" size={16} className="text-text-icon" />}
+                {selectedConvo.verified && <Icon name="mode_heat" size={16} className="text-text-icon" />}
               </div>
               <div className="flex items-center gap-md">
                 <button type="button" className="flex items-center gap-sm">
