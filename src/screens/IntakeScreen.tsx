@@ -6,6 +6,7 @@ import {
   FilterPanel,
   Icon,
   QuickViewDrawer,
+  ViewActivityDrawer,
   Tabs,
   TopNav,
   type ChipProps,
@@ -177,6 +178,7 @@ export function IntakeScreen() {
   const [customizeOpen, setCustomizeOpen]         = useState(false)
   const [filterOpen, setFilterOpen]               = useState(false)
   const [quickViewPatient, setQuickViewPatient]   = useState<PatientDetail | null>(null)
+  const [activityPatient, setActivityPatient]     = useState<string | null>(null)
 
   const columns = useMemo<Column<IntakePatient>[]>(() => {
     const base = order
@@ -269,7 +271,7 @@ export function IntakeScreen() {
                     setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail })
                   },
                 },
-                { label: 'View activity',  onClick: () => {} },
+                { label: 'View activity',  onClick: (row) => setActivityPatient(row.patient) },
                 { label: 'View form',      onClick: () => {} },
               ]}
             />
@@ -298,6 +300,12 @@ export function IntakeScreen() {
         open={!!quickViewPatient}
         patient={quickViewPatient}
         onClose={() => setQuickViewPatient(null)}
+      />
+
+      <ViewActivityDrawer
+        open={!!activityPatient}
+        patient={activityPatient ?? ''}
+        onClose={() => setActivityPatient(null)}
       />
     </div>
   )

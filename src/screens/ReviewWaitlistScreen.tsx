@@ -1,258 +1,341 @@
-import { useMemo, useState } from 'react'
-import {
-  CustomizeColumnsDrawer,
-  DataTable,
-  FilterPanel,
-  FormDrawer,
-  Icon,
-  Tabs,
-  TopNav,
-  type Column,
-  type ColumnOption,
-  type FilterField,
-  type FormField,
-} from '../components'
-import iconInbox from '../assets/icon-inbox.svg'
-import iconMail from '../assets/icon-mail.svg'
+import { useEffect, useRef, useState } from 'react'
+import { Chip, DataTable, FormDrawer, Icon, TopNav, type ChipVariant, type Column } from '../components'
 
-interface WaitlistPatient {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type WaitlistStatus = 'Waitlisted' | 'Slot offered' | 'Slot filled'
+type OutreachChannel = 'chat' | 'call' | 'text'
+type Priority = 'High' | 'Medium' | 'Low' | 'low'
+
+interface WaitlistRow {
   patient: string
-  outreachChannel: string
+  outreach: OutreachChannel
   waitingSince: string
-  priority: string
+  priority: Priority
   apptType: string
-  status: string
+  status: WaitlistStatus
   [key: string]: string
 }
 
-const TABS = [
-  { id: 'waitlisted',   label: 'Waitlisted',   count: 13 },
-  { id: 'slot-offered', label: 'Slot offered', count: 6  },
-  { id: 'slot-filled',  label: 'Slot filled',  count: 4  },
-  { id: 'all',          label: 'All',          count: 32 },
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const ALL_ROWS: WaitlistRow[] = [
+  { patient: 'Michael Smith',     outreach: 'chat',     waitingSince: '4 days',      priority: 'High',   apptType: 'Procedure',       status: 'Waitlisted'   },
+  { patient: 'Jessica Williams',  outreach: 'call',     waitingSince: '5 days',      priority: 'Medium', apptType: 'New consult',     status: 'Waitlisted'   },
+  { patient: 'David Brown',       outreach: 'chat',     waitingSince: '6 days',      priority: 'Low',    apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'Emily Davis',       outreach: 'text',     waitingSince: '7 days',      priority: 'High',   apptType: 'Annual physical', status: 'Waitlisted'   },
+  { patient: 'Christopher Garcia',outreach: 'chat',     waitingSince: '8 days',      priority: 'Medium', apptType: 'Urgent care',     status: 'Waitlisted'   },
+  { patient: 'Sarah Martinez',    outreach: 'call',     waitingSince: '9 days',      priority: 'Low',    apptType: 'Procedure',       status: 'Waitlisted'   },
+  { patient: 'James Rodriguez',   outreach: 'call',     waitingSince: '10 days',     priority: 'High',   apptType: 'New consult',     status: 'Waitlisted'   },
+  { patient: 'Linda White',       outreach: 'text',     waitingSince: '11 days',     priority: 'Medium', apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'William Harris',    outreach: 'text',     waitingSince: '12 days',     priority: 'Low',    apptType: 'Annual physical', status: 'Waitlisted'   },
+  { patient: 'Patricia Clark',    outreach: 'chat',     waitingSince: '13 days',     priority: 'High',   apptType: 'Urgent care',     status: 'Waitlisted'   },
+  { patient: 'Daniel Lewis',      outreach: 'chat',     waitingSince: '14 days ago', priority: 'Medium', apptType: 'Procedure',       status: 'Slot filled'  },
+  { patient: 'Sophia Walker',     outreach: 'text',     waitingSince: '15 days ago', priority: 'Low',    apptType: 'New consult',     status: 'Slot offered' },
+  { patient: 'Ethan Hall',        outreach: 'text',     waitingSince: '3 days',      priority: 'High',   apptType: 'Follow-up',       status: 'Slot offered' },
+  { patient: 'Olivia Allen',      outreach: 'call',     waitingSince: '5 days',      priority: 'Medium', apptType: 'Procedure',       status: 'Slot offered' },
+  { patient: 'Noah Young',        outreach: 'chat',     waitingSince: '7 days',      priority: 'Low',    apptType: 'Annual physical', status: 'Slot offered' },
+  { patient: 'Ava King',          outreach: 'text',     waitingSince: '2 days',      priority: 'High',   apptType: 'Urgent care',     status: 'Slot offered' },
+  { patient: 'Liam Scott',        outreach: 'call',     waitingSince: '6 days',      priority: 'Medium', apptType: 'New consult',     status: 'Slot offered' },
+  { patient: 'Emma Green',        outreach: 'chat',     waitingSince: '10 days ago', priority: 'Low',    apptType: 'Procedure',       status: 'Slot filled'  },
+  { patient: 'Mason Baker',       outreach: 'text',     waitingSince: '12 days ago', priority: 'High',   apptType: 'Follow-up',       status: 'Slot filled'  },
+  { patient: 'Isabella Adams',    outreach: 'chat',     waitingSince: '16 days ago', priority: 'Medium', apptType: 'Annual physical', status: 'Slot filled'  },
 ]
 
-const TAB_STATUS_MAP: Record<string, string> = {
-  'waitlisted':   'Waitlisted',
+const TAB_FILTER: Record<string, WaitlistStatus | null> = {
+  waitlisted:     'Waitlisted',
   'slot-offered': 'Slot offered',
   'slot-filled':  'Slot filled',
+  all:             null,
 }
 
-const PATIENTS: WaitlistPatient[] = [
-  { patient: 'Michael Smith',      outreachChannel: 'sms',   waitingSince: '4 days',      priority: 'High',   apptType: 'Procedure',       status: 'Waitlisted'   },
-  { patient: 'Jessica Williams',   outreachChannel: 'phone', waitingSince: '5 days',      priority: 'Medium', apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'David Brown',        outreachChannel: 'sms',   waitingSince: '6 days',      priority: 'Low',    apptType: 'Follow-up',       status: 'Waitlisted'   },
-  { patient: 'Emily Davis',        outreachChannel: 'email', waitingSince: '7 days',      priority: 'High',   apptType: 'Annual physical', status: 'Waitlisted'   },
-  { patient: 'Christopher Garcia', outreachChannel: 'sms',   waitingSince: '8 days',      priority: 'Medium', apptType: 'Urgent care',     status: 'Waitlisted'   },
-  { patient: 'Sarah Martinez',     outreachChannel: 'phone', waitingSince: '9 days',      priority: 'Low',    apptType: 'Procedure',       status: 'Waitlisted'   },
-  { patient: 'James Rodriguez',    outreachChannel: 'phone', waitingSince: '10 days',     priority: 'High',   apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'Linda White',        outreachChannel: 'email', waitingSince: '11 days',     priority: 'Medium', apptType: 'Follow-up',       status: 'Waitlisted'   },
-  { patient: 'William Harris',     outreachChannel: 'email', waitingSince: '12 days',     priority: 'Low',    apptType: 'Annual physical', status: 'Waitlisted'   },
-  { patient: 'Patricia Clark',     outreachChannel: 'sms',   waitingSince: '13 days',     priority: 'High',   apptType: 'Urgent care',     status: 'Waitlisted'   },
-  { patient: 'Daniel Lewis',       outreachChannel: 'sms',   waitingSince: '14 days ago', priority: 'Medium', apptType: 'Procedure',       status: 'Waitlisted'   },
-  { patient: 'Sophia Walker',      outreachChannel: 'sms',   waitingSince: '15 days ago', priority: 'Low',    apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'Robert Thompson',    outreachChannel: 'email', waitingSince: '16 days ago', priority: 'High',   apptType: 'Follow-up',       status: 'Waitlisted'   },
-  { patient: 'Nancy Moore',        outreachChannel: 'phone', waitingSince: '3 days',      priority: 'High',   apptType: 'Urgent care',     status: 'Slot offered' },
-  { patient: 'Kevin Martinez',     outreachChannel: 'sms',   waitingSince: '5 days',      priority: 'Medium', apptType: 'Annual physical', status: 'Slot offered' },
-  { patient: 'Betty Garcia',       outreachChannel: 'email', waitingSince: '7 days',      priority: 'Low',    apptType: 'Procedure',       status: 'Slot offered' },
-  { patient: 'Steven Clark',       outreachChannel: 'phone', waitingSince: '9 days',      priority: 'High',   apptType: 'New consult',     status: 'Slot offered' },
-  { patient: 'Dorothy Lewis',      outreachChannel: 'sms',   waitingSince: '11 days',     priority: 'Medium', apptType: 'Follow-up',       status: 'Slot offered' },
-  { patient: 'George Hall',        outreachChannel: 'email', waitingSince: '13 days ago', priority: 'Low',    apptType: 'Urgent care',     status: 'Slot offered' },
-  { patient: 'Helen Young',        outreachChannel: 'sms',   waitingSince: '2 days',      priority: 'High',   apptType: 'Annual physical', status: 'Slot filled'  },
-  { patient: 'Frank Allen',        outreachChannel: 'email', waitingSince: '4 days',      priority: 'Medium', apptType: 'Procedure',       status: 'Slot filled'  },
-  { patient: 'Ruth King',          outreachChannel: 'phone', waitingSince: '6 days',      priority: 'Low',    apptType: 'New consult',     status: 'Slot filled'  },
-  { patient: 'Charles Wright',     outreachChannel: 'sms',   waitingSince: '8 days',      priority: 'High',   apptType: 'Follow-up',       status: 'Slot filled'  },
-]
-
-interface ColumnDef extends Column<WaitlistPatient> {
-  locked?: boolean
+const STATUS_VARIANT: Record<WaitlistStatus, ChipVariant> = {
+  Waitlisted:    'warning',
+  'Slot offered':'neutral',
+  'Slot filled': 'success',
 }
 
-const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'patient', label: 'Patient', width: 220, sortable: true, locked: true },
+const OUTREACH_ICON: Record<OutreachChannel, string> = {
+  chat: 'chat',
+  call: 'call',
+  text: 'sms',
+}
+
+// ─── Columns ──────────────────────────────────────────────────────────────────
+
+const COLUMNS: Column<WaitlistRow>[] = [
   {
-    key: 'outreachChannel',
+    key: 'patient',
+    label: 'Patient',
+    width: 220,
+    sortable: true,
+  },
+  {
+    key: 'outreach',
     label: 'Outreach channel',
     width: 160,
-    sortable: true,
-    render: (val) => {
-      if (val === 'sms')   return <img src={iconInbox} alt="SMS"   className="size-5" />
-      if (val === 'email') return <img src={iconMail}  alt="Email" className="size-5" />
-      return <Icon name="call" size={18} className="text-text-secondary" />
-    },
+    render: (v) => (
+      <Icon name={OUTREACH_ICON[v as OutreachChannel]} size={20} className="text-text-icon" />
+    ),
   },
   { key: 'waitingSince', label: 'Waiting since', width: 160, sortable: true },
-  { key: 'priority',     label: 'Priority',       width: 130, sortable: true },
-  { key: 'apptType',     label: 'Appt type',      width: 180, sortable: true },
+  { key: 'priority',     label: 'Priority',      width: 120, sortable: true },
+  { key: 'apptType',     label: 'Appointment type', width: 180, sortable: true },
+  {
+    key: 'status',
+    label: 'Status',
+    width: 140,
+    sortable: true,
+    render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[v as WaitlistStatus] ?? 'neutral'} />,
+  },
 ]
 
-const DEFAULT_ORDER   = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = DEFAULT_ORDER
-const DEF_BY_KEY      = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
+// ─── Add-to-waitlist dropdown ─────────────────────────────────────────────────
 
-const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
+function AddToWaitlistButton({ onSelect }: { onSelect: (mode: 'existing' | 'new') => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
-const APPT_TYPES = ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care']
-const PROVIDERS  = ['Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Garcia']
-const DATES      = ['Today', 'Tomorrow', 'Jun 06, 2026', 'Jun 07, 2026', 'Jun 09, 2026']
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
 
-const FILTER_FIELDS: FilterField[] = [
-  { id: 'appt-type',        label: 'Appt type',        options: opts(...APPT_TYPES),                          multi: true },
-  { id: 'priority',         label: 'Priority',         options: opts('High', 'Medium', 'Low'),                multi: true },
-  { id: 'outreach-channel', label: 'Outreach channel', options: opts('SMS', 'Phone', 'Email')                              },
-  { id: 'provider',         label: 'Provider',         options: opts(...PROVIDERS),                           multi: true },
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+      >
+        Add to waitlist
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-[40px] z-50 min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+          {(['existing', 'new'] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => { onSelect(mode); setOpen(false) }}
+              className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
+            >
+              {mode === 'existing' ? 'Add existing patients' : 'Add a new patient'}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
+
+const OFFER_SLOT_FIELDS = [
+  { key: 'provider',    label: 'Provider',         type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'] },
+  { key: 'apptType',   label: 'Appointment type',  type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select appointment type' },
+  { key: 'date',       label: 'Date',              type: 'select' as const, options: ['Today', 'Tomorrow', 'This week', 'Next week'],                             placeholder: 'Pick a date' },
+  { key: 'time',       label: 'Time',              type: 'select' as const, options: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM'],      placeholder: 'Pick a time' },
 ]
 
-const ADD_FIELDS: FormField[] = [
-  { key: 'patient',  label: 'Patient name',     type: 'text',   placeholder: 'Enter name'  },
-  { key: 'phone',    label: 'Phone number',     type: 'text',   placeholder: 'Enter phone' },
-  { key: 'apptType', label: 'Appointment type', type: 'select', placeholder: 'Select', options: APPT_TYPES },
-  { key: 'priority', label: 'Priority',         type: 'select', placeholder: 'Select', options: ['High', 'Medium', 'Low'] },
-  { key: 'provider', label: 'Provider',         type: 'select', placeholder: 'Select', options: PROVIDERS },
-  { key: 'date',     label: 'Preferred date',   type: 'select', placeholder: 'Pick a date', options: DATES },
+const ADD_EXISTING_FIELDS = [
+  { key: 'patient',     label: 'Patient',          type: 'select' as const, options: ['Michael Smith', 'Jessica Williams', 'David Brown', 'Emily Davis'], placeholder: 'Select' },
+  { key: 'apptType',   label: 'Appointment type',  type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
+  { key: 'provider',   label: 'Provider',          type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'], placeholder: 'Select' },
+  { key: 'slotPref',   label: 'Slot preference',   type: 'select' as const, options: ['Morning', 'Afternoon', 'Evening', 'Any'], placeholder: 'Select' },
+  { key: 'priority',   label: 'Priority',          type: 'select' as const, options: ['High', 'Medium', 'Low'], placeholder: 'Select' },
+]
+
+const ADD_NEW_FIELDS = [
+  { key: 'name',        label: 'Patient name',     type: 'text'   as const, placeholder: 'Enter input' },
+  { key: 'phone',       label: 'Phone number',     type: 'text'   as const, placeholder: 'Enter input' },
+  { key: 'dob',         label: 'Date of birth',    type: 'text'   as const, placeholder: 'Enter input' },
+  { key: 'apptType',   label: 'Appointment type',  type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
+  { key: 'provider',   label: 'Provider',          type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'], placeholder: 'Select' },
+  { key: 'location',   label: 'Location',          type: 'select' as const, options: ['Main clinic', 'North branch', 'South branch'], placeholder: 'Select' },
+  { key: 'slotPref',   label: 'Slot preference',   type: 'select' as const, options: ['Morning', 'Afternoon', 'Evening', 'Any'], placeholder: 'Select' },
+  { key: 'priority',   label: 'Priority',          type: 'select' as const, options: ['High', 'Medium', 'Low'], placeholder: 'Select' },
 ]
 
 export function ReviewWaitlistScreen() {
-  const [activeTab, setActiveTab]         = useState('waitlisted')
-  const [order, setOrder]                 = useState<string[]>(DEFAULT_ORDER)
-  const [visible, setVisible]             = useState<string[]>(DEFAULT_VISIBLE)
-  const [customizeOpen, setCustomizeOpen] = useState(false)
-  const [filterOpen, setFilterOpen]       = useState(false)
-  const [addOpen, setAddOpen]             = useState(false)
-  const [view, setView]                   = useState<'table' | 'grid'>('table')
+  const [rows, setRows] = useState<WaitlistRow[]>(ALL_ROWS)
+  const [activeTab, setActiveTab] = useState('waitlisted')
+  const [offerSlotFor, setOfferSlotFor] = useState<WaitlistRow | null>(null)
+  const [addMode, setAddMode] = useState<'existing' | 'new' | null>(null)
 
-  const columns = useMemo<Column<WaitlistPatient>[]>(
-    () =>
-      order
-        .filter((k) => visible.includes(k))
-        .map((k) => DEF_BY_KEY.get(k))
-        .filter((c): c is ColumnDef => Boolean(c)),
-    [order, visible],
-  )
+  const tabCounts = {
+    waitlisted:     rows.filter((r) => r.status === 'Waitlisted').length,
+    'slot-offered': rows.filter((r) => r.status === 'Slot offered').length,
+    'slot-filled':  rows.filter((r) => r.status === 'Slot filled').length,
+    all:            rows.length,
+  }
 
-  const columnOptions = useMemo<ColumnOption[]>(
-    () => order.map((k) => ({ key: k, label: DEF_BY_KEY.get(k)!.label, locked: DEF_BY_KEY.get(k)!.locked })),
-    [order],
-  )
+  const tabs = [
+    { id: 'waitlisted',   label: 'Waitlisted',   count: tabCounts.waitlisted          },
+    { id: 'slot-offered', label: 'Slot offered',  count: tabCounts['slot-offered']     },
+    { id: 'slot-filled',  label: 'Slot filled',   count: tabCounts['slot-filled']      },
+    { id: 'all',          label: 'All',           count: tabCounts.all                 },
+  ]
 
-  const filteredData = useMemo(
-    () =>
-      activeTab === 'all'
-        ? PATIENTS
-        : PATIENTS.filter((r) => r.status === TAB_STATUS_MAP[activeTab]),
-    [activeTab],
-  )
+  const STATUS_ORDER: Record<WaitlistStatus, number> = { Waitlisted: 0, 'Slot offered': 1, 'Slot filled': 2 }
+  const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
+  const parseDays = (s: string) => parseInt(s) || 0
+
+  const tableData = (() => {
+    const filtered = activeTab === 'all'
+      ? [...rows]
+      : rows.filter((r) => r.status === TAB_FILTER[activeTab])
+
+    if (activeTab === 'waitlisted') {
+      filtered.sort((a, b) => {
+        const pDiff = (PRIORITY_ORDER[a.priority.toLowerCase()] ?? 9) - (PRIORITY_ORDER[b.priority.toLowerCase()] ?? 9)
+        if (pDiff !== 0) return pDiff
+        return parseDays(b.waitingSince) - parseDays(a.waitingSince)
+      })
+    } else if (activeTab === 'slot-offered') {
+      filtered.sort((a, b) => parseDays(b.waitingSince) - parseDays(a.waitingSince))
+    } else if (activeTab === 'slot-filled') {
+      filtered.sort((a, b) => parseDays(a.waitingSince) - parseDays(b.waitingSince))
+    } else if (activeTab === 'all') {
+      filtered.sort((a, b) => {
+        const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+        if (statusDiff !== 0) return statusDiff
+        return parseDays(b.waitingSince) - parseDays(a.waitingSince)
+      })
+    }
+
+    return filtered
+  })()
+
+  function handleOfferSlot() {
+    if (!offerSlotFor) return
+    setRows((prev) =>
+      prev.map((r) => r.patient === offerSlotFor.patient ? { ...r, status: 'Slot offered' } : r)
+    )
+    setOfferSlotFor(null)
+  }
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-auto">
-          {/* Header: static title + actions */}
-          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
-            <h2 className="text-h3 text-text-primary">Review waitlist</h2>
-            <div className="flex items-center gap-sm">
-              <button
-                type="button"
-                aria-label="Search"
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-              >
-                <Icon name="search" size={20} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddOpen(true)}
-                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-              >
-                Add to waitlist
-              </button>
-              {/* View toggle */}
-              <div className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm">
-                <button
-                  type="button"
-                  aria-label="Table view"
-                  onClick={() => setView('table')}
-                  className={`flex size-6 items-center justify-center rounded-sm ${view === 'table' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'}`}
-                >
-                  <Icon name="table_rows" size={18} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Grid view"
-                  onClick={() => setView('grid')}
-                  className={`flex size-6 items-center justify-center rounded-sm ${view === 'grid' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'}`}
-                >
-                  <Icon name="grid_view" size={18} />
-                </button>
-              </div>
-              <button
-                type="button"
-                aria-label="Customize columns"
-                onClick={() => setCustomizeOpen(true)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-              >
-                <Icon name="view_column" size={20} />
-              </button>
-              <button
-                type="button"
-                aria-label="Filters"
-                onClick={() => setFilterOpen((o) => !o)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-              >
-                <Icon name="filter_list" size={20} />
-              </button>
-            </div>
-          </div>
+      <div className="flex flex-1 flex-col overflow-auto">
+        {/* Page header */}
+        <div className="flex items-center justify-between px-2xl py-xl">
+          <h1 className="text-h3 text-text-primary">Review waitlist</h1>
 
-          <div className="px-2xl">
-            <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
-          </div>
+          <div className="flex items-center gap-sm">
+            {/* Search */}
+            <button
+              type="button"
+              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+            >
+              <Icon name="search" size={20} />
+            </button>
 
-          <div className="px-lg py-lg">
-            <DataTable
-              columns={columns}
-              data={filteredData}
-              rowAction={{
-                icon: 'event_available',
-                label: 'Offer slot',
-                onClick: () => {},
-              }}
-              rowMenuItems={[
-                { label: 'Quick view',    onClick: () => {} },
-                { label: 'View activity', onClick: () => {} },
-                { label: 'Offer slot',    onClick: () => {} },
-              ]}
-            />
+            {/* Add to waitlist */}
+            <AddToWaitlistButton onSelect={setAddMode} />
+
+            {/* Columns toggle */}
+            <button
+              type="button"
+              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+            >
+              <Icon name="view_column" size={20} />
+            </button>
+
+            {/* Filter */}
+            <button
+              type="button"
+              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+            >
+              <Icon name="filter_list" size={20} />
+            </button>
           </div>
         </div>
 
-        <FilterPanel open={filterOpen} fields={FILTER_FIELDS} onClose={() => setFilterOpen(false)} />
+        {/* Tabs */}
+        <div className="border-b border-border px-2xl">
+          <div className="flex gap-0">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-xs px-md py-sm text-body border-b-2 -mb-px transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                {tab.label}
+                <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-xs text-small ${
+                  activeTab === tab.id ? 'bg-primary text-white' : 'bg-surface-selected text-text-secondary'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="px-lg py-lg">
+          <DataTable
+            columns={COLUMNS}
+            data={tableData}
+            rowAction={{
+              icon: 'calendar_add_on',
+              label: 'Offer slot',
+              onClick: (row) => setOfferSlotFor(row),
+              visible: (row) => row.status === 'Waitlisted',
+            }}
+            rowMenuItems={[
+              { label: 'Quick send',    onClick: () => {} },
+              { label: 'Quick view',    onClick: () => {} },
+              { label: 'View activity', onClick: () => {} },
+              { label: 'View details',  onClick: () => {} },
+            ]}
+          />
+        </div>
       </div>
 
-      <CustomizeColumnsDrawer
-        open={customizeOpen}
-        options={columnOptions}
-        visibleKeys={visible}
-        onClose={() => setCustomizeOpen(false)}
-        onSave={(orderedKeys, visibleKeys) => {
-          setOrder(orderedKeys)
-          setVisible(visibleKeys)
-        }}
-        onRestoreDefault={() => {
-          setOrder(DEFAULT_ORDER)
-          setVisible(DEFAULT_VISIBLE)
-        }}
+      {/* Offer slot drawer */}
+      <FormDrawer
+        open={offerSlotFor !== null}
+        title={offerSlotFor ? `Offer slot for ${offerSlotFor.patient}` : 'Offer slot'}
+        fields={OFFER_SLOT_FIELDS}
+        submitLabel="Save"
+        requiredKeys={['apptType', 'date', 'time']}
+        initialValues={{ provider: 'Dr. Smith' }}
+        onClose={() => setOfferSlotFor(null)}
+        onSubmit={handleOfferSlot}
       />
 
+      {/* Add existing patient drawer */}
       <FormDrawer
-        open={addOpen}
-        title="Add to waitlist"
-        fields={ADD_FIELDS}
+        open={addMode === 'existing'}
+        title="Add patient to waitlist"
+        fields={ADD_EXISTING_FIELDS}
         submitLabel="Add"
-        requiredKeys={['patient', 'phone', 'apptType']}
-        onClose={() => setAddOpen(false)}
-        onSubmit={() => setAddOpen(false)}
+        requiredKeys={['patient', 'apptType', 'provider', 'priority']}
+        onClose={() => setAddMode(null)}
+        onSubmit={() => setAddMode(null)}
+      />
+
+      {/* Add new patient drawer */}
+      <FormDrawer
+        open={addMode === 'new'}
+        title="Add patient to waitlist"
+        fields={ADD_NEW_FIELDS}
+        submitLabel="Add"
+        requiredKeys={['name', 'phone', 'apptType', 'provider', 'priority']}
+        onClose={() => setAddMode(null)}
+        onSubmit={() => setAddMode(null)}
       />
     </div>
   )

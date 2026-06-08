@@ -76,7 +76,7 @@ const COLUMN_DEFS: ColumnDef[] = [
   { key: 'patient',         label: 'Name',             width: 220, sortable: true, locked: true },
   { key: 'vehicle',         label: 'Vehicle',          width: 180, sortable: true },
   { key: 'customerRep',     label: 'Customer rep',     width: 160, sortable: true },
-  { key: 'apptType',        label: 'Appt type',        width: 160, sortable: true },
+  { key: 'apptType',        label: 'Appointment type', width: 160, sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', width: 160, sortable: true },
   { key: 'time',            label: 'Time',             width: 110, sortable: true },
   { key: 'phone',           label: 'Phone',            width: 160, sortable: true },
