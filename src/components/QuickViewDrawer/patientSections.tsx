@@ -36,7 +36,7 @@ export function AccordionSection({
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center justify-between py-sm hover:bg-surface-hover"
+        className="flex w-full items-center justify-between px-lg py-sm hover:bg-surface-hover"
       >
         <span className="text-body text-text-primary">{title}</span>
         <Icon
@@ -47,7 +47,7 @@ export function AccordionSection({
       </button>
 
       {expanded && (
-        <div className="pb-lg pt-sm">
+        <div className="px-lg pb-lg pt-sm">
           {children}
         </div>
       )}

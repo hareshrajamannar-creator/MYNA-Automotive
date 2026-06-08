@@ -53,4 +53,5 @@ export interface QuickViewDrawerProps {
   open: boolean
   patient: PatientDetail | null
   onClose: () => void
+  onViewDetails?: () => void
 }

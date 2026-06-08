@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Icon } from '../components/Icon/Icon'
 import { PatientDetail } from '../components/QuickViewDrawer/QuickViewDrawer.types'
 import {
@@ -49,49 +50,81 @@ export function IntakePatientDetailScreen({
     sentVia,
   }
   const activities = buildActivities(activityProps)
+  const [apptExpanded, setApptExpanded] = useState(true)
+
+  const initials = patient.patient
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 
   return (
     <div className="flex h-full flex-col bg-surface">
-      {/* Header */}
-      <div className="flex shrink-0 items-center gap-sm border-b border-border px-2xl py-xl">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-        >
-          <Icon name="arrow_back" size={20} />
-        </button>
-        <span className="text-h3 text-text-primary">All activity of {patient.patient}</span>
-      </div>
-
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel — 30% */}
-        <div className="flex w-[30%] shrink-0 flex-col overflow-y-auto border-r border-border">
-          {/* Appointment details — always expanded, no toggle */}
-          <div className="border-b border-border px-2xl py-lg">
-            <span className="text-h4 text-text-primary">Appointment details</span>
-          </div>
-          <div className="px-2xl py-lg">
-            <AppointmentInfoSection p={patient} />
-          </div>
+        {/* Left panel — floating card */}
+        <div className="w-[30%] shrink-0 overflow-y-auto bg-surface-l2 p-lg">
+          <div className="overflow-hidden rounded-lg border border-border bg-surface">
 
-          {/* Collapsible accordions */}
-          <AccordionSection title="Basic details">
-            <BasicDetailsSection p={patient} />
-          </AccordionSection>
-          <AccordionSection title="Insurance">
-            <InsuranceSection p={patient} />
-          </AccordionSection>
-          <AccordionSection title="Consent">
-            <ConsentSection p={patient} />
-          </AccordionSection>
-          <AccordionSection title="Medical history">
-            <MedicalHistorySection p={patient} />
-          </AccordionSection>
-          <AccordionSection title="Social history">
-            <SocialHistorySection p={patient} />
-          </AccordionSection>
+            {/* Patient header — avatar + name + actions */}
+            <div className="flex flex-col items-center px-lg py-xl">
+              <div className="flex size-16 items-center justify-center rounded-full bg-chip-success-bg text-lg text-chip-success-text">
+                {initials}
+              </div>
+              <span className="mt-sm text-h3 text-text-primary">{patient.patient}</span>
+              <div className="mt-sm flex items-center gap-xs">
+                {(['send', 'chat', 'mail', 'smartphone', 'more_vert'] as const).map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+                  >
+                    <Icon name={icon} size={18} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Appointment details — collapsible */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setApptExpanded((e) => !e)}
+                className="flex w-full items-center justify-between px-lg py-sm hover:bg-surface-hover"
+              >
+                <span className="text-body text-text-primary">Appointment details</span>
+                <div className="flex items-center gap-xs">
+                  <Icon name="edit" size={16} className="text-text-icon" />
+                  <Icon name={apptExpanded ? 'expand_less' : 'expand_more'} size={20} className="text-text-icon" />
+                </div>
+              </button>
+              {apptExpanded && (
+                <div className="px-lg pb-lg pt-sm">
+                  <AppointmentInfoSection p={patient} />
+                </div>
+              )}
+            </div>
+
+            {/* Collapsible accordions */}
+            <AccordionSection title="Basic details">
+              <BasicDetailsSection p={patient} />
+            </AccordionSection>
+            <AccordionSection title="Insurance">
+              <InsuranceSection p={patient} />
+            </AccordionSection>
+            <AccordionSection title="Consent">
+              <ConsentSection p={patient} />
+            </AccordionSection>
+            <AccordionSection title="Medical history">
+              <MedicalHistorySection p={patient} />
+            </AccordionSection>
+            <AccordionSection title="Social history">
+              <SocialHistorySection p={patient} />
+            </AccordionSection>
+          </div>
         </div>
 
         {/* Right panel — 70% */}

@@ -6,6 +6,7 @@ import {
   FilterPanel,
   Icon,
   QuickViewDrawer,
+  SendReminderDrawer,
   ViewActivityDrawer,
   Tabs,
   TopNav,
@@ -17,9 +18,9 @@ import {
 } from '../components'
 import iconInbox from '../assets/icon-inbox.svg'
 import iconMail from '../assets/icon-mail.svg'
-import { IntakePatientDetailScreen } from './IntakePatientDetailScreen'
+import { SendIcon } from '../assets/SendIcon'
 
-interface IntakePatient {
+export interface IntakePatient {
   patient: string
   appointmentDate: string
   bookedOn: string
@@ -28,6 +29,14 @@ interface IntakePatient {
   sentOn: string
   status: string
   [key: string]: string
+}
+
+export interface IntakeDetailArgs {
+  detail: PatientDetail
+  row: IntakePatient
+  appointmentTime?: string
+  appointmentType?: string
+  insuranceProvider?: string
 }
 
 const TABS = [
@@ -162,6 +171,78 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
     tobacco: 'No', alcohol: 'No', drugUsage: 'No', exercise: 'Daily',
     aiSummary: ['Patient is in progress. Basic details, consent, and social history are complete.', 'Insurance and medical history sections are pending.'],
   },
+  'Alice Johnson': {
+    age: '34 years', gender: 'Female', phone: '+1 (555) 987-6543', email: 'alice.johnson@gmail.com',
+    dateOfBirth: 'Feb 14, 1992', insuranceProvider: 'Cigna', insuranceName: 'Cigna Open Access Plus',
+    appointmentType: 'Follow-up', appointmentTime: '11:00 AM', location: 'Austin, TX',
+    questionText: 'Follow-up on allergy test results',
+  },
+  'Robert Williams': {
+    age: '47 years', gender: 'Male', phone: '+1 (555) 321-0987', email: 'robert.williams@gmail.com',
+    dateOfBirth: 'Jul 30, 1978', insuranceProvider: 'UnitedHealthcare', insuranceName: 'UnitedHealth Choice Plus',
+    appointmentType: 'Referral consultation', appointmentTime: '01:30 PM', location: 'Charlotte, NC',
+    questionText: 'Referred by Dr. Patel for chest pain evaluation',
+  },
+  'Mary Brown': {
+    age: '61 years', gender: 'Female', phone: '+1 (555) 456-7890', email: 'mary.brown@gmail.com',
+    dateOfBirth: 'Oct 05, 1964', insuranceProvider: 'Humana', insuranceName: 'Humana Gold Plus',
+    appointmentType: 'New consult', appointmentTime: '09:30 AM', location: 'Phoenix, AZ',
+    questionText: 'Experiencing joint pain in both knees',
+  },
+  'Michael Davis': {
+    age: '29 years', gender: 'Male', phone: '+1 (555) 654-3210', email: 'michael.davis@gmail.com',
+    dateOfBirth: 'Apr 22, 1997', insuranceProvider: 'Aetna', insuranceName: 'Aetna HMO Select',
+    appointmentType: 'Annual physical', appointmentTime: '08:00 AM', location: 'Denver, CO',
+    questionText: 'Routine annual checkup',
+  },
+  'Jennifer Wilson': {
+    age: '38 years', gender: 'Female', phone: '+1 (555) 789-0123', email: 'jennifer.wilson@gmail.com',
+    dateOfBirth: 'Nov 19, 1987', insuranceProvider: 'Blue Cross Blue Shield', insuranceName: 'BCBS Blue Advantage',
+    appointmentType: 'Referral consultation', appointmentTime: '03:00 PM', location: 'Seattle, WA',
+    questionText: 'Referred for dermatology consult — persistent rash',
+  },
+  'David Garcia': {
+    age: '55 years', gender: 'Male', phone: '+1 (555) 012-3456', email: 'david.garcia@gmail.com',
+    dateOfBirth: 'May 08, 1971', insuranceProvider: 'Cigna', insuranceName: 'Cigna PPO Plus',
+    appointmentType: 'Procedure', appointmentTime: '07:30 AM', location: 'San Antonio, TX',
+    questionText: 'Colonoscopy pre-procedure consultation',
+  },
+  'Linda Rodriguez': {
+    age: '44 years', gender: 'Female', phone: '+1 (555) 135-7924', email: 'linda.rodriguez@gmail.com',
+    dateOfBirth: 'Dec 01, 1981', insuranceProvider: 'UnitedHealthcare', insuranceName: 'UnitedHealth Navigate',
+    appointmentType: 'Referral consultation', appointmentTime: '02:30 PM', location: 'Houston, TX',
+    questionText: 'Referred by OB-GYN for pelvic pain assessment',
+  },
+  'Christopher Martinez': {
+    age: '33 years', gender: 'Male', phone: '+1 (555) 246-8013', email: 'c.martinez@gmail.com',
+    dateOfBirth: 'Aug 16, 1992', insuranceProvider: 'Humana', insuranceName: 'Humana Preferred PPO',
+    appointmentType: 'New consult', appointmentTime: '10:00 AM', location: 'Las Vegas, NV',
+    questionText: 'Chronic migraines — seeking neurological evaluation',
+  },
+  'Angela Anderson': {
+    age: '51 years', gender: 'Female', phone: '+1 (555) 369-2580', email: 'angela.anderson@gmail.com',
+    dateOfBirth: 'Mar 27, 1975', insuranceProvider: 'Aetna', insuranceName: 'Aetna Choice POS II',
+    appointmentType: 'Follow-up', appointmentTime: '04:00 PM', location: 'Portland, OR',
+    questionText: 'Follow-up on thyroid medication dosage',
+  },
+  'Thomas Taylor': {
+    age: '67 years', gender: 'Male', phone: '+1 (555) 482-1597', email: 'thomas.taylor@gmail.com',
+    dateOfBirth: 'Jan 14, 1959', insuranceProvider: 'Medicare', insuranceName: 'Medicare Advantage Plan',
+    appointmentType: 'Annual physical', appointmentTime: '09:00 AM', location: 'Nashville, TN',
+    questionText: 'Annual wellness visit and medication review',
+  },
+  'Sarah Moore': {
+    age: '26 years', gender: 'Female', phone: '+1 (555) 591-3748', email: 'sarah.moore@gmail.com',
+    dateOfBirth: 'Jun 09, 2000', insuranceProvider: 'Blue Cross Blue Shield', insuranceName: 'BCBS PPO Bronze',
+    appointmentType: 'New consult', appointmentTime: '11:30 AM', location: 'Minneapolis, MN',
+    questionText: 'Seeking evaluation for anxiety and sleep issues',
+  },
+  'Kevin Jackson': {
+    age: '40 years', gender: 'Male', phone: '+1 (555) 604-8261', email: 'kevin.jackson@gmail.com',
+    dateOfBirth: 'Sep 03, 1985', insuranceProvider: 'Cigna', insuranceName: 'Cigna Flex Select',
+    appointmentType: 'Follow-up', appointmentTime: '01:00 PM', location: 'Columbus, OH',
+    questionText: 'Follow-up after recent ER visit for back pain',
+  },
   'James Harris': {
     age: '52 years', gender: 'Male', phone: '+1 (555) 345-6789', email: 'james.harris@gmail.com',
     dateOfBirth: 'Jan 08, 1974', insuranceName: 'BCBS Preferred',
@@ -170,17 +251,60 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
     insuranceProvider: 'Blue Cross Blue Shield', memberId: 'BCBS-4412839', groupNumber: 'GRP-00482',
     aiSummary: ['Patient has started the form. Insurance section is complete.', 'Basic details, consent, medical history, and social history are pending.'],
   },
+  'Patricia Clark': {
+    age: '48 years', gender: 'Female', phone: '+1 (555) 713-4826', email: 'patricia.clark@gmail.com',
+    dateOfBirth: 'Feb 28, 1978', insuranceProvider: 'Aetna', insuranceName: 'Aetna PPO Silver',
+    appointmentType: 'Follow-up', appointmentTime: '10:30 AM', location: 'Baltimore, MD',
+    questionText: 'Follow-up on diabetes management and A1C results',
+  },
+  'Daniel Lewis': {
+    age: '36 years', gender: 'Male', phone: '+1 (555) 824-9371', email: 'daniel.lewis@gmail.com',
+    dateOfBirth: 'Jul 17, 1989', insuranceProvider: 'UnitedHealthcare', insuranceName: 'UnitedHealth Select Plus',
+    appointmentType: 'New consult', appointmentTime: '02:00 PM', location: 'Indianapolis, IN',
+    questionText: 'New patient — recurring lower back pain',
+  },
+  'Nancy Robinson': {
+    age: '59 years', gender: 'Female', phone: '+1 (555) 935-0284', email: 'nancy.robinson@gmail.com',
+    dateOfBirth: 'Nov 11, 1966', insuranceProvider: 'Humana', insuranceName: 'Humana Value PPO',
+    appointmentType: 'Annual physical', appointmentTime: '08:30 AM', location: 'Louisville, KY',
+    questionText: 'Annual physical and bone density screening',
+  },
+  'Mark Walker': {
+    age: '43 years', gender: 'Male', phone: '+1 (555) 046-1735', email: 'mark.walker@gmail.com',
+    dateOfBirth: 'Apr 03, 1983', insuranceProvider: 'Cigna', insuranceName: 'Cigna Healthspring Select',
+    appointmentType: 'Referral consultation', appointmentTime: '03:30 PM', location: 'Memphis, TN',
+    questionText: 'Referred by cardiologist for stress test',
+  },
+  'Steven Allen': {
+    age: '31 years', gender: 'Male', phone: '+1 (555) 157-2846', email: 'steven.allen@gmail.com',
+    dateOfBirth: 'Sep 25, 1994', insuranceProvider: 'Blue Cross Blue Shield', insuranceName: 'BCBS HMO Blue',
+    appointmentType: 'Follow-up', appointmentTime: '12:00 PM', location: 'Oklahoma City, OK',
+    questionText: 'Post-operative follow-up after shoulder surgery',
+  },
+  'Sandra Young': {
+    age: '53 years', gender: 'Female', phone: '+1 (555) 268-3957', email: 'sandra.young@gmail.com',
+    dateOfBirth: 'Jan 30, 1973', insuranceProvider: 'Aetna', insuranceName: 'Aetna Value HMO',
+    appointmentType: 'Referral consultation', appointmentTime: '01:30 PM', location: 'Albuquerque, NM',
+    questionText: 'Referred for endocrinology consult — thyroid nodule',
+  },
+  'Joseph Hernandez': {
+    age: '62 years', gender: 'Male', phone: '+1 (555) 379-4068', email: 'j.hernandez@gmail.com',
+    dateOfBirth: 'Jun 21, 1963', insuranceProvider: 'Medicare', insuranceName: 'Medicare Supplement Plan G',
+    appointmentType: 'Procedure', appointmentTime: '07:00 AM', location: 'El Paso, TX',
+    questionText: 'Pre-op clearance for hernia repair surgery',
+  },
 }
 
-export function IntakeScreen() {
+export function IntakeScreen({ onViewDetail }: { onViewDetail?: (args: IntakeDetailArgs) => void }) {
   const [activeTab, setActiveTab] = useState('overdue')
   const [order, setOrder]         = useState<string[]>(DEFAULT_ORDER)
   const [visible, setVisible]     = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen]         = useState(false)
   const [filterOpen, setFilterOpen]               = useState(false)
   const [quickViewPatient, setQuickViewPatient]   = useState<PatientDetail | null>(null)
+  const [quickViewRow, setQuickViewRow]             = useState<IntakePatient | null>(null)
   const [activityRow, setActivityRow]               = useState<IntakePatient | null>(null)
-  const [detailRow, setDetailRow]                   = useState<{ detail: PatientDetail; row: IntakePatient } | null>(null)
+  const [sendReminderRow, setSendReminderRow]         = useState<IntakePatient | null>(null)
 
   const columns = useMemo<Column<IntakePatient>[]>(() => {
     const base = order
@@ -206,22 +330,6 @@ export function IntakeScreen() {
     if (activeTab === 'overdue') return PATIENTS.filter((r) => r.appointmentDate === TODAY_DATE)
     return PATIENTS.filter((r) => r.status === TAB_STATUS_MAP[activeTab])
   }, [activeTab])
-
-  if (detailRow) {
-    return (
-      <IntakePatientDetailScreen
-        patient={detailRow.detail}
-        appointmentTime={PATIENT_DETAILS[detailRow.row.patient]?.appointmentTime}
-        appointmentType={PATIENT_DETAILS[detailRow.row.patient]?.appointmentType ?? 'Consultation'}
-        formType={detailRow.row.formType}
-        status={detailRow.detail.status}
-        bookedOn={detailRow.row.bookedOn}
-        insuranceProvider={PATIENT_DETAILS[detailRow.row.patient]?.insuranceProvider}
-        sentVia={detailRow.row.sentVia}
-        onBack={() => setDetailRow(null)}
-      />
-    )
-  }
 
   return (
     <div className="flex h-full flex-col">
@@ -277,25 +385,16 @@ export function IntakeScreen() {
               columns={columns}
               data={filteredData}
               rowAction={{
-                icon: 'chat',
+                iconElement: <SendIcon size={20} />,
                 label: 'Message',
-                onClick: () => {},
+                onClick: (row) => setSendReminderRow(row),
               }}
               rowMenuItems={[
-                {
-                  label: 'View details',
-                  onClick: (row) => {
-                    const detail = PATIENT_DETAILS[row.patient] ?? {}
-                    setDetailRow({
-                      detail: { patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail },
-                      row,
-                    })
-                  },
-                },
                 {
                   label: 'Quick view',
                   onClick: (row) => {
                     const detail = PATIENT_DETAILS[row.patient] ?? {}
+                    setQuickViewRow(row)
                     setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail })
                   },
                 },
@@ -327,7 +426,28 @@ export function IntakeScreen() {
       <QuickViewDrawer
         open={!!quickViewPatient}
         patient={quickViewPatient}
-        onClose={() => setQuickViewPatient(null)}
+        onClose={() => { setQuickViewPatient(null); setQuickViewRow(null) }}
+        onViewDetails={() => {
+          if (!quickViewPatient || !quickViewRow) return
+          setQuickViewPatient(null)
+          setQuickViewRow(null)
+          onViewDetail?.({
+            detail: quickViewPatient,
+            row: quickViewRow,
+            appointmentTime: PATIENT_DETAILS[quickViewRow.patient]?.appointmentTime,
+            appointmentType: PATIENT_DETAILS[quickViewRow.patient]?.appointmentType ?? 'Consultation',
+            insuranceProvider: PATIENT_DETAILS[quickViewRow.patient]?.insuranceProvider,
+          })
+        }}
+      />
+
+      <SendReminderDrawer
+        open={!!sendReminderRow}
+        patientName={sendReminderRow?.patient}
+        appointmentDate={sendReminderRow?.appointmentDate}
+        appointmentTime={sendReminderRow ? (PATIENT_DETAILS[sendReminderRow.patient]?.appointmentTime) : undefined}
+        onClose={() => setSendReminderRow(null)}
+        onSend={() => setSendReminderRow(null)} // prototype: send payload not consumed
       />
 
       <ViewActivityDrawer

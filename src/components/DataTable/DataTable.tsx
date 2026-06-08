@@ -169,7 +169,7 @@ export function DataTable<T extends Record<string, unknown>>({
                             }}
                             className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                           >
-                            <Icon name={rowAction.icon} size={20} />
+                            {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
                           </button>
                         )}
                         {rowMenuItems && rowMenuItems.length > 0 && (

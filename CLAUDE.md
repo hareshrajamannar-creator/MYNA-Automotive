@@ -145,6 +145,7 @@ If a component exists here, import it — do not recreate it.
 | DataTable   | components/DataTable/DataTable.tsx     | columns[] (width?, sortable?, resizable?, render?), data, loading?, onRowClick?, rowAction? (icon,label,onClick), rowMenuItems? — built-in resize + sort + row-hover CTAs (page CTA + 3-dots menu) |
 | FormDrawer | components/FormDrawer/FormDrawer.tsx | open, title, fields[] (key,label,type 'text'\|'select',options?), submitLabel, requiredKeys?, initialValues?, onClose, onSubmit — generic 650px right form drawer (text inputs + select dropdowns) |
 | SetupAppointmentDrawer | components/SetupAppointmentDrawer/SetupAppointmentDrawer.tsx | open, subject?, onClose, onOfferSlot — thin wrapper over FormDrawer (Customer rep / Appointment type / Date / Time) |
+| SendReminderDrawer | components/SendReminderDrawer/SendReminderDrawer.tsx | open, onClose, onSend(data) — 650px right drawer: SMS/Email/Call radio group + 300-char message textarea; Send button disabled until message non-empty |
 | CustomizeColumnsDrawer | components/CustomizeColumnsDrawer/CustomizeColumnsDrawer.tsx | open, options[] (key,label,locked?), visibleKeys[], onClose, onSave, onRestoreDefault |
 | FilterPanel | components/FilterPanel/FilterPanel.tsx | open, fields[] (id,label,options?,multi?), onClose?, onSaveView?, onAdvancedFilters? — 280px right push-panel; opens SelectMenu per field |
 | SelectMenu | components/SelectMenu/SelectMenu.tsx | title, options[] (value,label), value[], multi?, searchable?, onChange, onApply? — single/multi-select dropdown menu |

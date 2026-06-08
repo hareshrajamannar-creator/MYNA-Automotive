@@ -71,7 +71,7 @@ function buildDefaultSummary(p: PatientDetail): string[] {
   return bullets
 }
 
-export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps) {
+export function QuickViewDrawer({ open, patient, onClose, onViewDetails }: QuickViewDrawerProps) {
   if (!patient) return null
 
   const name = patient.patient
@@ -117,6 +117,7 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           </div>
           <button
             type="button"
+            onClick={onViewDetails}
             className="text-small text-text-action hover:underline"
           >
             View details
