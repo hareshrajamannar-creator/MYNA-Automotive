@@ -14,7 +14,7 @@ function getInitials(name: string): string {
 
 function FieldRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="border-b border-border py-sm last:border-0">
+    <div className="mb-md last:mb-0">
       <p className="text-small text-text-secondary">{label}</p>
       <p className="text-body text-text-primary">{value || '-'}</p>
     </div>
@@ -30,38 +30,33 @@ function SubHeader({ label }: { label: string }) {
 function AccordionSection({
   title,
   defaultOpen = false,
+  isFirst = false,
   children,
 }: {
   title: string
   defaultOpen?: boolean
+  isFirst?: boolean
   children: React.ReactNode
 }) {
   const [expanded, setExpanded] = useState(defaultOpen)
 
   return (
-    <div className="border-b border-border">
+    <div className={isFirst ? '' : 'border-t border-border'}>
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center gap-sm px-2xl py-sm hover:bg-surface-hover"
+        className="flex w-full items-center justify-between py-sm hover:bg-surface-hover"
       >
+        <span className="text-body text-text-primary">{title}</span>
         <Icon
           name={expanded ? 'expand_less' : 'expand_more'}
           size={20}
           className="shrink-0 text-text-icon"
         />
-        <span className="text-body text-text-primary">{title}</span>
       </button>
 
       {expanded && (
-        <div className="relative px-2xl pb-lg pt-sm">
-          <button
-            type="button"
-            aria-label="Edit"
-            className="absolute right-2xl top-sm text-text-icon hover:text-text-primary"
-          >
-            <Icon name="edit" size={16} />
-          </button>
+        <div className="pb-lg pt-sm">
           {children}
         </div>
       )}
@@ -194,7 +189,6 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
   const name = patient.patient
   const hasName = Boolean(name?.trim())
   const initials = hasName ? getInitials(name) : '--'
-  const hasPhone = Boolean(patient.phone)
   const hasSummary = Boolean(patient.aiSummary?.length)
 
   return (
@@ -213,27 +207,27 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Header */}
-        <div className="flex shrink-0 items-start gap-sm px-2xl pb-lg pt-2xl">
-          <button
-            type="button"
-            aria-label="Back"
-            onClick={onClose}
-            className="mt-0.5 flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-          >
-            <BackArrowIcon />
-          </button>
-          <div>
+        {/* Header — single row */}
+        <div className="flex shrink-0 items-center justify-between px-2xl py-xl">
+          <div className="flex items-center gap-sm">
+            <button
+              type="button"
+              aria-label="Back"
+              onClick={onClose}
+              className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            >
+              <BackArrowIcon />
+            </button>
             <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">
               Quick view
             </h2>
-            <button
-              type="button"
-              className="text-small text-text-action hover:underline"
-            >
-              View form
-            </button>
           </div>
+          <button
+            type="button"
+            className="text-small text-text-action hover:underline"
+          >
+            View form
+          </button>
         </div>
 
         {/* Scrollable body */}
@@ -242,9 +236,7 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           <div className="flex flex-col items-center gap-sm px-2xl pb-lg pt-sm">
             <div
               className={`flex size-14 items-center justify-center rounded-full text-[18px] ${
-                hasName
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-surface-subtle text-text-tertiary'
+                hasName ? 'bg-green-100 text-green-700' : 'bg-surface-subtle text-text-tertiary'
               }`}
             >
               {initials}
@@ -257,25 +249,17 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
               >
                 <Icon name="send" size={18} />
               </button>
-              {hasPhone && (
-                <button
-                  type="button"
-                  className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
-                >
-                  <Icon name="chat_bubble" size={18} />
-                </button>
-              )}
               <button
                 type="button"
                 className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
               >
-                <Icon name="mail" size={18} />
+                <Icon name="chat_bubble" size={18} />
               </button>
               <button
                 type="button"
                 className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"
               >
-                <Icon name="download" size={18} />
+                <Icon name="mail" size={18} />
               </button>
             </div>
           </div>
@@ -283,11 +267,10 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
           {/* AI Summary */}
           {hasSummary ? (
             <div className="mx-2xl mb-lg rounded-lg border border-violet-200 bg-violet-50 p-lg">
-              <div className="mb-xs flex items-center gap-xs">
+              <div className="mb-sm flex items-center gap-xs">
                 <Icon name="auto_awesome" size={16} className="text-violet-500" />
                 <span className="text-body text-text-primary">Summary</span>
               </div>
-              <p className="mb-sm text-small text-text-secondary">Highlights</p>
               <ul className="space-y-xs">
                 {patient.aiSummary!.map((bullet, i) => (
                   <li key={i} className="flex gap-xs text-body text-text-secondary">
@@ -296,13 +279,6 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                className="mt-md flex items-center gap-xs text-small text-text-action hover:underline"
-              >
-                <Icon name="refresh" size={14} />
-                Regenerate
-              </button>
             </div>
           ) : (
             <div className="mx-2xl mb-lg rounded-lg border border-border bg-surface-subtle p-lg">
@@ -321,26 +297,28 @@ export function QuickViewDrawer({ open, patient, onClose }: QuickViewDrawerProps
             </div>
           )}
 
-          {/* Accordion sections */}
-          <AccordionSection title="Basic details" defaultOpen>
-            <BasicDetailsSection p={patient} />
-          </AccordionSection>
+          {/* Accordion sections — inset container, no outer border */}
+          <div className="mx-2xl mb-xl">
+            <AccordionSection title="Basic details" defaultOpen isFirst>
+              <BasicDetailsSection p={patient} />
+            </AccordionSection>
 
-          <AccordionSection title="Insurance">
-            <InsuranceSection p={patient} />
-          </AccordionSection>
+            <AccordionSection title="Insurance">
+              <InsuranceSection p={patient} />
+            </AccordionSection>
 
-          <AccordionSection title="Consent">
-            <ConsentSection p={patient} />
-          </AccordionSection>
+            <AccordionSection title="Consent">
+              <ConsentSection p={patient} />
+            </AccordionSection>
 
-          <AccordionSection title="Medical history">
-            <MedicalHistorySection p={patient} />
-          </AccordionSection>
+            <AccordionSection title="Medical history">
+              <MedicalHistorySection p={patient} />
+            </AccordionSection>
 
-          <AccordionSection title="Social history">
-            <SocialHistorySection p={patient} />
-          </AccordionSection>
+            <AccordionSection title="Social history">
+              <SocialHistorySection p={patient} />
+            </AccordionSection>
+          </div>
         </div>
       </aside>
     </div>
