@@ -23,6 +23,7 @@ import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { InboxScreen } from './screens/InboxScreen'
 import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
@@ -274,7 +275,7 @@ export function App() {
         activeProduct={activeProduct}
         onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && railActive !== 'settings' && (
+      {!isEditingWorkflow && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
           title="Frontdesk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
@@ -295,6 +296,8 @@ export function App() {
       <main className="flex flex-1 flex-col overflow-hidden">
         {railActive === 'settings' ? (
           <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} />
+        ) : railActive === 'inbox' ? (
+          <InboxScreen />
         ) : isEditingWorkflow ? (
           <>
             <TopNav title="Front desk" initials="S" />
