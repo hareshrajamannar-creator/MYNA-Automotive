@@ -136,12 +136,12 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
           </div>
 
           {/* Bookable */}
-          <div className="flex items-start gap-md">
-            <Toggle value={bookable} onChange={setBookable} />
+          <div className="flex items-center justify-between gap-md">
             <div className="flex flex-col gap-xs">
               <span className="text-body text-text-primary">Bookable by patients</span>
               <span className="text-small text-text-secondary">This provider will be visible to the booking agent and patients</span>
             </div>
+            <Toggle value={bookable} onChange={setBookable} />
           </div>
 
           {/* PMS Mapping accordion */}
@@ -170,9 +170,9 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
                     </select>
                   </div>
                 </div>
-                <div className="flex items-center gap-sm rounded-sm bg-success/10 px-md py-sm">
-                  <Icon name="check_circle" size={16} className="text-success" />
-                  <span className="text-small text-success">Mapped to DTX-001 – Dr. Sarah Chen (General)</span>
+                <div className="flex items-center gap-sm rounded-sm border border-blue-200 bg-blue-50 px-md py-sm">
+                  <Icon name="info" size={16} className="text-blue-500" />
+                  <span className="text-small text-blue-700">Mapped to DTX-001 – Dr. Sarah Chen (General)</span>
                 </div>
                 <p className="text-small text-text-secondary">Maps this provider to their record in your practice management software.</p>
               </div>
