@@ -3,12 +3,15 @@ import { IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './co
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
+import { IntakeScreen, type IntakeDetailArgs } from './screens/IntakeScreen'
+import { IntakePatientDetailScreen } from './screens/IntakePatientDetailScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
+import { Icon } from './components/Icon/Icon'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -67,8 +70,9 @@ const NAV_SECTIONS: NavSection[] = [
     defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'sales-pipeline', label: 'Sales pipeline' },
-      { id: 'service-requests', label: 'Service requests' },
+      { id: 'manage-intake',       label: 'Manage intake'       },
+      { id: 'sales-pipeline',      label: 'Sales pipeline'      },
+      { id: 'service-requests',    label: 'Service requests'    },
     ],
   },
   {
@@ -115,8 +119,10 @@ export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
 
   const isEditingWorkflow = editingAgentName !== null
+  const isViewingDetail = intakeDetail !== null
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
@@ -127,12 +133,12 @@ export function App() {
         activeId={railActive}
         onSelect={setRailActive}
       />
-      {!isEditingWorkflow && (
+      {!isEditingWorkflow && !isViewingDetail && (
         <SideNav
           title="Frontdesk"
           sections={NAV_SECTIONS}
           activeId={navActive}
-          onSelect={setNavActive}
+          onSelect={(id) => { setIntakeDetail(null); setNavActive(id) }}
         />
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
@@ -146,6 +152,35 @@ export function App() {
               />
             </div>
           </>
+        ) : navActive === 'manage-intake' && isViewingDetail ? (
+          <>
+            <TopNav title="Front desk" initials="S" />
+            <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
+              <button
+                onClick={() => setIntakeDetail(null)}
+                className="text-body text-text-action hover:underline"
+              >
+                Manage intake
+              </button>
+              <Icon name="chevron_right" size={16} className="text-text-icon" />
+              <span className="text-body text-text-primary">{intakeDetail!.detail.patient}</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <IntakePatientDetailScreen
+                patient={intakeDetail!.detail}
+                appointmentTime={intakeDetail!.appointmentTime}
+                appointmentType={intakeDetail!.appointmentType}
+                formType={intakeDetail!.row.formType}
+                status={intakeDetail!.detail.status}
+                bookedOn={intakeDetail!.row.bookedOn}
+                insuranceProvider={intakeDetail!.insuranceProvider}
+                sentVia={intakeDetail!.row.sentVia}
+                onBack={() => setIntakeDetail(null)}
+              />
+            </div>
+          </>
+        ) : navActive === 'manage-intake' ? (
+          <IntakeScreen onViewDetail={setIntakeDetail} />
         ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
         ) : navActive === 'service-requests' ? (

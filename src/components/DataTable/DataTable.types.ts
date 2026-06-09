@@ -17,8 +17,10 @@ export type SortDir = 'asc' | 'desc'
 
 export interface RowAction<T> {
   /** Material Symbols icon name for the page-specific primary CTA. */
-  icon: string
-  label: string
+  icon?: string
+  /** Custom React element to render instead of an Icon (takes priority over icon). */
+  iconElement?: ReactNode
+  label: string | ((row: T) => string)
   onClick: (row: T) => void
 }
 

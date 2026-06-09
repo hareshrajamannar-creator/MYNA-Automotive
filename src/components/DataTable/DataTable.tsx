@@ -158,20 +158,46 @@ export function DataTable<T extends Record<string, unknown>>({
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
                       <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
-                        {rowAction && (
-                          <button
-                            type="button"
-                            title={rowAction.label}
-                            aria-label={rowAction.label}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              rowAction.onClick(row)
-                            }}
-                            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                          >
-                            <Icon name={rowAction.icon} size={20} />
-                          </button>
-                        )}
+                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (() => {
+                          const tooltipText = typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label
+                          return (
+                            <div className="group/tooltip relative">
+                              <button
+                                type="button"
+                                aria-label={tooltipText}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  rowAction.onClick(row)
+                                }}
+                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              >
+                                {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                                {tooltipText}
+                              </div>
+                            </div>
+                          )
+                        })()}
+                        {rowActions && rowActions.map((action, ai) => {
+                          if (action.visible && !action.visible(row)) return null
+                          const tip = typeof action.label === 'function' ? action.label(row) : action.label
+                          return (
+                            <div key={ai} className="group/tooltip relative">
+                              <button
+                                type="button"
+                                aria-label={tip}
+                                onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
+                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              >
+                                {action.iconElement ?? <Icon name={action.icon!} size={20} />}
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                                {tip}
+                              </div>
+                            </div>
+                          )
+                        })}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button
                             type="button"
