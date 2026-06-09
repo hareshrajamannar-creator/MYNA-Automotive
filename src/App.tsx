@@ -100,7 +100,7 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Agents',
     defaultExpanded: true,
     items: [
-      { id: 'frontdesk-agent', label: 'Frontdesk agent' },
+      { id: 'frontdesk-agent', label: 'Front desk agent' },
       { id: 'reminder-agent',  label: 'Reminder agent'  },
       { id: 'outreach-agent',  label: 'Outreach agent'  },
     ],
@@ -147,7 +147,7 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Agents',
     defaultExpanded: true,
     items: [
-      { id: 'frontdesk-agent',  label: 'Frontdesk agent'  },
+      { id: 'frontdesk-agent',  label: 'Front desk agent'  },
       { id: 'waitlist-agent',   label: 'Waitlist agent'   },
       { id: 'pre-visit-agent',  label: 'Pre-visit agent'  },
       { id: 'reminder-agent',   label: 'Reminder agent'   },
@@ -196,7 +196,7 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     label: 'Agents',
     defaultExpanded: true,
     items: [
-      { id: 'frontdesk-agent',             label: 'Frontdesk agent'             },
+      { id: 'frontdesk-agent',             label: 'Front desk agent'             },
       { id: 'waitlist-agent',              label: 'Waitlist agent'              },
       { id: 'pre-visit-agent',             label: 'Pre-visit agent'             },
       { id: 'reminder-agent',              label: 'Reminder agent'              },
@@ -252,7 +252,7 @@ const PRODUCT_BRAND: Record<string, string> = {
 }
 
 const AGENT_NAMES: Record<string, string> = {
-  'frontdesk-agent': 'Frontdesk agent',
+  'frontdesk-agent': 'Front desk agent',
   'reminder-agent':  'Reminder agent',
   'outreach-agent':  'Outreach agent',
   'waitlist-agent':  'Waitlist agent',
