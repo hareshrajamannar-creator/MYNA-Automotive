@@ -19,6 +19,12 @@ import branchStyles from './BranchPath.module.css';
 import { FLOW_CONNECTOR_GAP } from '../flowLayoutConstants';
 
 /* ─── Custom Node Wrappers ─── */
+function resolveCanvasNodeState(data, isSelected) {
+  if (data.previewHighlight) return 'preview-active';
+  if (isSelected) return 'selected';
+  return 'default';
+}
+
 function StartNodeWrapper({ id, data }) {
   const isSelected = id === data.selectedNodeId;
   return (
@@ -34,7 +40,7 @@ function TriggerNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <CanvasNode nodeType="trigger" label={data.headerLabel || (data.subtype === 'Schedule-based' ? 'Schedule-based trigger' : 'Trigger')} stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={false} toggleEnabled={data.toggleEnabled} toggleDisabled={data.viewOnly} viewOnly={data.viewOnly} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
+      <CanvasNode nodeType="trigger" label={data.headerLabel || (data.subtype === 'Schedule-based' ? 'Schedule-based trigger' : 'Trigger')} stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={false} toggleEnabled={data.toggleEnabled} toggleDisabled={data.viewOnly} viewOnly={data.viewOnly} state={resolveCanvasNodeState(data, isSelected)} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -112,7 +118,7 @@ function ProceduresNodeWrapper({ id, data }) {
         hasToggle={data.hasToggle}
         toggleEnabled={data.toggleEnabled}
         toggleDisabled={data.viewOnly} viewOnly={data.viewOnly}
-        state={isSelected ? 'selected' : 'default'}
+        state={resolveCanvasNodeState(data, isSelected)}
         onDelete={data.onDelete}
         onMoveUp={data.onMoveUp}
         onMoveDown={data.onMoveDown}
@@ -338,6 +344,8 @@ function FlowCanvasInner({
   onEdit,
   selectedNodeId,
   viewOnly = false,
+  previewOpen = false,
+  previewActive = false,
 }) {
   const { zoomTo, fitView, setCenter, setViewport, getViewport, getNodes } = useReactFlow();
   const [zoom, setZoom] = useState(100);
@@ -363,6 +371,7 @@ function FlowCanvasInner({
         selectedNodeId,
         viewOnly,
         isDraggingFromLHS,
+        previewHighlight: previewActive && (n.type === 'trigger' || n.type === 'procedures'),
         ...(n.id === '__end__' && !viewOnly && !n.data?.hideAddBeforeEnd
           ? {
               onDropBeforeEnd: (type, label, description) => {
@@ -378,18 +387,20 @@ function FlowCanvasInner({
         ...(n.id === '__end__' ? { hideAdd: !!n.data?.hideAddBeforeEnd } : {}),
       },
     })),
-    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId]
+    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, previewActive]
   );
 
   // Pin start node 24px below the controls bar, horizontally centered, at zoom=1.
   // Controls: top=8px + height≈52px → bottom≈60px → target top = 60+24 = 84px.
-  const positionToStart = useCallback(() => {
+  const recenterFlow = useCallback((duration = 0) => {
     const startNode = nodes.find(n => n.type === 'start');
     const canvas = canvasRef.current;
     if (!startNode || !canvas) return;
     const { width } = canvas.getBoundingClientRect();
-    setViewport({ x: width / 2, y: 84 - startNode.position.y, zoom: 1 }, { duration: 0 });
+    setViewport({ x: width / 2, y: 84 - startNode.position.y, zoom: 1 }, { duration });
   }, [nodes, setViewport]);
+
+  const positionToStart = useCallback(() => recenterFlow(0), [recenterFlow]);
 
   // Run once on initial load
   useEffect(() => {
@@ -410,6 +421,19 @@ function FlowCanvasInner({
       setTimeout(() => positionToStart(), 80);
     }
   }, [nodes.length, positionToStart]);
+
+  // Re-center when preview panel opens/closes (canvas width changes like RHS drawer).
+  const prevPreviewOpenRef = useRef(previewOpen);
+  useEffect(() => {
+    if (!initialPositioned.current) {
+      prevPreviewOpenRef.current = previewOpen;
+      return;
+    }
+    if (prevPreviewOpenRef.current === previewOpen) return;
+    prevPreviewOpenRef.current = previewOpen;
+    const timer = setTimeout(() => recenterFlow(300), 80);
+    return () => clearTimeout(timer);
+  }, [previewOpen, recenterFlow]);
 
   // Detect LHS drag start/end (HTML5 drag API)
   useEffect(() => {

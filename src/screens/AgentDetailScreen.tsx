@@ -47,12 +47,42 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
   Draft:   'neutral',
 }
 
-const REGIONS = [
-  { region: 'North region', status: 'Running', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%',  locations: '358' },
-  { region: 'East region',  status: 'Running', interactions: '98',  fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212' },
-  { region: 'South region', status: 'Paused',  interactions: '33',  fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180' },
-  { region: 'West region',  status: 'Draft',   interactions: '13',  fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140' },
-]
+interface RegionRow {
+  region: string
+  status: string
+  interactions: string
+  fcr: string
+  aht: string
+  escalation: string
+  locations: string
+}
+
+/* Per-agent regional breakdown — numbers sum / average to match METRICS_BY_AGENT tiles */
+const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
+  'Frontdesk agent': [
+    // Total: 18,420 interactions | weighted FCR ~88% | weighted AHT ~2m 21s | weighted escalation ~9%
+    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '90%', aht: '2m 05s', escalation: '7%',  locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '88%', aht: '2m 20s', escalation: '9%',  locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '86%', aht: '2m 38s', escalation: '10%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '83%', aht: '3m 10s', escalation: '13%', locations: '140' },
+  ],
+  'Reminder agent': [
+    // Total confirmations: 3,847 | weighted reschedule ~12% | messages proportional to 11,541
+    { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140' },
+  ],
+  'Outreach agent': [
+    // Total leads: 2,103 | weighted response ~38% | conversion 641/2,103 ≈ 30% → 11% to closed
+    { region: 'North region', status: 'Running', interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
+  ],
+}
+
+const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Frontdesk agent']
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
@@ -67,18 +97,21 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Frontdesk agent': [
+      // Aggregate of 4 regions: 8,200 + 5,600 + 2,900 + 1,720 = 18,420
       { id: 'interactions', value: '18,420', label: 'Interactions handled', info: true },
-      { id: 'fcr', value: '87%', label: 'First contact resolution', info: true },
-      { id: 'aht', value: '1m 42s', label: 'Average handle time', info: true },
-      { id: 'escalation', value: '8%', label: 'Escalation rate', info: true },
+      { id: 'fcr', value: '88%', label: 'First contact resolution', info: true },
+      { id: 'aht', value: '2m 21s', label: 'Average handle time', info: true },
+      { id: 'escalation', value: '9%', label: 'Escalation rate', info: true },
     ],
     'Reminder agent': [
+      // Aggregate: 1,680 + 1,120 + 640 + 407 = 3,847 confirmations
       { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
       { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
       { id: 'noshow', value: '34%', label: 'No-show reduction' },
       { id: 'messages', value: '11,541', label: 'Messages sent' },
     ],
     'Outreach agent': [
+      // Aggregate: 920 + 610 + 360 + 213 = 2,103 leads
       { id: 'leads', value: '2,103', label: 'Leads contacted' },
       { id: 'response', value: '38%', label: 'Response rate' },
       { id: 'appointments', value: '641', label: 'Appointments scheduled' },
@@ -86,16 +119,12 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     ],
   }
 
-  const DEFAULT_METRICS: Metric[] = [
-    { id: 'interactions', value: '2,850', label: 'Interactions handled', info: true },
-    { id: 'fcr', value: '92%', label: 'First contact resolution rate', info: true },
-    { id: 'aht', value: '2m 34s', label: 'Average handle time', info: true },
-    { id: 'escalation', value: '11%', label: 'Escalation rate', info: true },
-  ]
+  const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
 
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
-  const data: AgentInstance[] = REGIONS.map((r) => ({
+  const regions = REGIONS_BY_AGENT[agentName] ?? DEFAULT_REGIONS
+  const data: AgentInstance[] = regions.map((r) => ({
     name: `${agentName} - ${r.region}`,
     status: r.status,
     interactions: r.interactions,
@@ -143,7 +172,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
 
   const libraryCards = [
     {
-      title: `${agentName} routing and triage`,
+      title: 'Routing and Triage',
       description:
         'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
     },
