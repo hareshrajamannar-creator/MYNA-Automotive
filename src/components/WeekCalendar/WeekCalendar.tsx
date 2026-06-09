@@ -1,13 +1,22 @@
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../Icon/Icon'
 
 interface CalendarEvent {
   id: string
   name: string
+  phone: string
+  provider: string
   start: string
   end: string
   day: number
   color?: 'green' | 'blue' | 'orange'
   warning?: boolean
+  checks: string[]
+}
+
+interface TooltipPos {
+  x: number
+  y: number
 }
 
 interface WeekCalendarProps {
@@ -16,17 +25,18 @@ interface WeekCalendarProps {
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const HOURS = ['07:00am', '08:00am', '09:00am', '10:00am', '11:00am', '12:00pm', '01:00pm', '02:00pm']
+const TOOLTIP_WIDTH = 256
 
 const MOCK_EVENTS: CalendarEvent[] = [
-  { id: '1',  name: 'Robin Willams',      start: '08:00am', end: '09:00am',  day: 0, color: 'green' },
-  { id: '2',  name: 'David Goggins',      start: '08:00am', end: '08:30am',  day: 1, color: 'green', warning: true },
-  { id: '3',  name: 'Rafeque Mohammed',   start: '08:30am', end: '09:00am',  day: 1, color: 'green' },
-  { id: '4',  name: 'David Goggins',      start: '08:00am', end: '08:30am',  day: 2, color: 'green' },
-  { id: '5',  name: 'Kapoor Klause',      start: '08:00am', end: '08:30am',  day: 3, color: 'green' },
-  { id: '6',  name: 'Mark Rufflow',       start: '08:15am', end: '09:00am',  day: 3, color: 'blue' },
-  { id: '7',  name: 'Ruth Regan',         start: '09:00am', end: '10:00am',  day: 0, color: 'green' },
-  { id: '8',  name: 'Mark Rufflow',       start: '09:00am', end: '09:30am',  day: 4, color: 'blue' },
-  { id: '9',  name: 'Rafeque Mohammed',   start: '09:30am', end: '10:00am',  day: 4, color: 'blue' },
+  { id: '1', name: 'Robin Willams',    phone: '(501) 336-7516', provider: 'Dr. Smith Lee',  start: '08:00am', end: '09:00am', day: 0, color: 'green', checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
+  { id: '2', name: 'David Goggins',    phone: '(415) 555-0101', provider: 'Dr. Lopez',       start: '08:00am', end: '08:30am', day: 1, color: 'green', warning: true, checks: ['Appointment confirmed'] },
+  { id: '3', name: 'Rafeque Mohammed', phone: '(650) 555-0177', provider: 'Dr. Williams',    start: '08:30am', end: '09:00am', day: 1, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
+  { id: '4', name: 'David Goggins',    phone: '(415) 555-0101', provider: 'Dr. Lopez',       start: '08:00am', end: '08:30am', day: 2, color: 'green', checks: ['Appointment confirmed'] },
+  { id: '5', name: 'Kapoor Klause',    phone: '(408) 555-0188', provider: 'Dr. Carter',      start: '08:00am', end: '08:30am', day: 3, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
+  { id: '6', name: 'Mark Rufflow',     phone: '(669) 555-0123', provider: 'Dr. Smith Lee',   start: '08:15am', end: '09:00am', day: 3, color: 'blue',  checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
+  { id: '7', name: 'Ruth Regan',       phone: '(415) 555-0132', provider: 'Dr. Martinez',    start: '09:00am', end: '10:00am', day: 0, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
+  { id: '8', name: 'Mark Rufflow',     phone: '(669) 555-0123', provider: 'Dr. Smith Lee',   start: '09:00am', end: '09:30am', day: 4, color: 'blue',  checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
+  { id: '9', name: 'Rafeque Mohammed', phone: '(650) 555-0177', provider: 'Dr. Garcia',      start: '09:30am', end: '10:00am', day: 4, color: 'blue',  checks: ['Appointment confirmed'] },
 ]
 
 const COLOR_MAP = {
@@ -45,9 +55,57 @@ function parseHour(t: string): number {
   return h + min / 60
 }
 
+function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: TooltipPos; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  const left = pos.x + TOOLTIP_WIDTH + 8 > window.innerWidth ? pos.x - TOOLTIP_WIDTH - 8 : pos.x + 8
+
+  return (
+    <div
+      ref={ref}
+      className="fixed z-[200] w-[256px] rounded-sm bg-white"
+      style={{ top: pos.y, left, boxShadow: '0 10px 24px rgba(33,33,33,0.2)' }}
+    >
+      <div className="flex flex-col gap-sm p-md">
+        <div>
+          <p className="text-body text-text-primary">{event.name}</p>
+          <p className="text-small text-text-secondary">{event.phone}</p>
+        </div>
+        <div>
+          <p className="text-body text-text-primary">{event.provider}</p>
+          <p className="text-small text-text-secondary">{event.start} – {event.end}</p>
+        </div>
+        <div className="h-px w-full bg-border" />
+        <div className="flex flex-col gap-xs">
+          {event.checks.map((label) => (
+            <div key={label} className="flex items-center gap-xs">
+              <Icon name="check_circle" size={16} className="shrink-0 text-text-secondary" />
+              <span className="text-small text-text-primary">{label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="h-px w-full bg-border" />
+        <button type="button" onClick={onClose} className="text-left text-body text-primary hover:underline">
+          View details
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function WeekCalendar({ weekStart }: WeekCalendarProps) {
   const startHour = 7
   const rowHeight = 80
+  const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<TooltipPos>({ x: 0, y: 0 })
 
   function getDates() {
     const d = new Date(weekStart)
@@ -61,6 +119,16 @@ export function WeekCalendar({ weekStart }: WeekCalendarProps) {
 
   const dates = getDates()
   const today = new Date()
+
+  function handleEventClick(evt: CalendarEvent, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (activeEvent?.id === evt.id) {
+      setActiveEvent(null)
+      return
+    }
+    setActiveEvent(evt)
+    setTooltipPos({ x: e.clientX, y: e.clientY - 20 })
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-auto">
@@ -101,15 +169,16 @@ export function WeekCalendar({ weekStart }: WeekCalendarProps) {
                 <div key={h} className="h-[80px] border-b border-border" />
               ))}
 
-              {/* Events for this day */}
               {MOCK_EVENTS.filter((e) => e.day === dayIdx).map((evt) => {
                 const top = (parseHour(evt.start) - startHour) * rowHeight
                 const height = (parseHour(evt.end) - parseHour(evt.start)) * rowHeight
                 const c = COLOR_MAP[evt.color ?? 'green']
+                const isActive = activeEvent?.id === evt.id
                 return (
                   <div
                     key={evt.id}
-                    className={`absolute left-[2px] right-[2px] rounded-sm border-l-[3px] ${c.bg} ${c.border} px-sm py-xs`}
+                    onClick={(e) => handleEventClick(evt, e)}
+                    className={`absolute left-[2px] right-[2px] cursor-pointer rounded-sm border-l-[3px] ${c.bg} ${c.border} px-sm py-xs ${isActive ? 'ring-1 ring-primary/40' : 'hover:brightness-95'}`}
                     style={{ top, height: Math.max(height, 28) }}
                   >
                     <div className="flex items-center gap-xs">
@@ -143,6 +212,14 @@ export function WeekCalendar({ weekStart }: WeekCalendarProps) {
           })()}
         </div>
       </div>
+
+      {activeEvent && (
+        <EventTooltip
+          event={activeEvent}
+          pos={tooltipPos}
+          onClose={() => setActiveEvent(null)}
+        />
+      )}
     </div>
   )
 }

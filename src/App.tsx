@@ -264,7 +264,7 @@ export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointment')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
-  const [activeProduct, setActiveProduct] = useState('automotive')
+  const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
 
   function handleProductChange(id: string) {

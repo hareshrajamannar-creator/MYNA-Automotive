@@ -30,7 +30,11 @@ interface LocationRow {
   aht: string
   escalation: string
   count: string
-  [key: string]: string
+  remindersSent?: string
+  responseRate?: string
+  avgResponseTime?: string
+  noshowRate?: string
+  [key: string]: string | undefined
 }
 
 const TABS: Tab[] = [
@@ -53,11 +57,10 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'escalation', value: '7%', label: 'Escalation rate', delta: '1.1%', trend: 'down', info: true },
   ],
   'Reminder agent': [
-    // North region: 590 + 440 + 360 + 290 = 1,680 confirmations across 358 locations
-    { id: 'confirmed', value: '1,680', label: 'Appointments confirmed', delta: '4.2%', trend: 'up', info: true },
-    { id: 'reschedule', value: '10%', label: 'Reschedule rate', delta: '0.5%', trend: 'down', info: true },
-    { id: 'noshow', value: '37%', label: 'No-show reduction', delta: '6.1%', trend: 'up', info: true },
-    { id: 'messages', value: '4,920', label: 'Messages sent', delta: '2.3%', trend: 'up', info: true },
+    { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
+    { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
+    { id: 'avgTime', value: '2m', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
+    { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
   ],
   'Outreach agent': [
     // North region: 320 + 242 + 193 + 165 = 920 leads across 358 locations
@@ -76,8 +79,6 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
 
 const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
 
-/* Per-agent location breakdown for the North region instance.
-   Interactions sum = instance tile | location counts sum = 358. */
 const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
   'Frontdesk agent': [
     { location: 'Atlanta, GA',      interactions: '2,850', fcr: '91%', aht: '2m 00s', escalation: '6%', count: '124' },
@@ -86,10 +87,10 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', interactions: '1,590', fcr: '88%', aht: '2m 15s', escalation: '8%', count: '60'  },
   ],
   'Reminder agent': [
-    { location: 'Atlanta, GA',      interactions: '590', fcr: '79%', aht: '1m 08s', escalation: '9%',  count: '124' },
-    { location: 'Chicago, IL',      interactions: '440', fcr: '77%', aht: '1m 15s', escalation: '10%', count: '98'  },
-    { location: 'Boston, MA',       interactions: '360', fcr: '76%', aht: '1m 20s', escalation: '11%', count: '76'  },
-    { location: 'Philadelphia, PA', interactions: '290', fcr: '75%', aht: '1m 24s', escalation: '11%', count: '60'  },
+    { location: 'Atlanta, GA',      interactions: '590', fcr: '79%', aht: '1m 08s', escalation: '9%',  count: '124', remindersSent: '410', responseRate: '93%', avgResponseTime: '1 day',  noshowRate: '10%' },
+    { location: 'Chicago, IL',      interactions: '440', fcr: '77%', aht: '1m 15s', escalation: '10%', count: '98',  remindersSent: '298', responseRate: '91%', avgResponseTime: '2 days', noshowRate: '11%' },
+    { location: 'Boston, MA',       interactions: '360', fcr: '76%', aht: '1m 20s', escalation: '11%', count: '76',  remindersSent: '240', responseRate: '89%', avgResponseTime: '2 days', noshowRate: '12%' },
+    { location: 'Philadelphia, PA', interactions: '290', fcr: '75%', aht: '1m 24s', escalation: '11%', count: '60',  remindersSent: '154', responseRate: '87%', avgResponseTime: '3 days', noshowRate: '13%' },
   ],
   'Outreach agent': [
     { location: 'Atlanta, GA',      interactions: '320', fcr: '44%', aht: '2m 40s', escalation: '8%',  count: '124' },
@@ -105,7 +106,7 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
   ],
 }
 
-const COLUMNS: Column<LocationRow>[] = [
+const DEFAULT_COLUMNS: Column<LocationRow>[] = [
   { key: 'location', label: 'Location', width: 240, sortable: true },
   { key: 'interactions', label: 'Interactions handled', width: 190, sortable: true },
   { key: 'fcr', label: 'First contact resolution', width: 200, sortable: true },
@@ -125,12 +126,21 @@ const COLUMNS: Column<LocationRow>[] = [
   },
 ]
 
+const REMINDER_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',         label: 'Locations',              width: 240, sortable: true },
+  { key: 'remindersSent',    label: 'Reminders sent',         width: 170, sortable: true },
+  { key: 'responseRate',     label: 'Reminder response rate', width: 210, sortable: true },
+  { key: 'avgResponseTime',  label: 'Average response time',  width: 200, sortable: true },
+  { key: 'noshowRate',       label: 'No-show rate',           width: 160, sortable: true },
+]
+
 export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent, product }: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
 
   // Derive agent name from instance name (e.g. "Frontdesk agent - North region" → "Frontdesk agent")
   const agentName = instanceName.replace(/ - .+$/, '')
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
+  const COLUMNS = agentName === 'Reminder agent' ? REMINDER_COLUMNS : DEFAULT_COLUMNS
   const locations = LOCATIONS_BY_AGENT[agentName] ?? LOCATIONS_BY_AGENT['Frontdesk agent']
 
   const isWorkflowTab = activeTab === 'workflow'

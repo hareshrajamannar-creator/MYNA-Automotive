@@ -1,9 +1,20 @@
+import { useEffect, useRef, useState } from 'react'
+import { Icon } from '../Icon/Icon'
+
 interface CalendarEvent {
   id: string
   name: string
+  phone: string
+  provider: string
   start: string
   end: string
   color: 'green' | 'red' | 'blue'
+  checks: string[]
+}
+
+interface TooltipPos {
+  x: number
+  y: number
 }
 
 interface DayCalendarProps {
@@ -23,13 +34,30 @@ function buildSlots() {
 
 const SLOTS = buildSlots()
 const START_HOUR = 6
-const SLOT_HEIGHT = 80 // px per 30-min slot → 160px per hour
+const SLOT_HEIGHT = 80
+const TOOLTIP_WIDTH = 256
 
 const MOCK_EVENTS: CalendarEvent[] = [
-  { id: '1', name: 'Robin Willams', start: '08:00am', end: '09:00am', color: 'green' },
-  { id: '2', name: 'Robin Willams', start: '08:00am', end: '09:00am', color: 'green' },
-  { id: '3', name: 'Ruth Regan',    start: '09:00am', end: '10:00am', color: 'red'   },
-  { id: '4', name: 'Ruth Regan',    start: '09:00am', end: '10:00am', color: 'blue'  },
+  {
+    id: '1', name: 'Robin Willams',  phone: '(501) 336-7516', provider: 'Dr. Smith Lee',
+    start: '08:00am', end: '09:00am', color: 'green',
+    checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'],
+  },
+  {
+    id: '2', name: 'Robin Willams',  phone: '(501) 336-7516', provider: 'Dr. Smith Lee',
+    start: '08:00am', end: '09:00am', color: 'green',
+    checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'],
+  },
+  {
+    id: '3', name: 'Ruth Regan',     phone: '(415) 555-0132', provider: 'Dr. Lopez',
+    start: '09:00am', end: '10:00am', color: 'red',
+    checks: ['Appointment confirmed'],
+  },
+  {
+    id: '4', name: 'Ruth Regan',     phone: '(415) 555-0132', provider: 'Dr. Martinez',
+    start: '09:00am', end: '10:00am', color: 'blue',
+    checks: ['Appointment confirmed', 'Insurance verified'],
+  },
 ]
 
 const COLOR_MAP = {
@@ -48,26 +76,97 @@ function parseHour(t: string): number {
   return h + min / 60
 }
 
+function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: TooltipPos; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  // Flip left if too close to right edge
+  const left = pos.x + TOOLTIP_WIDTH + 8 > window.innerWidth ? pos.x - TOOLTIP_WIDTH - 8 : pos.x + 8
+
+  return (
+    <div
+      ref={ref}
+      className="fixed z-[200] w-[256px] rounded-sm bg-white"
+      style={{
+        top: pos.y,
+        left,
+        boxShadow: '0 10px 24px rgba(33,33,33,0.2)',
+      }}
+    >
+      <div className="flex flex-col gap-sm p-md">
+        {/* Patient */}
+        <div>
+          <p className="text-body text-text-primary">{event.name}</p>
+          <p className="text-small text-text-secondary">{event.phone}</p>
+        </div>
+
+        {/* Provider + time */}
+        <div>
+          <p className="text-body text-text-primary">{event.provider}</p>
+          <p className="text-small text-text-secondary">{event.start} – {event.end}</p>
+        </div>
+
+        <div className="h-px w-full bg-border" />
+
+        {/* Check items */}
+        <div className="flex flex-col gap-xs">
+          {event.checks.map((label) => (
+            <div key={label} className="flex items-center gap-xs">
+              <Icon name="check_circle" size={16} className="shrink-0 text-text-secondary" />
+              <span className="text-small text-text-primary">{label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="h-px w-full bg-border" />
+
+        {/* View details */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-left text-body text-primary hover:underline"
+        >
+          View details
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function DayCalendar({ day: _day }: DayCalendarProps) {
   const pxPerHour = SLOT_HEIGHT * 2
+  const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<TooltipPos>({ x: 0, y: 0 })
 
   const now = new Date()
   const currentH = now.getHours() + now.getMinutes() / 60
   const showIndicator = currentH >= START_HOUR && currentH < START_HOUR + SLOTS.length / 2
 
+  function handleEventClick(evt: CalendarEvent, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (activeEvent?.id === evt.id) {
+      setActiveEvent(null)
+      return
+    }
+    setActiveEvent(evt)
+    setTooltipPos({ x: e.clientX, y: e.clientY - 20 })
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-auto">
       <div className="relative flex flex-1">
-        {/* Time label column — label is centered on the border-t line of each slot */}
+        {/* Time label column */}
         <div className="relative w-[88px] shrink-0">
           <div className="absolute right-0 top-0 h-full w-px bg-[#ccc]" />
           {SLOTS.map((label, i) => (
-            <div
-              key={i}
-              className="relative"
-              style={{ height: SLOT_HEIGHT }}
-            >
-              {/* Label centered on the TOP edge of this slot (= the grid line) */}
+            <div key={i} className="relative" style={{ height: SLOT_HEIGHT }}>
               <span className="absolute right-[12px] top-0 -translate-y-1/2 text-[11px] leading-none text-[#888]">
                 {label}
               </span>
@@ -77,13 +176,8 @@ export function DayCalendar({ day: _day }: DayCalendarProps) {
 
         {/* Day column */}
         <div className="relative flex-1">
-          {/* Grid lines — border-t so each line aligns with the label at the same slot index */}
           {SLOTS.map((_, i) => (
-            <div
-              key={i}
-              className="border-t border-[#e8e8e8]"
-              style={{ height: SLOT_HEIGHT }}
-            />
+            <div key={i} className="border-t border-[#e8e8e8]" style={{ height: SLOT_HEIGHT }} />
           ))}
 
           {/* Events */}
@@ -91,10 +185,12 @@ export function DayCalendar({ day: _day }: DayCalendarProps) {
             const top = (parseHour(evt.start) - START_HOUR) * pxPerHour
             const height = (parseHour(evt.end) - parseHour(evt.start)) * pxPerHour
             const c = COLOR_MAP[evt.color]
+            const isActive = activeEvent?.id === evt.id
             return (
               <div
                 key={evt.id}
-                className={`absolute left-[4px] right-[4px] cursor-pointer overflow-hidden rounded-[2px] ${c.bg}`}
+                onClick={(e) => handleEventClick(evt, e)}
+                className={`absolute left-[4px] right-[4px] cursor-pointer overflow-hidden rounded-[2px] transition-opacity ${c.bg} ${isActive ? 'ring-1 ring-primary/40' : 'hover:brightness-95'}`}
                 style={{ top, height: Math.max(height, 28) }}
               >
                 <div
@@ -123,6 +219,15 @@ export function DayCalendar({ day: _day }: DayCalendarProps) {
           )}
         </div>
       </div>
+
+      {/* Tooltip */}
+      {activeEvent && (
+        <EventTooltip
+          event={activeEvent}
+          pos={tooltipPos}
+          onClose={() => setActiveEvent(null)}
+        />
+      )}
     </div>
   )
 }
