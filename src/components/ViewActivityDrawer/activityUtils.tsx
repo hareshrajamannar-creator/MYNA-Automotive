@@ -119,7 +119,7 @@ export function ActivityIcon({ type }: { type: ActivityType }) {
   }
 
   return (
-    <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface">
+    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface">
       <Icon name={iconMap[type] ?? 'circle'} size={18} className="text-text-primary" />
     </div>
   )

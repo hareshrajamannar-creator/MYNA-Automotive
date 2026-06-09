@@ -1,7 +1,10 @@
+import React from 'react'
+
 export interface Tab {
   id: string
   label: string
   count?: number
+  icon?: React.ReactNode
 }
 
 export interface TabsProps {

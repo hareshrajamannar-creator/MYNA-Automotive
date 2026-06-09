@@ -17,6 +17,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
                 active ? 'text-primary' : 'text-text-secondary hover:bg-surface-selected'
               }`}
             >
+              {tab.icon}
               {tab.label}
               {tab.count !== undefined && (
                 <span

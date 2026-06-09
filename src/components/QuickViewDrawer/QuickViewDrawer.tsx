@@ -144,10 +144,13 @@ export function QuickViewDrawer(props: QuickViewDrawerProps) {
       <div className="fixed inset-0 z-[150]">
         <div className="absolute inset-0 bg-black/20" onClick={onClose} />
         <aside className="absolute right-0 top-0 flex h-full w-[650px] flex-col bg-white shadow-modal">
-          <div className="flex items-center justify-between border-b border-border px-2xl py-lg">
+          <div className="flex items-center justify-between px-2xl py-lg">
             <button type="button" onClick={onClose} className="flex items-center gap-sm text-body text-text-primary hover:text-text-secondary">
               <Icon name="arrow_back" size={18} />
               Quick view
+            </button>
+            <button type="button" onClick={props.onViewDetails} className="text-body text-text-action hover:underline">
+              View details
             </button>
           </div>
           <div className="flex flex-1 flex-col overflow-y-auto">
@@ -181,7 +184,7 @@ export function QuickViewDrawer(props: QuickViewDrawerProps) {
                   <img src={aiIcon} alt="AI" className="size-5 opacity-50" />
                   <p className="text-body text-text-secondary">Get insights and actions for {name}</p>
                 </div>
-                <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white hover:bg-primary-hover">Generate summary</button>
+                <button type="button" className="flex h-9 items-center rounded-sm bg-[#6834B7] px-lg text-body text-white hover:bg-[#5a2c9e]">Generate summary</button>
               </div>
             )}
             <div className="mx-2xl mb-xl">

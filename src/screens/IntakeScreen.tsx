@@ -37,6 +37,7 @@ export interface IntakeDetailArgs {
   appointmentTime?: string
   appointmentType?: string
   insuranceProvider?: string
+  fromTabLabel?: string
 }
 
 const TABS = [
@@ -302,6 +303,7 @@ export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (
   const [customizeOpen, setCustomizeOpen]         = useState(false)
   const [filterOpen, setFilterOpen]               = useState(false)
   const [quickViewPatient, setQuickViewPatient]   = useState<PatientDetail | null>(null)
+  const [quickViewRow, setQuickViewRow]             = useState<IntakePatient | null>(null)
   const [activityRow, setActivityRow]               = useState<IntakePatient | null>(null)
   const [sendReminderRow, setSendReminderRow]         = useState<IntakePatient | null>(null)
 
@@ -393,11 +395,11 @@ export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (
                   label: 'Quick view',
                   onClick: (row) => {
                     const detail = PATIENT_DETAILS[row.patient] ?? {}
+                    setQuickViewRow(row)
                     setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail })
                   },
                 },
                 { label: 'View activity',  onClick: (row) => setActivityRow(row) },
-                { label: 'View form',      onClick: () => {} },
               ]}
             />
           </div>
@@ -424,7 +426,20 @@ export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (
       <QuickViewDrawer
         open={!!quickViewPatient}
         patient={quickViewPatient}
-        onClose={() => setQuickViewPatient(null)}
+        onClose={() => { setQuickViewPatient(null); setQuickViewRow(null) }}
+        onViewDetails={() => {
+          if (!quickViewPatient || !quickViewRow) return
+          setQuickViewPatient(null)
+          setQuickViewRow(null)
+          _onViewDetail?.({
+            detail: quickViewPatient,
+            row: quickViewRow,
+            appointmentTime: PATIENT_DETAILS[quickViewRow.patient]?.appointmentTime,
+            appointmentType: PATIENT_DETAILS[quickViewRow.patient]?.appointmentType ?? 'Consultation',
+            insuranceProvider: PATIENT_DETAILS[quickViewRow.patient]?.insuranceProvider,
+            fromTabLabel: TABS.find(t => t.id === activeTab)?.label,
+          })
+        }}
       />
 
       <SendReminderDrawer
@@ -448,6 +463,19 @@ export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (
         insuranceProvider={PATIENT_DETAILS[activityRow?.patient ?? '']?.insuranceProvider}
         sentVia={activityRow?.sentVia}
         onClose={() => setActivityRow(null)}
+        onViewAllDetails={() => {
+          if (!activityRow) return
+          const extra = PATIENT_DETAILS[activityRow.patient] ?? {}
+          setActivityRow(null)
+          _onViewDetail?.({
+            detail: { patient: activityRow.patient, status: activeTab === 'overdue' ? 'Overdue' : activityRow.status, appointmentDate: activityRow.appointmentDate, bookedOn: activityRow.bookedOn, sentOn: activityRow.sentOn, ...extra },
+            row: activityRow,
+            appointmentTime: PATIENT_DETAILS[activityRow.patient]?.appointmentTime,
+            appointmentType: PATIENT_DETAILS[activityRow.patient]?.appointmentType ?? 'Consultation',
+            insuranceProvider: PATIENT_DETAILS[activityRow.patient]?.insuranceProvider,
+            fromTabLabel: TABS.find(t => t.id === activeTab)?.label,
+          })
+        }}
       />
     </div>
   )

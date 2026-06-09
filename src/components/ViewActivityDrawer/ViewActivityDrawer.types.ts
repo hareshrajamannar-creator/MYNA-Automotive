@@ -21,4 +21,5 @@ export interface ViewActivityDrawerProps {
   bookedOn?: string
   insuranceProvider?: string
   sentVia?: string
+  onViewAllDetails?: () => void
 }

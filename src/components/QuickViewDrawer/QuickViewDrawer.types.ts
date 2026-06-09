@@ -76,6 +76,7 @@ export interface QuickViewDrawerIntakeProps {
   open: boolean
   patient: PatientDetail | null
   onClose: () => void
+  onViewDetails?: () => void
 }
 
 export type QuickViewDrawerProps = QuickViewDrawerBaseProps | QuickViewDrawerIntakeProps
