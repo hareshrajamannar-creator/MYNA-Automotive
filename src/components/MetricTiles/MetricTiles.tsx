@@ -12,7 +12,10 @@ export function MetricTiles({ metrics }: MetricTilesProps) {
           <div className="flex items-baseline gap-sm">
             <span className="text-display text-text-primary">{metric.value}</span>
             {metric.delta && (
-              <span className={`text-small ${metric.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'}`}>
+              <span className={`text-small ${
+                (metric.positiveDown ? metric.trend === 'up' : metric.trend === 'down')
+                  ? 'text-chip-danger-text' : 'text-chip-success-text'
+              }`}>
                 {metric.trend === 'down' ? '-' : '+'}
                 {metric.delta}
               </span>

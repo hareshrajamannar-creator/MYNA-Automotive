@@ -32,26 +32,54 @@ const FRONTDESK_NODES = [
 const FRONTDESK_NODE_DETAILS: Record<string, any> = {
   '__start__': {
     agentName: 'Frontdesk agent',
-    goals: 'Serves as the first point of contact for inbound calls, texts, and chats — routing customer inquiries, scheduling service and sales appointments, answering vehicle and inventory questions, and escalating complex cases to the right department.',
-    outcomes: `1. Customer inquiry is resolved or routed without human intervention
-2. Service or sales appointment is confirmed, modified, or cancelled and reflected in the DMS
-3. Vehicle availability and pricing questions are answered instantly from inventory data
-4. No customer is left waiting without a response or a clear next step
-5. Escalations include a full summary of the conversation and identified customer intent`,
-    locations: ['1001 - Mountain View, CA', '1002 - Seattle, WA', '1004 - Chicago, IL', '1006 - Las Vegas, NV'],
+    goals: 'Serves as the first point of contact for all inbound calls, texts, and chats — resolving customer inquiries, scheduling service and sales appointments, answering vehicle and inventory questions, verifying eligibility, and escalating complex cases to the right department or advisor.',
+    outcomes: [
+      "1. Customer inquiry is resolved or routed without human intervention",
+      "2. Service or sales appointment is confirmed, modified, or cancelled and reflected in the DMS",
+      "3. Vehicle availability, pricing, and recall status questions are answered instantly from live inventory and NHTSA data",
+      "4. No customer is left waiting without a response or a clear next step",
+      "5. Escalations include a full conversation summary and identified customer intent for the receiving advisor",
+    ].join('\n'),
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1008 - Houston, TX',
+      '1009 - Phoenix, AZ',
+      '1010 - San Diego, CA',
+      '1011 - Portland, OR',
+      '1012 - Denver, CO',
+      '1013 - Atlanta, GA',
+      '1014 - Miami, FL',
+    ],
   },
   'fd-1': {
-    triggerName: 'Channel',
-    description: 'Agent triggers when a voice, chat, or text conversations start',
+    triggerName: 'Inbound conversation',
+    description: 'Fires when any inbound customer interaction is received — voice call, webchat message, or SMS text from any configured location.',
     voiceRows: [{ id: 'voice-1', condition: 'incoming_call', time: 'during_business' }],
     webChatRows: [{ id: 'web-1', condition: 'message_received', time: 'during_business' }],
   },
   'fd-2': {
     procedureIds: [
-      'Handle general inquiry',
-      'Talk to human',
-      'Handle unclear message',
-      'Handle emergency or urgent concern',
+      'Greeting & Intent Detection',
+      'Department Transfer',
+      'General Inquiry',
+      'Handle Unclear Message',
+      'Emergency / Urgent Handling',
+      'Talk to Human',
+      'Spanish Language Handling',
+      'Schedule Service Appointment',
+      'Repair / Diagnostic Triage',
+      'Recall Inquiry',
+      'Service Status Check',
+      'Reschedule / Cancel Appointment',
+      'Warranty Inquiry',
+      'New Vehicle Inquiry',
+      'Parts Availability & Pricing',
+      'After-Hours Lead Capture',
+      'After-Hours Service Request',
     ],
   },
 }
@@ -87,9 +115,28 @@ const REMINDER_NODES = [
 const REMINDER_NODE_DETAILS: Record<string, any> = {
   '__start__': {
     agentName: 'Reminder agent',
-    goals: 'Manage appointment confirmation and reminder journeys through multi-channel touchpoints — SMS, voice, and email — to reduce no-shows and improve service lane throughput.',
-    outcomes: 'Appointment confirmation rates improve, no-shows decrease, and customers receive timely reminders with one-click reschedule options.',
-    locations: ['1001 - Mountain View, CA', '1002 - Seattle, WA', '1004 - Chicago, IL'],
+    goals: 'Manages appointment confirmation and reminder journeys through multi-channel touchpoints — SMS, voice, and email — to reduce no-shows, keep the service lane fully scheduled, and surface rebooking opportunities automatically.',
+    outcomes: [
+      '1. Appointment confirmation is sent immediately after booking and reflected in the DMS',
+      '2. T-24h and T-2h reminders are delivered on schedule with one-click confirm or reschedule options',
+      '3. No-shows are re-engaged within 2 hours with an empathetic SMS and rescheduling link',
+      '4. Confirmed and rescheduled responses update the DMS record without human involvement',
+      '5. Escalations and cancellations include a reason code for analytics and service advisor awareness',
+    ].join('\n'),
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1008 - Houston, TX',
+      '1009 - Phoenix, AZ',
+      '1010 - San Diego, CA',
+      '1011 - Portland, OR',
+      '1012 - Denver, CO',
+      '1013 - Atlanta, GA',
+      '1014 - Miami, FL',
+    ],
   },
   'rem-1': {
     triggerName: 'Appointment Scheduled',
@@ -182,9 +229,28 @@ const OUTREACH_NODES = [
 const OUTREACH_NODE_DETAILS: Record<string, any> = {
   '__start__': {
     agentName: 'Outreach agent',
-    goals: 'Execute proactive outbound journey workflows covering lead follow-up, customer re-engagement, recall notifications, and lifecycle marketing. Contact internet leads within 5 minutes of submission.',
-    outcomes: 'Leads are contacted at speed-to-lead P0 targets, qualification notes are logged in CRM, and hot leads are immediately transferred to available sales consultants.',
-    locations: ['1001 - Mountain View, CA', '1002 - Seattle, WA', '1004 - Chicago, IL', '1006 - Las Vegas, NV'],
+    goals: 'Executes proactive outbound journey workflows — internet lead follow-up, no-show re-engagement, recall notifications, equity mining, and lifecycle marketing — ensuring every lead and customer receives a timely, personalised touchpoint at every stage of the ownership journey.',
+    outcomes: [
+      '1. Internet leads are contacted within 5 minutes of submission at speed-to-lead P0 targets',
+      '2. Qualification notes, vehicle interest, and timeline are captured in CRM on every call',
+      '3. Hot leads ready to buy today are transferred immediately to an available sales consultant',
+      '4. No-shows and unsold showroom visitors receive re-engagement within 2 hours via SMS',
+      '5. All outbound touches comply with TCPA, DNC, and opt-out rules with automatic suppression',
+    ].join('\n'),
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1008 - Houston, TX',
+      '1009 - Phoenix, AZ',
+      '1010 - San Diego, CA',
+      '1011 - Portland, OR',
+      '1012 - Denver, CO',
+      '1013 - Atlanta, GA',
+      '1014 - Miami, FL',
+    ],
   },
   'out-1': {
     triggerName: 'Internet Lead Received',
@@ -306,10 +372,290 @@ export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Outreach agent':  { nodes: OUTREACH_NODES,  nodeDetails: OUTREACH_NODE_DETAILS  },
 }
 
+const HEALTHCARE_REMINDER_NODES = [
+  { id: 'hcr-1', flowType: 'trigger',    data: { title: 'Appointment is booked',          subtype: 'Appointment booked', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name',          descriptionPlaceholder: 'Enter description' } },
+  { id: 'hcr-2', flowType: 'task',       data: { title: 'Appointment reminder',            subtype: 'Integration',        hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',             descriptionPlaceholder: '3 weeks, 3 days and 24 hours before · Email & text' } },
+  { id: 'hcr-3', flowType: 'delay',      data: { title: 'Until 12 hrs before appointment', subtype: 'Delay',              hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings',    descriptionPlaceholder: 'Wait for specific time or event.' } },
+  { id: 'hcr-4', flowType: 'branch',     data: { title: 'Based on conditions',             subtype: 'Branch',             hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name',           descriptionPlaceholder: 'Appointment confirmed or not?' } },
+]
+
+const HEALTHCARE_REMINDER_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Reminder agent - North region',
+    goals: 'Reduce appointment no-shows through automated multi-channel reminders sent at 3 weeks, 3 days, and 24 hours before each appointment, with live agent handoff on patient request.',
+    outcomes:
+      '1. Appointment confirmation rates improve\n' +
+      '2. No-show rate decreases\n' +
+      '3. Patients receive timely reminders with one-click reschedule options\n' +
+      '4. Unanswered calls trigger SMS follow-up automatically\n' +
+      '5. Live agent handoff is seamless when patients request it',
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1013 - Atlanta, GA',
+    ],
+  },
+  'hcr-1': {
+    triggerName: 'Appointment is booked',
+    description: 'Fires when a new appointment is created or confirmed in the system for any configured location.',
+    conditions: [
+      { id: 1, fieldValue: 'appointment_status', operatorValue: 'equals', valueValue: 'booked' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'appointment_status', label: 'Appointment status' },
+        { value: 'appointment_type',   label: 'Appointment type' },
+        { value: 'location',           label: 'Location' },
+        { value: 'provider',           label: 'Provider' },
+        { value: 'insurance_verified', label: 'Insurance verified' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Equals' },
+        { value: 'not_equals', label: 'Does not equal' },
+        { value: 'contains',   label: 'Contains' },
+        { value: 'is_set',     label: 'Is set' },
+      ],
+      value: [
+        { value: 'booked',    label: 'Booked' },
+        { value: 'confirmed', label: 'Confirmed' },
+        { value: 'pending',   label: 'Pending' },
+        { value: 'cancelled', label: 'Cancelled' },
+        { value: 'rescheduled', label: 'Rescheduled' },
+      ],
+    },
+  },
+  'hcr-2': {
+    taskName: 'Appointment reminder',
+    description: '3 weeks, 3 days and 24 hours before · Email & text',
+    selectedTools: ['reminder-tool'],
+  },
+  'hcr-3': { name: 'Until 12 hrs before appointment', duration: '12', unit: 'hours' },
+  'hcr-4': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'hcr-4-path-1', name: 'Appointment confirmed' },
+      { id: 'hcr-4-path-2', name: 'Appointment not confirmed', isFallback: true },
+    ],
+  },
+  'hcr-4-path-1': {
+    branchName: 'Appointment confirmed',
+    description: 'Patient replied and confirmed the appointment.',
+    conditions: [
+      { id: 1, fieldValue: 'patient_response', operatorValue: 'equals', valueValue: 'confirmed' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'patient_response',    label: 'Patient response' },
+        { value: 'appointment_status',  label: 'Appointment status' },
+        { value: 'reminder_channel',    label: 'Reminder channel' },
+        { value: 'response_time',       label: 'Response time' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Equals' },
+        { value: 'not_equals', label: 'Does not equal' },
+        { value: 'contains',   label: 'Contains' },
+        { value: 'is_set',     label: 'Is set' },
+      ],
+      value: [
+        { value: 'confirmed',    label: 'Confirmed' },
+        { value: 'cancelled',    label: 'Cancelled' },
+        { value: 'rescheduled',  label: 'Rescheduled' },
+        { value: 'no_response',  label: 'No response' },
+      ],
+    },
+    parentId: 'hcr-4',
+    isBranchPath: true,
+    nodes: [
+      { id: 'hcr-5', flowType: 'voiceCall', data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter name', descriptionPlaceholder: 'Call the patient for their upcoming appointment' } },
+    ],
+  },
+  'hcr-4-path-2': {
+    branchName: 'Appointment not confirmed',
+    description: 'Patient did not respond or did not confirm the appointment.',
+    conditions: [
+      { id: 1, fieldValue: 'patient_response', operatorValue: 'equals', valueValue: 'no_response' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'patient_response',    label: 'Patient response' },
+        { value: 'appointment_status',  label: 'Appointment status' },
+        { value: 'reminder_channel',    label: 'Reminder channel' },
+        { value: 'response_time',       label: 'Response time' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Equals' },
+        { value: 'not_equals', label: 'Does not equal' },
+        { value: 'contains',   label: 'Contains' },
+        { value: 'is_set',     label: 'Is set' },
+      ],
+      value: [
+        { value: 'confirmed',    label: 'Confirmed' },
+        { value: 'cancelled',    label: 'Cancelled' },
+        { value: 'rescheduled',  label: 'Rescheduled' },
+        { value: 'no_response',  label: 'No response' },
+      ],
+    },
+    parentId: 'hcr-4',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [
+      { id: 'hcr-10', flowType: 'task', data: { title: 'Send text reminder', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: '3 hours before' } },
+    ],
+  },
+  'hcr-5': {
+    taskName: 'Initiate voice call',
+    description: 'Call the patient for their upcoming appointment.',
+    toolId: 'initiate-voice-call',
+    branches: [
+      { id: 'hcr-5-vc-completed', name: 'Call answered', isVoiceCallBranch: true, isFallback: false },
+      { id: 'hcr-5-vc-rejected',  name: 'Call rejected',  isVoiceCallBranch: true, isFallback: false },
+      { id: 'hcr-5-vc-missed',    name: 'Call missed',    isVoiceCallBranch: true, isFallback: true  },
+      { id: 'hcr-5-vc-voicemail', name: 'Voice mail',     isVoiceCallBranch: true, isFallback: false },
+    ],
+  },
+  'hcr-5-vc-completed': {
+    branchName: 'Call answered',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [
+      { id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'answered' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'call_status',      label: 'Call status' },
+        { value: 'call_duration',    label: 'Call duration' },
+        { value: 'patient_response', label: 'Patient response' },
+        { value: 'call_attempt',     label: 'Call attempt' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'answered',   label: 'Answered' },
+        { value: 'rejected',   label: 'Rejected' },
+        { value: 'missed',     label: 'Missed' },
+        { value: 'voicemail',  label: 'Voicemail' },
+      ],
+    },
+    parentId: 'hcr-5',
+    isBranchPath: true,
+    nodes: [
+      { id: 'hcr-6', flowType: 'subagent', data: { title: 'Front desk agent', subtype: 'Sub-agent', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Call subagent', descriptionPlaceholder: 'Call subagent workflow.' } },
+    ],
+  },
+  'hcr-5-vc-rejected': {
+    branchName: 'Call rejected',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [
+      { id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'rejected' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'call_status',      label: 'Call status' },
+        { value: 'call_duration',    label: 'Call duration' },
+        { value: 'patient_response', label: 'Patient response' },
+        { value: 'call_attempt',     label: 'Call attempt' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'answered',   label: 'Answered' },
+        { value: 'rejected',   label: 'Rejected' },
+        { value: 'missed',     label: 'Missed' },
+        { value: 'voicemail',  label: 'Voicemail' },
+      ],
+    },
+    parentId: 'hcr-5',
+    isBranchPath: true,
+    nodes: [
+      { id: 'hcr-7', flowType: 'delay', data: { title: 'Wait 2 hours',       subtype: 'Delay',        hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for specific time or event.' } },
+      { id: 'hcr-8', flowType: 'task',  data: { title: 'Send text reminder',  subtype: 'Integration',  hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Enter description' } },
+    ],
+  },
+  'hcr-5-vc-missed': {
+    branchName: 'Call missed',
+    isVoiceCallBranch: true,
+    isFallback: true,
+    conditions: [
+      { id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'missed' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'call_status',      label: 'Call status' },
+        { value: 'call_duration',    label: 'Call duration' },
+        { value: 'patient_response', label: 'Patient response' },
+        { value: 'call_attempt',     label: 'Call attempt' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'answered',   label: 'Answered' },
+        { value: 'rejected',   label: 'Rejected' },
+        { value: 'missed',     label: 'Missed' },
+        { value: 'voicemail',  label: 'Voicemail' },
+      ],
+    },
+    parentId: 'hcr-5',
+    isBranchPath: true,
+    nodes: [
+      { id: 'hcr-11', flowType: 'delay', data: { title: 'Wait 2 hours',      subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for specific time or event.' } },
+      { id: 'hcr-9',  flowType: 'task',  data: { title: 'Send text reminder', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: '3 hours before' } },
+    ],
+  },
+  'hcr-5-vc-voicemail': {
+    branchName: 'Voice mail',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [
+      { id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'voicemail' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'call_status',      label: 'Call status' },
+        { value: 'call_duration',    label: 'Call duration' },
+        { value: 'patient_response', label: 'Patient response' },
+        { value: 'call_attempt',     label: 'Call attempt' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'answered',   label: 'Answered' },
+        { value: 'rejected',   label: 'Rejected' },
+        { value: 'missed',     label: 'Missed' },
+        { value: 'voicemail',  label: 'Voicemail' },
+      ],
+    },
+    parentId: 'hcr-5',
+    isBranchPath: true,
+    nodes: [],
+  },
+  'hcr-6': { selectedAgent: 'frontdesk-north', name: 'Front desk agent - North region', description: 'Transfer to the front desk agent for assisted patient handling with a reminder.', intent: 'Reminder' },
+  'hcr-7': { name: 'Wait 2 hours',       duration: '2', unit: 'hours' },
+  'hcr-8': { taskName: 'Send text reminder', description: '3 hours before', selectedTools: ['send-confirmation'] },
+  'hcr-9':  { taskName: 'Send text reminder', description: '3 hours before', selectedTools: ['send-confirmation'] },
+  'hcr-10': { taskName: 'Send text reminder', description: '3 hours before', selectedTools: ['send-confirmation'] },
+  'hcr-11': { name: 'Wait 2 hours', duration: '2', unit: 'hours' },
+}
+
 export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
-  'Frontdesk agent': { nodes: FRONTDESK_NODES, nodeDetails: FRONTDESK_HC_NODE_DETAILS },
-  'Reminder agent':  { nodes: REMINDER_NODES,  nodeDetails: REMINDER_NODE_DETAILS     },
-  'Outreach agent':  { nodes: OUTREACH_NODES,  nodeDetails: OUTREACH_NODE_DETAILS     },
+  'Frontdesk agent': { nodes: FRONTDESK_NODES,             nodeDetails: FRONTDESK_HC_NODE_DETAILS          },
+  'Reminder agent':  { nodes: HEALTHCARE_REMINDER_NODES,   nodeDetails: HEALTHCARE_REMINDER_NODE_DETAILS   },
+  'Outreach agent':  { nodes: OUTREACH_NODES,              nodeDetails: OUTREACH_NODE_DETAILS              },
 }
 
 // Dental shares the healthcare configuration
