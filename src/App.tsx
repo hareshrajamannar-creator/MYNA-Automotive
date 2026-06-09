@@ -8,6 +8,9 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
 import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
 import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
@@ -333,14 +336,18 @@ export function App() {
           <EmptyResourceScreen label="Web widget" />
         ) : navActive === 'appointment-widget' ? (
           <EmptyResourceScreen label="Appointment widget" />
-        ) : navActive === 'providers' ? (
-          <EmptyResourceScreen label="Providers" />
         ) : navActive === 'forms' ? (
           <EmptyResourceScreen label="Forms" />
         ) : navActive === 'widgets' || navActive === 'voices' ? (
           <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
         ) : navActive === 'settings' ? (
           <SettingsScreen />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' || navActive === 'appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' || navActive === 'availability' ? (
+          <AvailabilityScreen />
         ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
           <HCFrontdeskOverviewScreen />
         ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (

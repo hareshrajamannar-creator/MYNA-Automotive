@@ -12,6 +12,8 @@ export function DataTable<T extends Record<string, unknown>>({
   onRowClick,
   rowAction,
   rowMenuItems,
+  scrollOnHover = false,
+  rowClassName,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -81,7 +83,7 @@ export function DataTable<T extends Record<string, unknown>>({
   const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
 
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
@@ -141,7 +143,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={() => onRowClick?.(row)}
               className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
                 onRowClick ? 'cursor-pointer' : ''
-              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''}`}
+              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''} ${rowClassName ? rowClassName(row, i) : ''}`}
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
