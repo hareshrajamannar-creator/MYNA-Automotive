@@ -31,7 +31,7 @@ const CHANNELS = [
 type ChannelId = (typeof CHANNELS)[number]['id']
 
 const INPUT_CLASS =
-  'h-9 w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary focus:border-primary focus:outline-none'
+  'h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary focus:border-primary focus:outline-none'
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (

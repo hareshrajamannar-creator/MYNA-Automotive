@@ -109,14 +109,14 @@ export function FormDrawer({
                     value={value}
                     onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
                     placeholder={field.placeholder ?? 'Enter input'}
-                    className="h-9 w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
+                    className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={(e) => openMenu(field.key, e)}
                     className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                      openField === field.key ? 'border-primary' : 'border-border-selected'
+                      openField === field.key ? 'border-primary' : 'border-border-input'
                     }`}
                   >
                     <span className={`min-w-0 flex-1 truncate text-left text-body ${value ? 'text-text-primary' : 'text-text-tertiary'}`}>

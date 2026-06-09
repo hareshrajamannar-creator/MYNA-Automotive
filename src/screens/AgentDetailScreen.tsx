@@ -29,11 +29,11 @@ interface AgentDetailScreenProps {
 interface AgentInstance {
   name: string
   status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
   locations: string
+  interactions?: string
+  fcr?: string
+  aht?: string
+  escalation?: string
   remindersSent?: string
   responseRate?: string
   avgResponseTime?: string
@@ -59,11 +59,11 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
 interface RegionRow {
   region: string
   status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
   locations: string
+  interactions?: string
+  fcr?: string
+  aht?: string
+  escalation?: string
   remindersSent?: string
   responseRate?: string
   avgResponseTime?: string
@@ -76,10 +76,10 @@ interface RegionRow {
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
   'Frontdesk agent': [
-    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '90%', aht: '2m 05s', escalation: '7%',  locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '88%', aht: '2m 20s', escalation: '9%',  locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '86%', aht: '2m 38s', escalation: '10%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '83%', aht: '3m 10s', escalation: '13%', locations: '140' },
+    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '7,380', aht: '90%', escalation: '18h', locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '4,928', aht: '88%', escalation: '12h', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '2,494', aht: '86%', escalation: '6h',  locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '1,428', aht: '83%', escalation: '4h',  locations: '140' },
   ],
   'Reminder agent': [
     { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
@@ -118,11 +118,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Frontdesk agent': [
-      // Aggregate of 4 regions: 8,200 + 5,600 + 2,900 + 1,720 = 18,420
-      { id: 'interactions', value: '18,420', label: 'Interactions handled', info: true },
-      { id: 'fcr', value: '88%', label: 'First contact resolution', info: true },
-      { id: 'aht', value: '2m 21s', label: 'Average handle time', info: true },
-      { id: 'escalation', value: '9%', label: 'Escalation rate', info: true },
+      { id: 'responded', value: '18,420', label: 'Conversations responded', delta: '1.3%', trend: 'up', info: true },
+      { id: 'resolved', value: '16,230', label: 'Conversations resolved', delta: '2.1%', trend: 'up', info: true },
+      { id: 'resolutionRate', value: '88%', label: 'Resolution rate', delta: '1.8%', trend: 'up', info: true },
+      { id: 'timeSaved', value: '40h', label: 'Time saved', delta: '12%', trend: 'up', info: true },
     ],
     'Reminder agent': [
       { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
@@ -196,10 +195,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
       { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
     ] : [
-      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 180, sortable: true },
-      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution', width: 200, sortable: true },
-      { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
-      { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
+      { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Resolution rate', width: 150, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Time saved', width: 130, sortable: true },
     ]),
     { key: 'locations', label: 'Locations', width: 130, sortable: true },
   ]

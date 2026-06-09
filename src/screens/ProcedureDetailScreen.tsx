@@ -196,7 +196,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               <EmptyHintField
                 hint={TITLE_PLACEHOLDER}
                 isEmpty={!title.trim()}
-                className="h-10 rounded-sm border border-border-selected bg-surface transition-colors hover:border-border focus-within:border-primary"
+                className="h-10 rounded-sm border border-border-input bg-surface transition-colors hover:border-border focus-within:border-primary"
                 hintClassName="flex items-center px-md"
               >
                 <input
@@ -208,11 +208,11 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               </EmptyHintField>
             </Field>
 
-            <Field label="When to use this procedure?">
+            <Field label="When should this procedure be used?">
               <EmptyHintField
                 hint={WHEN_PLACEHOLDER}
                 isEmpty={!whenToUse.trim()}
-                className="rounded-sm border border-border-selected bg-surface transition-colors hover:border-border focus-within:border-primary"
+                className="rounded-sm border border-border-input bg-surface transition-colors hover:border-border focus-within:border-primary"
                 hintClassName="p-md"
               >
                 <textarea
@@ -237,7 +237,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
           {/* Right — fixed 400px context sidebar (auto-fills space freed from left) */}
           <div className="w-[400px] shrink-0">
             <Field label="Context" info>
-              <div className="rounded-sm border border-border-selected bg-surface">
+              <div className="rounded-sm border border-border-input bg-surface">
                 {context.length === 0 ? (
                   <p className="px-lg py-md text-body text-text-tertiary">No context added</p>
                 ) : (
@@ -489,7 +489,7 @@ function ProcedureStepsPanel({
     setTimeout(() => bulletRefs.current[bKey]?.focus(), 0)
   }
 
-  const borderCls = isFocused ? 'border-primary' : 'border-border-selected'
+  const borderCls = isFocused ? 'border-primary' : 'border-border-input'
 
   function handleFocus() { setIsFocused(true) }
   function handleBlur(e: React.FocusEvent) {
@@ -500,7 +500,7 @@ function ProcedureStepsPanel({
   if (!hasStructure) {
     return (
       <div
-        className={`min-h-[360px] rounded-sm border bg-surface p-md transition-colors ${borderCls}`}
+        className={`min-h-[360px] rounded-sm border bg-surface p-[24px] transition-colors ${borderCls}`}
         onFocus={handleFocus}
         onBlur={handleBlur}
       >
@@ -519,24 +519,24 @@ function ProcedureStepsPanel({
 
   return (
     <div
-      className={`min-h-[360px] rounded-sm border bg-surface p-md transition-colors ${borderCls}`}
+      className={`min-h-[360px] rounded-sm border bg-surface p-[24px] transition-colors ${borderCls}`}
       style={{ cursor: !isEditing ? 'text' : 'default' }}
       onFocus={handleFocus}
       onBlur={handleBlur}
     >
-      <div className="flex flex-col gap-lg">
+      <div className="flex flex-col gap-[14px]">
         {editSteps.map((step, i) => (
-          <div key={i} className="flex flex-col gap-sm">
+          <div key={i} className="flex flex-col gap-[5px]">
 
             {/* ── Step title ── */}
-            <div className="flex items-start gap-sm">
-              <span className="w-5 shrink-0 text-right text-body leading-relaxed text-text-primary">
+            <div className="flex items-start gap-0">
+              <span className="shrink-0 text-[14px] leading-[20px] tracking-[-0.28px] text-text-primary">
                 {i + 1}.
               </span>
               {isEditing ? (
-                <div className="relative min-h-[24px] flex-1">
+                <div className="relative min-h-[20px] flex-1 pl-[4px]">
                   <div
-                    className="pointer-events-none absolute inset-0 select-none text-body leading-relaxed text-text-tertiary"
+                    className="pointer-events-none absolute inset-0 select-none text-[14px] leading-[20px] text-text-tertiary"
                     style={{ visibility: step.title.trim() ? 'hidden' : 'visible' }}
                     aria-hidden
                   >
@@ -547,13 +547,13 @@ function ProcedureStepsPanel({
                     type="text"
                     value={step.title}
                     onChange={(e) => updateTitle(i, e.target.value)}
-                    className="relative w-full bg-transparent text-body leading-relaxed text-text-primary outline-none"
+                    className="relative w-full bg-transparent text-[14px] leading-[20px] tracking-[-0.28px] text-text-primary outline-none"
                   />
                 </div>
               ) : (
                 <span
                   data-target-key={`t-${i}`}
-                  className="flex-1 text-body leading-relaxed text-text-primary"
+                  className="flex-1 pl-[4px] text-[14px] leading-[20px] tracking-[-0.28px] text-text-primary"
                   onClick={() => enterEditAt(`t-${i}`)}
                 >
                   {step.title}
@@ -561,15 +561,16 @@ function ProcedureStepsPanel({
               )}
             </div>
 
-            {/* ── Bullets ── */}
+            {/* ── Bullets — disc list matching workflow RHS .stepBullets ── */}
             {step.bullets.length > 0 && (
-              <div className="flex flex-col gap-xs pl-[28px]">
+              <ul className="mt-[2px] list-disc list-outside pl-6" style={{ marginLeft: 0 }}>
                 {step.bullets.map((bullet, j) => {
                   const bKey = `${i}-${j}`
                   return (
-                    <div key={j} className="flex items-baseline gap-sm">
-                      <span className="shrink-0 text-body leading-relaxed text-text-tertiary">•</span>
-
+                    <li
+                      key={j}
+                      className="mb-[6px] text-[14px] leading-[20px] tracking-[-0.28px] text-text-primary last:mb-0"
+                    >
                       {isEditing ? (
                         <EditableBulletLine
                           bullet={bullet}
@@ -580,7 +581,7 @@ function ProcedureStepsPanel({
                       ) : (
                         <span
                           data-target-key={`b-${i}-${j}`}
-                          className="flex-1 text-body leading-relaxed text-text-secondary"
+                          className="text-[14px] leading-[20px] tracking-[-0.28px] text-text-primary"
                           onClick={() => enterEditAt(`b-${i}-${j}`)}
                         >
                           {bullet.tokens.map((token, k) =>
@@ -592,10 +593,10 @@ function ProcedureStepsPanel({
                           )}
                         </span>
                       )}
-                    </div>
+                    </li>
                   )
                 })}
-              </div>
+              </ul>
             )}
           </div>
         ))}

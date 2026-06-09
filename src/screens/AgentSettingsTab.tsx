@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Icon } from '../components'
+import { useState, useRef, type MouseEvent } from 'react'
+import { Icon, ProceduresPickerDrawer, RefChip, SelectMenu } from '../components'
 
 interface AgentSettingsTabProps {
   product?: string
@@ -23,37 +23,24 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
-        checked ? 'bg-primary' : 'bg-border-strong'
+      className={`relative h-[16px] w-[32px] shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none ${
+        checked ? 'bg-primary' : 'bg-surface-selected'
       }`}
     >
       <span
-        className={`inline-block size-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-4' : 'translate-x-0'
+        className={`absolute top-[2px] size-3 rounded-full bg-white shadow-sm transition-[left] ${
+          checked ? 'left-[18px]' : 'left-[2px]'
         }`}
       />
     </button>
   )
 }
 
-// ── Variable chip (inline in message fields) ────────────────────
-function VarChip({ label, onRemove }: { label: string; onRemove?: () => void }) {
-  return (
-    <span className="inline-flex items-center gap-[3px] rounded border border-[#93C5FD] bg-[#EFF6FF] px-[6px] py-[1px] text-small align-middle leading-none">
-      <span className="text-[#2563EB] font-mono text-[11px]">{'{x}'}</span>
-      <span className="text-[#1D4ED8] text-[12px]">{label}</span>
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          className="ml-[2px] text-[#93C5FD] hover:text-[#2563EB] leading-none"
-        >
-          ×
-        </button>
-      )}
-    </span>
-  )
-}
+// ── Field borders (shared focus ring via primary border) ─────────
+const FIELD_BORDER_CLASS =
+  'rounded-sm border border-border-input transition-colors focus:border-primary focus:outline-none focus-visible:border-primary'
+
+const INPUT_CLASS = `w-full bg-surface px-md text-body text-text-primary ${FIELD_BORDER_CLASS}`
 
 // ── Fallback message field (textarea + variable chip + toolbar) ──
 interface FallbackFieldProps {
@@ -64,82 +51,261 @@ interface FallbackFieldProps {
 
 function FallbackField({ prefix, chipLabel, suffix }: FallbackFieldProps) {
   const [showChip, setShowChip] = useState(true)
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="rounded-sm border border-border-selected bg-surface">
-      {/* Text area body */}
-      <div className="min-h-[72px] px-md py-sm text-body text-text-primary leading-relaxed">
-        {prefix}
+    <div className={`overflow-hidden bg-surface ${FIELD_BORDER_CLASS} focus-within:border-primary`}>
+      {/* Rich text body */}
+      <div
+        ref={bodyRef}
+        tabIndex={0}
+        role="textbox"
+        aria-multiline="true"
+        onMouseDown={() => bodyRef.current?.focus()}
+        className="min-h-[80px] cursor-text px-md pt-sm pb-xs text-body text-text-primary leading-[1.7] outline-none"
+      >
+        <span>{prefix}</span>
         {showChip && (
           <>
             {' '}
-            <VarChip label={chipLabel} onRemove={() => setShowChip(false)} />
+            <RefChip kind="context" label={chipLabel} onRemove={() => setShowChip(false)} />
           </>
         )}
         {suffix && <span>{suffix}</span>}
       </div>
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-t border-border px-sm py-xs">
-        <div className="flex items-center gap-xs">
-          {/* AI personalize icon */}
-          <button
-            type="button"
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-            title="AI"
-          >
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-              <text x="10" y="14" textAnchor="middle" fontSize="10" fill="currentColor" fontFamily="sans-serif">Ai</text>
-            </svg>
-          </button>
-          {/* Emoji */}
-          <button
-            type="button"
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-            title="Emoji"
-          >
-            <Icon name="sentiment_satisfied" size={18} />
-          </button>
-          {/* Personalize label */}
-          <button
-            type="button"
-            className="flex items-center gap-xs text-body text-primary hover:underline"
-          >
-            Personalize
-            <Icon name="expand_more" size={16} className="text-primary" />
-          </button>
-        </div>
-        <button type="button" className="text-body text-primary hover:underline">
-          Clear
+      <div className="flex items-center gap-[2px] bg-surface px-sm py-[6px]">
+        {/* AI icon */}
+        <button
+          type="button"
+          title="AI personalise"
+          className="flex h-7 items-center gap-[3px] rounded-sm px-[6px] text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.25"/>
+            <text x="8" y="11.5" textAnchor="middle" fontSize="7.5" fontWeight="500" fill="currentColor" fontFamily="sans-serif">Ai</text>
+            <path d="M12 1.5 L13 3 L14 1.5 L13 0 Z" fill="#7C3AED" />
+          </svg>
+          <span className="sr-only">AI</span>
+        </button>
+        {/* Emoji */}
+        <button
+          type="button"
+          title="Emoji"
+          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          <Icon name="sentiment_satisfied" size={18} />
+        </button>
+        {/* Personalize */}
+        <button
+          type="button"
+          className="flex items-center gap-[3px] rounded-sm px-[6px] py-[3px] text-body text-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          Personalize
+          <Icon name="expand_more" size={16} className="text-primary" />
         </button>
       </div>
     </div>
   )
 }
 
-// ── Toggle row (label + optional description + toggle) ──────────
-interface ToggleRowProps {
+// ── Title + description (tight 2px gap) ─────────────────────────
+function SettingSubtext({
+  children,
+  tone = 'secondary',
+}: {
+  children: React.ReactNode
+  tone?: 'secondary' | 'tertiary'
+}) {
+  return (
+    <p
+      className={`mt-[2px] text-small ${
+        tone === 'tertiary' ? 'text-text-tertiary' : 'text-text-secondary'
+      }`}
+    >
+      {children}
+    </p>
+  )
+}
+
+// ── Settings checkbox (matches SelectMenu / StatusFilterDropdown) ─
+function SettingsCheckboxBox({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`flex size-4 shrink-0 items-center justify-center rounded-[2px] border transition-colors ${
+        checked ? 'border-primary bg-primary' : 'border-control-border bg-surface'
+      }`}
+    >
+      {checked && (
+        <Icon
+          name="check"
+          size={11}
+          fill
+          weight={600}
+          className="text-white"
+        />
+      )}
+    </span>
+  )
+}
+
+const CHECKBOX_ROW_GAP = 'gap-sm'
+const CHECKBOX_ROW_INDENT = (
+  <span className="size-4 shrink-0" aria-hidden />
+)
+
+// ── Checkbox row (checkbox before label + optional description) ─
+interface CheckboxRowProps {
   label: string
   description?: string
   checked: boolean
   onChange: (v: boolean) => void
 }
 
-function ToggleRow({ label, description, checked, onChange }: ToggleRowProps) {
+function CheckboxRow({ label, description, checked, onChange }: CheckboxRowProps) {
   return (
-    <div className="flex items-start justify-between gap-lg">
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex w-full items-center rounded-sm text-left ${CHECKBOX_ROW_GAP}`}
+    >
+      <SettingsCheckboxBox checked={checked} />
       <div className="flex-1">
         <p className="text-body text-text-primary">{label}</p>
-        {description && <p className="mt-[2px] text-small text-text-secondary">{description}</p>}
+        {description && <SettingSubtext>{description}</SettingSubtext>}
       </div>
-      <Toggle checked={checked} onChange={onChange} />
+    </button>
+  )
+}
+
+// ── Checkbox label row (checkbox before a single-line label) ────
+interface CheckboxLabelRowProps {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}
+
+function CheckboxLabelRow({ label, checked, onChange }: CheckboxLabelRowProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex w-full items-center rounded-sm text-left ${CHECKBOX_ROW_GAP}`}
+    >
+      <SettingsCheckboxBox checked={checked} />
+      <span className="text-small text-text-secondary">{label}</span>
+    </button>
+  )
+}
+
+// ── Indented field aligned with checkbox row label text ───────────
+function CheckboxRowField({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={`flex items-start ${CHECKBOX_ROW_GAP}`}>
+      {CHECKBOX_ROW_INDENT}
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   )
 }
 
-// ── INPUT_CLASS ─────────────────────────────────────────────────
-const INPUT_CLASS =
-  'w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary focus:border-primary focus:outline-none'
+// ── Voice option type ───────────────────────────────────────────
+interface VoiceOption {
+  label: string
+  preview: string
+}
+
+// ── VoiceSelect ─────────────────────────────────────────────────
+interface VoiceSelectProps {
+  value: string
+  options: VoiceOption[]
+  onChange: (value: string) => void
+}
+
+function VoiceSelect({ value, options, onChange }: VoiceSelectProps) {
+  const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [playing, setPlaying] = useState<string | null>(null)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+  const openMenu = (e: MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+    setOpen(true)
+  }
+
+  const stopPlaying = () => {
+    window.speechSynthesis.cancel()
+    setPlaying(null)
+  }
+
+  const togglePreview = (opt: VoiceOption, e: MouseEvent) => {
+    e.stopPropagation()
+    if (playing === opt.label) {
+      stopPlaying()
+      return
+    }
+    stopPlaying()
+    const utter = new SpeechSynthesisUtterance(opt.preview)
+    utter.onend = () => setPlaying(null)
+    utteranceRef.current = utter
+    setPlaying(opt.label)
+    window.speechSynthesis.speak(utter)
+  }
+
+  const select = (label: string) => {
+    stopPlaying()
+    onChange(label)
+    setOpen(false)
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openMenu}
+        className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm transition-colors hover:bg-surface-l2 focus:border-primary focus:outline-none focus-visible:border-primary ${
+          open ? 'border-primary' : 'border-border-input'
+        }`}
+      >
+        <span className={`min-w-0 flex-1 truncate text-left text-body ${value ? 'text-text-primary' : 'text-text-tertiary'}`}>
+          {value || 'Select voice'}
+        </span>
+        <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+      </button>
+      {open && anchor && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => { stopPlaying(); setOpen(false) }} aria-hidden />
+          <div
+            className="fixed z-[110] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+          >
+            {options.map((opt) => {
+              const isSelected = opt.label === value
+              const isPlaying = playing === opt.label
+              return (
+                <div
+                  key={opt.label}
+                  onClick={() => select(opt.label)}
+                  className={`flex cursor-pointer items-center gap-sm px-md py-sm hover:bg-surface-hover ${isSelected ? 'bg-surface-hover' : ''}`}
+                >
+                  <span className="min-w-0 flex-1 truncate text-body text-text-primary">{opt.label}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => togglePreview(opt, e)}
+                    title={isPlaying ? 'Stop preview' : 'Preview voice'}
+                    className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2 hover:text-primary"
+                  >
+                    <Icon name={isPlaying ? 'stop' : 'volume_up'} size={16} />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </>
+  )
+}
 
 // ── Web chat content ────────────────────────────────────────────
 function WebChatSettings() {
@@ -147,21 +313,21 @@ function WebChatSettings() {
   const [resolvedName, setResolvedName] = useState('👍 That helped')
   const [escalationEnabled, setEscalationEnabled] = useState(true)
   const [escalationName, setEscalationName] = useState('Talk to human')
-  const [beforeEnabled, setBeforeEnabled] = useState(true)
+  const [duringEnabled, setDuringEnabled] = useState(true)
   const [afterEnabled, setAfterEnabled] = useState(true)
 
   return (
-    <div className="flex flex-col gap-lg">
-      {/* Resolved button */}
+    <div className="flex flex-col gap-[40px]">
+      {/* Resolve button */}
       <div className="flex flex-col gap-sm">
-        <ToggleRow
-          label="Resolved button"
+        <CheckboxRow
+          label="Resolve button"
           description="A quick reply button patients can tap when their question is answered"
           checked={resolvedEnabled}
           onChange={setResolvedEnabled}
         />
         {resolvedEnabled && (
-          <div>
+          <CheckboxRowField>
             <label className="mb-xs block text-small text-text-secondary">Button name</label>
             <input
               type="text"
@@ -169,20 +335,20 @@ function WebChatSettings() {
               onChange={(e) => setResolvedName(e.target.value)}
               className={`${INPUT_CLASS} h-9`}
             />
-          </div>
+          </CheckboxRowField>
         )}
       </div>
 
       {/* Escalation button */}
       <div className="flex flex-col gap-sm">
-        <ToggleRow
+        <CheckboxRow
           label="Escalation button"
           description="A quick reply button patients can tap to reach a team member"
           checked={escalationEnabled}
           onChange={setEscalationEnabled}
         />
         {escalationEnabled && (
-          <div>
+          <CheckboxRowField>
             <label className="mb-xs block text-small text-text-secondary">Button name</label>
             <input
               type="text"
@@ -190,7 +356,7 @@ function WebChatSettings() {
               onChange={(e) => setEscalationName(e.target.value)}
               className={`${INPUT_CLASS} h-9`}
             />
-          </div>
+          </CheckboxRowField>
         )}
       </div>
 
@@ -198,31 +364,37 @@ function WebChatSettings() {
       <div className="flex flex-col gap-md">
         <p className="text-body text-text-primary">Fallback message</p>
 
-        {/* Before business hours */}
+        {/* During business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">Before business hours</span>
-            <Toggle checked={beforeEnabled} onChange={setBeforeEnabled} />
-          </div>
-          {beforeEnabled && (
-            <FallbackField
-              prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
-              chipLabel="business.phone"
-            />
+          <CheckboxLabelRow
+            label="During business hours"
+            checked={duringEnabled}
+            onChange={setDuringEnabled}
+          />
+          {duringEnabled && (
+            <CheckboxRowField>
+              <FallbackField
+                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
 
         {/* After business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">After business hours</span>
-            <Toggle checked={afterEnabled} onChange={setAfterEnabled} />
-          </div>
+          <CheckboxLabelRow
+            label="After business hours"
+            checked={afterEnabled}
+            onChange={setAfterEnabled}
+          />
           {afterEnabled && (
-            <FallbackField
-              prefix="Our team is offline right now. Leave a message and we'll follow up during business hours. You can also call us at"
-              chipLabel="business.phone"
-            />
+            <CheckboxRowField>
+              <FallbackField
+                prefix="Our team is offline right now. Leave a message and we'll follow up during business hours. You can also call us at"
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
       </div>
@@ -239,7 +411,7 @@ function TextSettings() {
   return (
     <div className="flex flex-col gap-lg">
       {/* Unsubscribe text */}
-      <ToggleRow
+      <CheckboxRow
         label="Unsubscribe text"
         description="Enabling this will allow customers to opt out of text communications"
         checked={unsubscribeEnabled}
@@ -247,34 +419,40 @@ function TextSettings() {
       />
 
       {/* Fallback message */}
-      <div className="flex flex-col gap-md">
+      <div className="flex flex-col gap-sm">
         <p className="text-body text-text-primary">Fallback message</p>
 
         {/* Before business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">Before business hours</span>
-            <Toggle checked={beforeEnabled} onChange={setBeforeEnabled} />
-          </div>
+          <CheckboxLabelRow
+            label="Before business hours"
+            checked={beforeEnabled}
+            onChange={setBeforeEnabled}
+          />
           {beforeEnabled && (
-            <FallbackField
-              prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
-              chipLabel="business.phone"
-            />
+            <CheckboxRowField>
+              <FallbackField
+                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
 
         {/* After business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">After business hours</span>
-            <Toggle checked={afterEnabled} onChange={setAfterEnabled} />
-          </div>
+          <CheckboxLabelRow
+            label="After business hours"
+            checked={afterEnabled}
+            onChange={setAfterEnabled}
+          />
           {afterEnabled && (
-            <FallbackField
-              prefix="Our team is offline right now. Leave a message and we'll follow up during business hours."
-              chipLabel="business.phone"
-            />
+            <CheckboxRowField>
+              <FallbackField
+                prefix="Our team is offline right now. Leave a message and we'll follow up during business hours."
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
       </div>
@@ -287,29 +465,176 @@ interface ChannelAccordionProps {
   title: string
   children: React.ReactNode
   defaultOpen?: boolean
+  enabled: boolean
+  onEnabledChange: (enabled: boolean) => void
 }
 
-function ChannelAccordion({ title, children, defaultOpen = false }: ChannelAccordionProps) {
+function ChannelAccordion({
+  title,
+  children,
+  defaultOpen = false,
+  enabled,
+  onEnabledChange,
+}: ChannelAccordionProps) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-14 w-full items-center justify-between px-lg text-left hover:bg-surface-l2"
-      >
-        <span className="text-body text-text-primary">{title}</span>
-        <Icon
-          name={open ? 'expand_less' : 'expand_more'}
-          size={20}
-          className="text-text-icon"
-        />
-      </button>
+    <div className="overflow-hidden rounded-md border border-border bg-surface">
+      <div className="flex h-14 items-center justify-between px-lg hover:bg-surface-l2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex flex-1 items-center text-left"
+        >
+          <span className="text-body font-medium text-text-primary">{title}</span>
+        </button>
+        <div className="flex items-center gap-md">
+          <Toggle checked={enabled} onChange={onEnabledChange} />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center justify-center text-text-icon"
+            aria-label={open ? 'Collapse' : 'Expand'}
+          >
+            <Icon
+              name={open ? 'expand_less' : 'expand_more'}
+              size={20}
+            />
+          </button>
+        </div>
+      </div>
       {open && (
-        <div className="border-t border-border px-lg pb-lg pt-lg">
+        <div className="px-lg pb-lg pt-md">
           {children}
         </div>
+      )}
+    </div>
+  )
+}
+
+// ── Settings section header with add action ─────────────────────
+function SettingsSectionHeader({
+  title,
+  addAriaLabel,
+  onAdd,
+  addDisabled,
+}: {
+  title: string
+  addAriaLabel: string
+  onAdd: (e: MouseEvent<HTMLButtonElement>) => void
+  addDisabled?: boolean
+}) {
+  return (
+    <div className="mb-md flex items-center justify-between gap-md">
+      <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h2>
+      <button
+        type="button"
+        onClick={onAdd}
+        disabled={addDisabled}
+        aria-label={addAriaLabel}
+        className="flex size-9 shrink-0 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon transition-colors hover:bg-surface-l2 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:text-text-tertiary"
+      >
+        <Icon name="edit" size={20} />
+      </button>
+    </div>
+  )
+}
+
+// ── Add-item menu (SelectMenu picker for catalog items) ───────────
+interface AddItemMenuProps {
+  open: boolean
+  anchor: { top: number; left: number; width: number } | null
+  options: { value: string; label: string }[]
+  onClose: () => void
+  onSelect: (id: string) => void
+}
+
+function AddItemMenu({ open, anchor, options, onClose, onSelect }: AddItemMenuProps) {
+  if (!open || !anchor) return null
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[105]" onClick={onClose} aria-hidden />
+      <div
+        className="fixed z-[110]"
+        style={{ top: anchor.top, left: anchor.left, width: Math.max(anchor.width, 280) }}
+      >
+        <SelectMenu
+          options={options}
+          value={[]}
+          searchable={options.length > 6}
+          onChange={(selected) => {
+            if (selected[0]) onSelect(selected[0])
+            onClose()
+          }}
+        />
+      </div>
+    </>
+  )
+}
+
+// ── Card 3-dot menu (edit / delete on hover) ────────────────────
+interface CardMenuProps {
+  itemLabel: string
+  onEdit?: () => void
+  onDelete?: () => void
+}
+
+function CardMenu({ itemLabel, onEdit, onDelete }: CardMenuProps) {
+  const [open, setOpen] = useState(false)
+
+  if (!onEdit && !onDelete) return null
+
+  return (
+    <div
+      className={`absolute right-md top-md z-10 transition-opacity ${
+        open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      }`}
+    >
+      <button
+        type="button"
+        aria-label={`${itemLabel} actions`}
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((v) => !v)
+        }}
+        className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+      >
+        <Icon name="more_vert" size={20} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => setOpen(false)} aria-hidden />
+          <div className="absolute right-0 top-full z-[110] mt-xs min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+            {onEdit && (
+              <button
+                type="button"
+                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit()
+                  setOpen(false)
+                }}
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                  setOpen(false)
+                }}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   )
@@ -320,11 +645,14 @@ interface ProcedureCardProps {
   title: string
   description: string
   lastEdited: string
+  onEdit?: () => void
+  onRemove?: () => void
 }
 
-function ProcedureCard({ title, description, lastEdited }: ProcedureCardProps) {
+function ProcedureCard({ title, description, lastEdited, onEdit, onRemove }: ProcedureCardProps) {
   return (
-    <div className="group flex min-h-[148px] cursor-pointer flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
+    <div className="group relative flex min-h-[148px] flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
+      <CardMenu itemLabel={title} onEdit={onEdit} onDelete={onRemove} />
       <div className="mb-md">
         <ProcedureBookIcon size={22} className="text-text-secondary" />
       </div>
@@ -346,40 +674,74 @@ interface IntegrationCardProps {
   description: string
   connected?: boolean
   onClick?: () => void
+  onEdit?: () => void
+  onRemove?: () => void
 }
 
-function IntegrationCard({ iconBg, iconLabel, name, description, connected, onClick }: IntegrationCardProps) {
+function IntegrationCard({
+  iconBg,
+  iconLabel,
+  name,
+  description,
+  connected,
+  onClick,
+  onEdit,
+  onRemove,
+}: IntegrationCardProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex min-h-[148px] w-full cursor-pointer flex-col rounded-sm border border-border-selected bg-surface p-xl text-left transition-colors hover:bg-surface-selected"
-    >
-      {/* Icon */}
-      <div className="mb-md">
-        <div
-          className="flex size-9 items-center justify-center rounded-sm text-white text-body"
-          style={{ backgroundColor: iconBg }}
-        >
-          {iconLabel}
+    <div className="group relative">
+      <CardMenu itemLabel={name} onEdit={onEdit} onDelete={onRemove} />
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-h-[148px] w-full cursor-pointer flex-col rounded-sm border border-border-selected bg-surface p-xl text-left transition-colors hover:bg-surface-selected"
+      >
+        <div className="mb-md flex items-center justify-between gap-md">
+          <div className="flex min-w-0 items-center gap-sm">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
+              <div
+                className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
+                style={{ backgroundColor: iconBg }}
+              >
+                {iconLabel}
+              </div>
+            </div>
+            <h3 className="truncate text-body text-text-primary">{name}</h3>
+          </div>
+          {connected !== undefined && (
+            <div className="flex shrink-0 items-center gap-xs">
+              <span
+                className={`size-2 rounded-full ${connected ? 'bg-accent-positive' : 'bg-surface-selected'}`}
+              />
+              <span className="text-small text-text-secondary">
+                {connected ? 'Connected' : 'Not connected'}
+              </span>
+            </div>
+          )}
         </div>
-      </div>
-      <h3 className="mb-xs text-body text-text-primary">{name}</h3>
-      <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
-      <div className="mt-auto flex items-center gap-xs pt-lg">
-        {connected !== undefined && (
-          <>
-            <span className={`size-2 rounded-full ${connected ? 'bg-accent-positive' : 'bg-border-strong'}`} />
-            <span className="text-small text-text-secondary">{connected ? 'Connected' : 'Not connected'}</span>
-          </>
-        )}
-      </div>
-    </button>
+        <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
+      </button>
+    </div>
   )
 }
 
 // ── Healthcare-specific data ─────────────────────────────────────
-const HEALTHCARE_PROCEDURES = [
+interface ProcedureCatalogItem {
+  id: string
+  title: string
+  description: string
+  lastEdited: string
+}
+
+interface IntegrationCatalogItem {
+  id: string
+  iconBg: string
+  iconLabel: string
+  name: string
+  description: string
+}
+
+const PROCEDURE_CATALOG: ProcedureCatalogItem[] = [
   {
     id: 'greet',
     title: 'Greet and open conversation',
@@ -404,19 +766,60 @@ const HEALTHCARE_PROCEDURES = [
     description: "Clarifies vague or out-of-scope messages to recover the patient's intent.",
     lastEdited: '1 week ago',
   },
-]
-
-const INTEGRATIONS = [
   {
-    id: 'epic',
-    iconBg: '#C8102E',
-    iconLabel: 'E',
-    name: 'Epic',
-    description: 'Connect to Epic EHR to sync patient records and appointments.',
+    id: 'talk-human',
+    title: 'Talk to human',
+    description: 'Routes the patient to a live staff member when they request human help.',
+    lastEdited: '3 days ago',
+  },
+  {
+    id: 'identify-patient',
+    title: 'Identify patient',
+    description: 'Matches the caller to an existing patient record using name and date of birth.',
+    lastEdited: '4 days ago',
+  },
+  {
+    id: 'new-patient',
+    title: 'New patient intake',
+    description: 'Collects demographics and insurance for patients new to the practice.',
+    lastEdited: '5 days ago',
+  },
+  {
+    id: 'book-appointment',
+    title: 'Book new appointment',
+    description: 'Finds open slots and books a new appointment for the patient.',
+    lastEdited: '2 days ago',
   },
 ]
 
-type RecordingMode = 'off' | 'announced' | 'silent'
+const INTEGRATION_CATALOG: IntegrationCatalogItem[] = [
+  {
+    id: 'epic',
+    iconBg: '#C8102E',
+    iconLabel: 'Epic',
+    name: 'Epic',
+    description: 'Connect to Epic EHR to sync patient records and appointments.',
+  },
+  {
+    id: 'athena',
+    iconBg: '#0B7A75',
+    iconLabel: 'A',
+    name: 'Athenahealth',
+    description: 'Sync appointments and patient demographics from Athenahealth.',
+  },
+  {
+    id: 'salesforce',
+    iconBg: '#00A1E0',
+    iconLabel: 'S',
+    name: 'Salesforce',
+    description: 'Push leads and conversation outcomes into Salesforce CRM.',
+  },
+]
+
+const DEFAULT_PROCEDURE_IDS = ['greet', 'general', 'emergency', 'unclear']
+const DEFAULT_INTEGRATION_IDS = ['epic']
+
+type RecordingMode = 'off' | 'announced'
 
 export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
   const [voice, setVoice] = useState('Andrea (warm, clear, reassuring)')
@@ -428,18 +831,53 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
     'This call may be recorded for quality and training purposes.'
   )
   const [connectedIntegrationId, setConnectedIntegrationId] = useState<string | null>('epic')
+  const [voiceCallEnabled, setVoiceCallEnabled] = useState(true)
+  const [webChatEnabled, setWebChatEnabled] = useState(true)
+  const [textEnabled, setTextEnabled] = useState(true)
+  const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>(DEFAULT_PROCEDURE_IDS)
+  const [selectedIntegrationIds, setSelectedIntegrationIds] = useState<string[]>(DEFAULT_INTEGRATION_IDS)
+  const [procedureDrawerOpen, setProcedureDrawerOpen] = useState(false)
+  const [integrationAddOpen, setIntegrationAddOpen] = useState(false)
+  const [integrationAddAnchor, setIntegrationAddAnchor] = useState<{
+    top: number
+    left: number
+    width: number
+  } | null>(null)
 
   const isHealthcare = product === 'healthcare'
+
+  const selectedProcedures = PROCEDURE_CATALOG.filter((p) => selectedProcedureIds.includes(p.id))
+  const selectedIntegrations = INTEGRATION_CATALOG.filter((i) => selectedIntegrationIds.includes(i.id))
+  const availableIntegrations = INTEGRATION_CATALOG.filter((i) => !selectedIntegrationIds.includes(i.id))
+
+  const openIntegrationAdd = (e: MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setIntegrationAddAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+    setIntegrationAddOpen(true)
+  }
+
+  const removeProcedure = (id: string) => {
+    setSelectedProcedureIds((current) => current.filter((item) => item !== id))
+  }
+
+  const addIntegration = (id: string) => {
+    setSelectedIntegrationIds((current) => [...current, id])
+  }
+
+  const removeIntegration = (id: string) => {
+    setSelectedIntegrationIds((current) => current.filter((item) => item !== id))
+    setConnectedIntegrationId((current) => (current === id ? null : current))
+  }
 
   const handleIntegrationClick = (id: string) => {
     setConnectedIntegrationId((current) => (current === id ? null : id))
   }
 
-  const VOICES = [
-    'Andrea (warm, clear, reassuring)',
-    'Jordan (professional, calm)',
-    'Sam (friendly, upbeat)',
-    'Morgan (neutral, clear)',
+  const VOICES: VoiceOption[] = [
+    { label: 'Andrea (warm, clear, reassuring)',    preview: "Hi, I'm Andrea — warm, clear, and reassuring. How can I help you today?" },
+    { label: 'Jordan (professional, calm)',          preview: "Hello, this is Jordan. I'm here to assist you professionally and calmly." },
+    { label: 'Sam (friendly, upbeat)',               preview: "Hey there! Sam here — friendly and upbeat. What can I do for you?" },
+    { label: 'Morgan (neutral, clear)',              preview: "Hi, I'm Morgan. Clear and neutral, ready to assist you." },
   ]
 
   return (
@@ -450,30 +888,20 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
 
         {/* Channel settings */}
         <section>
-          <h2 className="mb-md text-h3 text-text-primary">Channel settings</h2>
-          <div className="space-y-md">
+          <h2 className="mb-md text-[16px] leading-6 tracking-[-0.32px] text-text-primary">Channel settings</h2>
+          <div className="space-y-8">
 
             {/* Voice call */}
-            <ChannelAccordion title="Voice call" defaultOpen>
+            <ChannelAccordion
+              title="Voice call"
+              defaultOpen
+              enabled={voiceCallEnabled}
+              onEnabledChange={setVoiceCallEnabled}
+            >
               <div className="flex flex-col gap-lg">
                 <div>
-                  <label className="mb-xs block text-small text-text-secondary">Voice</label>
-                  <div className="relative">
-                    <select
-                      value={voice}
-                      onChange={(e) => setVoice(e.target.value)}
-                      className={`${INPUT_CLASS} h-9 appearance-none pr-2xl`}
-                    >
-                      {VOICES.map((v) => (
-                        <option key={v} value={v}>{v}</option>
-                      ))}
-                    </select>
-                    <Icon
-                      name="expand_more"
-                      size={18}
-                      className="pointer-events-none absolute right-sm top-1/2 -translate-y-1/2 text-text-icon"
-                    />
-                  </div>
+                  <label className="block text-small text-text-secondary">Voice</label>
+                  <VoiceSelect value={voice} options={VOICES} onChange={setVoice} />
                 </div>
 
                 <div>
@@ -489,56 +917,68 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
                 </div>
 
                 <div>
-                  <p className="mb-xs text-small text-text-secondary">Recording</p>
-                  <p className="mb-sm text-small text-text-tertiary">
+                  <p className="text-small text-text-secondary">Recording</p>
+                  <SettingSubtext tone="tertiary">
                     Configure consent wording in each channel settings below
-                  </p>
-                  <div className="flex flex-col gap-sm">
-                    {(
-                      [
-                        { value: 'off', label: 'Off' },
-                        { value: 'announced', label: 'Record with announced consent' },
-                        { value: 'silent', label: 'Record silently' },
-                      ] as { value: RecordingMode; label: string }[]
-                    ).map(({ value, label }) => (
-                      <label key={value} className="flex cursor-pointer items-center gap-sm">
+                  </SettingSubtext>
+                  <div className="mt-sm flex flex-col gap-sm">
+                    <label className="flex cursor-pointer items-center gap-sm">
+                      <input
+                        type="radio"
+                        name="recording"
+                        value="off"
+                        checked={recording === 'off'}
+                        onChange={() => setRecording('off')}
+                        className="accent-primary"
+                      />
+                      <span className="text-body text-text-primary">Off</span>
+                    </label>
+                    <div>
+                      <label className="flex cursor-pointer items-center gap-sm">
                         <input
                           type="radio"
                           name="recording"
-                          value={value}
-                          checked={recording === value}
-                          onChange={() => setRecording(value)}
+                          value="announced"
+                          checked={recording === 'announced'}
+                          onChange={() => setRecording('announced')}
                           className="accent-primary"
                         />
-                        <span className="text-body text-text-primary">{label}</span>
+                        <span className="text-body text-text-primary">Record with announced consent</span>
                       </label>
-                    ))}
+                      {recording === 'announced' && (
+                        <div className="mt-sm pl-2xl">
+                          <label className="mb-xs block text-small text-text-secondary">
+                            Consent message
+                          </label>
+                          <textarea
+                            value={consent}
+                            onChange={(e) => setConsent(e.target.value)}
+                            rows={3}
+                            className={`${INPUT_CLASS} resize-none py-sm`}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {recording !== 'off' && (
-                  <div>
-                    <label className="mb-xs block text-small text-text-secondary">
-                      Consent message
-                    </label>
-                    <textarea
-                      value={consent}
-                      onChange={(e) => setConsent(e.target.value)}
-                      rows={3}
-                      className={`${INPUT_CLASS} resize-none py-sm`}
-                    />
-                  </div>
-                )}
               </div>
             </ChannelAccordion>
 
             {/* Web chat */}
-            <ChannelAccordion title="Web chat">
+            <ChannelAccordion
+              title="Web chat"
+              enabled={webChatEnabled}
+              onEnabledChange={setWebChatEnabled}
+            >
               <WebChatSettings />
             </ChannelAccordion>
 
             {/* Text */}
-            <ChannelAccordion title="Text">
+            <ChannelAccordion
+              title="Text"
+              enabled={textEnabled}
+              onEnabledChange={setTextEnabled}
+            >
               <TextSettings />
             </ChannelAccordion>
 
@@ -548,36 +988,78 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
         {/* Procedures */}
         {isHealthcare && (
           <section>
-            <h2 className="mb-md text-h3 text-text-primary">Procedures</h2>
-            <div className="grid grid-cols-2 gap-lg">
-              {HEALTHCARE_PROCEDURES.map((proc) => (
-                <ProcedureCard
-                  key={proc.id}
-                  title={proc.title}
-                  description={proc.description}
-                  lastEdited={proc.lastEdited}
-                />
-              ))}
-            </div>
+            <SettingsSectionHeader
+              title="Procedures"
+              addAriaLabel="Add procedure"
+              onAdd={() => setProcedureDrawerOpen(true)}
+            />
+            {selectedProcedures.length === 0 ? (
+              <div className="flex h-32 items-center justify-center rounded-sm border border-border-selected bg-surface text-body text-text-tertiary">
+                No procedures added. Use Add procedure to get started.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-lg">
+                {selectedProcedures.map((proc) => (
+                  <ProcedureCard
+                    key={proc.id}
+                    title={proc.title}
+                    description={proc.description}
+                    lastEdited={proc.lastEdited}
+                    onEdit={() => {}}
+                    onRemove={() => removeProcedure(proc.id)}
+                  />
+                ))}
+              </div>
+            )}
+            <ProceduresPickerDrawer
+              open={procedureDrawerOpen}
+              procedures={PROCEDURE_CATALOG}
+              selectedIds={selectedProcedureIds}
+              onClose={() => setProcedureDrawerOpen(false)}
+              onSave={(ids) => {
+                setSelectedProcedureIds(ids)
+                setProcedureDrawerOpen(false)
+              }}
+            />
           </section>
         )}
 
         {/* Integrations */}
         <section>
-          <h2 className="mb-md text-h3 text-text-primary">Integrations</h2>
-          <div className="grid grid-cols-2 gap-lg">
-            {INTEGRATIONS.map((intg) => (
-              <IntegrationCard
-                key={intg.id}
-                iconBg={intg.iconBg}
-                iconLabel={intg.iconLabel}
-                name={intg.name}
-                description={intg.description}
-                connected={connectedIntegrationId === intg.id}
-                onClick={() => handleIntegrationClick(intg.id)}
-              />
-            ))}
-          </div>
+          <SettingsSectionHeader
+            title="Integrations"
+            addAriaLabel="Add integration"
+            onAdd={openIntegrationAdd}
+            addDisabled={availableIntegrations.length === 0}
+          />
+          {selectedIntegrations.length === 0 ? (
+            <div className="flex h-32 items-center justify-center rounded-sm border border-border-selected bg-surface text-body text-text-tertiary">
+              No integrations added. Use Add integration to get started.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-lg">
+              {selectedIntegrations.map((intg) => (
+                <IntegrationCard
+                  key={intg.id}
+                  iconBg={intg.iconBg}
+                  iconLabel={intg.iconLabel}
+                  name={intg.name}
+                  description={intg.description}
+                  connected={connectedIntegrationId === intg.id}
+                  onClick={() => handleIntegrationClick(intg.id)}
+                  onEdit={() => {}}
+                  onRemove={() => removeIntegration(intg.id)}
+                />
+              ))}
+            </div>
+          )}
+          <AddItemMenu
+            open={integrationAddOpen}
+            anchor={integrationAddAnchor}
+            options={availableIntegrations.map((i) => ({ value: i.id, label: i.name }))}
+            onClose={() => setIntegrationAddOpen(false)}
+            onSelect={addIntegration}
+          />
         </section>
 
         </div>

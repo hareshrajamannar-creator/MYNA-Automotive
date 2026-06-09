@@ -57,7 +57,7 @@ export function FilterPanel({
                   type="button"
                   onClick={(e) => openField(field, e)}
                   className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                    openId === field.id ? 'border-primary' : 'border-border-selected'
+                    openId === field.id ? 'border-primary' : 'border-border-input'
                   }`}
                 >
                   <span

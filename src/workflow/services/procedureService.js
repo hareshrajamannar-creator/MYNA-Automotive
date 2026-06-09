@@ -36,8 +36,8 @@ function liveContextToChips(context) {
 // numbered-step string so the RHS detail panel can display it.
 function richStepsToText(steps) {
   return steps.map((s, i) => {
-    if (!s || typeof s !== 'object' || !s.title) return `${i + 1}. ${s}`;
-    const title = `${i + 1}. ${s.title}`;
+    if (!s || typeof s !== 'object' || !s.title) return `${i + 1}.${s}`;
+    const title = `${i + 1}.${s.title}`;
     if (!s.bullets || s.bullets.length === 0) return title;
     const bullets = s.bullets
       .map((b) => {
@@ -315,13 +315,23 @@ export const PROCEDURE_DETAIL_CONTENT = {
   },
 };
 
+function isRichProcedureSteps(steps) {
+  return (
+    Array.isArray(steps)
+    && steps.length > 0
+    && steps[0]
+    && typeof steps[0] === 'object'
+    && steps[0].title
+  );
+}
+
 function formatProcedureSteps(steps) {
   if (!Array.isArray(steps)) return typeof steps === 'string' ? steps : '';
   // Rich ProcedureStep[] from procedureData.ts has objects with .title + .bullets
-  if (steps.length > 0 && steps[0] && typeof steps[0] === 'object' && steps[0].title) {
+  if (isRichProcedureSteps(steps)) {
     return richStepsToText(steps);
   }
-  return steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
+  return steps.map((s, i) => `${i + 1}.${s}`).join('\n');
 }
 
 /** Healthcare workflow IDs → canonical PROCEDURE_DETAIL_CONTENT keys */
@@ -345,7 +355,11 @@ export function getProcedureDetailContent(id, fieldOverrides = {}, product) {
   // PROCEDURE_DETAIL_CONTENT — the library has richer steps and correct context.
   // For automotive, the hardcoded detail still provides the best content.
   const isHC = product === 'healthcare' || product === 'dental';
-  const liveSteps = isHC && proc?.steps ? (formatProcedureSteps(proc.steps) || null) : null;
+  // Only prefer live library steps when they use the rich title + bullets model.
+  // Flat string[] steps fall through to PROCEDURE_DETAIL_CONTENT bulleted copy.
+  const liveSteps = isHC && isRichProcedureSteps(proc?.steps)
+    ? (formatProcedureSteps(proc.steps) || null)
+    : null;
   const liveContext = isHC && proc?.context?.length ? liveContextToChips(proc.context) : null;
 
   return {

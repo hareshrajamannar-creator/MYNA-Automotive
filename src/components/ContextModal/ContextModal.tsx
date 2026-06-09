@@ -209,7 +209,7 @@ function FieldsTab({
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-2xl py-sm">
-        <div className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
+        <div className="flex h-9 items-center gap-sm rounded-sm border border-border-input bg-surface px-md">
           <Icon name="search" size={20} className="text-text-icon" />
           <input
             type="text"
@@ -356,7 +356,7 @@ function KnowledgeTab({
                   }
                 }}
                 onBlur={confirmLink}
-                className="min-w-0 flex-1 rounded-sm border border-border-selected bg-surface px-md py-xs text-body text-text-primary focus:border-primary focus:outline-none"
+                className="min-w-0 flex-1 rounded-sm border border-border-input bg-surface px-md py-xs text-body text-text-primary focus:border-primary focus:outline-none"
               />
             </div>
           )}

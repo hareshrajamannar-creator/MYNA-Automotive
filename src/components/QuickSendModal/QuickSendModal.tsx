@@ -74,7 +74,7 @@ export function QuickSendModal({ open, patient, email = '', onClose, onSend }: Q
               type="button"
               onClick={(e) => openMenu('type', e)}
               className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                openField === 'type' ? 'border-primary' : 'border-border-selected'
+                openField === 'type' ? 'border-primary' : 'border-border-input'
               }`}
             >
               <span className={`min-w-0 flex-1 truncate text-left text-body ${type ? 'text-text-primary' : 'text-text-tertiary'}`}>
@@ -93,7 +93,7 @@ export function QuickSendModal({ open, patient, email = '', onClose, onSend }: Q
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-9 w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
+                  className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
                 />
               </div>
 
@@ -103,7 +103,7 @@ export function QuickSendModal({ open, patient, email = '', onClose, onSend }: Q
                 <input
                   value={emailVal}
                   onChange={(e) => setEmailVal(e.target.value)}
-                  className="h-9 w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
+                  className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
                 />
               </div>
 
@@ -114,7 +114,7 @@ export function QuickSendModal({ open, patient, email = '', onClose, onSend }: Q
                   type="button"
                   onClick={(e) => openMenu('location', e)}
                   className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                    openField === 'location' ? 'border-primary' : 'border-border-selected'
+                    openField === 'location' ? 'border-primary' : 'border-border-input'
                   }`}
                 >
                   <span className={`min-w-0 flex-1 truncate text-left text-body ${location ? 'text-text-primary' : 'text-text-tertiary'}`}>

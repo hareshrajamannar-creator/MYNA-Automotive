@@ -89,7 +89,7 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
                 setAgentMenuOpen(true)
               }}
               className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                agentMenuOpen ? 'border-primary' : 'border-border-selected'
+                agentMenuOpen ? 'border-primary' : 'border-border-input'
               }`}
             >
               <span className={`min-w-0 flex-1 truncate text-left text-body ${agent ? 'text-text-primary' : 'text-text-tertiary'}`}>
