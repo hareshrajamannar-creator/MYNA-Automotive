@@ -38,10 +38,10 @@ const PROVIDERS: ProviderRow[] = [
   { initials: 'MR', name: 'Dr. Marcus Rivera', role: 'Orthodontist',       operatory: 'Operatory 3',          appointmentType: 'Invisalign Consultation',         location: 'San Fran...',       available: false },
   { initials: 'AT', name: 'Amy Torres',         role: 'Dental Hygienist',   operatory: 'Operatory 1, +2 more', appointmentType: 'Routine Cleaning',                location: 'San Fran...',       available: false },
   { initials: 'JK', name: 'Dr. James Kim',      role: 'Oral Surgeon',       operatory: 'Operatory 3',          appointmentType: 'New patient exam',                location: 'San Francisco, CA', available: true  },
-  { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'eclinicalworks.com', operatory: 'Operatory 3',          appointmentType: 'Invisalign Consultation',         location: 'San Francisco, CA', available: false, dimmed: true },
+  { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'eclinicalworks.com', operatory: 'Operatory 3',          appointmentType: 'Invisalign Consultation',         location: 'San Francisco, CA', available: false },
   { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'nextgen.com',        operatory: 'Operatory 3',          appointmentType: 'New patient exam, +2 more',       location: 'San Francisco, CA', available: true  },
   { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'cerner.com',         operatory: 'Operatory 3',          appointmentType: 'Routine Cleaning',                location: 'San Francisco, CA', available: true  },
-  { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'allscripts.com',     operatory: 'Operatory 3',          appointmentType: 'New patient exam',                location: 'San Francisco, CA', available: false, dimmed: true },
+  { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'allscripts.com',     operatory: 'Operatory 3',          appointmentType: 'New patient exam',                location: 'San Francisco, CA', available: false },
   { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'meditech.com',       operatory: 'Operatory 3',          appointmentType: 'Invisalign Consultation',         location: 'San Francisco, CA', available: true  },
 ]
 
@@ -82,7 +82,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
             <div className="flex flex-col gap-xs">
               <label className="text-small text-text-secondary">First name <span className="text-danger">*</span></label>
               <input
-                className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none"
+                className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none"
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
               />
@@ -90,7 +90,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
             <div className="flex flex-col gap-xs">
               <label className="text-small text-text-secondary">Second name <span className="text-danger">*</span></label>
               <input
-                className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none"
+                className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none"
                 value={secondName}
                 onChange={e => setSecondName(e.target.value)}
               />
@@ -100,7 +100,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
           {/* Location */}
           <div className="flex flex-col gap-xs">
             <label className="text-small text-text-secondary">Location <span className="text-danger">*</span></label>
-            <select className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
+            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
               <option>San Francisco, CA</option>
             </select>
           </div>
@@ -108,7 +108,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
           {/* Role */}
           <div className="flex flex-col gap-xs">
             <label className="text-small text-text-secondary">Role</label>
-            <select className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
+            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
               <option>General dentist</option>
               <option>Orthodontist</option>
               <option>Dental Hygienist</option>
@@ -119,7 +119,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
           {/* Operatory */}
           <div className="flex flex-col gap-xs">
             <label className="text-small text-text-secondary">Operatory</label>
-            <select className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
+            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
               <option>2 selected</option>
             </select>
           </div>
@@ -130,7 +130,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
               <label className="text-small text-text-secondary">Appointment type</label>
               <Icon name="info" size={14} className="text-text-tertiary" />
             </div>
-            <select className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
+            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
               <option>3 selected</option>
             </select>
           </div>
@@ -159,13 +159,13 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
                 <div className="grid grid-cols-2 gap-md">
                   <div className="flex flex-col gap-xs">
                     <label className="text-small text-text-secondary">PMS system</label>
-                    <select className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
+                    <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
                       <option>Dentrix</option>
                     </select>
                   </div>
                   <div className="flex flex-col gap-xs">
                     <label className="text-small text-text-secondary">Provider in Dentrix</label>
-                    <select className="h-9 rounded-sm border border-border pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
+                    <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
                       <option>Dentrix</option>
                     </select>
                   </div>
@@ -265,7 +265,7 @@ export function ProvidersScreen() {
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="search" size={20} />
             </button>
-            <select className="h-9 rounded-sm border border-border-selected bg-surface pl-md pr-xl text-body text-text-primary hover:bg-surface-l2 focus:outline-none">
+            <select className="h-9 rounded-sm border border-border-selected bg-surface pl-md pr-2xl text-body text-text-primary hover:bg-surface-l2 focus:outline-none">
               <option>{_location}</option>
             </select>
             <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
@@ -293,6 +293,7 @@ export function ProvidersScreen() {
             columns={COLUMNS}
             data={PROVIDERS}
             rowMenuItems={rowMenuItems}
+            rowClassName={(_row, i) => (availableMap[i] === false ? 'opacity-40' : '')}
           />
         </div>
       </div>
