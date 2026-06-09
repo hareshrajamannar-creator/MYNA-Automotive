@@ -250,11 +250,12 @@ export function DataTable<T extends Record<string, unknown>>({
                     item.onClick(sortedData[menu.rowIndex])
                     setMenu(null)
                   }}
-                  className={`block w-full px-md py-md text-left text-body hover:bg-surface-hover ${
+                  className={`flex w-full items-center justify-between px-md py-md text-left text-body hover:bg-surface-hover ${
                     item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
                   }`}
                 >
                   {item.label}
+                  {item.icon && <Icon name={item.icon} size={16} className="shrink-0 text-text-icon" />}
                 </button>
               ))}
           </div>

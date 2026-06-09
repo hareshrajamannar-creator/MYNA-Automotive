@@ -310,7 +310,7 @@ export function ManageAppointmentsScreen() {
                     { label: 'Quick send',    onClick: (row) => setQuickSendRow(row) },
                     { label: 'Quick view',    onClick: (row) => setQuickViewRow({ patient: row.patient, provider: row.provider, apptType: row.apptType, dateTime: row.dateTime, status: row.status }) },
                     { label: 'View activity', onClick: (row) => setActivityRow(row) },
-                    { label: 'View details',  onClick: () => {} },
+                    { label: 'View details',  onClick: () => {}, icon: 'open_in_new' },
                   ]}
                 />
               </div>
