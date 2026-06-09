@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Chip, DataTable, FormDrawer, Icon, QuickSendModal, Tabs, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column } from '../components'
+import { Chip, DataTable, FilterPanel, FormDrawer, Icon, QuickSendModal, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField } from '../components'
 
 type WaitlistStatus = 'Waitlisted' | 'Slot offered' | 'Slot filled'
 type OutreachChannel = 'chat' | 'call' | 'text'
@@ -128,6 +128,30 @@ const OFFER_SLOT_FIELDS = [
   { key: 'apptType', label: 'Appointment type',  type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select appointment type' },
   { key: 'date',     label: 'Date',              type: 'select' as const, options: ['Today', 'Tomorrow', 'This week', 'Next week'], placeholder: 'Pick a date' },
   { key: 'time',     label: 'Time',              type: 'select' as const, options: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM'], placeholder: 'Pick a time' },
+  {
+    key: 'template',
+    label: 'Select template',
+    type: 'template-picker' as const,
+    templateOptions: [
+      {
+        label: 'Slot offer SMS',
+        body: 'Hi [Contact first name], a slot has opened up at [Business Name]. Reply YES to confirm your appointment or call us to schedule. Text STOP to unsubscribe.',
+      },
+      {
+        label: 'Appointment reminder',
+        body: 'Hi [Contact first name], this is a reminder of your upcoming appointment at [Business Name]. Please reply CONFIRM to confirm or call us to reschedule.',
+      },
+      {
+        label: 'Follow-up SMS',
+        body: 'Hi [Contact first name], thanks for visiting [Business Name]. We wanted to follow up and see how you are doing. Please let us know if you need anything.',
+        hasAttachment: true,
+      },
+      {
+        label: 'Cancellation notice',
+        body: 'Hi [Contact first name], your appointment at [Business Name] has been cancelled. Please call us or reply to this message to reschedule at your convenience.',
+      },
+    ],
+  },
 ]
 
 const ADD_EXISTING_FIELDS = [
@@ -149,6 +173,23 @@ const ADD_NEW_FIELDS = [
   { key: 'priority', label: 'Priority',         type: 'select' as const, options: ['High', 'Medium', 'Low'], placeholder: 'Select' },
 ]
 
+const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
+
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'groups',              label: 'Groups',              options: opts('Group A', 'Group B', 'Group C') },
+  { id: 'location',            label: 'Location',            options: opts('Main Campus', 'North Clinic', 'South Clinic', 'East Branch') },
+  { id: 'city',                label: 'City',                options: opts('Austin', 'Dallas', 'Houston', 'San Antonio') },
+  { id: 'state',               label: 'State',               options: opts('Texas', 'California', 'Florida', 'New York') },
+  { id: 'social-manager',      label: 'Social manager',      options: opts('Alice', 'Bob', 'Carol', 'David') },
+  { id: 'region-manager',      label: 'Region manager',      options: opts('Region 1', 'Region 2', 'Region 3') },
+  { id: 'content-manager',     label: 'Content manager',     options: opts('Manager A', 'Manager B', 'Manager C') },
+  { id: 'conversation-status', label: 'Conversation status', options: opts('Open', 'Closed', 'Pending', 'Resolved') },
+  { id: 'provider',            label: 'Provider',            options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
+  { id: 'appointment-type',    label: 'Appointment type',    options: opts('Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care') },
+  { id: 'priority',            label: 'Priority',            options: opts('High', 'Medium', 'Low') },
+  { id: 'outreach-channel',    label: 'Outreach channel',    options: opts('Chat', 'Call', 'Text') },
+]
+
 const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
 const parseDays = (s: string) => parseInt(s) || 0
 
@@ -159,6 +200,7 @@ export function ReviewWaitlistScreen() {
   const [addMode, setAddMode] = useState<'existing' | 'new' | null>(null)
   const [quickSendRow, setQuickSendRow] = useState<WaitlistRow | null>(null)
   const [activityRow, setActivityRow] = useState<WaitlistRow | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
   const [toastVisible, setToastVisible] = useState(false)
 
   const counts = {
@@ -209,7 +251,8 @@ export function ReviewWaitlistScreen() {
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex flex-1 flex-col overflow-auto">
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-auto">
         {/* Page header */}
         <div className="flex items-center justify-between px-2xl py-xl">
           <h1 className="text-h3 text-text-primary">Review waitlist</h1>
@@ -221,7 +264,11 @@ export function ReviewWaitlistScreen() {
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="view_column" size={20} />
             </button>
-            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+            <button
+              type="button"
+              onClick={() => setFilterOpen((o) => !o)}
+              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+            >
               <Icon name="filter_list" size={20} />
             </button>
           </div>
@@ -229,7 +276,27 @@ export function ReviewWaitlistScreen() {
 
         {/* Tabs */}
         <div className="px-2xl">
-          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+          <div className="flex">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-xs border-b-2 px-md py-sm text-body transition-colors -mb-px ${
+                  activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                {tab.label}
+                <span className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-xs text-small ${
+                  activeTab === tab.id ? 'bg-primary text-white' : 'bg-surface-selected text-text-secondary'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Table */}
@@ -251,6 +318,14 @@ export function ReviewWaitlistScreen() {
             ]}
           />
         </div>
+        </div>
+
+        <FilterPanel
+          open={filterOpen}
+          fields={FILTER_FIELDS}
+          onClose={() => setFilterOpen(false)}
+          onAdvancedFilters={() => {}}
+        />
       </div>
 
       <FormDrawer
@@ -259,7 +334,7 @@ export function ReviewWaitlistScreen() {
         fields={OFFER_SLOT_FIELDS}
         submitLabel="Save"
         requiredKeys={['apptType', 'date', 'time']}
-        initialValues={{ provider: 'Dr. Smith' }}
+        initialValues={{ provider: 'Dr. Smith', template: 'Slot offer SMS' }}
         onClose={() => setOfferSlotFor(null)}
         onSubmit={handleOfferSlot}
       />

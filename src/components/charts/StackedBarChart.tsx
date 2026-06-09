@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { ChartTooltip } from './ChartTooltip'
 import { chartColors } from './chartColors'
 
 export interface BarSeries {
@@ -55,6 +56,51 @@ function kFormat(val: number | string): string {
   return String(n)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function StackedBarTooltip({
+  active,
+  payload,
+  label,
+  series,
+  data,
+  xKey,
+  grouped,
+}: {
+  active?: boolean
+  payload?: any[]
+  label?: string
+  series: BarSeries[]
+  data: Array<Record<string, string | number>>
+  xKey: string
+  grouped: boolean
+}) {
+  if (!active || !payload?.length) return null
+
+  const row = data.find((d) => String(d[xKey]) === String(label))
+  if (!row) return null
+
+  const hoveredKey = String(payload[0]?.dataKey ?? '')
+  const accentColor =
+    series.find((s) => s.key === hoveredKey)?.color ??
+    payload[0]?.color ??
+    series[0].color
+
+  const items = series.map((s) => ({
+    color: s.color,
+    label: s.label,
+    value: Number(row[s.key] ?? 0),
+  }))
+
+  return (
+    <ChartTooltip
+      label={label}
+      items={items}
+      accentColor={accentColor}
+      showSplit={!grouped}
+    />
+  )
+}
+
 export function StackedBarChart({ data, series, xKey, height = 300, grouped = false, xAxisAngle, wrapXLabels, showBarLabels, hideLegend }: StackedBarChartProps) {
   const xTick = xAxisAngle
     ? { ...axisTick, angle: xAxisAngle, textAnchor: 'end' as const, dy: 4 }
@@ -77,9 +123,15 @@ export function StackedBarChart({ data, series, xKey, height = 300, grouped = fa
         }
         <Tooltip
           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-          contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }}
-          labelStyle={{ color: '#212121' }}
-          itemStyle={{ color: '#555555' }}
+          content={(props) => (
+            <StackedBarTooltip
+              {...props}
+              series={series}
+              data={data}
+              xKey={xKey}
+              grouped={!!grouped}
+            />
+          )}
         />
         {!hideLegend && (
           <Legend

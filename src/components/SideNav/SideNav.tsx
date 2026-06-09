@@ -75,7 +75,7 @@ export function SideNav({ title, sections, activeId, onSelect }: SideNavProps) {
 
   return (
     <aside className="flex h-full w-[222px] flex-col border-r border-border bg-surface-l2">
-      <div className="flex h-[52px] shrink-0 flex-col justify-center px-lg">
+      <div className="flex h-[52px] shrink-0 flex-col justify-center px-2xl">
         <h1 className="text-h3 text-text-primary">{title}</h1>
       </div>
       <nav className="flex flex-1 flex-col gap-xs overflow-y-auto px-lg py-sm">

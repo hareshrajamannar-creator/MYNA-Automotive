@@ -39,6 +39,8 @@ export interface DataTableProps<T = Record<string, unknown>> {
   onRowClick?: (row: T) => void
   /** Primary CTA shown on row hover (page-specific). */
   rowAction?: RowAction<T>
+  /** Multiple action buttons shown on row hover. When used, each gets its own tooltip. */
+  rowActions?: RowAction<T>[]
   /** Items in the three-dots "more" menu shown on row hover. */
   rowMenuItems?: RowMenuItem<T>[]
   /** Hide the horizontal scrollbar until the user hovers over the table. */
