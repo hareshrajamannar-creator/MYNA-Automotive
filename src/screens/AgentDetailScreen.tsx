@@ -33,11 +33,11 @@ interface AgentInstance {
   aht: string
   escalation: string
   locations: string
-  remindersSent?: string
-  responseRate?: string
-  avgResponseTime?: string
-  noshowRate?: string
-  [key: string]: string | undefined
+  remindersSent: string
+  responseRate: string
+  avgResponseTime: string
+  noshowRate: string
+  [key: string]: string
 }
 
 const TABS: Tab[] = [
@@ -51,42 +51,12 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
   Draft:   'neutral',
 }
 
-interface RegionRow {
-  region: string
-  status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
-  locations: string
-  remindersSent?: string
-  responseRate?: string
-  avgResponseTime?: string
-  noshowRate?: string
-}
-
-const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
-  'Frontdesk agent': [
-    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '90%', aht: '2m 05s', escalation: '7%',  locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '88%', aht: '2m 20s', escalation: '9%',  locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '86%', aht: '2m 38s', escalation: '10%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '83%', aht: '3m 10s', escalation: '13%', locations: '140' },
-  ],
-  'Reminder agent': [
-    { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
-    { region: 'East region',  status: 'Running', interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212', remindersSent: '820',  responseRate: '89%', avgResponseTime: '2 days', noshowRate: '13%' },
-    { region: 'South region', status: 'Paused',  interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180', remindersSent: '530',  responseRate: '85%', avgResponseTime: '3 days', noshowRate: '14%' },
-    { region: 'West region',  status: 'Draft',   interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140', remindersSent: '398',  responseRate: '82%', avgResponseTime: '3 days', noshowRate: '16%' },
-  ],
-  'Outreach agent': [
-    { region: 'North region', status: 'Running', interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
-  ],
-}
-
-const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Frontdesk agent']
+const REGIONS = [
+  { region: 'North region', status: 'Running', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%',  locations: '358', remindersSent: '102', responseRate: '15%', avgResponseTime: '20m', noshowRate: '11%' },
+  { region: 'East Region',  status: 'Running', interactions: '98',  fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212', remindersSent: '98',  responseRate: '9%',  avgResponseTime: '5m',  noshowRate: '11%' },
+  { region: 'South Region', status: 'Paused',  interactions: '33',  fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180', remindersSent: '53',  responseRate: '9%',  avgResponseTime: '10m', noshowRate: '11%' },
+  { region: 'West Region',  status: 'Draft',   interactions: '13',  fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140', remindersSent: '35',  responseRate: '8%',  avgResponseTime: '2m',  noshowRate: '11%' },
+]
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
@@ -101,11 +71,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Frontdesk agent': [
-      // Aggregate of 4 regions: 8,200 + 5,600 + 2,900 + 1,720 = 18,420
       { id: 'interactions', value: '18,420', label: 'Interactions handled', info: true },
-      { id: 'fcr', value: '88%', label: 'First contact resolution', info: true },
-      { id: 'aht', value: '2m 21s', label: 'Average handle time', info: true },
-      { id: 'escalation', value: '9%', label: 'Escalation rate', info: true },
+      { id: 'fcr', value: '87%', label: 'First contact resolution', info: true },
+      { id: 'aht', value: '1m 42s', label: 'Average handle time', info: true },
+      { id: 'escalation', value: '8%', label: 'Escalation rate', info: true },
     ],
     'Reminder agent': [
       { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
@@ -114,7 +83,6 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
     ],
     'Outreach agent': [
-      // Aggregate: 920 + 610 + 360 + 213 = 2,103 leads
       { id: 'leads', value: '2,103', label: 'Leads contacted' },
       { id: 'response', value: '38%', label: 'Response rate' },
       { id: 'appointments', value: '641', label: 'Appointments scheduled' },
@@ -122,12 +90,16 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     ],
   }
 
-  const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
+  const DEFAULT_METRICS: Metric[] = [
+    { id: 'interactions', value: '2,850', label: 'Interactions handled', info: true },
+    { id: 'fcr', value: '92%', label: 'First contact resolution rate', info: true },
+    { id: 'aht', value: '2m 34s', label: 'Average handle time', info: true },
+    { id: 'escalation', value: '11%', label: 'Escalation rate', info: true },
+  ]
 
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
-  const regions = REGIONS_BY_AGENT[agentName] ?? DEFAULT_REGIONS
-  const data: AgentInstance[] = regions.map((r) => ({
+  const data: AgentInstance[] = REGIONS.map((r) => ({
     name: `${agentName} - ${r.region}`,
     status: r.status,
     interactions: r.interactions,
@@ -187,7 +159,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
 
   const libraryCards = [
     {
-      title: 'Routing and Triage',
+      title: `${agentName} routing and triage`,
       description:
         'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
     },
