@@ -149,6 +149,7 @@ If a component exists here, import it — do not recreate it.
 | CustomizeColumnsDrawer | components/CustomizeColumnsDrawer/CustomizeColumnsDrawer.tsx | open, options[] (key,label,locked?), visibleKeys[], onClose, onSave, onRestoreDefault |
 | FilterPanel | components/FilterPanel/FilterPanel.tsx | open, fields[] (id,label,options?,multi?), onClose?, onSaveView?, onAdvancedFilters? — 280px right push-panel; opens SelectMenu per field |
 | SelectMenu | components/SelectMenu/SelectMenu.tsx | options[] (value,label), value[], multi?, searchable?, onChange, onApply? — single/multi-select dropdown menu (no redundant field label inside) |
+| StatusFilterDropdown | components/StatusFilterDropdown/StatusFilterDropdown.tsx | value[] (status ids), onChange, onApply — 256px calendar status filter panel (checkboxes + status icons + Apply footer); use with fixed anchor positioning |
 | ChartCard | components/charts/ChartCard.tsx | title, toolbar?, showActions?, children — titled card shell for charts |
 | SummaryStats | components/charts/SummaryStats.tsx | title?, stats[] ({id,value,label,delta?,trend?}) — KPI row with up/down deltas |
 | StackedBarChart | components/charts/StackedBarChart.tsx | data, series[] ({key,label,color}), xKey, height? — Recharts stacked bars |

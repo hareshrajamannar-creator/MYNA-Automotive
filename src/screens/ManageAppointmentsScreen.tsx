@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
+  ALL_STATUS_IDS,
   Chip,
   CustomizeColumnsDrawer,
   DataTable,
@@ -8,9 +9,11 @@ import {
   Icon,
   MessageDrawer,
   QuickSendModal,
+  StatusFilterDropdown,
   Toast,
   ViewActivityDrawer,
   WeekCalendar,
+  DayCalendar,
   Tabs,
   TopNav,
   type AppointmentTimescale,
@@ -104,10 +107,18 @@ const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
 const FILTER_FIELDS: FilterField[] = [
-  { id: 'provider',          label: 'Provider',          options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
-  { id: 'appointment-type',  label: 'Appointment type',  options: opts('Procedure', 'New Consult', 'Follow Up', 'Annual Physical', 'Urgent Care') },
-  { id: 'insurance-status',  label: 'Insurance status',  options: opts('Verified', 'In Progress', 'Denied', 'Pending') },
-  { id: 'appointment-status',label: 'Appointment status',options: opts('Unconfirmed', 'Cancellations', 'No-shows') },
+  { id: 'groups',               label: 'Groups',               options: opts('Group A', 'Group B', 'Group C') },
+  { id: 'location',             label: 'Location',             options: opts('Main Campus', 'North Clinic', 'South Clinic', 'East Branch') },
+  { id: 'city',                 label: 'City',                 options: opts('Austin', 'Dallas', 'Houston', 'San Antonio') },
+  { id: 'state',                label: 'State',                options: opts('Texas', 'California', 'Florida', 'New York') },
+  { id: 'social-manager',       label: 'Social manager',       options: opts('Alice', 'Bob', 'Carol', 'David') },
+  { id: 'region-manager',       label: 'Region manager',       options: opts('Region 1', 'Region 2', 'Region 3') },
+  { id: 'content-manager',      label: 'Content manager',      options: opts('Manager A', 'Manager B', 'Manager C') },
+  { id: 'conversation-status',  label: 'Conversation status',  options: opts('Open', 'Closed', 'Pending', 'Resolved') },
+  { id: 'provider',             label: 'Provider',             options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
+  { id: 'appointment-type',     label: 'Appointment type',     options: opts('Procedure', 'New Consult', 'Follow Up', 'Annual Physical', 'Urgent Care') },
+  { id: 'insurance-status',     label: 'Insurance status',     options: opts('Verified', 'In Progress', 'Denied', 'Pending') },
+  { id: 'appointment-status',   label: 'Appointment status',   options: opts('Unconfirmed', 'Cancellations', 'No-shows') },
 ]
 
 const BASE_DATE = new Date(2026, 4, 25)
@@ -121,6 +132,10 @@ export function ManageAppointmentsScreen() {
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+  const [statusAnchor, setStatusAnchor] = useState<{ top: number; left: number } | null>(null)
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(ALL_STATUS_IDS)
+  const [appliedStatuses, setAppliedStatuses] = useState<string[]>(ALL_STATUS_IDS)
   const [messagingRow, setMessagingRow] = useState<Appointment | null>(null)
   const [quickSendRow, setQuickSendRow] = useState<Appointment | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
@@ -178,7 +193,20 @@ export function ManageAppointmentsScreen() {
                 <>
                   <button
                     type="button"
-                    className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2"
+                    onClick={(e) => {
+                      if (statusDropdownOpen) {
+                        setStatusDropdownOpen(false)
+                        setStatusAnchor(null)
+                        return
+                      }
+                      const r = e.currentTarget.getBoundingClientRect()
+                      setStatusAnchor({ top: r.bottom + 4, left: r.left })
+                      setSelectedStatuses(appliedStatuses)
+                      setStatusDropdownOpen(true)
+                    }}
+                    className={`flex h-9 items-center gap-sm rounded-sm border bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2 ${
+                      statusDropdownOpen ? 'border-primary' : 'border-border-selected'
+                    }`}
                   >
                     Status
                     <Icon name="expand_more" size={20} className="text-text-icon" />
@@ -253,7 +281,11 @@ export function ManageAppointmentsScreen() {
           {view === 'calendar' ? (
             <div className="flex flex-1 overflow-hidden px-2xl py-lg">
               <div className="flex flex-1 flex-col overflow-hidden rounded-sm border border-border">
-                <WeekCalendar weekStart={date} />
+                {timescale === 'day' ? (
+                  <DayCalendar day={date} />
+                ) : (
+                  <WeekCalendar weekStart={date} />
+                )}
               </div>
             </div>
           ) : (
@@ -287,6 +319,7 @@ export function ManageAppointmentsScreen() {
           open={filterOpen}
           fields={FILTER_FIELDS}
           onClose={() => setFilterOpen(false)}
+          onAdvancedFilters={() => {}}
         />
       </div>
 
@@ -331,6 +364,32 @@ export function ManageAppointmentsScreen() {
         visible={toastVisible}
         onClose={() => setToastVisible(false)}
       />
+
+      {statusDropdownOpen && statusAnchor && (
+        <>
+          <div
+            className="fixed inset-0 z-[105]"
+            onClick={() => {
+              setStatusDropdownOpen(false)
+              setStatusAnchor(null)
+            }}
+          />
+          <div
+            className="fixed z-[110]"
+            style={{ top: statusAnchor.top, left: statusAnchor.left }}
+          >
+            <StatusFilterDropdown
+              value={selectedStatuses}
+              onChange={setSelectedStatuses}
+              onApply={() => {
+                setAppliedStatuses(selectedStatuses)
+                setStatusDropdownOpen(false)
+                setStatusAnchor(null)
+              }}
+            />
+          </div>
+        </>
+      )}
     </div>
   )
 }

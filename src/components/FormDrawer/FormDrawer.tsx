@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Icon } from '../Icon/Icon'
 import { BackArrowIcon } from '../../assets/BackArrowIcon'
 import { SelectMenu } from '../SelectMenu/SelectMenu'
-import { FormDrawerProps } from './FormDrawer.types'
+import { FormDrawerProps, TemplateOption } from './FormDrawer.types'
 
 export function FormDrawer({
   open,
@@ -18,6 +18,7 @@ export function FormDrawer({
   const [values, setValues] = useState<Record<string, string>>({})
   const [openField, setOpenField] = useState<string | null>(null)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [templateSearch, setTemplateSearch] = useState('')
 
   useEffect(() => {
     if (open) {
@@ -32,14 +33,18 @@ export function FormDrawer({
   function openMenu(key: string, e: React.MouseEvent<HTMLButtonElement>) {
     if (openField === key) {
       setOpenField(null)
+      setTemplateSearch('')
       return
     }
+    setTemplateSearch('')
     const r = e.currentTarget.getBoundingClientRect()
     setAnchor({ top: r.bottom + 4, left: r.left, width: r.width })
     setOpenField(key)
   }
 
-  const activeField = fields.find((f) => f.key === openField && f.type === 'select')
+  const activeField = fields.find((f) => f.key === openField && (f.type === 'select' || f.type === 'template-picker'))
+  const activeTemplateField = activeField?.type === 'template-picker' ? activeField : null
+  const activeSelectField = activeField?.type === 'select' ? activeField : null
 
   return (
     <div className={`fixed inset-0 z-[100] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
@@ -120,6 +125,7 @@ export function FormDrawer({
                     <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
                   </button>
                 )}
+
               </div>
             )
           })}
@@ -127,19 +133,84 @@ export function FormDrawer({
       </aside>
 
       {/* Select menu */}
-      {activeField && anchor && (
+      {activeSelectField && anchor && (
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setOpenField(null)} />
           <div className="fixed z-[110]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
             <SelectMenu
-              options={(activeField.options ?? []).map((o) => ({ value: o, label: o }))}
-              value={values[activeField.key] ? [values[activeField.key]] : []}
-              searchable={(activeField.options ?? []).length > 6}
+              options={(activeSelectField.options ?? []).map((o) => ({ value: o, label: o }))}
+              value={values[activeSelectField.key] ? [values[activeSelectField.key]] : []}
+              searchable={(activeSelectField.options ?? []).length > 6}
               onChange={(val) => {
-                setValues((v) => ({ ...v, [activeField.key]: val[0] ?? '' }))
+                setValues((v) => ({ ...v, [activeSelectField.key]: val[0] ?? '' }))
                 setOpenField(null)
               }}
             />
+          </div>
+        </>
+      )}
+
+      {/* Template picker dropdown */}
+      {activeTemplateField && anchor && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => { setOpenField(null); setTemplateSearch('') }} />
+          <div
+            className="fixed z-[110] flex flex-col overflow-hidden rounded-sm bg-surface shadow-dropdown"
+            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+          >
+            {/* Search bar */}
+            <div className="shrink-0 p-sm">
+              <div className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
+                <Icon name="search" size={20} className="text-text-icon" />
+                <input
+                  autoFocus
+                  value={templateSearch}
+                  onChange={(e) => setTemplateSearch(e.target.value)}
+                  placeholder="Search templates"
+                  className="min-w-0 flex-1 bg-transparent text-body text-text-primary outline-none placeholder:text-text-tertiary"
+                />
+              </div>
+            </div>
+            <div className="h-px bg-border" />
+
+            {/* Template list — 3 rows visible, scroll for more */}
+            <div className="overflow-y-auto" style={{ maxHeight: 3 * 108 }}>
+              {(activeTemplateField.templateOptions ?? [])
+                .filter((tpl) => tpl.label.toLowerCase().includes(templateSearch.toLowerCase()) || tpl.body.toLowerCase().includes(templateSearch.toLowerCase()))
+                .map((tpl: TemplateOption, i: number, arr) => {
+                  const isSelected = values[activeTemplateField.key] === tpl.label
+                  return (
+                    <div key={tpl.label}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValues((v) => ({ ...v, [activeTemplateField.key]: tpl.label }))
+                          setOpenField(null)
+                          setTemplateSearch('')
+                        }}
+                        className={`flex w-full items-start gap-md px-md py-md text-left transition-colors hover:bg-surface-hover ${isSelected ? 'bg-surface-selected' : ''}`}
+                      >
+                        {/* Thumbnail */}
+                        <div className="flex h-[76px] w-[88px] shrink-0 flex-col overflow-hidden rounded-sm border border-border bg-surface-subtle p-xs">
+                          <p className="line-clamp-4 text-[9px] leading-[13px] text-text-secondary">{tpl.body}</p>
+                          {tpl.hasAttachment && (
+                            <Icon name="attach_file" size={12} className="mt-auto text-text-tertiary" />
+                          )}
+                        </div>
+                        {/* Meta */}
+                        <div className="flex min-w-0 flex-1 flex-col gap-xs">
+                          <span className="text-body text-text-primary">{tpl.label}</span>
+                          <span className="line-clamp-2 text-small text-text-secondary">{tpl.body}</span>
+                          {tpl.hasAttachment && (
+                            <Icon name="attach_file" size={16} className="text-text-tertiary" />
+                          )}
+                        </div>
+                      </button>
+                      {i < arr.length - 1 && <div className="h-px bg-border" />}
+                    </div>
+                  )
+                })}
+            </div>
           </div>
         </>
       )}
