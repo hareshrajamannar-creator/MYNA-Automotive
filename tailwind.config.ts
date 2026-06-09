@@ -19,6 +19,10 @@ export default {
         accent: {
           positive: '#4cae3d', // bg/accent/dark/positive
         },
+        ai: {
+          summary: '#F9F7FD', // AI summary panel background
+          'summary-border': '#B090E0', // AI summary panel border
+        },
         control: {
           border: '#9e9e9e', // unchecked checkbox border
           disabled: '#bdbdbd', // locked/disabled checkbox fill
@@ -26,6 +30,7 @@ export default {
         border: {
           DEFAULT: '#eaeaea', // borders/primary/1
           selected: '#e5e9f0', // Selected - NEW
+          'chart-btn': '#cccccc', // chart card action button stroke
         },
         text: {
           primary: '#212121', // text/onLightSurface/Primary
@@ -58,6 +63,7 @@ export default {
       },
       boxShadow: {
         dropdown: '0 4px 16px rgba(0,0,0,0.12)',
+        modal: '0 8px 40px rgba(0,0,0,0.22)',
       },
       fontFamily: {
         sans: ['Roboto', 'sans-serif'],
@@ -67,9 +73,10 @@ export default {
         small: ['12px', { lineHeight: '18px', letterSpacing: '-0.24px' }], // Small Body
         body: ['14px', { lineHeight: '20px', letterSpacing: '-0.28px' }], // Body 2
         h3: ['18px', { lineHeight: '26px', letterSpacing: '-0.36px' }], // Heading 3
-        display: ['32px', { lineHeight: '48px', letterSpacing: '0' }], // Display
+        display: ['24px', { lineHeight: '32px', letterSpacing: '0' }], // Display
       },
     },
   },
+  safelist: ['bg-ai-summary', 'border-ai-summary-border', 'ai-summary-panel'],
   plugins: [],
 } satisfies Config

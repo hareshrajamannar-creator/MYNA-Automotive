@@ -23,6 +23,26 @@ import './LHSDrawer.css';
 
 /* ─── Trigger data ─── */
 const TRIGGER_SUB_ITEMS = {
+  // Healthcare / Dental + shared
+  'Appointment-trigger': {
+    title: 'Appointment triggers',
+    items: [
+      'Appointment is booked',
+      'Appointment is confirmed',
+      'Appointment is cancelled',
+      'Appointment is missed',
+      'Appointment is completed',
+    ],
+  },
+  // Automotive + shared
+  'Contact-trigger': {
+    title: 'Contact triggers',
+    items: [
+      'Contact is added',
+      'Contact is updated',
+      'Contact is added or updated',
+    ],
+  },
   Reviews: {
     title: 'Review event',
     items: [
@@ -72,14 +92,6 @@ const TRIGGER_SUB_ITEMS = {
       'When a ticket is resolved',
     ],
   },
-  Contact: {
-    title: 'Contact event',
-    items: [
-      'When a new contact is added',
-      'When a contact is updated',
-      'When a contact is merged',
-    ],
-  },
   'External apps': {
     title: 'External app event',
     items: [
@@ -89,77 +101,59 @@ const TRIGGER_SUB_ITEMS = {
   },
 };
 
-export const TRIGGER_CARDS = [
-  { label: 'Schedule-based', icon: 'schedule', action: 'drag' },
-  { label: 'Conversation trigger', icon: 'forum', action: 'drag' },
-  { label: 'Reviews', icon: 'grade', action: 'chevron' },
-  { label: 'Inbox', icon: 'sms', action: 'chevron' },
-  { label: 'Listings', icon: 'location_on', action: 'chevron' },
-  { label: 'Social', icon: 'workspaces', action: 'chevron' },
-  { label: 'Surveys', icon: 'assignment_turned_in', action: 'chevron' },
-  { label: 'Ticketing', icon: 'shapes', action: 'chevron' },
-  { label: 'Contact', icon: 'group', action: 'chevron' },
-  { label: 'External apps', icon: 'grid_view', action: 'chevron' },
+// Automotive trigger cards (original full set)
+export const AUTOMOTIVE_TRIGGER_CARDS = [
+  { label: 'Schedule-based',      icon: 'schedule',            action: 'drag'    },
+  { label: 'Conversation trigger',icon: 'forum',               action: 'drag'    },
+  { label: 'Appointment',         icon: 'calendar_month',      action: 'chevron', subKey: 'Appointment-trigger' },
+  { label: 'Reviews',             icon: 'grade',               action: 'chevron' },
+  { label: 'Inbox',               icon: 'sms',                 action: 'chevron' },
+  { label: 'Listings',            icon: 'location_on',         action: 'chevron' },
+  { label: 'Social',              icon: 'workspaces',          action: 'chevron' },
+  { label: 'Surveys',             icon: 'assignment_turned_in',action: 'chevron' },
+  { label: 'Ticketing',           icon: 'shapes',              action: 'chevron' },
+  { label: 'Contact',             icon: 'group',               action: 'chevron', subKey: 'Contact-trigger' },
+  { label: 'External apps',       icon: 'grid_view',           action: 'chevron' },
 ];
 
+// Healthcare / Dental trigger cards
+export const HEALTHCARE_TRIGGER_CARDS = [
+  { label: 'Schedule-based',      icon: 'schedule',       action: 'drag'    },
+  { label: 'Conversation trigger',icon: 'forum',          action: 'drag'    },
+  { label: 'Appointment',         icon: 'calendar_month', action: 'chevron', subKey: 'Appointment-trigger' },
+  { label: 'Contact',             icon: 'group',          action: 'chevron', subKey: 'Contact-trigger' },
+];
+
+// Default export for backward compat (automotive)
+export const TRIGGER_CARDS = AUTOMOTIVE_TRIGGER_CARDS;
+
 /* ─── Task data ─── */
-const TASK_SUB_ITEMS = {
-  Review: {
-    title: 'Review task',
+const AUTOMOTIVE_TASK_SUB_ITEMS = {
+  Conversation: {
+    title: 'Conversation tasks',
     items: [
-      'Respond to a review',
-      'Translate a review',
-      'Categorize a review',
-      'Analyze review sentiment',
+      'Initiate voice call',
     ],
   },
-  Ticketing: {
-    title: 'Ticketing task',
+  Appointment: {
+    title: 'Appointment tasks',
     items: [
-      'Create a ticket',
-      'Update a ticket',
-      'Assign a ticket',
-      'Close a ticket',
+      'Schedule appointment',
+      'Reschedule appointment',
+      'Cancel appointment',
+      'Confirm appointment',
     ],
   },
   Contact: {
-    title: 'Contact task',
+    title: 'Contact tasks',
     items: [
-      'Create a contact',
-      'Update a contact',
-      'Tag a contact',
-    ],
-  },
-  Referral: {
-    title: 'Referral task',
-    items: [
-      'Send a referral request',
-      'Follow up on referral',
-      'Track referral status',
-    ],
-  },
-  'Surveys-task': {
-    title: 'Survey task',
-    items: [
-      'Send a survey',
-      'Follow up on survey',
-      'Analyze survey results',
-    ],
-  },
-  'Social-task': {
-    title: 'Social task',
-    items: [
-      'Content settings',
-      'Generate business post themes',
-      'Upcoming holiday events',
-      'Get top performing posts',
-      'Get competitor posts',
-      'Set publishing schedule',
-      'Set approvals',
+      'Update contact property',
+      'Add contact to list',
+      'Remove contact from list',
     ],
   },
   'External apps-task': {
-    title: 'External app task',
+    title: 'External app tasks',
     items: [
       'Send data to external app',
       'Fetch data from external app',
@@ -168,16 +162,62 @@ const TASK_SUB_ITEMS = {
   },
 };
 
-export const TASK_CARDS = [
+const HEALTHCARE_TASK_SUB_ITEMS = {
+  Conversation: {
+    title: 'Conversation tasks',
+    items: [
+      'Initiate voice call',
+    ],
+  },
+  Appointment: {
+    title: 'Appointment tasks',
+    items: [
+      'Book new appointment',
+      'Reschedule appointment',
+      'Cancel appointment',
+      'Confirm appointment',
+    ],
+  },
+  Contact: {
+    title: 'Contact tasks',
+    items: [
+      'Update contact property',
+      'Add contact to list',
+      'Remove contact from list',
+    ],
+  },
+  'External apps-task': {
+    title: 'External app tasks',
+    items: [
+      'Send data to external app',
+      'Fetch data from external app',
+      'Trigger external webhook',
+    ],
+  },
+};
+
+const READONLY_TRIGGER_SUBMENUS = new Set(['Contact-trigger', 'Appointment-trigger']);
+const READONLY_TASK_SUBMENUS = new Set(['Conversation', 'Contact', 'Appointment']);
+const PROCEDURE_COLLAPSE_LIMIT = 7;
+
+export const AUTOMOTIVE_TASK_CARDS = [
   { label: 'Custom', icon: 'dashboard_customize', action: 'drag' },
-  { label: 'Review', icon: 'grade', action: 'chevron', subKey: 'Review' },
-  { label: 'Ticketing', icon: 'confirmation_number', action: 'chevron', subKey: 'Ticketing' },
-  { label: 'Contact', icon: 'group', action: 'chevron', subKey: 'Contact' },
-  { label: 'Referral', icon: 'redeem', action: 'chevron', subKey: 'Referral' },
-  { label: 'Surveys', icon: 'task_alt', action: 'chevron', subKey: 'Surveys-task' },
-  { label: 'Social', icon: 'workspaces', action: 'chevron', subKey: 'Social-task' },
+  { label: 'Conversation', icon: 'forum', action: 'chevron', subKey: 'Conversation' },
+  { label: 'Appointment', icon: 'calendar_month', action: 'chevron', subKey: 'Appointment' },
+  { label: 'Contact', icon: 'person', action: 'chevron', subKey: 'Contact' },
   { label: 'External apps', icon: 'grid_view', action: 'chevron', subKey: 'External apps-task' },
 ];
+
+export const HEALTHCARE_TASK_CARDS = [
+  { label: 'Custom', icon: 'dashboard_customize', action: 'drag' },
+  { label: 'Conversation', icon: 'forum', action: 'chevron', subKey: 'Conversation' },
+  { label: 'Appointment', icon: 'calendar_month', action: 'chevron', subKey: 'Appointment' },
+  { label: 'Contact', icon: 'person', action: 'chevron', subKey: 'Contact' },
+  { label: 'External apps', icon: 'grid_view', action: 'chevron', subKey: 'External apps-task' },
+];
+
+// Default export for backward compat (automotive)
+export const TASK_CARDS = AUTOMOTIVE_TASK_CARDS;
 
 /* ─── Procedures — categorised with hover dropdowns (same pattern as Tasks) ─── */
 const PROCEDURE_SUB_ITEMS = {
@@ -247,6 +287,16 @@ const PROCEDURE_SUB_ITEMS = {
   },
 };
 
+/** Draggable card — opens the create-custom-procedure panel on drop. */
+export const CUSTOM_PROCEDURE_CARD = {
+  label: 'Custom',
+  icon: 'list',
+  action: 'drag',
+  nodeType: 'procedures',
+  procedureId: '__custom__',
+};
+
+// Automotive procedure cards (all 6 categories)
 export const PROCEDURE_CARDS = [
   { label: 'Inbound General', svgIcon: true, action: 'chevron', subKey: 'Inbound General' },
   { label: 'Service',         svgIcon: true, action: 'chevron', subKey: 'Service' },
@@ -256,16 +306,68 @@ export const PROCEDURE_CARDS = [
   { label: 'Outbound',        svgIcon: true, action: 'chevron', subKey: 'Outbound' },
 ];
 
+// Healthcare / Dental — Frontdesk procedures (draggable, no sub-menu)
+export const HEALTHCARE_PROCEDURE_CARDS = [
+  { label: 'Handle general inquiry',             svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle general inquiry' },
+  { label: 'Talk to human',                      svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Talk to human' },
+  { label: 'Book new appointment',               svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Book new appointment' },
+  { label: 'Reschedule appointment',             svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Reschedule appointment' },
+  { label: 'Cancel appointment',                 svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Cancel appointment' },
+  { label: 'Handle slot conflict',               svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle slot conflict' },
+  { label: 'Handle booking failure',             svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle booking failure' },
+  { label: 'Verify insurance',                   svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Verify insurance' },
+  { label: 'Appointment confirmation',           svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Appointment confirmation' },
+  { label: 'Waitlist slot confirmation',         svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Waitlist slot confirmation' },
+  { label: 'Handle emergency or urgent concern', svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle emergency or urgent concern' },
+  { label: 'Handle unclear message',             svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle unclear message' },
+];
+
+/* ─── Dynamic procedure helpers (derive from library procedures prop) ─── */
+function buildProcedureSubItems(procedures) {
+  const groups = {};
+  procedures.forEach(({ name, category }) => {
+    if (!groups[category]) groups[category] = { title: category, items: [] };
+    groups[category].items.push(name);
+  });
+  return groups;
+}
+
+function buildAutomotiveProcedureCards(procedures) {
+  const seen = new Set();
+  const cards = [];
+  procedures.forEach(({ category }) => {
+    if (!seen.has(category)) {
+      seen.add(category);
+      cards.push({ label: category, svgIcon: true, action: 'chevron', subKey: category });
+    }
+  });
+  return cards;
+}
+
+function buildHCProcedureCards(procedures) {
+  return procedures.map(({ name }) => ({
+    label: name,
+    svgIcon: true,
+    action: 'drag',
+    nodeType: 'procedures',
+    procedureId: name,
+  }));
+}
+
 /* ─── Controls data ─── */
 export const CONTROL_CARDS = [
   { label: 'Branch', icon: 'account_tree', action: 'drag', nodeType: 'branch' },
+  { label: 'Sub-agent', icon: 'smart_toy', action: 'drag', nodeType: 'subagent' },
   { label: 'Delay', icon: 'schedule', action: 'drag', nodeType: 'delay' },
   { label: 'Parallel tasks', icon: 'splitscreen_add', action: 'drag', nodeType: 'parallel' },
   { label: 'Loop', icon: 'repeat', action: 'drag', nodeType: 'loop' },
 ];
 
-/* ─── All sub-items merged (initial state) ─── */
-const INITIAL_SUB_ITEMS = { ...TRIGGER_SUB_ITEMS, ...TASK_SUB_ITEMS, ...PROCEDURE_SUB_ITEMS };
+/* ─── Trigger + task sub-items (mutable state; procedures are derived dynamically) ─── */
+function buildInitialSubItems(isHC) {
+  const taskSubItems = isHC ? HEALTHCARE_TASK_SUB_ITEMS : AUTOMOTIVE_TASK_SUB_ITEMS;
+  return { ...TRIGGER_SUB_ITEMS, ...taskSubItems };
+}
 
 /* ─── Card Row ─── */
 export function CardRow({ label, icon, svgIcon, action, isActive, onClick, onHover, cardRef, nodeType, viewOnly, procedureId }) {
@@ -325,16 +427,37 @@ export default function LHSDrawer({
   defaultTab = 'Create manually',
   defaultOpenSection = 'Trigger',
   viewOnly = false,
+  product = 'automotive',
+  procedures = null,
 }) {
+  const isHC = product === 'healthcare' || product === 'dental';
+
+  const activeTriggerCards = isHC ? HEALTHCARE_TRIGGER_CARDS : AUTOMOTIVE_TRIGGER_CARDS;
+  const activeTaskCards = isHC ? HEALTHCARE_TASK_CARDS : AUTOMOTIVE_TASK_CARDS;
+
+  // Derive procedure cards + sub-items from the live library when the prop is provided;
+  // fall back to the static hardcoded lists for backward-compat.
+  const baseProcedureCards = procedures
+    ? (isHC ? buildHCProcedureCards(procedures) : buildAutomotiveProcedureCards(procedures))
+    : (isHC ? HEALTHCARE_PROCEDURE_CARDS : PROCEDURE_CARDS);
+  const activeProcedureCards = [
+    CUSTOM_PROCEDURE_CARD,
+    ...baseProcedureCards.filter((c) => c.label !== 'Custom'),
+  ];
+
+  const procedureSubItems = procedures
+    ? buildProcedureSubItems(procedures)
+    : PROCEDURE_SUB_ITEMS;
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [openSection, setOpenSection] = useState(defaultOpenSection);
   const toggleSection = (section) =>
     setOpenSection((prev) => (prev === section ? null : section));
   const [search, setSearch] = useState('');
+  const [proceduresExpanded, setProceduresExpanded] = useState(false);
   const [expandedCard, setExpandedCard] = useState(null);
   const [expandedSection, setExpandedSection] = useState(null);
   const [dropdownTop, setDropdownTop] = useState(0);
-  const [subItems, setSubItems] = useState(INITIAL_SUB_ITEMS);
+  const [subItems, setSubItems] = useState(() => buildInitialSubItems(isHC));
   const panelRef = useRef(null);
   const cardRefs = useRef({});
 
@@ -345,16 +468,8 @@ export default function LHSDrawer({
     }));
   };
 
-  const handleCardHover = (card, section, subKey) => {
-    if (card.action !== 'chevron') {
-      // Hovering a non-chevron card closes any open dropdown
-      setExpandedCard(null);
-      setExpandedSection(null);
-      return;
-    }
-
+  const openCardDropdown = (card, section, subKey) => {
     const key = subKey || card.label;
-
     const cardEl = cardRefs.current[`${section}-${card.label}`];
     const panelEl = panelRef.current;
     if (cardEl && panelEl) {
@@ -366,39 +481,88 @@ export default function LHSDrawer({
     setExpandedSection(section);
   };
 
-  const renderCards = (cards, section, nodeType) => (
-    <div className="lhs-drawer__cards">
-      {cards.filter(
-        (c) => !search || c.label.toLowerCase().includes(search.toLowerCase())
-      ).map((card) => {
-        const subKey = card.subKey || card.label;
-        return (
-          <div key={card.label} className="lhs-drawer__card-wrapper">
-            <CardRow
-              label={card.label}
-              icon={card.icon}
-              svgIcon={card.svgIcon}
-              action={card.action}
-              nodeType={card.nodeType || nodeType}
-              isActive={expandedCard === subKey && expandedSection === section}
-              onClick={() => {}}
-              onHover={() => handleCardHover(card, section, card.subKey)}
-              cardRef={(el) => { cardRefs.current[`${section}-${card.label}`] = el; }}
-              viewOnly={viewOnly}
-              procedureId={card.procedureId}
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
+  const handleCardHover = (card, section, subKey) => {
+    if (card.action !== 'chevron') {
+      // Hovering a non-chevron card closes any open dropdown
+      setExpandedCard(null);
+      setExpandedSection(null);
+      return;
+    }
+    openCardDropdown(card, section, subKey);
+  };
 
-  const triggerContent = renderCards(TRIGGER_CARDS, 'trigger', 'trigger');
-  const tasksContent = renderCards(TASK_CARDS, 'task', 'task');
-  const proceduresContent = renderCards(PROCEDURE_CARDS, 'procedures', 'procedures');
+  const handleCardClick = (card, section, subKey) => {
+    if (card.action !== 'chevron') return;
+    const key = subKey || card.label;
+    if (expandedCard === key && expandedSection === section) {
+      closeDropdown();
+      return;
+    }
+    openCardDropdown(card, section, subKey);
+  };
+
+  const renderCardRow = (card, section, nodeType) => {
+    const subKey = card.subKey || card.label;
+    return (
+      <div key={card.label} className="lhs-drawer__card-wrapper">
+        <CardRow
+          label={card.label}
+          icon={card.icon}
+          svgIcon={card.svgIcon}
+          action={card.action}
+          nodeType={card.nodeType || nodeType}
+          isActive={expandedCard === subKey && expandedSection === section}
+          onClick={() => handleCardClick(card, section, card.subKey)}
+          onHover={() => handleCardHover(card, section, card.subKey)}
+          cardRef={(el) => { cardRefs.current[`${section}-${card.label}`] = el; }}
+          viewOnly={viewOnly}
+          procedureId={card.procedureId}
+        />
+      </div>
+    );
+  };
+
+  const renderCards = (cards, section, nodeType) => {
+    const filtered = cards.filter(
+      (c) => !search || c.label.toLowerCase().includes(search.toLowerCase()),
+    );
+
+    const isCollapsibleProcedureList =
+      section === 'procedures'
+      && filtered.length > PROCEDURE_COLLAPSE_LIMIT
+      && filtered.every((c) => c.action === 'drag');
+
+    const shouldCollapse = isCollapsibleProcedureList && !proceduresExpanded && !search;
+    const visibleCards = shouldCollapse
+      ? filtered.slice(0, PROCEDURE_COLLAPSE_LIMIT)
+      : filtered;
+    const hiddenCount = filtered.length - PROCEDURE_COLLAPSE_LIMIT;
+
+    const cardsClass = 'lhs-drawer__cards';
+
+    return (
+      <div className={cardsClass}>
+        {visibleCards.map((card) => renderCardRow(card, section, nodeType))}
+        {shouldCollapse && (
+          <button
+            type="button"
+            className="lhs-drawer__view-more"
+            onClick={() => setProceduresExpanded(true)}
+          >
+            View {hiddenCount} more
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const triggerContent = renderCards(activeTriggerCards, 'trigger', 'trigger');
+  const tasksContent = renderCards(activeTaskCards, 'task', 'task');
+  const proceduresContent = renderCards(activeProcedureCards, 'procedures', 'procedures');
   const controlsContent = renderCards(CONTROL_CARDS, 'control', 'branch');
 
-  const activeSubItems = expandedCard ? subItems[expandedCard] : null;
+  const allSubItems = { ...subItems, ...procedureSubItems };
+  const activeSubItems = expandedCard ? allSubItems[expandedCard] : null;
 
   const closeDropdown = () => {
     setExpandedCard(null);
@@ -441,7 +605,15 @@ export default function LHSDrawer({
           <div className="lhs-drawer__sections">
             <NodeType title="Trigger" content={triggerContent} isOpen={openSection === 'Trigger'} onToggle={() => toggleSection('Trigger')} />
             <NodeType title="Tasks" content={tasksContent} isOpen={openSection === 'Tasks'} onToggle={() => toggleSection('Tasks')} />
-            <NodeType title="Procedures" content={proceduresContent} isOpen={openSection === 'Procedures'} onToggle={() => toggleSection('Procedures')} />
+            <NodeType
+              title="Procedures"
+              content={proceduresContent}
+              isOpen={openSection === 'Procedures'}
+              onToggle={() => {
+                if (openSection === 'Procedures') setProceduresExpanded(false);
+                toggleSection('Procedures');
+              }}
+            />
             <NodeType title="Controls" content={controlsContent} isOpen={openSection === 'Controls'} onToggle={() => toggleSection('Controls')} />
           </div>
         </div>
@@ -470,6 +642,14 @@ export default function LHSDrawer({
             parentLabel={expandedCard}
             onItemsChange={(newItems) => handleSubItemsChange(expandedCard, newItems)}
             viewOnly={viewOnly}
+            readOnly={
+              (expandedSection === 'trigger' && READONLY_TRIGGER_SUBMENUS.has(expandedCard))
+              || (expandedSection === 'task' && READONLY_TASK_SUBMENUS.has(expandedCard))
+            }
+            dragAlwaysVisible={
+              (expandedSection === 'trigger' && READONLY_TRIGGER_SUBMENUS.has(expandedCard))
+              || (expandedSection === 'task' && READONLY_TASK_SUBMENUS.has(expandedCard))
+            }
           />
         </div>
       )}

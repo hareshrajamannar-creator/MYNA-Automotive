@@ -12,11 +12,10 @@ export default {
 };
 
 const TASK_CARDS = [
-  { label: 'Review', icon: 'grade' },
-  { label: 'Ticketing', icon: 'confirmation_number' },
-  { label: 'Contact', icon: 'group' },
-  { label: 'Referral', icon: 'redeem' },
-  { label: 'Surveys', icon: 'task_alt' },
+  { label: 'Custom', icon: 'dashboard_customize' },
+  { label: 'Conversation', icon: 'forum' },
+  { label: 'Appointment', icon: 'calendar_month' },
+  { label: 'Contact', icon: 'person' },
   { label: 'External apps', icon: 'grid_view' },
 ];
 

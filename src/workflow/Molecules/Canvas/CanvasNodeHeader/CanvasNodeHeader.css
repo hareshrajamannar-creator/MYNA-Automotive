@@ -35,12 +35,16 @@
   flex-shrink: 0;
 }
 
+.cnh__node-icon--subagent .material-symbols-outlined {
+  color: #6834b7;
+}
+
 .cnh__label {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.28px;
-  color: var(--text-h);
+  line-height: 18px;
+  letter-spacing: -0.24px;
+  color: #8f8f8f;
   flex: 1;
   min-width: 0;
 }

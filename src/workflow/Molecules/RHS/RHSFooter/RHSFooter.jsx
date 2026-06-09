@@ -23,7 +23,6 @@ export default function RHSPanelFooter({
   return (
     <div style={{
       background: '#ffffff',
-      borderTop: '1px solid #e9e9eb',
       padding: '16px 16px 24px',
       display: 'flex',
       flexDirection: 'column',

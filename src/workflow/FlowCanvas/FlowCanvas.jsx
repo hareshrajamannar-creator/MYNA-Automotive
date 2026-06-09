@@ -16,8 +16,15 @@ import CanvasNode from '../Molecules/Canvas/CanvasNode/CanvasNode';
 import ProceduresNode from '../Molecules/Canvas/ProceduresNode/ProceduresNode';
 import './FlowCanvas.css';
 import branchStyles from './BranchPath.module.css';
+import { FLOW_CONNECTOR_GAP } from '../flowLayoutConstants';
 
 /* ─── Custom Node Wrappers ─── */
+function resolveCanvasNodeState(data, isSelected) {
+  if (data.previewHighlight) return 'preview-active';
+  if (isSelected) return 'selected';
+  return 'default';
+}
+
 function StartNodeWrapper({ id, data }) {
   const isSelected = id === data.selectedNodeId;
   return (
@@ -33,7 +40,7 @@ function TriggerNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <CanvasNode nodeType="trigger" label={data.headerLabel || (data.subtype === 'Schedule-based' ? 'Schedule-based trigger' : 'Trigger')} stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
+      <CanvasNode nodeType="trigger" label={data.headerLabel || (data.subtype === 'Schedule-based' ? 'Schedule-based trigger' : 'Trigger')} stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={false} toggleEnabled={data.toggleEnabled} toggleDisabled={data.viewOnly} viewOnly={data.viewOnly} state={resolveCanvasNodeState(data, isSelected)} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -44,7 +51,18 @@ function TaskNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <CanvasNode nodeType="task" label="Task" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasAiIcon={data.hasAiIcon} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
+      <CanvasNode nodeType="task" label="Task" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasAiIcon={data.hasAiIcon} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} toggleDisabled={data.viewOnly} viewOnly={data.viewOnly} onToggleChange={data.onToggleChange} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+}
+
+function VoiceCallNodeWrapper({ id, data }) {
+  const isSelected = id === data.selectedNodeId;
+  return (
+    <div className="flow-canvas__node-center">
+      <Handle type="target" position={Position.Top} />
+      <CanvasNode nodeType="task" label="Task" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasAiIcon={data.hasAiIcon} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} toggleDisabled={data.viewOnly} viewOnly={data.viewOnly} onToggleChange={data.onToggleChange} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -55,7 +73,7 @@ function BranchNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <CanvasNode nodeType="branch" label="Branch" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} hasAddButton onAddClick={data.onAddBranch} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
+      <CanvasNode nodeType="branch" label="Branch" stepNumber={data.stepNumber} title={data.title} description={data.subtitle} titlePlaceholder={data.titlePlaceholder} descriptionPlaceholder={data.descriptionPlaceholder} hasToggle={data.hasToggle} toggleEnabled={data.toggleEnabled} toggleDisabled={data.viewOnly} viewOnly={data.viewOnly} hasAddButton onAddClick={data.onAddBranch} state={isSelected ? 'selected' : 'default'} onDelete={data.onDelete} onMoveUp={data.onMoveUp} onMoveDown={data.onMoveDown} canMoveUp={data.canMoveUp} canMoveDown={data.canMoveDown} />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -76,6 +94,7 @@ function ControlNodeWrapper({ id, data, nodeType, label }) {
         descriptionPlaceholder={data.descriptionPlaceholder}
         hasToggle={data.hasToggle}
         toggleEnabled={data.toggleEnabled}
+        toggleDisabled={data.viewOnly} viewOnly={data.viewOnly}
         state={isSelected ? 'selected' : 'default'}
         onDelete={data.onDelete}
         onMoveUp={data.onMoveUp}
@@ -98,13 +117,18 @@ function ProceduresNodeWrapper({ id, data }) {
         procedureItems={data.procedureItems || []}
         hasToggle={data.hasToggle}
         toggleEnabled={data.toggleEnabled}
-        state={isSelected ? 'selected' : 'default'}
+        toggleDisabled={data.viewOnly} viewOnly={data.viewOnly}
+        state={resolveCanvasNodeState(data, isSelected)}
         onDelete={data.onDelete}
         onMoveUp={data.onMoveUp}
         onMoveDown={data.onMoveDown}
         canMoveUp={data.canMoveUp}
         canMoveDown={data.canMoveDown}
+        onToggleChange={data.onToggleChange}
         onDropProcedure={data.onDropProcedure}
+        onSelectProcedure={data.onSelectProcedure}
+        onRemoveProcedure={data.onRemoveProcedure}
+        selectedProcedureId={data.selectedProcedureId}
       />
       <Handle type="source" position={Position.Bottom} />
     </div>
@@ -121,6 +145,10 @@ function ParallelNodeWrapper(props) {
 
 function LoopNodeWrapper(props) {
   return <ControlNodeWrapper {...props} nodeType="loop" label="Loop" />;
+}
+
+function SubAgentNodeWrapper(props) {
+  return <ControlNodeWrapper {...props} nodeType="subagent" label="Sub-agent" />;
 }
 
 function BranchPathNodeWrapper({ id, data }) {
@@ -143,6 +171,7 @@ function BranchPathNodeWrapper({ id, data }) {
     branchStyles.chip,
     data.isFallback ? branchStyles.chipFallback : '',
     isSelected ? branchStyles.chipSelected : '',
+    data.isVoiceCallBranch ? branchStyles.chipNoPointer : '',
   ].filter(Boolean).join(' ');
 
   return (
@@ -150,30 +179,32 @@ function BranchPathNodeWrapper({ id, data }) {
       <Handle type="target" position={Position.Top} />
       <div className={chipClass}>
         <span className={branchStyles.chipLabel}>{data.label}</span>
-        {!data.isFallback && (
+        {!data.isFallback && !data.isVoiceCallBranch && (
           <span className={`material-symbols-outlined ${branchStyles.chipIcon}`}>info</span>
         )}
-        <div className={branchStyles.chipMenuWrapper} ref={menuRef}>
-          <span
-            className={`material-symbols-outlined ${branchStyles.chipMenu}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!data.isFallback) setMenuOpen((m) => !m);
-            }}
-          >more_vert</span>
-          {menuOpen && !data.isFallback && (
-            <div className={branchStyles.chipDropdown}>
-              <button
-                className={branchStyles.chipDropdownItem}
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); data.onDelete?.(); }}
-              >
-                <span className="material-symbols-outlined">delete</span>
-                Delete branch
-              </button>
-            </div>
-          )}
-        </div>
+        {!data.isVoiceCallBranch && (
+          <div className={branchStyles.chipMenuWrapper} ref={menuRef}>
+            <span
+              className={`material-symbols-outlined ${branchStyles.chipMenu}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!data.isFallback) setMenuOpen((m) => !m);
+              }}
+            >more_vert</span>
+            {menuOpen && !data.isFallback && (
+              <div className={branchStyles.chipDropdown}>
+                <button
+                  className={branchStyles.chipDropdownItem}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); data.onDelete?.(); }}
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                  Delete branch
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <Handle type="source" position={Position.Bottom} />
     </div>
@@ -185,7 +216,13 @@ function EndNodeWrapper({ id, data }) {
   return (
     <div className="flow-canvas__node-center">
       <Handle type="target" position={Position.Top} />
-      <EndNode selected={isSelected} />
+      <EndNode
+        selected={isSelected}
+        viewOnly={data.viewOnly}
+        isDraggingFromLHS={data.isDraggingFromLHS}
+        onDropBeforeEnd={data.onDropBeforeEnd}
+        hideAdd={data.hideAdd}
+      />
     </div>
   );
 }
@@ -202,7 +239,7 @@ function BranchEndNodeWrapper() {
 }
 
 /* ─── Custom Edge: main connector with + button ─── */
-function AddButtonEdge({ id, sourceX, sourceY, targetX, targetY, style, data }) {
+function AddButtonEdge({ id, source, target, sourceX, sourceY, targetX, targetY, style, data }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const isDraggingFromLHS = data?.isDraggingFromLHS;
   const viewOnly = data?.viewOnly;
@@ -238,10 +275,14 @@ function AddButtonEdge({ id, sourceX, sourceY, targetX, targetY, style, data }) 
     isDragOver ? 'flow-canvas__edge-add--drop-target' : '',
   ].filter(Boolean).join(' ');
 
+  const showAddButton = !viewOnly && source !== '__start__' && target !== '__end__' && !data?.hideAddButton;
+
+  const isEndEdge = target === '__end__';
+
   return (
     <>
-      <BaseEdge id={id} path={edgePath} style={style} />
-      {!viewOnly && (
+      {!isEndEdge && <BaseEdge id={id} path={edgePath} style={style} />}
+      {showAddButton && (
         <foreignObject width={56} height={56} x={labelX - 28} y={labelY - 28}>
           <div
             className="flow-canvas__edge-add-wrapper"
@@ -271,10 +312,12 @@ const NODE_TYPES = {
   start: StartNodeWrapper,
   trigger: TriggerNodeWrapper,
   task: TaskNodeWrapper,
+  voiceCall: VoiceCallNodeWrapper,
   branch: BranchNodeWrapper,
   delay: DelayNodeWrapper,
   parallel: ParallelNodeWrapper,
   loop: LoopNodeWrapper,
+  subagent: SubAgentNodeWrapper,
   procedures: ProceduresNodeWrapper,
   branchPath: BranchPathNodeWrapper,
   branchEnd: BranchEndNodeWrapper,
@@ -301,32 +344,96 @@ function FlowCanvasInner({
   onEdit,
   selectedNodeId,
   viewOnly = false,
+  previewOpen = false,
+  previewActive = false,
 }) {
-  const { zoomTo, fitView, getNodes } = useReactFlow();
-  const [zoom, setZoom] = useState(110);
+  const { zoomTo, fitView, setCenter, setViewport, getViewport, getNodes } = useReactFlow();
+  const [zoom, setZoom] = useState(100);
   const [isDraggingFromLHS, setIsDraggingFromLHS] = useState(false);
+  const canvasRef = useRef(null);
+  const initialPositioned = useRef(false);
 
   const onDropNodeRef = useRef(onDropNode);
   useEffect(() => { onDropNodeRef.current = onDropNode; }, [onDropNode]);
+
+  const endEdgeSourceId = useMemo(
+    () => edges.find((e) => e.target === '__end__')?.source ?? null,
+    [edges],
+  );
 
   // Enrich nodes with selectedNodeId — positions come directly from buildFlow,
   // no local state needed because nodes never move on the canvas.
   const styledNodes = useMemo(
     () => nodes.map((n) => ({
       ...n,
-      data: { ...n.data, selectedNodeId },
+      data: {
+        ...n.data,
+        selectedNodeId,
+        viewOnly,
+        isDraggingFromLHS,
+        previewHighlight: previewActive && (n.type === 'trigger' || n.type === 'procedures'),
+        ...(n.id === '__end__' && !viewOnly && !n.data?.hideAddBeforeEnd
+          ? {
+              onDropBeforeEnd: (type, label, description) => {
+                onDropNodeRef.current?.({
+                  type,
+                  label,
+                  description,
+                  afterNodeId: n.data?.afterNodeId ?? endEdgeSourceId,
+                });
+              },
+            }
+          : {}),
+        ...(n.id === '__end__' ? { hideAdd: !!n.data?.hideAddBeforeEnd } : {}),
+      },
     })),
-    [nodes, selectedNodeId]
+    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, previewActive]
   );
 
-  // Fit view whenever a node is added or removed
+  // Pin start node 24px below the controls bar, horizontally centered, at zoom=1.
+  // Controls: top=8px + height≈52px → bottom≈60px → target top = 60+24 = 84px.
+  const recenterFlow = useCallback((duration = 0) => {
+    const startNode = nodes.find(n => n.type === 'start');
+    const canvas = canvasRef.current;
+    if (!startNode || !canvas) return;
+    const { width } = canvas.getBoundingClientRect();
+    setViewport({ x: width / 2, y: 84 - startNode.position.y, zoom: 1 }, { duration });
+  }, [nodes, setViewport]);
+
+  const positionToStart = useCallback(() => recenterFlow(0), [recenterFlow]);
+
+  // Run once on initial load
+  useEffect(() => {
+    if (initialPositioned.current || !nodes.length) return;
+    const timer = setTimeout(() => {
+      positionToStart();
+      initialPositioned.current = true;
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [nodes.length, positionToStart]);
+
+  // Re-pin when nodes are added/removed
   const prevNodeCountRef = useRef(nodes.length);
   useEffect(() => {
+    if (!initialPositioned.current) return;
     if (nodes.length !== prevNodeCountRef.current) {
       prevNodeCountRef.current = nodes.length;
-      setTimeout(() => fitView({ padding: 0.25, duration: 300, maxZoom: 1.1 }), 80);
+      setTimeout(() => positionToStart(), 80);
     }
-  }, [nodes.length, fitView]);
+  }, [nodes.length, positionToStart]);
+
+  // Re-center when preview panel opens/closes (canvas width changes like RHS drawer).
+  const prevPreviewOpenRef = useRef(previewOpen);
+  useEffect(() => {
+    if (!initialPositioned.current) {
+      prevPreviewOpenRef.current = previewOpen;
+      return;
+    }
+    if (prevPreviewOpenRef.current === previewOpen) return;
+    prevPreviewOpenRef.current = previewOpen;
+    const timer = setTimeout(() => recenterFlow(300), 80);
+    return () => clearTimeout(timer);
+  }, [previewOpen, recenterFlow]);
 
   // Detect LHS drag start/end (HTML5 drag API)
   useEffect(() => {
@@ -350,8 +457,20 @@ function FlowCanvasInner({
   );
 
   const handleNodeClick = useCallback(
-    (event, node) => onNodeClick?.(node),
-    [onNodeClick]
+    (event, node) => {
+      if (event.target.closest('.cnh__toggle')) return;
+      onNodeClick?.(node);
+      // Read width after React has flushed the re-render (RHS panel may open,
+      // making the canvas narrower). Using rAF gives us the post-layout width.
+      requestAnimationFrame(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const { width } = canvas.getBoundingClientRect();
+        const { y, zoom: currentZoom } = getViewport();
+        setViewport({ x: width / 2, y, zoom: currentZoom }, { duration: 300 });
+      });
+    },
+    [onNodeClick, getViewport, setViewport]
   );
 
   const handleDragOver = useCallback((event) => {
@@ -373,7 +492,7 @@ function FlowCanvasInner({
 
       // Get actual DOM positions of main-axis nodes via getBoundingClientRect.
       // This is zoom/pan independent — we compare screen pixels to screen pixels.
-      const MAIN_TYPES = ['trigger', 'task', 'branch', 'delay', 'parallel', 'loop', 'procedures'];
+      const MAIN_TYPES = ['trigger', 'task', 'voiceCall', 'branch', 'subagent', 'delay', 'parallel', 'loop', 'procedures'];
       const allNodes = getNodes();
 
       const mainNodeDoms = allNodes
@@ -443,7 +562,9 @@ function FlowCanvasInner({
 
   return (
     <div
+      ref={canvasRef}
       className={`flow-canvas${isDraggingFromLHS ? ' flow-canvas--lhs-dragging' : ''}`}
+      style={{ '--flow-connector-gap': `${FLOW_CONNECTOR_GAP}px` }}
       onDragOver={viewOnly ? undefined : handleDragOver}
       onDrop={viewOnly ? undefined : handleDrop}
     >
@@ -455,7 +576,8 @@ function FlowCanvasInner({
           onEdit={onEdit}
           zoom={zoom}
           onZoomSelect={(z) => zoomTo(z, { duration: 200 })}
-          onFitView={() => fitView({ padding: 0.25, duration: 200 })}
+          onFitView={() => { positionToStart(); }}
+          viewOnly={viewOnly}
         />
       </div>
 
@@ -467,8 +589,7 @@ function FlowCanvasInner({
         defaultEdgeOptions={defaultEdgeOptions}
         onNodeClick={handleNodeClick}
         onViewportChange={handleViewportChange}
-        fitView
-        fitViewOptions={{ padding: 0.25, maxZoom: 1.1 }}
+        defaultViewport={{ x: 0, y: 84, zoom: 1 }}
         nodeOrigin={[0.5, 0]}
         proOptions={{ hideAttribution: true }}
         nodesDraggable={false}

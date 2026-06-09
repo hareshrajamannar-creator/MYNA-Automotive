@@ -18,7 +18,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid #e5e9f0;
   flex-shrink: 0;
   background: #fff;
 }
@@ -170,10 +169,33 @@
   gap: 6px;
 }
 
+.fieldLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .fieldLabel {
   font-size: 13px;
   font-weight: 400;
   color: #212121;
+  line-height: 18px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.fieldInfoIcon {
+  font-size: 14px !important;
+  width: 14px;
+  height: 14px;
+  color: #9e9e9e;
+  line-height: 1;
+  cursor: help;
+}
+
+.fieldHelp {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
   line-height: 18px;
   font-family: 'Roboto', sans-serif;
 }
@@ -278,4 +300,236 @@
   color: #212121;
   background: transparent;
   padding: 0;
+}
+
+.variableEmptyHint {
+  font-size: 14px;
+  color: #9e9e9e;
+  font-family: 'Roboto', sans-serif;
+  line-height: 20px;
+}
+
+/* ─── Input with suffix (e.g. max call duration + minutes) ─── */
+
+.inputSuffixRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.suffixInput {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #c5cad3;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+  color: #212121;
+  background: #fff;
+  box-sizing: border-box;
+  outline: none;
+  width: 100%;
+}
+
+.suffixInputHalf {
+  width: 50%;
+  flex-shrink: 0;
+}
+
+.suffixInput:focus {
+  border-color: #1976d2;
+}
+
+.fieldSuffix {
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b7280;
+  font-family: 'Roboto', sans-serif;
+  flex-shrink: 0;
+}
+
+/* ─── Select ─── */
+
+.selectWrap {
+  position: relative;
+  width: 100%;
+}
+
+.selectInput {
+  height: 36px;
+  padding: 0 36px 0 12px;
+  border: 1px solid #c5cad3;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+  color: #212121;
+  background: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.selectInput:invalid,
+.selectInput option[value='']:checked {
+  color: #9e9e9e;
+}
+
+.selectInput:focus {
+  border-color: #1976d2;
+}
+
+.selectChevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px !important;
+  color: #6b7280;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ─── Conditional fields (calling window range) ─── */
+
+.conditionalFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.conditionalFieldsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 4px;
+  width: 100%;
+  align-items: start;
+}
+
+.conditionalFieldsRow > .fieldWrap {
+  min-width: 0;
+}
+
+.conditionalFieldsBelow {
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* ─── Checkbox row layout ─── */
+
+.checkboxRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #212121;
+  font-family: 'Roboto', sans-serif;
+  line-height: 20px;
+}
+
+/* ─── Prompt textarea with variable toolbar ─── */
+
+.promptBox {
+  border: 1px solid #c5cad3;
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.promptTextarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #212121;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.promptTextarea::placeholder {
+  color: #9e9e9e;
+}
+
+.promptToolbar {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: #fff;
+}
+
+.variableBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px 4px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #212121;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.variableBtn:hover {
+  background: #f2f4f7;
+}
+
+.variableBtnBrace {
+  font-size: 14px;
+}
+
+.variableBtnX {
+  font-size: 13px;
+}
+
+/* ─── Multi-select procedures dropdown ─── */
+
+.multiSelectMenu {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.multiSelectMenu :global(.tc-dropdown__option) {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.multiSelectCheck {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #212121;
+  flex-shrink: 0;
+}
+
+.multiSelectCheckHidden {
+  visibility: hidden;
+}
+
+.multiSelectOptionLabel {
+  flex: 1;
+  min-width: 0;
 }

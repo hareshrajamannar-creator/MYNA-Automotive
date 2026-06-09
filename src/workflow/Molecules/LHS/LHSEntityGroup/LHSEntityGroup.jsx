@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import './LHSEntityGroup.css';
 
-export default function LHSEntityGroup({ title, items = [], nodeType, parentLabel, onItemsChange, viewOnly = false }) {
+export default function LHSEntityGroup({ title, items = [], nodeType, parentLabel, onItemsChange, viewOnly = false, readOnly = false, dragAlwaysVisible = false }) {
+  const canEdit = !viewOnly && !readOnly && !!onItemsChange;
   const [editingIdx, setEditingIdx] = useState(null);
   const [editDraft, setEditDraft] = useState('');
   const [addingNew, setAddingNew] = useState(false);
@@ -60,8 +61,8 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
           <div
             key={idx}
             className={`lhs-entity-group__item${editingIdx === idx ? ' lhs-entity-group__item--editing' : ''}`}
-            draggable={!viewOnly && editingIdx !== idx}
-            onDragStart={(e) => !viewOnly && editingIdx !== idx && handleDragStart(e, item)}
+            draggable={!viewOnly && (readOnly || editingIdx !== idx)}
+            onDragStart={(e) => !viewOnly && (readOnly || editingIdx !== idx) && handleDragStart(e, item)}
           >
             {editingIdx === idx ? (
               <input
@@ -81,7 +82,7 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
 
             {!viewOnly && (
               <div className="lhs-entity-group__item-actions">
-                {editingIdx === idx ? (
+                {canEdit && editingIdx === idx ? (
                   <button
                     className="lhs-entity-group__item-btn lhs-entity-group__item-btn--delete"
                     type="button"
@@ -90,21 +91,21 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
                   >
                     <span className="material-symbols-outlined">delete</span>
                   </button>
-                ) : (
-                  <>
-                    <button
-                      className="lhs-entity-group__item-btn lhs-entity-group__item-btn--edit"
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={(e) => { e.stopPropagation(); startEdit(idx); }}
-                    >
-                      <span className="material-symbols-outlined">edit</span>
-                    </button>
-                    <span className="lhs-entity-group__item-drag material-symbols-outlined">
-                      drag_indicator
-                    </span>
-                  </>
-                )}
+                ) : canEdit ? (
+                  <button
+                    className="lhs-entity-group__item-btn lhs-entity-group__item-btn--edit"
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => { e.stopPropagation(); startEdit(idx); }}
+                  >
+                    <span className="material-symbols-outlined">edit</span>
+                  </button>
+                ) : null}
+                <span
+                  className={`lhs-entity-group__item-drag material-symbols-outlined${dragAlwaysVisible ? ' lhs-entity-group__item-drag--visible' : ''}`}
+                >
+                  drag_indicator
+                </span>
               </div>
             )}
           </div>
@@ -128,7 +129,7 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
         )}
       </div>
 
-      {!viewOnly && onItemsChange && (
+      {canEdit && (
         <button
           className="lhs-entity-group__add-btn"
           type="button"

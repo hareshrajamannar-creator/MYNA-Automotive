@@ -8,6 +8,7 @@ const BASED_ON_OPTIONS = [
   { value: 'conditions', label: 'Conditions' },
   { value: 'field', label: 'Field' },
   { value: 'percentage', label: 'Percentage' },
+  { value: 'prompts', label: 'Prompts' },
 ];
 
 function SectionLabel({ label, required }) {

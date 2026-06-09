@@ -35,10 +35,10 @@
   overflow: visible;
 }
 
-/* ─── Custom tabs ─── */
+/* ─── Custom tabs (hidden until tab switcher is enabled) ─── */
 .lhs-drawer__tabs {
+  display: none;
   width: 100%;
-  display: flex;
   gap: 8px;
   background: #fff;
 }
@@ -95,14 +95,42 @@
 /* ─── Tab content area ─── */
 .lhs-drawer__body {
   width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+  scrollbar-width: 4px;
+  scrollbar-color: #ccd5e4 transparent;
+}
+
+.lhs-drawer__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lhs-drawer__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lhs-drawer__body::-webkit-scrollbar-thumb {
+  background: #ccd5e4;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* ─── Search field (override elemental FormInput) ─── */
 .lhs-drawer__search {
   width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  padding-bottom: 4px;
 }
 
 .lhs-drawer__search .el-forminput {
@@ -203,7 +231,7 @@
 }
 
 .lhs-drawer__sections li.open .accordionBelowContent {
-  max-height: 1000px !important;
+  max-height: none !important;
   overflow: visible !important;
 }
 
@@ -225,6 +253,51 @@
   gap: 12px !important;
   width: 100% !important;
   text-align: left !important;
+}
+
+.lhs-drawer__cards--scrollable {
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+  scrollbar-width: 4px;
+  scrollbar-color: #ccd5e4 transparent;
+}
+
+.lhs-drawer__cards--scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lhs-drawer__cards--scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lhs-drawer__cards--scrollable::-webkit-scrollbar-thumb {
+  background: #ccd5e4;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.lhs-drawer__view-more {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.24px;
+  color: #1976d2;
+  font-family: 'Roboto', sans-serif;
+  text-align: left;
+  align-self: flex-start;
+}
+
+.lhs-drawer__view-more:hover {
+  color: #1565c0;
 }
 
 /* ─── Card rows ─── */

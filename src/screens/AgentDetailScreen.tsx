@@ -6,6 +6,7 @@ import {
   FilterPanel,
   Icon,
   InfoCard,
+  InfoCardListItem,
   MetricTiles,
   Tabs,
   TopNav,
@@ -21,6 +22,7 @@ import { AgentInstanceScreen } from './AgentInstanceScreen'
 interface AgentDetailScreenProps {
   agentName: string
   onEditAgent?: (agentName: string) => void
+  product?: string
 }
 
 interface AgentInstance {
@@ -40,42 +42,76 @@ const TABS: Tab[] = [
 ]
 
 const STATUS_VARIANT: Record<string, ChipVariant> = {
-  Active: 'success',
-  Training: 'warning',
-  Paused: 'neutral',
-  Inactive: 'danger',
+  Running: 'success',
+  Paused:  'warning',
+  Draft:   'neutral',
 }
 
-const REGIONS = [
-  { region: 'North region', status: 'Active', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%', locations: '358' },
-  { region: 'East region', status: 'Training', interactions: '98', fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212' },
-  { region: 'South region', status: 'Paused', interactions: '33', fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180' },
-  { region: 'West region', status: 'Inactive', interactions: '13', fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140' },
-]
+interface RegionRow {
+  region: string
+  status: string
+  interactions: string
+  fcr: string
+  aht: string
+  escalation: string
+  locations: string
+}
+
+/* Per-agent regional breakdown — numbers sum / average to match METRICS_BY_AGENT tiles */
+const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
+  'Frontdesk agent': [
+    // Total: 18,420 interactions | weighted FCR ~88% | weighted AHT ~2m 21s | weighted escalation ~9%
+    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '90%', aht: '2m 05s', escalation: '7%',  locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '88%', aht: '2m 20s', escalation: '9%',  locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '86%', aht: '2m 38s', escalation: '10%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '83%', aht: '3m 10s', escalation: '13%', locations: '140' },
+  ],
+  'Reminder agent': [
+    // Total confirmations: 3,847 | weighted reschedule ~12% | messages proportional to 11,541
+    { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140' },
+  ],
+  'Outreach agent': [
+    // Total leads: 2,103 | weighted response ~38% | conversion 641/2,103 ≈ 30% → 11% to closed
+    { region: 'North region', status: 'Running', interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
+  ],
+}
+
+const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Frontdesk agent']
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
+type LibraryView = 'grid' | 'list'
 
-export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenProps) {
+export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
+  const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Frontdesk agent': [
-      { id: 'interactions', value: '18,420', label: 'Interactions handled' },
-      { id: 'fcr', value: '87%', label: 'First contact resolution' },
-      { id: 'aht', value: '1m 42s', label: 'Average handle time' },
-      { id: 'escalation', value: '8%', label: 'Escalation rate' },
+      // Aggregate of 4 regions: 8,200 + 5,600 + 2,900 + 1,720 = 18,420
+      { id: 'interactions', value: '18,420', label: 'Interactions handled', info: true },
+      { id: 'fcr', value: '88%', label: 'First contact resolution', info: true },
+      { id: 'aht', value: '2m 21s', label: 'Average handle time', info: true },
+      { id: 'escalation', value: '9%', label: 'Escalation rate', info: true },
     ],
     'Reminder agent': [
+      // Aggregate: 1,680 + 1,120 + 640 + 407 = 3,847 confirmations
       { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
       { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
       { id: 'noshow', value: '34%', label: 'No-show reduction' },
       { id: 'messages', value: '11,541', label: 'Messages sent' },
     ],
     'Outreach agent': [
+      // Aggregate: 920 + 610 + 360 + 213 = 2,103 leads
       { id: 'leads', value: '2,103', label: 'Leads contacted' },
       { id: 'response', value: '38%', label: 'Response rate' },
       { id: 'appointments', value: '641', label: 'Appointments scheduled' },
@@ -83,16 +119,12 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
     ],
   }
 
-  const DEFAULT_METRICS: Metric[] = [
-    { id: 'interactions', value: '2,850', label: 'Interactions handled' },
-    { id: 'fcr', value: '92%', label: 'First contact resolution rate' },
-    { id: 'aht', value: '2m 34s', label: 'Average handle time' },
-    { id: 'escalation', value: '11%', label: 'Escalation rate' },
-  ]
+  const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
 
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
-  const data: AgentInstance[] = REGIONS.map((r) => ({
+  const regions = REGIONS_BY_AGENT[agentName] ?? DEFAULT_REGIONS
+  const data: AgentInstance[] = regions.map((r) => ({
     name: `${agentName} - ${r.region}`,
     status: r.status,
     interactions: r.interactions,
@@ -133,34 +165,28 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
   )
 
   const FILTER_FIELDS: FilterField[] = [
-    { id: 'status', label: 'Status', options: opts('Active', 'Training', 'Paused', 'Inactive') },
+    { id: 'status', label: 'Status', options: opts('Running', 'Paused', 'Draft') },
     { id: 'region', label: 'Region', options: opts('North region', 'East region', 'South region', 'West region') },
     { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
   ]
 
   const libraryCards = [
     {
-      title: `${agentName} routing and triage`,
+      title: 'Routing and Triage',
       description:
-        'Handles inbound calls, identifies intent, routes hot leads, and transfers to the right team with full context.',
-    },
-    {
-      title: `${agentName} for new lead intake`,
-      description:
-        'Captures contact details, qualifies budget and timeline, and guides shoppers to the right vehicle and appointment.',
-    },
-    {
-      title: `${agentName} for test-drive scheduling`,
-      description: 'Confirms vehicle availability, books a test-drive slot, and sends reminders with directions.',
-    },
-    {
-      title: `${agentName} for trade-in inquiries`,
-      description: 'Collects vehicle details, shares an instant estimate range, and books an appraisal appointment.',
+        'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
     },
   ]
 
   if (selectedInstance) {
-    return <AgentInstanceScreen instanceName={selectedInstance} onBack={() => setSelectedInstance(null)} onEditAgent={onEditAgent} />
+    return (
+      <AgentInstanceScreen
+        instanceName={selectedInstance}
+        onBack={() => setSelectedInstance(null)}
+        onEditAgent={onEditAgent}
+        product={product}
+      />
+    )
   }
 
   return (
@@ -176,11 +202,11 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
               <button type="button" aria-label="Search" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                 <Icon name="search" size={20} />
               </button>
-              <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body font-medium text-white transition-colors hover:bg-primary-hover">
-                Create agent
-              </button>
-              {activeTab === 'agents' && (
+              {activeTab === 'agents' ? (
                 <>
+                  <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                    Create agent
+                  </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                     <Icon name="view_column" size={20} />
                   </button>
@@ -188,13 +214,43 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
                     <Icon name="filter_list" size={20} />
                   </button>
                 </>
+              ) : (
+                <div className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm">
+                  <button
+                    type="button"
+                    aria-label="Grid view"
+                    onClick={() => setLibraryView('grid')}
+                    className={`flex size-6 items-center justify-center rounded-sm transition-colors ${
+                      libraryView === 'grid' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'
+                    }`}
+                  >
+                    <Icon name="grid_view" size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="List view"
+                    onClick={() => setLibraryView('list')}
+                    className={`flex size-6 items-center justify-center rounded-sm transition-colors ${
+                      libraryView === 'list' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'
+                    }`}
+                  >
+                    <Icon name="table_rows" size={18} />
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
           {/* Tabs */}
           <div className="px-2xl">
-            <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+            <Tabs
+              tabs={TABS}
+              activeTab={activeTab}
+              onChange={(tabId) => {
+                setActiveTab(tabId)
+                if (tabId === 'library') setLibraryView('grid')
+              }}
+            />
           </div>
 
           {activeTab === 'agents' ? (
@@ -207,24 +263,31 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
                   columns={columns}
                   data={data}
                   onRowClick={(row) => setSelectedInstance(row.name)}
-                  rowAction={{
-                    icon: 'edit',
-                    label: 'Edit agent',
-                    onClick: (row) => onEditAgent?.(row.name),
-                  }}
                   rowMenuItems={[
-                    { label: 'Duplicate agent', onClick: () => {} },
-                    { label: 'View activity', onClick: () => {} },
+                    { label: 'Edit', onClick: (row) => onEditAgent?.(row.name) },
+                    {
+                      label: 'Pause',
+                      onClick: () => {},
+                      visible: (row) => row.status === 'Running',
+                    },
+                    { label: 'Duplicate', onClick: () => {} },
                     { label: 'View details', onClick: (row) => setSelectedInstance(row.name) },
-                    { label: 'Pause agent', onClick: () => {} },
+                    { label: 'Reports', onClick: () => {} },
+                    { label: 'Delete', onClick: () => {}, variant: 'danger' },
                   ]}
                 />
               </div>
             </>
-          ) : (
+          ) : libraryView === 'grid' ? (
             <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-3">
               {libraryCards.map((card) => (
                 <InfoCard key={card.title} {...card} />
+              ))}
+            </div>
+          ) : (
+            <div className="px-2xl py-lg">
+              {libraryCards.map((card, i) => (
+                <InfoCardListItem key={card.title} first={i === 0} {...card} />
               ))}
             </div>
           )}

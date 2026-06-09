@@ -32,7 +32,7 @@ export function RefChip({ kind, label, onRemove, className = '' }: RefChipProps)
           <DataTypeIcon />
         )}
       </span>
-      <span className={styles.chipLabel}>{label}</span>
+      <span className={`${styles.chipLabel} ${styles.chipLabelReadOnly}`}>{label}</span>
       {onRemove && (
         <button
           type="button"

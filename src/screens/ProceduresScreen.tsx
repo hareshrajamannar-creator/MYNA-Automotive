@@ -9,17 +9,21 @@ function ProcedureBookIcon({ size = 24, className = '' }: { size?: number; class
     </svg>
   )
 }
-import { PROCEDURES, type Procedure } from '../data/procedureData'
+import { useProcedureStore } from '../data/ProcedureStoreContext'
+import { type Procedure } from '../data/procedureData'
 import { ProcedureDetailScreen } from './ProcedureDetailScreen'
 
 type ViewMode = 'grid' | 'list'
 
-export function ProceduresScreen() {
+export function ProceduresScreen({ product = 'automotive' }: { product?: string }) {
+  const { procedures } = useProcedureStore()
+  const isHC = product === 'healthcare' || product === 'dental'
+  const allProcedures = procedures.filter((p) =>
+    isHC ? p.category === 'Healthcare Frontdesk' : p.category !== 'Healthcare Frontdesk'
+  )
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState<ViewMode>('grid')
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-
   // null = list view; a Procedure = editing existing; 'new' = create flow.
   const [editing, setEditing] = useState<Procedure | 'new' | null>(null)
 
@@ -28,14 +32,15 @@ export function ProceduresScreen() {
       <ProcedureDetailScreen
         procedure={editing === 'new' ? null : editing}
         onBack={() => setEditing(null)}
+        product={product}
       />
     )
   }
 
   const q = searchQuery.trim().toLowerCase()
-  const procedures = !q
-    ? PROCEDURES
-    : PROCEDURES.filter(
+  const visibleProcedures = !q
+    ? allProcedures
+    : allProcedures.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
@@ -109,33 +114,27 @@ export function ProceduresScreen() {
 
         {/* Content */}
         <div className="px-2xl pb-2xl">
-          {procedures.length === 0 ? (
+          {visibleProcedures.length === 0 ? (
             <div className="flex h-48 items-center justify-center text-body text-text-tertiary">
               No procedures match your search.
             </div>
           ) : view === 'grid' ? (
             <div className="grid grid-cols-3 gap-lg">
-              {procedures.map((p) => (
+              {visibleProcedures.map((p) => (
                 <ProcedureCard
                   key={p.id}
                   procedure={p}
-                  menuOpen={openMenuId === p.id}
-                  onToggleMenu={() => setOpenMenuId((id) => (id === p.id ? null : p.id))}
-                  onCloseMenu={() => setOpenMenuId(null)}
                   onOpen={() => setEditing(p)}
                 />
               ))}
             </div>
           ) : (
             <div className="overflow-hidden rounded-md border border-border">
-              {procedures.map((p, i) => (
+              {visibleProcedures.map((p, i) => (
                 <ProcedureRow
                   key={p.id}
                   procedure={p}
                   first={i === 0}
-                  menuOpen={openMenuId === p.id}
-                  onToggleMenu={() => setOpenMenuId((id) => (id === p.id ? null : p.id))}
-                  onCloseMenu={() => setOpenMenuId(null)}
                   onOpen={() => setEditing(p)}
                 />
               ))}
@@ -147,78 +146,20 @@ export function ProceduresScreen() {
   )
 }
 
-// ── Shared 3-dot menu (matches DataTable row menu) ──────────────
-interface RowMenuProps {
-  open: boolean
-  onToggle: () => void
-  onClose: () => void
-  onEdit: () => void
-}
-
-function RowMenu({ open, onToggle, onClose, onEdit }: RowMenuProps) {
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        aria-label="More actions"
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggle()
-        }}
-        className="flex size-7 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-hover"
-      >
-        <Icon name="more_vert" size={20} />
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-[105]" onClick={(e) => { e.stopPropagation(); onClose() }} />
-          <div className="absolute right-0 top-8 z-[110] min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-            {[
-              { label: 'Edit', onClick: onEdit },
-              { label: 'Duplicate', onClick: onClose },
-            ].map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={(e) => { e.stopPropagation(); item.onClick() }}
-                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
-              >
-                {item.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onClose() }}
-              className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover"
-            >
-              Delete
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
 // ── Grid card ───────────────────────────────────────────────────
 interface CardProps {
   procedure: Procedure
-  menuOpen: boolean
-  onToggleMenu: () => void
-  onCloseMenu: () => void
   onOpen: () => void
 }
 
-function ProcedureCard({ procedure, menuOpen, onToggleMenu, onCloseMenu, onOpen }: CardProps) {
+function ProcedureCard({ procedure, onOpen }: CardProps) {
   return (
     <div
       onClick={onOpen}
-      className="group flex min-h-[160px] cursor-pointer flex-col rounded-md border border-border bg-surface p-xl transition-colors hover:border-border-selected hover:bg-surface-l2"
+      className="group flex min-h-[160px] cursor-pointer flex-col rounded-md border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected"
     >
-      <div className="mb-md flex items-start justify-between">
+      <div className="mb-md">
         <ProcedureBookIcon size={22} className="text-text-secondary" />
-        <RowMenu open={menuOpen} onToggle={onToggleMenu} onClose={onCloseMenu} onEdit={onOpen} />
       </div>
 
       <h3 className="mb-xs text-body text-text-primary">{procedure.name}</h3>
@@ -237,7 +178,7 @@ interface RowProps extends CardProps {
   first: boolean
 }
 
-function ProcedureRow({ procedure, first, menuOpen, onToggleMenu, onCloseMenu, onOpen }: RowProps) {
+function ProcedureRow({ procedure, first, onOpen }: RowProps) {
   return (
     <div
       onClick={onOpen}
@@ -254,7 +195,6 @@ function ProcedureRow({ procedure, first, menuOpen, onToggleMenu, onCloseMenu, o
         <Icon name="schedule" size={14} />
         {procedure.lastEdited}
       </div>
-      <RowMenu open={menuOpen} onToggle={onToggleMenu} onClose={onCloseMenu} onEdit={onOpen} />
     </div>
   )
 }

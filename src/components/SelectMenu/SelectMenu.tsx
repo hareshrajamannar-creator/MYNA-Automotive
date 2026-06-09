@@ -15,7 +15,6 @@ function CheckBox({ checked }: { checked: boolean }) {
 }
 
 export function SelectMenu({
-  title,
   options,
   value,
   multi = false,
@@ -47,10 +46,6 @@ export function SelectMenu({
   return (
     <div className="flex max-h-[360px] flex-col overflow-hidden rounded-sm bg-surface shadow-dropdown">
       <div className="flex flex-1 flex-col gap-xs overflow-hidden pt-md">
-        <div className="py-sm pl-lg pr-2xl">
-          <p className="text-small font-medium text-text-tertiary">{title}</p>
-        </div>
-
         <div className="flex flex-1 flex-col gap-xs overflow-y-auto px-lg pb-xs">
           {searchable && (
             <div className="flex h-9 shrink-0 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">

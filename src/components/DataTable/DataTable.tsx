@@ -12,6 +12,8 @@ export function DataTable<T extends Record<string, unknown>>({
   onRowClick,
   rowAction,
   rowMenuItems,
+  scrollOnHover = false,
+  rowClassName,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -81,7 +83,7 @@ export function DataTable<T extends Record<string, unknown>>({
   const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
 
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
@@ -141,7 +143,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={() => onRowClick?.(row)}
               className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
                 onRowClick ? 'cursor-pointer' : ''
-              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''}`}
+              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''} ${rowClassName ? rowClassName(row, i) : ''}`}
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
@@ -158,19 +160,25 @@ export function DataTable<T extends Record<string, unknown>>({
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
                       <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
-                        {rowAction && (
-                          <button
-                            type="button"
-                            title={rowAction.label}
-                            aria-label={rowAction.label}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              rowAction.onClick(row)
-                            }}
-                            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                          >
-                            {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
-                          </button>
+                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (
+                          <div className="group/tip relative">
+                            <button
+                              type="button"
+                              aria-label={typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                rowAction.onClick(row)
+                              }}
+                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                            >
+                              {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
+                            </button>
+                            {/* Styled tooltip */}
+                            <span className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1a1a2e] px-sm py-xs text-small text-white opacity-0 shadow-dropdown transition-opacity group-hover/tip:opacity-100">
+                              {typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
+                              <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1a1a2e]" />
+                            </span>
+                          </div>
                         )}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button
@@ -205,22 +213,29 @@ export function DataTable<T extends Record<string, unknown>>({
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setMenu(null)} />
           <div
-            className="fixed z-[110] min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+            className="fixed z-[110] min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
             style={{ top: menu.top, left: menu.left }}
           >
-            {rowMenuItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => {
-                  item.onClick(sortedData[menu.rowIndex])
-                  setMenu(null)
-                }}
-                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
-              >
-                {item.label}
-              </button>
-            ))}
+            {rowMenuItems
+              .filter((item) => {
+                const row = sortedData[menu.rowIndex]
+                return item.visible ? item.visible(row) : true
+              })
+              .map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    item.onClick(sortedData[menu.rowIndex])
+                    setMenu(null)
+                  }}
+                  className={`block w-full px-md py-md text-left text-body hover:bg-surface-hover ${
+                    item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
           </div>
         </>
       )}

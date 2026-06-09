@@ -2,6 +2,56 @@
 // IDs match the display names used in the LHS drawer dropdowns so drag-and-drop
 // correctly seeds procedureIds without a separate name→id mapping step.
 
+/** Sentinel ID for workflow-only custom procedures (not yet in the library). */
+export const CUSTOM_PROCEDURE_ID = '__custom__';
+
+export function isCustomProcedureId(id) {
+  return id === CUSTOM_PROCEDURE_ID || id === 'Custom';
+}
+
+// ── Live procedure registry ───────────────────────────────────────────────
+// AgentBuilder calls setLiveProcedures() on mount so that procedures created
+// or edited in the Procedure Library are immediately visible on the canvas.
+// Keyed by BOTH id and name so drag-and-drop (which uses name as the key) and
+// node-detail lookups (which may use id) both hit the same entry.
+let _liveRegistry = {};
+
+export function setLiveProcedures(procedures) {
+  _liveRegistry = {};
+  if (!Array.isArray(procedures)) return;
+  procedures.forEach((p) => {
+    if (p.id)   _liveRegistry[p.id]   = p;
+    if (p.name) _liveRegistry[p.name] = p;
+  });
+}
+
+// Convert procedureData.ts context items to the workflow chip format.
+function liveContextToChips(context) {
+  if (!Array.isArray(context)) return [];
+  const kindMap = { context: 'variable', file: 'attachment', link: 'link' };
+  return context.map((c) => ({ value: c.label, type: kindMap[c.kind] || 'variable' }));
+}
+
+// Serialize rich ProcedureStep[] (with Bullet/Token structure) to a flat
+// numbered-step string so the RHS detail panel can display it.
+function richStepsToText(steps) {
+  return steps.map((s, i) => {
+    if (!s || typeof s !== 'object' || !s.title) return `${i + 1}. ${s}`;
+    const title = `${i + 1}. ${s.title}`;
+    if (!s.bullets || s.bullets.length === 0) return title;
+    const bullets = s.bullets
+      .map((b) => {
+        const text = (b.tokens || [])
+          .map((t) => (typeof t === 'string' ? t : `{{${t.label}}}`))
+          .join('');
+        return `• ${text.trim()}`;
+      })
+      .filter(Boolean)
+      .join('\n');
+    return bullets ? `${title}\n${bullets}` : title;
+  }).join('\n');
+}
+
 export const PROCEDURES = [
   // ── Inbound General ──────────────────────────────────────────────────────
   { id: 'Greeting & Intent Detection', name: 'Greeting & Intent Detection', category: 'Inbound General', whenToUse: 'Every inbound call/chat/text session begins.', tools: ['Intent classifier', 'Knowledge base'], steps: ['Answer with dealership-branded greeting including agent name', 'Ask how the caller can be helped today', 'Use intent classifier to detect department and purpose', 'Confirm detected intent with caller', 'Route to appropriate procedure based on intent'], escalation: 'If intent cannot be determined after 2 attempts, transfer to human.' },
@@ -48,12 +98,263 @@ export const PROCEDURES = [
   { id: 'Orphan Customer Introduction', name: 'Orphan Customer Introduction', category: 'Outbound', whenToUse: "Customer's assigned salesperson has left the dealership.", tools: ['CRM update', 'Send confirmation', 'Lead routing'], steps: ['Send introductory SMS from new assigned representative', 'Reference purchase history and relationship context', 'Offer assistance with any current vehicle needs', 'Invite for complimentary vehicle health check'], escalation: 'N/A — relationship-building outreach only.' },
   { id: 'Welcome / Onboarding', name: 'Welcome / Onboarding', category: 'Outbound', whenToUse: 'New vehicle purchase or lease completed within 7 days.', tools: ['CRM update', 'Send confirmation', 'Knowledge base'], steps: ['Send welcome SMS with key contacts and service info', 'Provide link to schedule first complimentary service', 'Share tips for vehicle technology and features', 'Introduce loyalty program if applicable'], escalation: 'N/A — informational outreach only.' },
   { id: 'Unsold Showroom Follow-Up', name: 'Unsold Showroom Follow-Up', category: 'Outbound', whenToUse: 'Customer visited showroom but did not purchase.', tools: ['CRM update', 'Inventory search', 'Send confirmation', 'Lead routing'], steps: ['Send thank-you SMS within 2 hours of visit', 'Reference specific vehicles they viewed', 'Address any stated objections from visit notes', 'Offer additional inventory options or incentives', 'Schedule follow-up call for next day'], escalation: 'If customer indicates competitor offer, alert sales manager.' },
+
+  // ── Healthcare Frontdesk ─────────────────────────────────────────────────────
+  {
+    id: 'Handle general inquiry',
+    name: 'Handle general inquiry',
+    category: 'Healthcare Frontdesk',
+    whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted, services offered, directions, telehealth availability, wait times.',
+    tools: ['knowledge_base', 'birdeye_task_creator'],
+    steps: [
+      'Query knowledge_base with the patient\'s question.',
+      'If no confident match: "That\'s a great question — let me have someone from our team get back to you. What\'s the best way to reach you?" Capture callback details via birdeye_task_creator. Skip to step 3.',
+      'Answer in 1–2 sentences. Plain language. Never invent provider, insurance, or clinical details.',
+      '"Is there anything else I can help with?" (agent_turn). Wait for the patient\'s next message.',
+      'If patient indicates they\'re done → invoke Close_session.',
+    ],
+    escalation: 'If no knowledge base match, capture callback and queue for staff follow-up.',
+  },
+  {
+    id: 'Talk to human',
+    name: 'Talk to human',
+    category: 'Healthcare Frontdesk',
+    whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
+    tools: ['escalate_to_staff'],
+    steps: [
+      '"Of course — let me connect you with one of our team members. I\'ll pass along a quick note so you won\'t have to repeat yourself." Do not try to solve the issue first. Do not ask why.',
+      'Invoke Escalate_to_staff with reason=human_requested.',
+    ],
+    escalation: 'Always honour human transfer requests immediately — no retention attempts.',
+  },
+  {
+    id: 'Handle emergency or urgent concern',
+    name: 'Handle emergency or urgent concern',
+    category: 'Healthcare Frontdesk',
+    whenToUse: "Patient describes worsening symptoms, medication reaction, post-visit concern they feel can't wait, anxiety about results, or any time-sensitive medical issue (but not life-threatening).",
+    tools: ['appointment_management_agent', 'escalate_to_staff'],
+    steps: [
+      'State clearly: "If this is life-threatening — difficulty breathing, chest pain, loss of consciousness — please hang up and call 911 right now." Wait briefly. If patient confirms life-threatening → end conversation with 911 instruction.',
+      '"I hear you — that sounds really uncomfortable. Let\'s get you taken care of." Ask one question only: is this a reaction, a worsening symptom, or a new concern? (agent_turn). Do not assess, diagnose, or advise.',
+      'If same-day appointment is appropriate → invoke Appointment_Management_agent with visit_type=urgent.',
+      'If immediate clinical eyes needed → invoke Escalate_to_staff with queue=nurse_line, priority=high.',
+      'Always confirm next step explicitly: "I\'m connecting you to our nurse line now" or "You\'re booked at 2pm — please come straight in."',
+      'Invoke Close_session.',
+    ],
+    escalation: 'Immediate escalation to nurse line for any clinical urgency. Life-threatening → 911.',
+  },
+  {
+    id: 'Handle unclear message',
+    name: 'Handle unclear message',
+    category: 'Healthcare Frontdesk',
+    whenToUse: "Patient's message is too vague, ambiguous, or out-of-scope to match any other procedure's trigger with confidence.",
+    tools: ['escalate_to_staff'],
+    steps: [
+      '"I want to make sure I help you with the right thing — could you tell me a little more about what you\'re looking for?" (agent_turn). Wait for response. Other procedures may now fire if the new message matches their trigger.',
+      'If still unclear: "Are you calling about an appointment, a question about your care, or something else?" (agent_turn). Wait for response. Match against procedure triggers.',
+      'Never say "I don\'t understand." Instead: "Let me get someone from our team who can help you directly." Invoke Escalate_to_staff with reason=message_unclear_after_2_attempts.',
+    ],
+    escalation: 'After 2 failed clarification attempts, escalate to staff immediately.',
+  },
 ];
 
+/** Frontdesk RHS Procedures pane — canonical panel copy (Figma reference) */
+export const FRONTDESK_PROCEDURE_PANEL = {
+  'Talk to Human': {
+    name: 'Talk to human',
+    whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
+  },
+  'General Inquiry': {
+    name: 'Handle general inquiry',
+    whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted.',
+  },
+  'Handle Unclear Message': {
+    name: 'Handle unclear message',
+    whenToUse: "Patient's message is too vague, or out-of-scope",
+  },
+  'Emergency / Urgent Handling': {
+    name: 'Handle emergency or urgent concern',
+    whenToUse: "Patient describes worsening symptoms, medication reaction, post-visit concern they feel can't wait.",
+  },
+};
+
+/** RHS Procedures pane — default panel copy */
+export const PROCEDURE_PANEL_DISPLAY = { ...FRONTDESK_PROCEDURE_PANEL };
+
+/** RHS Procedures pane — healthcare / dental panel copy (IDs = display names, no overrides needed) */
+export const PROCEDURE_PANEL_DISPLAY_HC = {
+  'Handle general inquiry':             { name: 'Handle general inquiry',             whenToUse: 'Patient asks a general or informational question.' },
+  'Handle emergency or urgent concern': { name: 'Handle emergency or urgent concern', whenToUse: "Patient describes worsening symptoms or a time-sensitive medical issue." },
+  'Handle unclear message':             { name: 'Handle unclear message',             whenToUse: "Patient's message is too vague or out-of-scope." },
+  'Talk to human':                      { name: 'Talk to human',                      whenToUse: 'Patient explicitly asks to speak with a person or expresses frustration.' },
+};
+
+/** Default procedure IDs for Frontdesk agent procedures node */
+export const FRONTDESK_PROCEDURE_IDS = [
+  'Talk to Human',
+  'General Inquiry',
+  'Handle Unclear Message',
+  'Emergency / Urgent Handling',
+];
+
+export function getProcedurePanelDefaults(product) {
+  return product === 'healthcare' || product === 'dental'
+    ? PROCEDURE_PANEL_DISPLAY_HC
+    : PROCEDURE_PANEL_DISPLAY;
+}
+
+export function resolveProcedurePanelText(procedure, overrides = {}, product) {
+  const defaults = getProcedurePanelDefaults(product);
+  const id = procedure.id;
+  return {
+    name: overrides[id]?.name || defaults[id]?.name || (isCustomProcedureId(id) ? 'Custom' : procedure.name),
+    whenToUse: overrides[id]?.whenToUse || defaults[id]?.whenToUse || procedure.whenToUse || procedure.description || '',
+  };
+}
+
 export function getProcedureById(id) {
+  if (_liveRegistry[id]) return _liveRegistry[id];
   return PROCEDURES.find((p) => p.id === id) || null;
 }
 
 export function getProceduresByIds(ids = []) {
   return ids.map((id) => getProcedureById(id)).filter(Boolean);
+}
+
+/** Shared context chips shown in the RHS procedure detail panel */
+const DETAIL_CONTEXT_CHIPS = [
+  { value: 'Provider_first_name', type: 'variable' },
+  { value: 'Business_ID', type: 'variable' },
+  { value: 'Products_list.PDF', type: 'attachment' },
+  { value: 'www.aspendental.com', type: 'link' },
+];
+
+/** Full RHS detail content keyed by workflow procedure ID */
+export const PROCEDURE_DETAIL_CONTENT = {
+  'Greeting & Intent Detection': {
+    whenToUse: 'Incoming call, web chat, or SMS arrives — no prior session context',
+    contextChips: DETAIL_CONTEXT_CHIPS,
+    moreContextCount: 25,
+    stepsText: [
+      '1. Deliver greeting',
+      '• Voice: "Thank you for calling {location_name}. My name is Sarah, I\'m your virtual front desk assistant. How can I help you today?"',
+      '• Chat/SMS: "Hi! I\'m Sarah, your virtual assistant at {location_name}. How can I help you today?"',
+      '• If first outbound SMS to this patient, append TCPA opt-out footer.',
+      '2. Wait for patient response',
+      '• Hand turn to patient {{agent_turn}}',
+      '• The agent\'s other procedures (or sub-agents) will fire based on what the patient says — their triggers cover scheduling, FAQ, urgency, prescriptions, and human requests.',
+    ].join('\n'),
+  },
+  'Talk to Human': {
+    whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
+    contextChips: DETAIL_CONTEXT_CHIPS,
+    moreContextCount: 25,
+    stepsText: [
+      '1. Acknowledge the request',
+      '• "Absolutely — I\'ll connect you with a member of our team right away."',
+      '• Do not argue or try to retain the caller in the AI flow.',
+      '2. Gather context for handoff',
+      '• Ask if there is a specific person or department they need {{agent_turn}}',
+      '• Summarize the conversation so far for the receiving agent',
+      '3. Transfer or callback',
+      '• If staff available → warm transfer with context',
+      '• If unavailable → offer callback with estimated wait time',
+    ].join('\n'),
+  },
+  'General Inquiry': {
+    whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted.',
+    contextChips: DETAIL_CONTEXT_CHIPS,
+    moreContextCount: 25,
+    stepsText: [
+      '1. Listen to the full question',
+      '• Let the patient finish before responding {{agent_turn}}',
+      '• Do not interrupt or assume intent',
+      '2. Search and answer',
+      '• Search the knowledge base for a matching answer',
+      '• Provide a concise answer with source attribution when available',
+      '3. Confirm and close the loop',
+      '• Ask if the patient has additional questions',
+      '• If unresolved, route to {{Talk to Human}} or the appropriate procedure',
+    ].join('\n'),
+  },
+  'Handle Unclear Message': {
+    whenToUse: "Patient's message is too vague, or out-of-scope",
+    contextChips: DETAIL_CONTEXT_CHIPS,
+    moreContextCount: 25,
+    stepsText: [
+      '1. Clarify politely',
+      '• Apologize and ask the patient to rephrase {{agent_turn}}',
+      '• Offer 2–3 common intent options as suggestions',
+      '2. Retry once',
+      '• If still unclear, attempt one more rephrasing request',
+      '• Keep responses short and option-based',
+      '3. Escalate if needed',
+      '• If unresolved after 2 attempts, transfer to a human agent',
+      '• Log the interaction for quality review',
+    ].join('\n'),
+  },
+  'Emergency / Urgent Handling': {
+    whenToUse: "Patient describes worsening symptoms, medication reaction, post-visit concern they feel can't wait.",
+    contextChips: DETAIL_CONTEXT_CHIPS,
+    moreContextCount: 25,
+    stepsText: [
+      '1. Safety check first',
+      '• State clearly: "If this is life-threatening — please hang up and call 911 right now."',
+      '• Wait briefly for a response. If life-threatening → end with the 911 instruction {{End conversation}}',
+      '2. Acknowledge and triage',
+      '• "I hear you — that sounds really stressful. Let\'s get you taken care of."',
+      '• One question only: is this a new concern, a worsening symptom, or a medication reaction {{agent_turn}}',
+      '• Do not assess, diagnose, or advise.',
+      '3. Route to care',
+      '• If same-day appointment is appropriate, invoke {{Appointment_Management_agent}} {{visit_type=urgent}}',
+      '• If immediate attention is needed → invoke {{Escalate_to_staff}}',
+      '• Always confirm the next step explicitly.',
+      '4. Close',
+      '• Invoke {{Close_session}}',
+    ].join('\n'),
+  },
+};
+
+function formatProcedureSteps(steps) {
+  if (!Array.isArray(steps)) return typeof steps === 'string' ? steps : '';
+  // Rich ProcedureStep[] from procedureData.ts has objects with .title + .bullets
+  if (steps.length > 0 && steps[0] && typeof steps[0] === 'object' && steps[0].title) {
+    return richStepsToText(steps);
+  }
+  return steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
+}
+
+/** Healthcare workflow IDs → canonical PROCEDURE_DETAIL_CONTENT keys */
+const PROCEDURE_DETAIL_ID_ALIASES = {
+  'Handle general inquiry': 'General Inquiry',
+  'Handle emergency or urgent concern': 'Emergency / Urgent Handling',
+  'Handle unclear message': 'Handle Unclear Message',
+  'Talk to human': 'Talk to Human',
+};
+
+/** Merge library defaults, panel display names, and saved field overrides for RHS detail */
+export function getProcedureDetailContent(id, fieldOverrides = {}, product) {
+  const proc = getProcedureById(id);
+  const panel = proc
+    ? resolveProcedurePanelText(proc, {}, product)
+    : { name: isCustomProcedureId(id) ? 'Custom' : id, whenToUse: '' };
+  const detailKey = PROCEDURE_DETAIL_ID_ALIASES[id] ?? id;
+  const detail = PROCEDURE_DETAIL_CONTENT[detailKey] || {};
+
+  // For HC/dental products, prefer live procedure library data over hardcoded
+  // PROCEDURE_DETAIL_CONTENT — the library has richer steps and correct context.
+  // For automotive, the hardcoded detail still provides the best content.
+  const isHC = product === 'healthcare' || product === 'dental';
+  const liveSteps = isHC && proc?.steps ? (formatProcedureSteps(proc.steps) || null) : null;
+  const liveContext = isHC && proc?.context?.length ? liveContextToChips(proc.context) : null;
+
+  return {
+    id,
+    name: fieldOverrides.name || panel.name,
+    whenToUse: fieldOverrides.whenToUse ?? detail.whenToUse ?? panel.whenToUse ?? proc?.whenToUse ?? '',
+    contextChips: fieldOverrides.contextChips ?? liveContext ?? detail.contextChips ?? liveContextToChips(proc?.context),
+    moreContextCount: liveContext ? 0 : (detail.moreContextCount ?? 0),
+    stepsText: fieldOverrides.stepsText ?? liveSteps ?? detail.stepsText ?? formatProcedureSteps(proc?.steps),
+    addToLibrary: fieldOverrides.addToLibrary ?? false,
+  };
 }

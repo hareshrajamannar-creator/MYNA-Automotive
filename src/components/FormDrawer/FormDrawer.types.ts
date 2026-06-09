@@ -12,6 +12,8 @@ export interface FormField {
 export interface FormDrawerProps {
   open: boolean
   title: string
+  /** Optional secondary line shown beneath the title (e.g. patient name). */
+  subtitle?: string
   fields: FormField[]
   /** Primary button label (e.g. "Add", "Offer slot"). */
   submitLabel: string

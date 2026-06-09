@@ -2,10 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .ai-summary-panel {
+    @apply rounded-sm border px-lg py-md;
+    background-color: theme('colors.ai.summary');
+    border-color: theme('colors.ai.summary-border');
+  }
+}
+
 html,
 body,
 #root {
   height: 100%;
+}
+
+/* Steps field edit mode — strip UserPromptInput's own border/bg so the
+   outer paragraph-field shell is the only visible container. */
+.steps-editor-shell [class*="inputBox"] {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.steps-editor-shell [class*="inputBox"]:focus-within {
+  border: none !important;
+}
+.steps-editor-shell [class*="editor"] {
+  padding: 0 !important;
+}
+.steps-editor-shell [class*="placeholderOverlay"] {
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
 }
 
 body {

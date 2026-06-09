@@ -89,15 +89,17 @@ interface ColumnDef extends Column<Lead> {
 
 const COLUMN_DEFS: ColumnDef[] = [
   { key: 'name',       label: 'Name',             width: 220, sortable: true, locked: true },
+  { key: 'apptType',   label: 'Appointment type', width: 160, sortable: true },
   { key: 'lookingFor', label: 'Looking for',      width: 200, sortable: true },
   {
     key: 'channel',
     label: 'Outreach channel',
     width: 150,
     sortable: true,
-    render: (value) => <Icon name={CHANNEL_ICON[String(value)] ?? 'chat'} size={20} className="text-text-icon" />,
+    render: (value) => (
+      <Icon name={CHANNEL_ICON[String(value)] ?? 'sms'} size={20} className="text-text-icon" />
+    ),
   },
-  { key: 'apptType',   label: 'Appt type',        width: 160, sortable: true },
   { key: 'time',       label: 'Time',             width: 110, sortable: true },
   { key: 'updatedOn',  label: 'Updated on',       width: 180, sortable: true },
   { key: 'phone',      label: 'Phone',            width: 160, sortable: true },
@@ -123,8 +125,8 @@ const ADD_PROSPECT_FIELDS: FormField[] = [
 const FILTER_FIELDS: FilterField[] = [
   { id: 'groups', label: 'Groups', options: opts('All dealerships', 'Northeast', 'Southeast', 'Midwest', 'West') },
   { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
-  { id: 'channel', label: 'Outreach channel', options: opts('SMS', 'Call', 'Email') },
-  { id: 'appt-type', label: 'Appt type', options: opts('Service', 'Sale', 'Sale - First visit', 'Sale - Test drive', 'Sale - Trade-in', 'Sale - Parts') },
+  { id: 'channel', label: 'Outreach channel', options: opts('Chat', 'Call', 'Text') },
+  { id: 'appt-type', label: 'Appointment type', options: opts('Service', 'Sale', 'Sale - First visit', 'Sale - Test drive', 'Sale - Trade-in', 'Sale - Parts') },
   { id: 'status', label: 'Status', options: opts('Prospect', 'Test drive pending', 'Test drive completed', 'Dropped off', 'Won') },
   { id: 'looking-for', label: 'Looking for', options: opts('Toyota RAV4', 'Ford F-Series', 'Honda CR-V', 'Chevrolet Equinox') },
 ]

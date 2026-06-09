@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import '../prompt-chip.css';
-import { serializeFrom, deserializeInto, insertChipAt } from '../promptChipHelpers.js';
+import { serializeFrom, deserializeInto, deserializeIntoTyped, insertChipAt } from '../promptChipHelpers.js';
 import { VariableIcon, BuildIcon, ExpandIcon } from '../PromptToolbarIcons.jsx';
 import { CHIP_TYPES, DataTypeIcon } from '../VariableChip/VariableChip.jsx';
 import styles from './UserPromptInput.module.css';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export default function UserPromptInput({ value, onChange, required, hideLabel = false }) {
+export default function UserPromptInput({ value, onChange, required, hideLabel = false, readOnly = false, autoHeight = false, minEditorHeight, placeholder = 'Enter prompt', resolveType = null }) {
   const editorRef = useRef(null);
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
@@ -16,10 +16,17 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
   const savedRangeRef = useRef(null);
   const pickerContainerRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(!(value ?? '').trim());
+
+  const syncEmpty = useCallback(() => {
+    const el = editorRef.current;
+    setIsEmpty(!el || !serializeFrom(el).trim());
+  }, []);
 
   const emitChange = useCallback(() => {
     const s = serializeFrom(editorRef.current);
     lastEmittedRef.current = s;
+    setIsEmpty(!s.trim());
     onChangeRef.current?.(s);
   }, []);
 
@@ -29,8 +36,13 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
     const newVal = value ?? '';
     if (newVal === lastEmittedRef.current) return;
     lastEmittedRef.current = newVal;
-    deserializeInto(el, newVal, emitChange);
-  }, [value, emitChange]);
+    if (resolveType) {
+      deserializeIntoTyped(el, newVal, emitChange, resolveType);
+    } else {
+      deserializeInto(el, newVal, emitChange);
+    }
+    syncEmpty();
+  }, [value, emitChange, resolveType, syncEmpty]);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -68,15 +80,21 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
           {required && <span className={styles.required}>*</span>}
         </div>
       )}
-      <div className={styles.inputBox}>
+      <div className={`${styles.inputBox}${!readOnly && isEmpty ? ` ${styles.inputBoxWithHint}` : ''}`}>
+        {!readOnly && isEmpty && (
+          <div className={styles.placeholderOverlay} aria-hidden>
+            {placeholder}
+          </div>
+        )}
         <div
           ref={editorRef}
-          className={styles.editor}
-          contentEditable
+          className={`${styles.editor}${autoHeight ? ` ${styles.editorAutoHeight}` : ''}`}
+          contentEditable={!readOnly}
           suppressContentEditableWarning
-          onInput={emitChange}
-          data-placeholder="Enter prompt"
+          onInput={readOnly ? undefined : emitChange}
+          style={minEditorHeight ? { minHeight: minEditorHeight } : undefined}
         />
+        {!readOnly && (
         <div className={styles.toolbar} ref={pickerContainerRef}>
           <button
             type="button"
@@ -125,6 +143,7 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );

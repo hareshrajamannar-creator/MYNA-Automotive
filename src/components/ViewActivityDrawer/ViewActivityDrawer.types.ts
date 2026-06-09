@@ -1,4 +1,4 @@
-export type ActivityType = 'booked' | 'check' | 'form-sent' | 'reminder' | 'completed'
+export type ActivityType = 'google-review' | 'birdeye-review' | 'completed' | 'booked' | 'no-show' | 'survey' | 'check' | 'form-sent' | 'reminder'
 
 export interface Activity {
   id: string

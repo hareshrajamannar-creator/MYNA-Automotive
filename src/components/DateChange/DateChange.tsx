@@ -5,21 +5,40 @@ function formatDate(d: Date) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export function DateChange({ date, isToday, onPrev, onNext, onToday }: DateChangeProps) {
+function formatWeekRange(d: Date) {
+  const start = new Date(d)
+  start.setDate(start.getDate() - start.getDay())
+  const end = new Date(start)
+  end.setDate(end.getDate() + 6)
+
+  const startMonth = start.toLocaleDateString('en-US', { month: 'long' })
+  const endMonth = end.toLocaleDateString('en-US', { month: 'long' })
+  const startDay = String(start.getDate()).padStart(2, '0')
+  const endDay = String(end.getDate()).padStart(2, '0')
+
+  if (startMonth === endMonth) {
+    return `${startMonth} ${startDay} – ${endDay}, ${end.getFullYear()}`
+  }
+  return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${end.getFullYear()}`
+}
+
+export function DateChange({ date, isToday, timescale = 'day', onPrev, onNext, onToday }: DateChangeProps) {
+  const label = timescale === 'week' ? formatWeekRange(date) : formatDate(date)
+
   return (
     <div className="flex items-center gap-sm">
       <button
         type="button"
-        aria-label="Previous day"
+        aria-label={timescale === 'week' ? 'Previous week' : 'Previous day'}
         onClick={onPrev}
         className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-selected"
       >
         <Icon name="chevron_left" size={20} />
       </button>
-      <span className="text-h3 text-text-primary">{formatDate(date)}</span>
+      <span className="text-h3 text-text-primary">{label}</span>
       <button
         type="button"
-        aria-label="Next day"
+        aria-label={timescale === 'week' ? 'Next week' : 'Next day'}
         onClick={onNext}
         className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-selected"
       >
@@ -29,7 +48,7 @@ export function DateChange({ date, isToday, onPrev, onNext, onToday }: DateChang
         <button
           type="button"
           onClick={onToday}
-          className="ml-sm rounded-sm px-sm py-xs text-body font-medium text-text-action hover:bg-surface-selected"
+          className="ml-sm rounded-sm px-sm py-xs text-body text-text-action hover:bg-surface-selected"
         >
           Today
         </button>

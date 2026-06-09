@@ -11,6 +11,7 @@ export default function GraphControls({
   zoom = 100,
   onZoomSelect,
   onFitView,
+  viewOnly = false,
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -28,26 +29,24 @@ export default function GraphControls({
 
   return (
     <div className="graph-controls">
-      {/* Config / tune icon — matches Figma 41-43901 */}
-      <button className="graph-controls__run" title="Settings" style={{ borderRight: '1px solid #e5e9f0' }}>
-        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>tune</span>
-      </button>
-      <div className="graph-controls__toggle">
-        <button
-          className={`graph-controls__toggle-btn${orientation === 'vertical' ? ' graph-controls__toggle-btn--active' : ''}`}
-          onClick={() => onOrientationChange?.('vertical')}
-          title="Vertical layout"
-        >
-          <span className="material-symbols-outlined">arrow_downward</span>
-        </button>
-        <button
-          className={`graph-controls__toggle-btn${orientation === 'horizontal' ? ' graph-controls__toggle-btn--active' : ''}`}
-          onClick={() => onOrientationChange?.('horizontal')}
-          title="Horizontal layout"
-        >
-          <span className="material-symbols-outlined">arrow_forward</span>
-        </button>
-      </div>
+      {!viewOnly && (
+        <div className="graph-controls__toggle">
+          <button
+            className={`graph-controls__toggle-btn${orientation === 'vertical' ? ' graph-controls__toggle-btn--active' : ''}`}
+            onClick={() => onOrientationChange?.('vertical')}
+            title="Vertical layout"
+          >
+            <span className="material-symbols-outlined">arrow_downward</span>
+          </button>
+          <button
+            className={`graph-controls__toggle-btn${orientation === 'horizontal' ? ' graph-controls__toggle-btn--active' : ''}`}
+            onClick={() => onOrientationChange?.('horizontal')}
+            title="Horizontal layout"
+          >
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      )}
 
       <div className="graph-controls__zoom" ref={dropdownRef}>
         <button
@@ -95,9 +94,12 @@ export default function GraphControls({
         </button>
       )}
 
-      <button className="graph-controls__run" onClick={onRun} title="Run">
-        <span className="material-symbols-outlined">play_arrow</span>
-      </button>
+      <div className="graph-controls__run-wrap">
+        <button className="graph-controls__run" onClick={onRun} aria-label="Preview">
+          <span className="material-symbols-outlined">play_arrow</span>
+        </button>
+        <span className="graph-controls__run-tooltip">Preview</span>
+      </div>
     </div>
   );
 }

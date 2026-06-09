@@ -1,18 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Toggle } from '../../../elemental-stubs';
 import { Button } from '../../../elemental-stubs';
+import { ProcedureIcon, TriggerIcon } from '../CanvasNodeIcons';
 import './CanvasNodeHeader.css';
 
 const AddIcon = () => <span className="material-symbols-outlined cnh__btn-icon">add_circle</span>;
 const MoreIcon = () => <span className="material-symbols-outlined cnh__btn-icon">more_vert</span>;
 const DeleteIcon = () => <span className="material-symbols-outlined cnh__btn-icon cnh__btn-icon--delete">delete</span>;
-
-// ── Custom SVG icons from Figma (node-id: 41-43388) ─────────────────────────
-const TriggerIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M7.4379 9.43212L3.8149 8.85128C3.59179 8.81117 3.4484 8.68234 3.38473 8.46478C3.32107 8.24723 3.37729 8.06367 3.5534 7.91412L9.97257 2.03728C10.0152 1.9945 10.0631 1.96523 10.1161 1.94945C10.1691 1.93367 10.2417 1.92578 10.3341 1.92578C10.4827 1.92578 10.5981 1.9905 10.6802 2.11995C10.7622 2.24939 10.7695 2.38167 10.7021 2.51678L8.54423 6.57195L12.1802 7.15261C12.4032 7.19284 12.5477 7.32061 12.6136 7.53595C12.6793 7.75139 12.6242 7.93389 12.4481 8.08345L6.0289 13.9668C5.98623 14.0094 5.9384 14.0376 5.8854 14.0513C5.8324 14.0649 5.75973 14.0718 5.6674 14.0718C5.51873 14.0718 5.40551 14.0071 5.32773 13.8776C5.24995 13.7482 5.24268 13.6181 5.3059 13.4873L7.4379 9.43212ZM7.15457 11.7296L11.3892 7.88978L7.25723 7.22561L8.86623 4.24878L4.61223 8.11161L8.74423 8.78461L7.15457 11.7296Z" fill="#C2410C"/>
-  </svg>
-);
 
 const TaskIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -23,12 +17,6 @@ const TaskIcon = () => (
 const BranchIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path d="M9.08156 12.2836V11.4182H7.26882C6.99073 11.4182 6.75327 11.3198 6.55645 11.1229C6.35964 10.9261 6.26123 10.6887 6.26123 10.4106V5.40146H4.25563V6.26686C4.25563 6.49675 4.1753 6.69202 4.01465 6.85267C3.85399 7.01333 3.65872 7.09366 3.42884 7.09366H1.63539C1.4055 7.09366 1.21023 7.01319 1.04958 6.85227C0.888921 6.69134 0.808594 6.49575 0.808594 6.2655V3.71719C0.808594 3.48693 0.888921 3.29225 1.04958 3.13316C1.21023 2.97408 1.4055 2.89453 1.63539 2.89453H3.42884C3.65872 2.89453 3.85399 2.97486 4.01465 3.13551C4.1753 3.29617 4.25563 3.49144 4.25563 3.72133V4.58673H9.08156V3.71874C9.08156 3.48744 9.16188 3.29225 9.32254 3.13316C9.48319 2.97408 9.67846 2.89453 9.90835 2.89453H11.7018C11.9317 2.89453 12.127 2.97499 12.2876 3.13592C12.4483 3.29685 12.5286 3.49244 12.5286 3.72269V6.271C12.5286 6.50126 12.4483 6.69594 12.2876 6.85502C12.127 7.01411 11.9317 7.09366 11.7018 7.09366H9.90835C9.67846 7.09366 9.48319 7.01333 9.32254 6.85267C9.16188 6.69202 9.08156 6.49675 9.08156 6.26686V5.40146H7.07596V10.4106C7.07596 10.4668 7.09404 10.513 7.1302 10.5492C7.16637 10.5853 7.21257 10.6034 7.26882 10.6034H9.08156V9.73544C9.08156 9.50414 9.16188 9.30895 9.32254 9.14986C9.48319 8.99078 9.67846 8.91123 9.90835 8.91123H11.7018C11.9317 8.91123 12.127 8.99169 12.2876 9.15262C12.4483 9.31355 12.5286 9.50914 12.5286 9.73939V12.2877C12.5286 12.518 12.4483 12.7126 12.2876 12.8717C12.127 13.0308 11.9317 13.1104 11.7018 13.1104H9.90835C9.67846 13.1104 9.48319 13.03 9.32254 12.8694C9.16188 12.7087 9.08156 12.5134 9.08156 12.2836ZM9.89629 6.27893H11.7139V3.70926H9.89629V6.27893ZM9.89629 12.2956H11.7139V9.72596H9.89629V12.2956ZM1.62332 6.27893H3.4409V3.70926H1.62332V6.27893Z" fill="#5071CE"/>
-  </svg>
-);
-
-const ProcedureIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M13.1984 4.19922H9.59844C9.28795 4.19922 8.98172 4.27151 8.70401 4.41036C8.4263 4.54922 8.18473 4.75083 7.99844 4.99922C7.81214 4.75083 7.57057 4.54922 7.29286 4.41036C7.01515 4.27151 6.70893 4.19922 6.39844 4.19922H2.79844C2.69235 4.19922 2.59061 4.24136 2.51559 4.31638C2.44058 4.39139 2.39844 4.49313 2.39844 4.59922V11.7992C2.39844 11.9053 2.44058 12.007 2.51559 12.0821C2.59061 12.1571 2.69235 12.1992 2.79844 12.1992H6.39844C6.7167 12.1992 7.02192 12.3256 7.24697 12.5507C7.47201 12.7757 7.59844 13.081 7.59844 13.3992C7.59844 13.5053 7.64058 13.607 7.71559 13.6821C7.79061 13.7571 7.89235 13.7992 7.99844 13.7992C8.10452 13.7992 8.20627 13.7571 8.28128 13.6821C8.35629 13.607 8.39844 13.5053 8.39844 13.3992C8.39844 13.081 8.52486 12.7757 8.74991 12.5507C8.97495 12.3256 9.28018 12.1992 9.59844 12.1992H13.1984C13.3045 12.1992 13.4063 12.1571 13.4813 12.0821C13.5563 12.007 13.5984 11.9053 13.5984 11.7992V4.59922C13.5984 4.49313 13.5563 4.39139 13.4813 4.31638C13.4063 4.24136 13.3045 4.19922 13.1984 4.19922ZM6.39844 11.3992H3.19844V4.99922H6.39844C6.7167 4.99922 7.02192 5.12565 7.24697 5.35069C7.47201 5.57573 7.59844 5.88096 7.59844 6.19922V11.7992C7.25257 11.539 6.83129 11.3985 6.39844 11.3992ZM12.7984 11.3992H9.59844C9.16558 11.3985 8.7443 11.539 8.39844 11.7992V6.19922C8.39844 5.88096 8.52486 5.57573 8.74991 5.35069C8.97495 5.12565 9.28018 4.99922 9.59844 4.99922H12.7984V11.3992Z" fill="#37A248"/>
   </svg>
 );
 
@@ -45,7 +33,8 @@ const ICON_CONFIG = {
   branch:     { Component: BranchIcon    },
   parallel:   { icon: 'splitscreen_add'  },
   loop:       { icon: 'repeat'           },
-  delay:      { icon: 'hourglass_empty'  },
+  delay:      { icon: 'schedule'  },
+  subagent:   { icon: 'smart_toy'        },
   procedures: { Component: ProcedureIcon },
 };
 
@@ -54,6 +43,8 @@ export default function CanvasNodeHeader({
   label,
   hasToggle = false,
   toggleEnabled = true,
+  toggleDisabled = false,
+  viewOnly = false,
   onToggleChange,
   hasAiIcon = false,
   hasAddButton = false,
@@ -94,7 +85,7 @@ export default function CanvasNodeHeader({
   return (
     <div className="cnh">
       <div className="cnh__left">
-        <span className="cnh__node-icon">
+        <span className={`cnh__node-icon${nodeType === 'subagent' ? ' cnh__node-icon--subagent' : ''}`}>
           {NodeSvg
             ? <NodeSvg />
             : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{config.icon}</span>
@@ -109,27 +100,39 @@ export default function CanvasNodeHeader({
           </div>
         )}
         {hasToggle && (
-          <Toggle
-            name={`cnh-toggle-${nodeType}`}
-            checked={toggleEnabled}
-            onChange={(_, e) => onToggleChange?.(e.target.checked)}
-            roundedToggle
-          />
+          <div
+            className="cnh__toggle"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <Toggle
+              name={`cnh-toggle-${nodeType}`}
+              checked={toggleEnabled}
+              onChange={(checked, e) => {
+                e?.stopPropagation();
+                onToggleChange?.(checked);
+              }}
+              roundedToggle
+              disabled={toggleDisabled}
+            />
+          </div>
         )}
         {hasAddButton && (
           <Button type="link" customIcon={<AddIcon />} onClick={onAddClick} noHover aria-label="Add" />
         )}
-        <div className="cnh__more-wrapper" ref={menuRef}>
-          <Button type="link" customIcon={<MoreIcon />} onClick={handleMoreClick} noHover aria-label="More options" />
-          {menuOpen && (
-            <div className="cnh__context-menu">
-              <button className="cnh__context-menu-item cnh__context-menu-item--delete" onClick={handleDelete}>
-                <DeleteIcon />
-                <span>Delete</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {!viewOnly && (
+          <div className="cnh__more-wrapper" ref={menuRef}>
+            <Button type="link" customIcon={<MoreIcon />} onClick={handleMoreClick} noHover aria-label="More options" />
+            {menuOpen && (
+              <div className="cnh__context-menu">
+                <button className="cnh__context-menu-item cnh__context-menu-item--delete" onClick={handleDelete}>
+                  <DeleteIcon />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

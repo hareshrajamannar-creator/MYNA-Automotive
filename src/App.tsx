@@ -1,16 +1,41 @@
 import { useState } from 'react'
-import { Icon, IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
+import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
+import { Icon, IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
+import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
+import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
+import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
 import { IntakeScreen, type IntakeDetailArgs } from './screens/IntakeScreen'
 import { IntakePatientDetailScreen } from './screens/IntakePatientDetailScreen'
-import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { IntakeOutcomeScreen } from './screens/IntakeOutcomeScreen'
+import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
+import { SalesScreen } from './screens/SalesScreen'
+import { ServiceScreen } from './screens/ServiceScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
+import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
+import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
+import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
-import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
-import { IntakeOutcomeScreen } from './screens/IntakeOutcomeScreen'
+import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
+
+function EmptyResourceScreen({ label }: { label: string }) {
+  return (
+    <div className="flex h-full flex-col">
+      <TopNav initials="S" />
+      <div className="flex flex-1 items-center justify-center text-body text-text-secondary">
+        No {label.toLowerCase()} data yet.
+      </div>
+    </div>
+  )
+}
 
 const RAIL_GROUPS: RailGroup[] = [
   {
@@ -59,7 +84,54 @@ const RAIL_GROUPS: RailGroup[] = [
   },
 ]
 
-const NAV_SECTIONS: NavSection[] = [
+const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'human-actions',
+    label: 'Human actions',
+    defaultExpanded: true,
+    items: [
+      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'sales-pipeline',      label: 'Sales pipeline'      },
+      { id: 'service-requests',    label: 'Service requests'    },
+    ],
+  },
+  {
+    id: 'agent',
+    label: 'Agents',
+    defaultExpanded: true,
+    items: [
+      { id: 'frontdesk-agent', label: 'Frontdesk agent' },
+      { id: 'reminder-agent',  label: 'Reminder agent'  },
+      { id: 'outreach-agent',  label: 'Outreach agent'  },
+    ],
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      { id: 'conversations', label: 'Appointment overview' },
+      { id: 'sales',         label: 'Sales'                },
+      { id: 'service',       label: 'Service'              },
+    ],
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    defaultExpanded: true,
+    items: [
+      { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
+      { id: 'procedure-library',  label: 'Procedures'          },
+      { id: 'phone-number',       label: 'Phone number'        },
+      { id: 'web-widget',         label: 'Web widget'          },
+      { id: 'appointment-widget', label: 'Appointment widget'  },
+      { id: 'providers',          label: 'Providers'           },
+      { id: 'forms',              label: 'Forms'               },
+    ],
+  },
+]
+
+const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
@@ -73,69 +145,166 @@ const NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
-      { id: 'frontdesk-agent', label: 'Frontdesk agent' },
-      { id: 'waitlist-agent',  label: 'Waitlist agent'  },
-      { id: 'reminder-agent',  label: 'Reminder agent'  },
+      { id: 'frontdesk-agent',              label: 'Frontdesk agent'             },
+      { id: 'appointment-agent',            label: 'Appointment agent'           },
+      { id: 'insurance-verification-agent', label: 'Insurance verification agent'},
+      { id: 'waitlist-agent',               label: 'Waitlist agent'              },
+      { id: 'pre-visit-agent',              label: 'Pre-visit agent'             },
+      { id: 'reminder-agent',               label: 'Reminder agent'              },
     ],
   },
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
-      { id: 'frontdesk-overview',  label: 'Frontdesk overview'  },
-      { id: 'no-shows-prevented',  label: 'No shows prevented'  },
-      { id: 'waitlist-filled',     label: 'Waitlist filled'     },
-      { id: 'intakes-completed',   label: 'Intakes completed'   },
+      { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
+      { id: 'hc-no-shows',           label: 'No shows prevented' },
+      { id: 'hc-waitlist',           label: 'Waitlist filled'    },
+      { id: 'hc-intakes',            label: 'Intakes completed'  },
     ],
   },
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
-      { id: 'knowledge-base',     label: 'Knowledge base'     },
-      { id: 'procedure-library',  label: 'Procedures'         },
-      { id: 'phone-number',       label: 'Phone number'       },
-      { id: 'web-widget',         label: 'Web widget'         },
-      { id: 'appointment-widget', label: 'Appointment widget' },
-      { id: 'providers',          label: 'Providers'          },
+      { id: 'providers',         label: 'Providers'                       },
+      { id: 'appointment-type',  label: 'Appointment type'                },
+      { id: 'availability',      label: 'Availability'                    },
+      { id: 'procedure-library', label: 'Procedures'                      },
+      { id: 'phone-number',      label: 'Phone number'                    },
+      { id: 'knowledge-base',    label: 'Knowledge base', external: true  },
+      { id: 'widgets',           label: 'Widgets',        external: true  },
     ],
   },
 ]
 
-const AGENT_NAMES: Record<string, string> = {
-  'frontdesk-agent': 'Frontdesk agent',
-  'waitlist-agent':  'Waitlist agent',
-  'reminder-agent':  'Reminder agent',
+const DENTAL_NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'human-actions',
+    label: 'Human actions',
+    defaultExpanded: true,
+    items: [
+      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'review-waitlist',     label: 'Review waitlist'     },
+      { id: 'manage-intake',       label: 'Manage intake'       },
+    ],
+  },
+  {
+    id: 'agent',
+    label: 'Agents',
+    defaultExpanded: true,
+    items: [
+      { id: 'frontdesk-agent',             label: 'Frontdesk agent'             },
+      { id: 'appointment-agent',           label: 'Appointment agent'           },
+      { id: 'insurance-verification-agent',label: 'Insurance verification agent'},
+      { id: 'waitlist-agent',              label: 'Waitlist agent'              },
+      { id: 'pre-visit-agent',             label: 'Pre-visit agent'             },
+      { id: 'reminder-agent',              label: 'Reminder agent'              },
+      { id: 'recall-agent',                label: 'Recall agent'                },
+      { id: 'revenue-agent',               label: 'Revenue agent'               },
+      { id: 'treatment-plan-agent',        label: 'Treatment plan agent'        },
+    ],
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
+      { id: 'dental-no-shows',           label: 'No shows prevented'   },
+      { id: 'dental-waitlist',           label: 'Waitlist filled'       },
+      { id: 'dental-intakes',            label: 'Intakes completed'     },
+    ],
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    defaultExpanded: true,
+    items: [
+      { id: 'providers',         label: 'Providers'  },
+      { id: 'procedure-library', label: 'Procedures' },
+    ],
+  },
+]
+
+const NAV_SECTIONS_BY_PRODUCT: Record<string, NavSection[]> = {
+  automotive: AUTOMOTIVE_NAV_SECTIONS,
+  healthcare:  HEALTHCARE_NAV_SECTIONS,
+  dental:      DENTAL_NAV_SECTIONS,
 }
+
+const DEFAULT_NAV_BY_PRODUCT: Record<string, string> = {
+  automotive: 'manage-appointments',
+  healthcare:  'manage-appointments',
+  dental:      'manage-appointments',
+}
+
+const PRODUCTS: Product[] = [
+  { id: 'healthcare', label: 'Birdeye Healthcare' },
+  { id: 'dental',     label: 'Birdeye Dental'     },
+  { id: 'automotive', label: 'Birdeye Automotive'  },
+]
+
+const PRODUCT_BRAND: Record<string, string> = {
+  healthcare: 'Birdeye Healthcare',
+  dental:     'Birdeye Dental',
+  automotive: 'Birdeye Automotive',
+}
+
+const AGENT_NAMES: Record<string, string> = {
+  'frontdesk-agent':              'Frontdesk agent',
+  'reminder-agent':               'Reminder agent',
+  'outreach-agent':               'Outreach agent',
+  'appointment-agent':            'Appointment agent',
+  'insurance-verification-agent': 'Insurance verification agent',
+  'waitlist-agent':               'Waitlist agent',
+  'pre-visit-agent':              'Pre-visit agent',
+  'recall-agent':                 'Recall agent',
+  'revenue-agent':                'Revenue agent',
+  'treatment-plan-agent':         'Treatment plan agent',
+}
+
 
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [activeProduct, setActiveProduct] = useState('healthcare')
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
 
+  function handleProductChange(id: string) {
+    setActiveProduct(id)
+    setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
+    setEditingAgentName(null)
+    setIntakeDetail(null)
+  }
+
   const isEditingWorkflow = editingAgentName !== null
-  const isViewingDetail = intakeDetail !== null
+  const isViewingIntakeDetail = intakeDetail !== null && navActive === 'manage-intake'
 
   return (
+    <ProcedureStoreProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
       <IconRail
         logoSrc={logoSrc}
-        brand="Birdeye"
+        brand={PRODUCT_BRAND[activeProduct]}
         groups={RAIL_GROUPS}
         activeId={railActive}
         onSelect={setRailActive}
+        products={PRODUCTS}
+        activeProduct={activeProduct}
+        onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && !isViewingDetail && (
+      {!isEditingWorkflow && !isViewingIntakeDetail && (
         <SideNav
           title="Frontdesk"
-          sections={NAV_SECTIONS}
+          sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
           activeId={navActive}
-          onSelect={setNavActive}
+          onSelect={(id) => { setNavActive(id); setIntakeDetail(null) }}
         />
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
@@ -146,12 +315,11 @@ export function App() {
               <WorkflowEditorScreen
                 agentName={editingAgentName}
                 onClose={() => setEditingAgentName(null)}
+                product={activeProduct}
               />
             </div>
           </>
-        ) : navActive === 'manage-appointments' ? (
-          <ManageAppointmentsScreen />
-        ) : navActive === 'manage-intake' && isViewingDetail ? (
+        ) : navActive === 'manage-intake' && isViewingIntakeDetail ? (
           <>
             <TopNav title="Front desk" initials="S" />
             <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
@@ -182,20 +350,62 @@ export function App() {
           <IntakeScreen onViewDetail={setIntakeDetail} />
         ) : navActive === 'review-waitlist' ? (
           <ReviewWaitlistScreen />
-        ) : navActive === 'intakes-completed' ? (
-          <IntakeOutcomeScreen />
+        ) : navActive === 'sales-pipeline' ? (
+          <SalesPipelineScreen />
+        ) : navActive === 'service-requests' ? (
+          <ServiceRequestsScreen />
+        ) : navActive === 'conversations' ? (
+          <AppointmentOverviewScreen />
+        ) : navActive === 'sales' ? (
+          <SalesScreen />
+        ) : navActive === 'service' ? (
+          <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
-          <ProceduresScreen />
+          <ProceduresScreen product={activeProduct} />
+        ) : navActive === 'appointment-type' ? (
+          <EmptyResourceScreen label="Appointment type" />
+        ) : navActive === 'availability' ? (
+          <EmptyResourceScreen label="Availability" />
+        ) : navActive === 'knowledge-base' ? (
+          <EmptyResourceScreen label="Knowledge base" />
+        ) : navActive === 'phone-number' ? (
+          <PhoneNumberScreen />
+        ) : navActive === 'web-widget' ? (
+          <EmptyResourceScreen label="Web widget" />
+        ) : navActive === 'appointment-widget' ? (
+          <EmptyResourceScreen label="Appointment widget" />
+        ) : navActive === 'forms' ? (
+          <EmptyResourceScreen label="Forms" />
+        ) : navActive === 'widgets' || navActive === 'voices' ? (
+          <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
+        ) : navActive === 'settings' ? (
+          <SettingsScreen />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' ? (
+          <AvailabilityScreen />
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+          <HCFrontdeskOverviewScreen />
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+          <HCNoShowsScreen />
+        ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
+          <HCWaitlistFilledScreen />
+        ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
+          <IntakeOutcomeScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}
             agentName={AGENT_NAMES[navActive]}
             onEditAgent={setEditingAgentName}
+            product={activeProduct}
           />
         ) : (
           <ManageAppointmentsScreen />
         )}
       </main>
     </div>
+    </ProcedureStoreProvider>
   )
 }

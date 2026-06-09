@@ -110,7 +110,7 @@ export function buildActivities(props: ViewActivityDrawerProps): Activity[] {
 }
 
 export function ActivityIcon({ type }: { type: ActivityType }) {
-  const iconMap: Record<ActivityType, string> = {
+  const iconMap: Partial<Record<ActivityType, string>> = {
     booked:      'calendar_today',
     check:       'check',
     'form-sent': 'mail',
@@ -120,7 +120,7 @@ export function ActivityIcon({ type }: { type: ActivityType }) {
 
   return (
     <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface">
-      <Icon name={iconMap[type]} size={18} className="text-text-primary" />
+      <Icon name={iconMap[type] ?? 'circle'} size={18} className="text-text-primary" />
     </div>
   )
 }
