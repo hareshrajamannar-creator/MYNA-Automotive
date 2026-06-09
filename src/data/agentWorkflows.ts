@@ -370,12 +370,12 @@ const HEALTHCARE_REMINDER_NODE_DETAILS: Record<string, any> = {
   'hcr-4': {
     basedOn: 'conditions',
     branches: [
-      { id: 'hcr-4-path-1', name: 'Appointment confirmed' },
-      { id: 'hcr-4-path-2', name: 'Appointment not confirmed', isFallback: true },
+      { id: 'hcr-4-path-1', name: 'Appointment not confirmed' },
+      { id: 'hcr-4-path-2', name: 'Appointment confirmed', isFallback: true },
     ],
   },
   'hcr-4-path-1': {
-    branchName: 'Appointment confirmed',
+    branchName: 'Appointment not confirmed',
     description: 'Patient replied and confirmed the appointment.',
     conditions: [
       { id: 1, fieldValue: 'patient_response', operatorValue: 'equals', valueValue: 'confirmed' },
@@ -407,7 +407,7 @@ const HEALTHCARE_REMINDER_NODE_DETAILS: Record<string, any> = {
     ],
   },
   'hcr-4-path-2': {
-    branchName: 'Appointment not confirmed',
+    branchName: 'Appointment confirmed',
     description: 'Patient did not respond or did not confirm the appointment.',
     conditions: [
       { id: 1, fieldValue: 'patient_response', operatorValue: 'equals', valueValue: 'no_response' },
