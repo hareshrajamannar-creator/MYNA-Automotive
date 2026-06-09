@@ -7,6 +7,7 @@ export interface ChartCardProps {
   titleSuffix?: ReactNode
   /** Optional content shown between the title and the menu (e.g. mini KPIs). */
   toolbar?: ReactNode
+  /** Show the trailing customize/menu icons (decorative on the prototype). */
   showActions?: boolean
   /** Override the left action icon (defaults to 'table_rows'). */
   leftActionIcon?: string

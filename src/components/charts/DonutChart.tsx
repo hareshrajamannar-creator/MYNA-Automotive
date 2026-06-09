@@ -1,4 +1,5 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { ChartTooltip } from './ChartTooltip'
 
 export interface DonutDatum {
   name: string
@@ -39,8 +40,8 @@ export function DonutChart({ data, centerValue, centerLabel, height = 260, showL
             data={data}
             dataKey="value"
             nameKey="name"
-            innerRadius="62%"
-            outerRadius="88%"
+            innerRadius="52%"
+            outerRadius="90%"
             paddingAngle={1}
             stroke="none"
             isAnimationActive={false}
@@ -52,8 +53,18 @@ export function DonutChart({ data, centerValue, centerLabel, height = 260, showL
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }}
-            itemStyle={{ color: '#555555' }}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null
+              const entry = payload[0]
+              const color = (entry.payload as DonutDatum | undefined)?.color ?? entry.color ?? '#4cae3d'
+              return (
+                <ChartTooltip
+                  label={String(entry.name ?? '')}
+                  items={[{ color, label: String(entry.name ?? ''), value: Number(entry.value ?? 0) }]}
+                  accentColor={color}
+                />
+              )
+            }}
           />
           <Legend
             align="left"

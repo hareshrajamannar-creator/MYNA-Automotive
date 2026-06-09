@@ -20,6 +20,7 @@ export default {
           positive: '#4cae3d', // bg/accent/dark/positive
         },
         ai: {
+          brand: '#6834b7', // BirdAI icon / accent purple
           summary: '#F9F7FD', // AI summary panel background
           'summary-border': '#B090E0', // AI summary panel border
         },

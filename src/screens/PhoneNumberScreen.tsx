@@ -237,9 +237,9 @@ export function PhoneNumberScreen() {
           <DataTable
             columns={COLUMNS}
             data={DATA}
-            rowAction={{ icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) }}
-            rowMenuItems={[
-              { label: 'Edit', onClick: (row) => setEditRow(row) },
+            rowActions={[
+              { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
+              { icon: 'edit',          label: 'Edit',      onClick: (row) => setEditRow(row) },
             ]}
           />
         </div>
