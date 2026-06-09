@@ -33,7 +33,11 @@ interface AgentInstance {
   aht: string
   escalation: string
   locations: string
-  [key: string]: string
+  remindersSent?: string
+  responseRate?: string
+  avgResponseTime?: string
+  noshowRate?: string
+  [key: string]: string | undefined
 }
 
 const TABS: Tab[] = [
@@ -55,26 +59,26 @@ interface RegionRow {
   aht: string
   escalation: string
   locations: string
+  remindersSent?: string
+  responseRate?: string
+  avgResponseTime?: string
+  noshowRate?: string
 }
 
-/* Per-agent regional breakdown — numbers sum / average to match METRICS_BY_AGENT tiles */
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
   'Frontdesk agent': [
-    // Total: 18,420 interactions | weighted FCR ~88% | weighted AHT ~2m 21s | weighted escalation ~9%
     { region: 'North region', status: 'Running', interactions: '8,200', fcr: '90%', aht: '2m 05s', escalation: '7%',  locations: '358' },
     { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '88%', aht: '2m 20s', escalation: '9%',  locations: '212' },
     { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '86%', aht: '2m 38s', escalation: '10%', locations: '180' },
     { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '83%', aht: '3m 10s', escalation: '13%', locations: '140' },
   ],
   'Reminder agent': [
-    // Total confirmations: 3,847 | weighted reschedule ~12% | messages proportional to 11,541
-    { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140' },
+    { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
+    { region: 'East region',  status: 'Running', interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212', remindersSent: '820',  responseRate: '89%', avgResponseTime: '2 days', noshowRate: '13%' },
+    { region: 'South region', status: 'Paused',  interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180', remindersSent: '530',  responseRate: '85%', avgResponseTime: '3 days', noshowRate: '14%' },
+    { region: 'West region',  status: 'Draft',   interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140', remindersSent: '398',  responseRate: '82%', avgResponseTime: '3 days', noshowRate: '16%' },
   ],
   'Outreach agent': [
-    // Total leads: 2,103 | weighted response ~38% | conversion 641/2,103 ≈ 30% → 11% to closed
     { region: 'North region', status: 'Running', interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
     { region: 'East region',  status: 'Running', interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
     { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
@@ -104,11 +108,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { id: 'escalation', value: '9%', label: 'Escalation rate', info: true },
     ],
     'Reminder agent': [
-      // Aggregate: 1,680 + 1,120 + 640 + 407 = 3,847 confirmations
-      { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
-      { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
-      { id: 'noshow', value: '34%', label: 'No-show reduction' },
-      { id: 'messages', value: '11,541', label: 'Messages sent' },
+      { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
+      { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
+      { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
+      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
     ],
     'Outreach agent': [
       // Aggregate: 920 + 610 + 360 + 213 = 2,103 leads
@@ -132,8 +135,13 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     aht: r.aht,
     escalation: r.escalation,
     locations: r.locations,
+    remindersSent: r.remindersSent,
+    responseRate: r.responseRate,
+    avgResponseTime: r.avgResponseTime,
+    noshowRate: r.noshowRate,
   }))
 
+  const isReminder = agentName === 'Reminder agent'
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -143,10 +151,17 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       sortable: true,
       render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
     },
-    { key: 'interactions', label: 'Interactions handled', width: 180, sortable: true },
-    { key: 'fcr', label: 'First contact resolution', width: 200, sortable: true },
-    { key: 'aht', label: 'Average handle time', width: 180, sortable: true },
-    { key: 'escalation', label: 'Escalation rate', width: 150, sortable: true },
+    ...(isReminder ? [
+      { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
+      { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
+      { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
+      { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
+    ] : [
+      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 180, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution', width: 200, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
+    ]),
     { key: 'locations', label: 'Locations', width: 130, sortable: true },
   ]
 
