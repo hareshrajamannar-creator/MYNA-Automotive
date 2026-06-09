@@ -30,6 +30,7 @@ export interface RowMenuItem<T> {
   /** When omitted, the item is always shown. */
   visible?: (row: T) => boolean
   variant?: 'default' | 'danger'
+  icon?: string
 }
 
 export interface DataTableProps<T = Record<string, unknown>> {

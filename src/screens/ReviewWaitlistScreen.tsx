@@ -315,7 +315,7 @@ export function ReviewWaitlistScreen() {
               { label: 'Quick send',    onClick: (row) => setQuickSendRow(row) },
               { label: 'Quick view',    onClick: (row) => setQuickViewRow({ patient: row.patient, provider: 'Dr. Smith', location: 'New York, NY', apptType: row.apptType, slotPreference: 'Morning', waitingSince: row.waitingSince, status: row.status }) },
               { label: 'View activity', onClick: (row) => setActivityRow(row) },
-              { label: 'View details',  onClick: () => {} },
+              { label: 'View details',  onClick: () => {}, icon: 'open_in_new' },
             ]}
           />
         </div>
