@@ -4,7 +4,7 @@ import { IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Produc
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
-import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
+import { IntakeScreen } from './screens/IntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
@@ -14,7 +14,7 @@ import { AvailabilityScreen } from './screens/AvailabilityScreen'
 import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
 import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
-import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
+import { IntakeOutcomeScreen } from './screens/IntakeOutcomeScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -327,7 +327,7 @@ export function App() {
         ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
         ) : navActive === 'manage-intake' ? (
-          <ManageIntakeScreen />
+          <IntakeScreen />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
@@ -365,7 +365,7 @@ export function App() {
         ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
           <HCWaitlistFilledScreen />
         ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
-          <HCIntakesCompletedScreen />
+          <IntakeOutcomeScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

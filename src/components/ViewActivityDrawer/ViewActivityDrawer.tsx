@@ -49,9 +49,12 @@ function ActivityIcon({ type }: { type: ActivityType }) {
 
   const iconMap: Record<string, string> = {
     completed: 'check',
+    check:     'check',
     survey:    'check',
     booked:    'calendar_today',
     'no-show': 'close',
+    'form-sent': 'description',
+    reminder:  'notifications',
   }
 
   return (

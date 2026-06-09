@@ -174,7 +174,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                 }}
                                 className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                               >
-                                <Icon name={rowAction.icon} size={20} />
+                                {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
                               </button>
                               <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
                                 {tooltipText}
@@ -193,7 +193,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                 onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
                                 className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                               >
-                                <Icon name={action.icon} size={20} />
+                                {action.iconElement ?? <Icon name={action.icon!} size={20} />}
                               </button>
                               <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
                                 {tip}

@@ -1,8 +1,21 @@
 import { Icon } from '../Icon/Icon'
 import { Chip } from '../Chip/Chip'
-import type { QuickViewDrawerProps } from './QuickViewDrawer.types'
+import type { QuickViewDrawerProps, QuickViewDrawerIntakeProps } from './QuickViewDrawer.types'
 import type { ChipVariant } from '../Chip/Chip.types'
 import aiIcon from '../../assets/ai-icon.svg'
+import {
+  AccordionSection,
+  AppointmentInfoSection,
+  BasicDetailsSection,
+  InsuranceSection,
+  ConsentSection,
+  MedicalHistorySection,
+  SocialHistorySection,
+} from './patientSections'
+
+function isIntakeProps(props: QuickViewDrawerProps): props is QuickViewDrawerIntakeProps {
+  return 'patient' in props
+}
 
 const STATUS_CHIP: Record<string, ChipVariant> = {
   Unconfirmed: 'warning',
@@ -116,9 +129,89 @@ function DrawerShell({ patient, status, onClose, onViewDetails, aiSummary, child
   )
 }
 
-export function QuickViewDrawer({ open, appointment, waitlist, onClose, onViewDetails }: QuickViewDrawerProps) {
+export function QuickViewDrawer(props: QuickViewDrawerProps) {
+  const { open, onClose } = props
   if (!open) return null
 
+  // Intake mode (patient detail)
+  if (isIntakeProps(props)) {
+    const { patient } = props
+    if (!patient) return null
+    const name = patient.patient || 'Unknown patient'
+    const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+    const summaryBullets = patient.aiSummary
+    return (
+      <div className="fixed inset-0 z-[150]">
+        <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+        <aside className="absolute right-0 top-0 flex h-full w-[650px] flex-col bg-white shadow-modal">
+          <div className="flex items-center justify-between border-b border-border px-2xl py-lg">
+            <button type="button" onClick={onClose} className="flex items-center gap-sm text-body text-text-primary hover:text-text-secondary">
+              <Icon name="arrow_back" size={18} />
+              Quick view
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            <div className="flex flex-col items-center gap-sm px-2xl pb-lg pt-xl">
+              <div className="flex size-14 items-center justify-center rounded-full bg-green-100 text-[18px] text-green-700">{initials}</div>
+              <p className="text-[18px] text-text-primary">{name}</p>
+              <div className="flex items-center gap-sm">
+                <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"><Icon name="send" size={18} /></button>
+                <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"><Icon name="chat_bubble" size={18} /></button>
+                <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border text-text-icon hover:bg-surface-l2"><Icon name="mail" size={18} /></button>
+              </div>
+            </div>
+            {summaryBullets ? (
+              <div className="mx-2xl mb-lg rounded-lg border border-violet-200 bg-violet-50 p-lg">
+                <div className="mb-sm flex items-center gap-xs">
+                  <img src={aiIcon} alt="AI" className="size-5" />
+                  <span className="text-body text-text-primary">Summary</span>
+                </div>
+                <ul className="space-y-xs">
+                  {summaryBullets.map((bullet, i) => (
+                    <li key={i} className="flex gap-xs text-body text-text-secondary">
+                      <span className="mt-[6px] size-1 shrink-0 rounded-full bg-text-secondary" />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="mx-2xl mb-lg rounded-lg border border-border bg-surface-subtle p-lg">
+                <div className="mb-md flex items-center gap-xs">
+                  <img src={aiIcon} alt="AI" className="size-5 opacity-50" />
+                  <p className="text-body text-text-secondary">Get insights and actions for {name}</p>
+                </div>
+                <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white hover:bg-primary-hover">Generate summary</button>
+              </div>
+            )}
+            <div className="mx-2xl mb-xl">
+              <AccordionSection title="Appointment information" defaultOpen isFirst>
+                <AppointmentInfoSection p={patient} />
+              </AccordionSection>
+              <AccordionSection title="Basic details">
+                <BasicDetailsSection p={patient} />
+              </AccordionSection>
+              <AccordionSection title="Insurance">
+                <InsuranceSection p={patient} />
+              </AccordionSection>
+              <AccordionSection title="Consent">
+                <ConsentSection p={patient} />
+              </AccordionSection>
+              <AccordionSection title="Medical history">
+                <MedicalHistorySection p={patient} />
+              </AccordionSection>
+              <AccordionSection title="Social history">
+                <SocialHistorySection p={patient} />
+              </AccordionSection>
+            </div>
+          </div>
+        </aside>
+      </div>
+    )
+  }
+
+  // Appointment/waitlist mode
+  const { appointment, waitlist, onViewDetails } = props
   if (waitlist) {
     const aiSummary = [
       `Patient has been waiting since ${waitlist.waitingSince}`,
