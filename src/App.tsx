@@ -324,10 +324,6 @@ export function App() {
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
           <ProceduresScreen product={activeProduct} />
-        ) : navActive === 'appointment-type' ? (
-          <EmptyResourceScreen label="Appointment type" />
-        ) : navActive === 'availability' ? (
-          <EmptyResourceScreen label="Availability" />
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'phone-number' ? (
