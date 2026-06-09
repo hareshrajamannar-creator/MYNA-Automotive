@@ -8,6 +8,10 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
+import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
+import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
+import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -337,6 +341,14 @@ export function App() {
           <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
         ) : navActive === 'settings' ? (
           <SettingsScreen />
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+          <HCFrontdeskOverviewScreen />
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+          <HCNoShowsScreen />
+        ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
+          <HCWaitlistFilledScreen />
+        ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
+          <HCIntakesCompletedScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

@@ -8,6 +8,8 @@ export interface ChartCardProps {
   /** Optional content shown between the title and the menu (e.g. mini KPIs). */
   toolbar?: ReactNode
   showActions?: boolean
+  /** Override the left action icon (defaults to 'table_rows'). */
+  leftActionIcon?: string
   className?: string
   children: ReactNode
 }
