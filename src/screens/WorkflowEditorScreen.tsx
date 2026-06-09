@@ -22,7 +22,7 @@ const EMPTY_WORKFLOW = {
 // Healthcare / Dental Frontdesk start-node details — defined inline to avoid
 // any module-cache staleness from agentWorkflows.ts.
 const HC_FRONTDESK_START = {
-  agentName: 'Front desk agent - North region',
+  agentName: 'Front desk agent',
   goals: 'Serves as the first point of contact for inbound calls, texts, and chats, resolving patient inquiries, managing appointments, verifying insurance, and escalating complex cases when needed',
   outcomes:
     "1. Patient's query is resolved or routed without human intervention\n" +

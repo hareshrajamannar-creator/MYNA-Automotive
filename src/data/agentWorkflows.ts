@@ -31,7 +31,7 @@ const FRONTDESK_NODES = [
 
 const FRONTDESK_NODE_DETAILS: Record<string, any> = {
   '__start__': {
-    agentName: 'Frontdesk agent',
+    agentName: 'Front desk agent',
     goals: 'Serves as the first point of contact for inbound calls, texts, and chats — routing customer inquiries, scheduling service and sales appointments, answering vehicle and inventory questions, and escalating complex cases to the right department.',
     outcomes: `1. Customer inquiry is resolved or routed without human intervention
 2. Service or sales appointment is confirmed, modified, or cancelled and reflected in the DMS
@@ -301,7 +301,7 @@ const FRONTDESK_HC_NODE_DETAILS: Record<string, any> = {
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
-  'Frontdesk agent': { nodes: FRONTDESK_NODES, nodeDetails: FRONTDESK_NODE_DETAILS },
+  'Front desk agent': { nodes: FRONTDESK_NODES, nodeDetails: FRONTDESK_NODE_DETAILS },
   'Reminder agent':  { nodes: REMINDER_NODES,  nodeDetails: REMINDER_NODE_DETAILS  },
   'Outreach agent':  { nodes: OUTREACH_NODES,  nodeDetails: OUTREACH_NODE_DETAILS  },
 }
@@ -587,7 +587,7 @@ const HEALTHCARE_REMINDER_NODE_DETAILS: Record<string, any> = {
 }
 
 export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
-  'Frontdesk agent': { nodes: FRONTDESK_NODES,             nodeDetails: FRONTDESK_HC_NODE_DETAILS          },
+  'Front desk agent': { nodes: FRONTDESK_NODES,             nodeDetails: FRONTDESK_HC_NODE_DETAILS          },
   'Reminder agent':  { nodes: HEALTHCARE_REMINDER_NODES,   nodeDetails: HEALTHCARE_REMINDER_NODE_DETAILS   },
   'Outreach agent':  { nodes: OUTREACH_NODES,              nodeDetails: OUTREACH_NODE_DETAILS              },
 }
