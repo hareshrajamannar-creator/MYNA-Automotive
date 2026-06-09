@@ -33,6 +33,10 @@ interface AgentInstance {
   aht: string
   escalation: string
   locations: string
+  remindersSent: string
+  responseRate: string
+  avgResponseTime: string
+  noshowRate: string
   [key: string]: string
 }
 
@@ -48,10 +52,10 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
 }
 
 const REGIONS = [
-  { region: 'North region', status: 'Running', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%',  locations: '358' },
-  { region: 'East region',  status: 'Running', interactions: '98',  fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212' },
-  { region: 'South region', status: 'Paused',  interactions: '33',  fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180' },
-  { region: 'West region',  status: 'Draft',   interactions: '13',  fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140' },
+  { region: 'North region', status: 'Running', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%',  locations: '358', remindersSent: '102', responseRate: '15%', avgResponseTime: '20m', noshowRate: '11%' },
+  { region: 'East Region',  status: 'Running', interactions: '98',  fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212', remindersSent: '98',  responseRate: '9%',  avgResponseTime: '5m',  noshowRate: '11%' },
+  { region: 'South Region', status: 'Paused',  interactions: '33',  fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180', remindersSent: '53',  responseRate: '9%',  avgResponseTime: '10m', noshowRate: '11%' },
+  { region: 'West Region',  status: 'Draft',   interactions: '13',  fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140', remindersSent: '35',  responseRate: '8%',  avgResponseTime: '2m',  noshowRate: '11%' },
 ]
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
@@ -73,10 +77,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { id: 'escalation', value: '8%', label: 'Escalation rate', info: true },
     ],
     'Reminder agent': [
-      { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
-      { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
-      { id: 'noshow', value: '34%', label: 'No-show rate' },
-      { id: 'messages', value: '11,541', label: 'Messages sent' },
+      { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
+      { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
+      { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
+      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
     ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted' },
@@ -103,8 +107,13 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     aht: r.aht,
     escalation: r.escalation,
     locations: r.locations,
+    remindersSent: r.remindersSent,
+    responseRate: r.responseRate,
+    avgResponseTime: r.avgResponseTime,
+    noshowRate: r.noshowRate,
   }))
 
+  const isReminder = agentName === 'Reminder agent'
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -114,10 +123,17 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       sortable: true,
       render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
     },
-    { key: 'interactions', label: 'Interactions handled', width: 180, sortable: true },
-    { key: 'fcr', label: 'First contact resolution', width: 200, sortable: true },
-    { key: 'aht', label: 'Average handle time', width: 180, sortable: true },
-    { key: 'escalation', label: 'Escalation rate', width: 150, sortable: true },
+    ...(isReminder ? [
+      { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
+      { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
+      { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
+      { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
+    ] : [
+      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 180, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution', width: 200, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
+    ]),
     { key: 'locations', label: 'Locations', width: 130, sortable: true },
   ]
 

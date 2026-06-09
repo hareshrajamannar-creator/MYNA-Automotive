@@ -29,6 +29,10 @@ interface LocationRow {
   aht: string
   escalation: string
   count: string
+  remindersSent: string
+  responseRate: string
+  avgResponseTime: string
+  noshowRate: string
   [key: string]: string
 }
 
@@ -48,10 +52,10 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'escalation', value: '8%', label: 'Escalation rate', delta: '1.1%', trend: 'down', info: true },
   ],
   'Reminder agent': [
-    { id: 'confirmed', value: '3,847', label: 'Appointments confirmed', delta: '4.2%', trend: 'up', info: true },
-    { id: 'reschedule', value: '12%', label: 'Reschedule rate', delta: '0.5%', trend: 'down', info: true },
-    { id: 'noshow', value: '34%', label: 'No-show rate', delta: '1.3%', trend: 'down', info: true },
-    { id: 'messages', value: '11,541', label: 'Messages sent', delta: '2.3%', trend: 'up', info: true },
+    { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
+    { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
+    { id: 'avgTime', value: '2m', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
+    { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
   ],
   'Outreach agent': [
     { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true },
@@ -69,13 +73,13 @@ const DEFAULT_METRICS: Metric[] = [
 ]
 
 const LOCATIONS: LocationRow[] = [
-  { location: 'Atlanta, GA', interactions: '102', fcr: '15%', aht: '20m', escalation: '20m', count: '500' },
-  { location: 'Chicago, IL', interactions: '98', fcr: '9%', aht: '5m', escalation: '5m', count: '250' },
-  { location: 'Los Angeles, CA', interactions: '53', fcr: '9%', aht: '10m', escalation: '10m', count: '200' },
-  { location: 'Stamford, CT', interactions: '35', fcr: '8%', aht: '2m', escalation: '2m', count: '100' },
+  { location: 'Atlanta, GA',     interactions: '102', fcr: '15%', aht: '20m', escalation: '20m', count: '500', remindersSent: '102', responseRate: '15%', avgResponseTime: '20m', noshowRate: '11%' },
+  { location: 'Chicago, IL',     interactions: '98',  fcr: '9%',  aht: '5m',  escalation: '5m',  count: '250', remindersSent: '98',  responseRate: '9%',  avgResponseTime: '5m',  noshowRate: '11%' },
+  { location: 'Los Angeles, CA', interactions: '53',  fcr: '9%',  aht: '10m', escalation: '10m', count: '200', remindersSent: '53',  responseRate: '9%',  avgResponseTime: '10m', noshowRate: '11%' },
+  { location: 'Stamford, CT',    interactions: '35',  fcr: '8%',  aht: '2m',  escalation: '2m',  count: '100', remindersSent: '35',  responseRate: '8%',  avgResponseTime: '2m',  noshowRate: '11%' },
 ]
 
-const COLUMNS: Column<LocationRow>[] = [
+const DEFAULT_COLUMNS: Column<LocationRow>[] = [
   { key: 'location', label: 'Location', width: 240, sortable: true },
   { key: 'interactions', label: 'Interactions handled', width: 190, sortable: true },
   { key: 'fcr', label: 'First contact resolution', width: 200, sortable: true },
@@ -95,12 +99,21 @@ const COLUMNS: Column<LocationRow>[] = [
   },
 ]
 
+const REMINDER_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',         label: 'Locations',              width: 240, sortable: true },
+  { key: 'remindersSent',    label: 'Reminders sent',         width: 170, sortable: true },
+  { key: 'responseRate',     label: 'Reminder response rate', width: 210, sortable: true },
+  { key: 'avgResponseTime',  label: 'Average response time',  width: 200, sortable: true },
+  { key: 'noshowRate',       label: 'No-show rate',           width: 160, sortable: true },
+]
+
 export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent, product }: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
 
   // Derive agent name from instance name (e.g. "Frontdesk agent - North region" → "Frontdesk agent")
   const agentName = instanceName.replace(/ - .+$/, '')
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
+  const COLUMNS = agentName === 'Reminder agent' ? REMINDER_COLUMNS : DEFAULT_COLUMNS
 
   const isWorkflowTab = activeTab === 'workflow'
   const showHealthcareLogs =
