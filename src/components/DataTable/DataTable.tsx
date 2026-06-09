@@ -159,18 +159,24 @@ export function DataTable<T extends Record<string, unknown>>({
                     {isLast && hasRowCtas && (
                       <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
                         {rowAction && (!rowAction.visible || rowAction.visible(row)) && (
-                          <button
-                            type="button"
-                            title={rowAction.label}
-                            aria-label={rowAction.label}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              rowAction.onClick(row)
-                            }}
-                            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                          >
-                            <Icon name={rowAction.icon} size={20} />
-                          </button>
+                          <div className="group/tip relative">
+                            <button
+                              type="button"
+                              aria-label={typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                rowAction.onClick(row)
+                              }}
+                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                            >
+                              <Icon name={rowAction.icon} size={20} />
+                            </button>
+                            {/* Styled tooltip */}
+                            <span className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1a1a2e] px-sm py-xs text-small text-white opacity-0 shadow-dropdown transition-opacity group-hover/tip:opacity-100">
+                              {typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
+                              <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1a1a2e]" />
+                            </span>
+                          </div>
                         )}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button

@@ -2,7 +2,7 @@ import { TabsProps } from './Tabs.types'
 
 export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
   return (
-    <div className="flex items-end gap-xs pt-lg">
+    <div className="flex items-end gap-xs">
       {tabs.map((tab) => {
         const active = tab.id === activeTab
         return (
@@ -14,7 +14,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
           >
             <span
               className={`flex h-9 items-center gap-xs rounded-sm px-sm text-body transition-colors ${
-                active ? 'text-primary' : 'text-text-secondary hover:bg-surface-selected'
+                active ? 'text-text-primary' : 'text-text-secondary hover:bg-surface-hover'
               }`}
             >
               {tab.label}

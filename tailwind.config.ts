@@ -30,6 +30,7 @@ export default {
         border: {
           DEFAULT: '#eaeaea', // borders/primary/1
           selected: '#e5e9f0', // Selected - NEW
+          'chart-btn': '#cccccc', // chart card action button stroke
         },
         text: {
           primary: '#212121', // text/onLightSurface/Primary

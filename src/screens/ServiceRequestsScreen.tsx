@@ -87,8 +87,8 @@ interface ColumnDef extends Column<ServiceRequest> {
 
 const COLUMN_DEFS: ColumnDef[] = [
   { key: 'customer',        label: 'Customer',         width: 220, sortable: true, locked: true },
-  { key: 'vehicle',         label: 'Vehicle',          width: 190, sortable: true },
   { key: 'serviceType',     label: 'Appointment type', width: 160, sortable: true },
+  { key: 'vehicle',         label: 'Vehicle',          width: 190, sortable: true },
   { key: 'advisor',         label: 'Service advisor',  width: 160, sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', width: 160, sortable: true },
   { key: 'time',            label: 'Time',             width: 110, sortable: true },
