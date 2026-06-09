@@ -295,14 +295,13 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   },
 }
 
-export function IntakeScreen({ onViewDetail }: { onViewDetail?: (args: IntakeDetailArgs) => void }) {
+export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (args: IntakeDetailArgs) => void } = {}) {
   const [activeTab, setActiveTab] = useState('overdue')
   const [order, setOrder]         = useState<string[]>(DEFAULT_ORDER)
   const [visible, setVisible]     = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen]         = useState(false)
   const [filterOpen, setFilterOpen]               = useState(false)
   const [quickViewPatient, setQuickViewPatient]   = useState<PatientDetail | null>(null)
-  const [quickViewRow, setQuickViewRow]             = useState<IntakePatient | null>(null)
   const [activityRow, setActivityRow]               = useState<IntakePatient | null>(null)
   const [sendReminderRow, setSendReminderRow]         = useState<IntakePatient | null>(null)
 
@@ -394,7 +393,6 @@ export function IntakeScreen({ onViewDetail }: { onViewDetail?: (args: IntakeDet
                   label: 'Quick view',
                   onClick: (row) => {
                     const detail = PATIENT_DETAILS[row.patient] ?? {}
-                    setQuickViewRow(row)
                     setQuickViewPatient({ patient: row.patient, status: activeTab === 'overdue' ? 'Overdue' : row.status, appointmentDate: row.appointmentDate, bookedOn: row.bookedOn, sentOn: row.sentOn, ...detail })
                   },
                 },
@@ -426,19 +424,7 @@ export function IntakeScreen({ onViewDetail }: { onViewDetail?: (args: IntakeDet
       <QuickViewDrawer
         open={!!quickViewPatient}
         patient={quickViewPatient}
-        onClose={() => { setQuickViewPatient(null); setQuickViewRow(null) }}
-        onViewDetails={() => {
-          if (!quickViewPatient || !quickViewRow) return
-          setQuickViewPatient(null)
-          setQuickViewRow(null)
-          onViewDetail?.({
-            detail: quickViewPatient,
-            row: quickViewRow,
-            appointmentTime: PATIENT_DETAILS[quickViewRow.patient]?.appointmentTime,
-            appointmentType: PATIENT_DETAILS[quickViewRow.patient]?.appointmentType ?? 'Consultation',
-            insuranceProvider: PATIENT_DETAILS[quickViewRow.patient]?.insuranceProvider,
-          })
-        }}
+        onClose={() => setQuickViewPatient(null)}
       />
 
       <SendReminderDrawer
