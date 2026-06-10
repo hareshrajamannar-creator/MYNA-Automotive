@@ -69,24 +69,26 @@ export function IntegrationListCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-body text-text-primary">{name}</p>
-          {connected ? (
-            <div className="mt-xs flex items-center gap-xs">
-              <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
-              <span className="text-small text-text-secondary">
-                {selected ? 'Selected' : 'Connected'}
-              </span>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
-              className="mt-xs flex items-center gap-xs text-small text-text-action hover:underline"
-            >
-              Connect
-              <Icon name="open_in_new" size={12} />
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-sm">
+            <p className="truncate text-body text-text-primary">{name}</p>
+            {connected ? (
+              <div className="flex items-center gap-xs">
+                <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
+                <span className="text-small text-text-secondary">
+                  {selected ? 'Selected' : 'Connected'}
+                </span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
+                className="flex items-center gap-xs text-small text-text-action hover:underline"
+              >
+                Connect
+                <Icon name="open_in_new" size={12} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
