@@ -29,10 +29,10 @@ export default {
           disabled: '#bdbdbd', // locked/disabled checkbox fill
         },
         border: {
-          DEFAULT: '#eaeaea', // borders/primary/1
+          DEFAULT: '#e5e9f0', // borders/primary/1
           selected: '#e5e9f0', // Selected - NEW
           'chart-btn': '#cccccc', // chart card action button stroke
-          input: '#b3b3b3', // Aero DS text field / select border
+          input: '#e5e9f0', // text field / select / dropdown border
         },
         text: {
           primary: '#212121', // text/onLightSurface/Primary

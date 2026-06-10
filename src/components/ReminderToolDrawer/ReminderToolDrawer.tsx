@@ -34,7 +34,7 @@ function SelectField({ label, value, options }: { label?: string; value: string;
         type="button"
         onClick={() => setOpen((o) => !o)}
         style={{
-          width: '100%', height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+          width: '100%', height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
           background: '#fff', padding: '0 12px', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', fontSize: 14, color: '#212121',
           fontFamily: font, cursor: 'pointer',
@@ -104,7 +104,7 @@ function ProcChip({ label }: { label: string }) {
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       height: 28, padding: '0 10px 0 8px',
-      borderRadius: 4, border: '1px solid #c5d0e6',
+      borderRadius: 4, border: '1px solid #e5e9f0',
       background: '#fff', fontSize: 12, fontFamily: font, color: '#212121',
       flexShrink: 0,
     }}>

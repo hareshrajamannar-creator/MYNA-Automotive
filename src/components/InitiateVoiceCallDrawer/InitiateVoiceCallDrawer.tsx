@@ -60,7 +60,7 @@ function SelectField({
         type="button"
         onClick={() => setOpen((o) => !o)}
         style={{
-          width: '100%', height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+          width: '100%', height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
           background: '#fff', padding: '0 12px', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', fontSize: 14, color: val ? '#212121' : '#9e9e9e',
           fontFamily: font, cursor: 'pointer',
@@ -135,7 +135,7 @@ function VarChip({ label, onRemove }: { label: string; onRemove?: () => void }) 
   return (
     <div style={{
       display: 'inline-flex', alignItems: 'center', height: 28, gap: 0,
-      borderRadius: 4, border: '1px solid #c5d0e6', overflow: 'hidden',
+      borderRadius: 4, border: '1px solid #e5e9f0', overflow: 'hidden',
       fontFamily: font, fontSize: 12, flexShrink: 0,
     }}>
       <div style={{ width: 6, alignSelf: 'stretch', background: '#1976d2', flexShrink: 0 }} />
@@ -169,7 +169,7 @@ function VarTextarea({ placeholder, defaultValue }: { placeholder?: string; defa
         defaultValue={defaultValue}
         placeholder={placeholder}
         style={{
-          width: '100%', minHeight: 96, borderRadius: 4, border: '1px solid #c8cdd8',
+          width: '100%', minHeight: 96, borderRadius: 4, border: '1px solid #e5e9f0',
           padding: '8px 12px 32px 12px', fontSize: 13, fontFamily: font, color: '#212121',
           resize: 'vertical', boxSizing: 'border-box', lineHeight: '20px', outline: 'none',
         }}
@@ -259,7 +259,7 @@ export function InitiateVoiceCallDrawer({ open, onClose }: Props) {
           <div style={{ marginBottom: 24 }}>
             <SectionLabel>Phone number</SectionLabel>
             <div style={{
-              minHeight: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+              minHeight: 36, borderRadius: 4, border: '1px solid #e5e9f0',
               padding: '4px 12px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
               background: '#fff',
             }}>
@@ -297,7 +297,7 @@ export function InitiateVoiceCallDrawer({ open, onClose }: Props) {
                     onClick={() => setCallMode(mode)}
                     style={{
                       flex: 1, height: 36, borderRadius: 4, cursor: 'pointer',
-                      border: `1px solid ${sel ? '#1976d2' : '#c8cdd8'}`,
+                      border: `1px solid ${sel ? '#1976d2' : '#e5e9f0'}`,
                       background: sel ? '#e3f2fd' : '#fff',
                       fontSize: 13, fontFamily: font,
                       color: sel ? '#1565c0' : '#616161',
@@ -356,7 +356,7 @@ export function InitiateVoiceCallDrawer({ open, onClose }: Props) {
                     onClick={() => setCallingWindow(w)}
                     style={{
                       flex: 1, height: 36, borderRadius: 4, cursor: 'pointer',
-                      border: `1px solid ${sel ? '#1976d2' : '#c8cdd8'}`,
+                      border: `1px solid ${sel ? '#1976d2' : '#e5e9f0'}`,
                       background: sel ? '#e3f2fd' : '#fff',
                       fontSize: 13, fontFamily: font,
                       color: sel ? '#1565c0' : '#616161',

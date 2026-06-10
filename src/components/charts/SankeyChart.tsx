@@ -89,7 +89,7 @@ function BreakdownTooltip({ x, y, items }: BreakdownTooltipProps) {
   return (
     <div style={{
       position: 'fixed', left: x + 12, top: y - 8, zIndex: 9999,
-      background: '#fff', border: '1px solid #e0e4ec', borderRadius: 8,
+      background: '#fff', border: '1px solid #e5e9f0', borderRadius: 8,
       boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
       padding: '10px 14px', minWidth: 220,
       fontFamily: 'Roboto, sans-serif', fontSize: 13, color: '#212121',
@@ -163,7 +163,7 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, nodeCol
           node={<NodeComponent />}
           link={<LinkComponent />}
         >
-          <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #eaeaea', fontSize: 12, fontFamily: 'Roboto' }} />
+          <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e9f0', fontSize: 12, fontFamily: 'Roboto' }} />
         </Sankey>
       </ResponsiveContainer>
 

@@ -216,7 +216,7 @@ function StartNode({ title }: { title: string }) {
   return (
     <div style={{
       width: 160, height: 40, borderRadius: 20,
-      background: '#fff', border: '1px solid #c8cdd8',
+      background: '#fff', border: '1px solid #e5e9f0',
       boxShadow: '0px 2px 8px rgba(33,33,33,0.06)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: font, fontSize: 12, color: '#212121',
@@ -334,7 +334,7 @@ function RHSInput({ label, value }: { label: string; value: string }) {
     <div style={{ marginBottom: 16 }}>
       <RHSLabel>{label}</RHSLabel>
       <div style={{
-        height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+        height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
         padding: '0 12px', display: 'flex', alignItems: 'center',
         fontSize: 14, color: '#212121', background: '#fff', fontFamily: font,
       }}>
@@ -349,7 +349,7 @@ function RHSTextarea({ label, value }: { label: string; value: string }) {
     <div style={{ marginBottom: 16 }}>
       <RHSLabel>{label}</RHSLabel>
       <div style={{
-        minHeight: 72, borderRadius: 4, border: '1px solid #c8cdd8',
+        minHeight: 72, borderRadius: 4, border: '1px solid #e5e9f0',
         padding: '8px 12px', fontSize: 14, color: '#212121', background: '#fff',
         fontFamily: font, lineHeight: '20px',
       }}>
@@ -455,7 +455,7 @@ function SubAgentPanel() {
       <div style={{ marginBottom: 16 }}>
         <RHSLabel>Select agent</RHSLabel>
         <div style={{
-          height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+          height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
           padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           fontSize: 14, color: '#212121', background: '#fff', fontFamily: font, cursor: 'pointer',
         }}>
@@ -480,7 +480,7 @@ function DelayPanel({ title, duration, unit }: { title: string; duration: string
         <div style={{ flex: 1 }}>
           <RHSLabel>Duration</RHSLabel>
           <div style={{
-            height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+            height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
             padding: '0 12px', display: 'flex', alignItems: 'center',
             fontSize: 14, color: '#212121', background: '#fff', fontFamily: font,
           }}>
@@ -490,7 +490,7 @@ function DelayPanel({ title, duration, unit }: { title: string; duration: string
         <div style={{ flex: 1 }}>
           <RHSLabel>Unit</RHSLabel>
           <div style={{
-            height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+            height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
             padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             fontSize: 14, color: '#212121', background: '#fff', fontFamily: font, cursor: 'pointer',
           }}>
@@ -509,7 +509,7 @@ function BranchPanel() {
       <div style={{ marginBottom: 16 }}>
         <RHSLabel>Based on</RHSLabel>
         <div style={{
-          height: 36, borderRadius: 4, border: '1px solid #c8cdd8',
+          height: 36, borderRadius: 4, border: '1px solid #e5e9f0',
           padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           fontSize: 14, color: '#212121', background: '#fff', fontFamily: font, cursor: 'pointer',
         }}>
