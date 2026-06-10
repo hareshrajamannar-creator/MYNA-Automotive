@@ -248,6 +248,7 @@ const SANKEY_NODES = [
   { name: 'Voice' },
   { name: 'Text' },
   { name: 'Chat' },
+  { name: 'Email' },
   { name: 'Agent involved' },
   { name: 'Human involved' },
   { name: 'Resolved' },
@@ -262,12 +263,14 @@ const SANKEY_LINKS = [
   { source: 'Text',           target: 'Human involved', value: 1400 },
   { source: 'Chat',           target: 'Agent involved', value: 1800 },
   { source: 'Chat',           target: 'Human involved', value: 1200 },
-  { source: 'Agent involved', target: 'Resolved',       value: 4200 },
-  { source: 'Agent involved', target: 'Routed',         value: 1800 },
-  { source: 'Agent involved', target: 'Unresolved',     value: 1400 },
-  { source: 'Human involved', target: 'Resolved',       value: 2600 },
-  { source: 'Human involved', target: 'Routed',         value:  900 },
-  { source: 'Human involved', target: 'Unresolved',     value:  900 },
+  { source: 'Email',          target: 'Agent involved', value: 1100 },
+  { source: 'Email',          target: 'Human involved', value:  700 },
+  { source: 'Agent involved', target: 'Resolved',       value: 5100 },
+  { source: 'Agent involved', target: 'Routed',         value: 2200 },
+  { source: 'Agent involved', target: 'Unresolved',     value: 1200 },
+  { source: 'Human involved', target: 'Resolved',       value: 3100 },
+  { source: 'Human involved', target: 'Routed',         value: 1100 },
+  { source: 'Human involved', target: 'Unresolved',     value: 1000 },
 ]
 
 const OVERTIME_DATA = [
@@ -285,16 +288,18 @@ const OVERTIME_SERIES = [
 ]
 
 const DONUT_DATA = [
-  { name: 'Voice', value: 43.2, color: '#1976d2' },
-  { name: 'Text',  value: 32.5, color: '#4cae3d' },
-  { name: 'Email', value: 24.3, color: '#f5a623' },
+  { name: 'Voice', value: 35.0, color: '#1976d2' },
+  { name: 'Text',  value: 26.5, color: '#4cae3d' },
+  { name: 'Chat',  value: 22.0, color: '#9c27b0' },
+  { name: 'Email', value: 16.5, color: '#f5a623' },
 ]
 
 const CHANNEL_STATS = [
-  { id: 'total', value: '7.9k', label: 'Total conversations', delta: '+1.3%', trend: 'up' as const },
-  { id: 'voice', value: '5K',   label: 'Voice',               delta: '+1.3%', trend: 'up' as const },
-  { id: 'text',  value: '1.5k', label: 'Text',                delta: '+1.3%', trend: 'up' as const },
-  { id: 'email', value: '1.4k', label: 'Email' },
+  { id: 'total', value: '10.3k', label: 'Total conversations', delta: '+1.3%',  trend: 'up'   as const },
+  { id: 'voice', value: '3.6k',  label: 'Voice',               delta: '+4.2%',  trend: 'up'   as const },
+  { id: 'text',  value: '2.7k',  label: 'Text',                delta: '-1.1%',  trend: 'down' as const },
+  { id: 'chat',  value: '2.3k',  label: 'Chat',                delta: '+0.8%',  trend: 'up'   as const },
+  { id: 'email', value: '1.7k',  label: 'Email',               delta: '-2.4%',  trend: 'down' as const },
 ]
 
 interface LocationRow {
@@ -401,7 +406,7 @@ function ResponsesPanel() {
               </div>
             ))}
           </div>
-          <DonutChart data={DONUT_DATA} centerValue="7.9k" centerLabel="Total conversations" height={380} />
+          <DonutChart data={DONUT_DATA} centerValue="10.3k" centerLabel="Total conversations" height={380} />
         </ChartCard>
 
         {/* Conversation across locations — only 3-dot menu */}
@@ -430,29 +435,31 @@ const CM_SUMMARY = [
 ]
 
 const CM_SANKEY_NODES = [
-  { name: 'Calls' },      // 0 — pink/magenta
-  { name: 'SMS' },         // 1 — dark purple
-  { name: 'Email' },       // 2 — blue
-  { name: 'Tagged' },      // 3 — green
-  { name: 'Untagged' },    // 4 — gray
-  { name: 'Routed' },      // 5 — blue
-  { name: 'Pending' },     // 6 — yellow/amber
-  { name: 'Missed' },      // 7 — dark red
-  { name: 'Resolved' },    // 8 — green
-  { name: 'Unresolved' },  // 9 — gray
+  { name: 'Voice' },       // 0
+  { name: 'Text' },        // 1
+  { name: 'Chat' },        // 2
+  { name: 'Email' },       // 3
+  { name: 'Tagged' },      // 4
+  { name: 'Untagged' },    // 5
+  { name: 'Routed' },      // 6
+  { name: 'Pending' },     // 7
+  { name: 'Missed' },      // 8
+  { name: 'Resolved' },    // 9
+  { name: 'Unresolved' },  // 10
 ]
 const CM_SANKEY_LINKS = [
   // Channel → Tagging status
-  { source: 0, target: 3, value: 2800 }, { source: 0, target: 4, value: 800 },
-  { source: 1, target: 3, value: 2200 }, { source: 1, target: 4, value: 1000 },
-  { source: 2, target: 3, value: 1200 }, { source: 2, target: 4, value: 800 },
+  { source: 0, target: 4, value: 2800 }, { source: 0, target: 5, value: 800 },
+  { source: 1, target: 4, value: 2200 }, { source: 1, target: 5, value: 1000 },
+  { source: 2, target: 4, value: 1600 }, { source: 2, target: 5, value: 700 },
+  { source: 3, target: 4, value: 1200 }, { source: 3, target: 5, value: 800 },
   // Tagging status → Routing status
-  { source: 3, target: 5, value: 3800 }, { source: 3, target: 6, value: 1600 }, { source: 3, target: 7, value: 800 },
-  { source: 4, target: 5, value: 1000 }, { source: 4, target: 6, value: 800 }, { source: 4, target: 7, value: 800 },
+  { source: 4, target: 6, value: 4800 }, { source: 4, target: 7, value: 2000 }, { source: 4, target: 8, value: 1000 },
+  { source: 5, target: 6, value: 1400 }, { source: 5, target: 7, value: 800 },  { source: 5, target: 8, value: 1100 },
   // Routing status → Outcome
-  { source: 5, target: 8, value: 4200 }, { source: 5, target: 9, value: 600 },
-  { source: 6, target: 8, value: 1400 }, { source: 6, target: 9, value: 1000 },
-  { source: 7, target: 8, value: 200 },  { source: 7, target: 9, value: 1400 },
+  { source: 6, target: 9, value: 5200 }, { source: 6, target: 10, value: 1000 },
+  { source: 7, target: 9, value: 1800 }, { source: 7, target: 10, value: 1000 },
+  { source: 8, target: 9, value: 300 },  { source: 8, target: 10, value: 1800 },
 ]
 
 const CM_STATUS_DATA = [
@@ -557,16 +564,17 @@ function ConversationManagedPanel() {
             links={CM_SANKEY_LINKS}
             height={340}
             nodeColors={{
-              0: '#CE5ECE', // Calls — pink/magenta
-              1: '#4A2D7A', // SMS — dark purple
-              2: '#42A5F5', // Email — blue
-              3: '#4cae3d', // Tagged — green
-              4: '#BDBDBD', // Untagged — gray
-              5: '#5C6BC0', // Routed — blue
-              6: '#F5A623', // Pending — amber
-              7: '#C62828', // Missed — dark red
-              8: '#8BC34A', // Resolved — green
-              9: '#BDBDBD', // Unresolved — gray
+              0:  '#1976d2', // Voice — blue
+              1:  '#4cae3d', // Text — green
+              2:  '#9c27b0', // Chat — purple
+              3:  '#f5a623', // Email — orange
+              4:  '#4cae3d', // Tagged — green
+              5:  '#BDBDBD', // Untagged — gray
+              6:  '#5C6BC0', // Routed — indigo
+              7:  '#F5A623', // Pending — amber
+              8:  '#C62828', // Missed — dark red
+              9:  '#8BC34A', // Resolved — light green
+              10: '#BDBDBD', // Unresolved — gray
             }}
           />
         </ChartCard>

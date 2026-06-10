@@ -48,4 +48,6 @@ export interface DataTableProps<T = Record<string, unknown>> {
   scrollOnHover?: boolean
   /** Returns extra className(s) for the <tr> — use for row-level styling like disabled/dimmed. */
   rowClassName?: (row: T, index: number) => string
+  /** Row height in px. Defaults to 48 (h-12). */
+  rowHeight?: number
 }

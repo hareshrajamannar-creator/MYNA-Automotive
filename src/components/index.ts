@@ -30,6 +30,7 @@ export type { QuickViewDrawerProps, QuickViewAppointment, QuickViewWaitlist } fr
 export { MetricTiles } from './MetricTiles/MetricTiles'
 export { Tabs } from './Tabs/Tabs'
 export { DataTable } from './DataTable/DataTable'
+export { PatientCell } from './PatientCell/PatientCell'
 
 // Charts (Recharts-based + CSS heatmap) — reusable across report pages
 export { ChartCard } from './charts/ChartCard'

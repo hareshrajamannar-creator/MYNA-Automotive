@@ -17,6 +17,7 @@ import {
   Tabs,
   TopNav,
   QuickViewDrawer,
+  PatientCell,
   type AppointmentTimescale,
   type AppointmentView,
   type ChipVariant,
@@ -28,6 +29,7 @@ import {
 
 interface Appointment {
   patient: string
+  location: string
   status: string
   provider: string
   apptType: string
@@ -40,22 +42,22 @@ interface Appointment {
 
 const APPOINTMENTS: Appointment[] = [
   // Unconfirmed — 5
-  { patient: 'Megan Harris',   status: 'Unconfirmed', provider: 'Dr. Lopez',     apptType: 'Follow Up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', phone: '(650) 555-0144', email: 'm.harris@email.com'    },
-  { patient: 'Chris Evans',    status: 'Unconfirmed', provider: 'Dr. Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', phone: '(415) 555-0132', email: 'c.evans@email.com'     },
-  { patient: 'Linda Thomas',   status: 'Unconfirmed', provider: 'Dr. Carter',    apptType: 'New Consult',     insuranceStatus: 'In Progress', dateTime: 'Oct 19, 2024 11:15 AM', phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
-  { patient: 'Patricia Clark', status: 'Unconfirmed', provider: 'Dr. Adams',     apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', phone: '(415) 555-0199', email: 'p.clark@email.com'     },
-  { patient: 'William Harris', status: 'Unconfirmed', provider: 'Dr. Baker',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', phone: '(408) 555-0166', email: 'w.harris@email.com'    },
+  { patient: 'Megan Harris',   location: 'Main Campus',   status: 'Unconfirmed', provider: 'Dr. Lopez',     apptType: 'Follow Up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', phone: '(650) 555-0144', email: 'm.harris@email.com'    },
+  { patient: 'Chris Evans',    location: 'North Clinic',  status: 'Unconfirmed', provider: 'Dr. Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', phone: '(415) 555-0132', email: 'c.evans@email.com'     },
+  { patient: 'Linda Thomas',   location: 'South Clinic',  status: 'Unconfirmed', provider: 'Dr. Carter',    apptType: 'New Consult',     insuranceStatus: 'In Progress', dateTime: 'Oct 19, 2024 11:15 AM', phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
+  { patient: 'Patricia Clark', location: 'East Branch',   status: 'Unconfirmed', provider: 'Dr. Adams',     apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', phone: '(415) 555-0199', email: 'p.clark@email.com'     },
+  { patient: 'William Harris', location: 'Main Campus',   status: 'Unconfirmed', provider: 'Dr. Baker',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', phone: '(408) 555-0166', email: 'w.harris@email.com'    },
   // Cancelled — 5
-  { patient: 'Michael Wilson', status: 'Cancelled',   provider: 'Dr. Jones',     apptType: 'Urgent Care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
-  { patient: 'James Thomas',   status: 'Cancelled',   provider: 'Dr. Davis',     apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
-  { patient: 'Laura Jackson',  status: 'Cancelled',   provider: 'Dr. Martinez',  apptType: 'Annual Physical', insuranceStatus: 'In Progress', dateTime: 'Jul 30, 2024 06:40 AM', phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
-  { patient: 'Daniel White',   status: 'Cancelled',   provider: 'Dr. Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', phone: '(669) 555-0101', email: 'd.white@email.com'     },
-  { patient: 'Kevin Moore',    status: 'Cancelled',   provider: 'Dr. Edwards',   apptType: 'Follow Up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', phone: '(408) 555-0188', email: 'k.moore@email.com'     },
+  { patient: 'Michael Wilson', location: 'North Clinic',  status: 'Cancelled',   provider: 'Dr. Jones',     apptType: 'Urgent Care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
+  { patient: 'James Thomas',   location: 'South Clinic',  status: 'Cancelled',   provider: 'Dr. Davis',     apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
+  { patient: 'Laura Jackson',  location: 'East Branch',   status: 'Cancelled',   provider: 'Dr. Martinez',  apptType: 'Annual Physical', insuranceStatus: 'In Progress', dateTime: 'Jul 30, 2024 06:40 AM', phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
+  { patient: 'Daniel White',   location: 'Main Campus',   status: 'Cancelled',   provider: 'Dr. Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', phone: '(669) 555-0101', email: 'd.white@email.com'     },
+  { patient: 'Kevin Moore',    location: 'North Clinic',  status: 'Cancelled',   provider: 'Dr. Edwards',   apptType: 'Follow Up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', phone: '(408) 555-0188', email: 'k.moore@email.com'     },
   // No-show — 4
-  { patient: 'David Martinez', status: 'No-show',     provider: 'Dr. Rodriguez', apptType: 'Follow Up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
-  { patient: 'Sarah Anderson', status: 'No-show',     provider: 'Dr. Miller',    apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
-  { patient: 'Jessica Taylor', status: 'No-show',     provider: 'Dr. Garcia',    apptType: 'Procedure',       insuranceStatus: 'In Progress', dateTime: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 'jess.t@email.com'      },
-  { patient: 'Robert Brown',   status: 'No-show',     provider: 'Dr. Williams',  apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
+  { patient: 'David Martinez', location: 'South Clinic',  status: 'No-show',     provider: 'Dr. Rodriguez', apptType: 'Follow Up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
+  { patient: 'Sarah Anderson', location: 'East Branch',   status: 'No-show',     provider: 'Dr. Miller',    apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
+  { patient: 'Jessica Taylor', location: 'Main Campus',   status: 'No-show',     provider: 'Dr. Garcia',    apptType: 'Procedure',       insuranceStatus: 'In Progress', dateTime: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 'jess.t@email.com'      },
+  { patient: 'Robert Brown',   location: 'North Clinic',  status: 'No-show',     provider: 'Dr. Williams',  apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
 ]
 
 const TAB_STATUS_MAP: Record<string, string> = {
@@ -93,7 +95,7 @@ interface ColumnDef extends Column<Appointment> {
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'patient',         label: 'Patient',          sortable: true, locked: true },
+  { key: 'patient', label: 'Patient', sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.patient as string} location={row.location as string} /> },
   { key: 'provider',        label: 'Provider',         sortable: true },
   { key: 'apptType',        label: 'Appt type',        sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
@@ -299,6 +301,7 @@ export function ManageAppointmentsScreen() {
 
               <div className="px-lg py-lg">
                 <DataTable
+                  rowHeight={56}
                   columns={columns}
                   data={filteredData}
                   rowAction={{
