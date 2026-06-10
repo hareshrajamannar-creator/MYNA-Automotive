@@ -15,6 +15,7 @@ export function DataTable<T extends Record<string, unknown>>({
   rowMenuItems,
   scrollOnHover = false,
   rowClassName,
+  rowHeight = 48,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -152,7 +153,8 @@ export function DataTable<T extends Record<string, unknown>>({
                 return (
                   <td
                     key={String(col.key)}
-                    className={`h-12 px-[10px] align-middle text-body text-text-primary ${
+                    style={{ height: rowHeight }}
+                  className={`px-[10px] align-middle text-body text-text-primary ${
                       isLast ? 'relative' : 'truncate'
                     }`}
                   >

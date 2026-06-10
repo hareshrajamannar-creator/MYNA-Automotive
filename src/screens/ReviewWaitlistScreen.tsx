@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Chip, DataTable, FilterPanel, FormDrawer, Icon, QuickSendModal, QuickViewDrawer, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField, type QuickViewWaitlist } from '../components'
+import { Chip, DataTable, FilterPanel, FormDrawer, Icon, PatientCell, QuickSendModal, QuickViewDrawer, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField, type QuickViewWaitlist } from '../components'
 
 type WaitlistStatus = 'Waitlisted' | 'Slot offered' | 'Slot filled'
 type OutreachChannel = 'chat' | 'call' | 'text'
@@ -7,6 +7,7 @@ type Priority = 'High' | 'Medium' | 'Low' | 'low'
 
 interface WaitlistRow {
   patient: string
+  location: string
   outreach: OutreachChannel
   waitingSince: string
   priority: Priority
@@ -17,31 +18,31 @@ interface WaitlistRow {
 
 const ALL_ROWS: WaitlistRow[] = [
   // Waitlisted — 13
-  { patient: 'Michael Smith',      outreach: 'chat', waitingSince: '4 days',       priority: 'High',   apptType: 'Procedure',       status: 'Waitlisted'   },
-  { patient: 'Jessica Williams',   outreach: 'call', waitingSince: '5 days',       priority: 'Medium', apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'David Brown',        outreach: 'chat', waitingSince: '6 days',       priority: 'Low',    apptType: 'Follow-up',       status: 'Waitlisted'   },
-  { patient: 'Emily Davis',        outreach: 'call', waitingSince: '7 days',       priority: 'High',   apptType: 'Annual physical', status: 'Waitlisted'   },
-  { patient: 'Christopher Garcia', outreach: 'chat', waitingSince: '8 days',       priority: 'Medium', apptType: 'Urgent care',     status: 'Waitlisted'   },
-  { patient: 'Sarah Martinez',     outreach: 'call', waitingSince: '9 days',       priority: 'Low',    apptType: 'Procedure',       status: 'Waitlisted'   },
-  { patient: 'James Rodriguez',    outreach: 'call', waitingSince: '10 days',      priority: 'High',   apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'Linda White',        outreach: 'call', waitingSince: '11 days',      priority: 'Medium', apptType: 'Follow-up',       status: 'Waitlisted'   },
-  { patient: 'William Harris',     outreach: 'call', waitingSince: '12 days',      priority: 'Low',    apptType: 'Annual physical', status: 'Waitlisted'   },
-  { patient: 'Patricia Clark',     outreach: 'chat', waitingSince: '13 days',      priority: 'High',   apptType: 'Urgent care',     status: 'Waitlisted'   },
-  { patient: 'Daniel Lewis',       outreach: 'chat', waitingSince: '14 days ago',  priority: 'Medium', apptType: 'Procedure',       status: 'Waitlisted'   },
-  { patient: 'Sophia Walker',      outreach: 'chat', waitingSince: '15 days ago',  priority: 'Low',    apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'Marcus Reed',        outreach: 'call', waitingSince: '16 days ago',  priority: 'High',   apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'Michael Smith',      location: 'Main Campus',  outreach: 'chat', waitingSince: '4 days',       priority: 'High',   apptType: 'Procedure',       status: 'Waitlisted'   },
+  { patient: 'Jessica Williams',   location: 'North Clinic', outreach: 'call', waitingSince: '5 days',       priority: 'Medium', apptType: 'New consult',     status: 'Waitlisted'   },
+  { patient: 'David Brown',        location: 'South Clinic', outreach: 'chat', waitingSince: '6 days',       priority: 'Low',    apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'Emily Davis',        location: 'East Branch',  outreach: 'call', waitingSince: '7 days',       priority: 'High',   apptType: 'Annual physical', status: 'Waitlisted'   },
+  { patient: 'Christopher Garcia', location: 'Main Campus',  outreach: 'chat', waitingSince: '8 days',       priority: 'Medium', apptType: 'Urgent care',     status: 'Waitlisted'   },
+  { patient: 'Sarah Martinez',     location: 'North Clinic', outreach: 'call', waitingSince: '9 days',       priority: 'Low',    apptType: 'Procedure',       status: 'Waitlisted'   },
+  { patient: 'James Rodriguez',    location: 'South Clinic', outreach: 'call', waitingSince: '10 days',      priority: 'High',   apptType: 'New consult',     status: 'Waitlisted'   },
+  { patient: 'Linda White',        location: 'East Branch',  outreach: 'call', waitingSince: '11 days',      priority: 'Medium', apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'William Harris',     location: 'Main Campus',  outreach: 'call', waitingSince: '12 days',      priority: 'Low',    apptType: 'Annual physical', status: 'Waitlisted'   },
+  { patient: 'Patricia Clark',     location: 'North Clinic', outreach: 'chat', waitingSince: '13 days',      priority: 'High',   apptType: 'Urgent care',     status: 'Waitlisted'   },
+  { patient: 'Daniel Lewis',       location: 'South Clinic', outreach: 'chat', waitingSince: '14 days ago',  priority: 'Medium', apptType: 'Procedure',       status: 'Waitlisted'   },
+  { patient: 'Sophia Walker',      location: 'East Branch',  outreach: 'chat', waitingSince: '15 days ago',  priority: 'Low',    apptType: 'New consult',     status: 'Waitlisted'   },
+  { patient: 'Marcus Reed',        location: 'Main Campus',  outreach: 'call', waitingSince: '16 days ago',  priority: 'High',   apptType: 'Follow-up',       status: 'Waitlisted'   },
   // Slot offered — 6
-  { patient: 'Ethan Hall',         outreach: 'text', waitingSince: '3 days',       priority: 'High',   apptType: 'Follow-up',       status: 'Slot offered' },
-  { patient: 'Olivia Allen',       outreach: 'call', waitingSince: '5 days',       priority: 'Medium', apptType: 'Procedure',       status: 'Slot offered' },
-  { patient: 'Noah Young',         outreach: 'chat', waitingSince: '7 days',       priority: 'Low',    apptType: 'Annual physical', status: 'Slot offered' },
-  { patient: 'Ava King',           outreach: 'text', waitingSince: '2 days',       priority: 'High',   apptType: 'Urgent care',     status: 'Slot offered' },
-  { patient: 'Liam Scott',         outreach: 'call', waitingSince: '6 days',       priority: 'Medium', apptType: 'New consult',     status: 'Slot offered' },
-  { patient: 'Chloe Turner',       outreach: 'chat', waitingSince: '4 days',       priority: 'Low',    apptType: 'Procedure',       status: 'Slot offered' },
+  { patient: 'Ethan Hall',         location: 'North Clinic', outreach: 'text', waitingSince: '3 days',       priority: 'High',   apptType: 'Follow-up',       status: 'Slot offered' },
+  { patient: 'Olivia Allen',       location: 'South Clinic', outreach: 'call', waitingSince: '5 days',       priority: 'Medium', apptType: 'Procedure',       status: 'Slot offered' },
+  { patient: 'Noah Young',         location: 'East Branch',  outreach: 'chat', waitingSince: '7 days',       priority: 'Low',    apptType: 'Annual physical', status: 'Slot offered' },
+  { patient: 'Ava King',           location: 'Main Campus',  outreach: 'text', waitingSince: '2 days',       priority: 'High',   apptType: 'Urgent care',     status: 'Slot offered' },
+  { patient: 'Liam Scott',         location: 'North Clinic', outreach: 'call', waitingSince: '6 days',       priority: 'Medium', apptType: 'New consult',     status: 'Slot offered' },
+  { patient: 'Chloe Turner',       location: 'South Clinic', outreach: 'chat', waitingSince: '4 days',       priority: 'Low',    apptType: 'Procedure',       status: 'Slot offered' },
   // Slot filled — 4
-  { patient: 'Emma Green',         outreach: 'chat', waitingSince: '10 days ago',  priority: 'Low',    apptType: 'Procedure',       status: 'Slot filled'  },
-  { patient: 'Mason Baker',        outreach: 'text', waitingSince: '12 days ago',  priority: 'High',   apptType: 'Follow-up',       status: 'Slot filled'  },
-  { patient: 'Isabella Adams',     outreach: 'chat', waitingSince: '16 days ago',  priority: 'Medium', apptType: 'Annual physical', status: 'Slot filled'  },
-  { patient: 'Lucas Mitchell',     outreach: 'call', waitingSince: '18 days ago',  priority: 'Low',    apptType: 'New consult',     status: 'Slot filled'  },
+  { patient: 'Emma Green',         location: 'East Branch',  outreach: 'chat', waitingSince: '10 days ago',  priority: 'Low',    apptType: 'Procedure',       status: 'Slot filled'  },
+  { patient: 'Mason Baker',        location: 'Main Campus',  outreach: 'text', waitingSince: '12 days ago',  priority: 'High',   apptType: 'Follow-up',       status: 'Slot filled'  },
+  { patient: 'Isabella Adams',     location: 'North Clinic', outreach: 'chat', waitingSince: '16 days ago',  priority: 'Medium', apptType: 'Annual physical', status: 'Slot filled'  },
+  { patient: 'Lucas Mitchell',     location: 'South Clinic', outreach: 'call', waitingSince: '18 days ago',  priority: 'Low',    apptType: 'New consult',     status: 'Slot filled'  },
 ]
 
 const TAB_FILTER: Record<string, WaitlistStatus | null> = {
@@ -71,7 +72,7 @@ const STATUS_COLUMN: Column<WaitlistRow> = {
 }
 
 const BASE_COLUMNS: Column<WaitlistRow>[] = [
-  { key: 'patient',      label: 'Patient',          sortable: true },
+  { key: 'patient', label: 'Patient', sortable: true, render: (_val, row) => <PatientCell name={row.patient as string} location={row.location as string} /> },
   {
     key: 'outreach',
     label: 'Outreach channel',
@@ -303,6 +304,7 @@ export function ReviewWaitlistScreen() {
         {/* Table */}
         <div className="px-lg py-lg">
           <DataTable
+            rowHeight={56}
             columns={columns}
             data={tableData}
             rowAction={{
