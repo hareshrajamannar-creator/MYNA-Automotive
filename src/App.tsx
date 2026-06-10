@@ -19,7 +19,10 @@ import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
-import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+// PhoneNumberScreen (Phone number 1 — Abhishek's version) is commented out from the UI.
+// Do not delete. Restore by uncommenting the import and its route below.
+// import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+import { PhoneNumber2Screen } from './screens/PhoneNumberScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { WebWidgetsScreen } from './screens/WebWidgetsScreen'
 import { AppointmentWidgetsScreen } from './screens/AppointmentWidgetsScreen'
@@ -350,7 +353,9 @@ export function App() {
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'phone-number' ? (
-          <PhoneNumberScreen />
+          // Phone number 1 (Abhishek's version) — commented out, do not delete:
+          // <PhoneNumberScreen />
+          <PhoneNumber2Screen />
         ) : navActive === 'voices' ? (
           <EmptyResourceScreen label="Voices" />
         ) : navActive === 'web-widget' ? (
