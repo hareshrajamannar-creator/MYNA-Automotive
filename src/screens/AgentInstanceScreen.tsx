@@ -14,6 +14,7 @@ import {
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { AgentLogsTab } from './AgentLogsTab'
 import { AgentSettingsTab } from './AgentSettingsTab'
+import { RecommendationTab } from './RecommendationTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 
 interface AgentInstanceScreenProps {
@@ -288,6 +289,8 @@ export function AgentInstanceScreen({
             </>
           ) : showHealthcareLogs ? (
             <AgentLogsTab />
+          ) : activeTab === 'recommendation' ? (
+            <RecommendationTab />
           ) : activeTab === 'settings' ? (
             <AgentSettingsTab
               product={product}
