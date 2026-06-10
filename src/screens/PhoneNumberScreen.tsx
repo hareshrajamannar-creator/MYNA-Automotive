@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Icon, DataTable, FormDrawer, SelectMenu, TopNav, type Column } from '../components'
+import { useEffect, useRef, useState } from 'react'
+import { Icon, DataTable, SelectMenu, TopNav, type Column } from '../components'
 
 // --- Phone number 1 data & helpers (Abhishek's version — do not delete) ---
 // interface PhoneNumberRow {
@@ -132,20 +132,7 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
     </div>
   )
 }
-// 
-const EDIT_FIELDS = [
-  { key: 'name',           label: 'Name',            type: 'text'   as const },
-  { key: 'phoneNumber',    label: 'Phone number',    type: 'text'   as const },
-  { key: 'connection',     label: 'Connection',      type: 'select' as const, options: ['Birdeye number', 'Call forwarding', 'SIP trunk'] },
-  { key: 'provider',       label: 'Provider',        type: 'select' as const, options: ['Twilio', 'Vonage', 'Bandwidth'] },
-  { key: 'numberType',     label: 'Number type',     type: 'select' as const, options: ['Local', 'Toll-free', 'Mobile'] },
-  { key: 'numberId',       label: 'Number ID',       type: 'text'   as const },
-  { key: 'purchasedOn',    label: 'Purchased on',    type: 'text'   as const },
-  { key: 'routingMode',    label: 'Routing mode',    type: 'select' as const, options: ['AI-first', 'Overflow', 'IVR'] },
-  { key: 'assignedAgents', label: 'Assigned agents', type: 'select' as const, options: ['Frontdesk', 'Scheduling', 'Pre-visit', 'Scheduling & Frontdesk', 'Frontdesk & Waitlist', 'Frontdesk & Pre-vist'] },
-  { key: 'locations',      label: 'Locations',       type: 'select' as const, options: ['North Austin', 'South Austin', 'San Francisco', 'All locations'] },
-]
-// 
+//
 // function ImportNumberButton({ onSelect }: { onSelect: (source: 'twilio' | 'sip') => void }) {
 //   const [open, setOpen] = useState(false)
 //   const ref = useRef<HTMLDivElement>(null)
@@ -213,6 +200,11 @@ const EDIT_FIELDS = [
 interface PhoneNumber2Row {
   name: string
   phoneNumber: string
+  e164Format: string
+  terminationUri: string
+  transport: string
+  sipUsername: string
+  sipPassword: string
   connection: string
   routingMode: string
   assignedAgents: string
@@ -222,15 +214,23 @@ interface PhoneNumber2Row {
   [key: string]: string
 }
 
-const DATA2: PhoneNumber2Row[] = [
-  { name: 'Main reception',   phoneNumber: '(202) 555-0123', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: 'Frontdesk',              locations: 'North Austin',  provider: 'Twilio',    status: 'Active'  },
-  { name: 'Schedule line',    phoneNumber: '(303) 555-0198', connection: 'Call forwarding', routingMode: 'Overflow', assignedAgents: 'Scheduling & Frontdesk', locations: 'South Austin',  provider: 'Twilio',    status: 'Active'  },
-  { name: 'Outreach',         phoneNumber: '(404) 555-0167', connection: 'SIP trunk',       routingMode: 'Overflow', assignedAgents: 'Pre-visit',              locations: 'San Francisco', provider: 'Vonage',    status: 'Pending' },
-  { name: 'Outreach',         phoneNumber: '(505) 555-0189', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: '-',                      locations: '-',             provider: 'Twilio',    status: 'Pending' },
-  { name: 'Patient services', phoneNumber: '(606) 555-0145', connection: 'Call forwarding', routingMode: 'IVR',      assignedAgents: 'Frontdesk & Waitlist',   locations: 'South Austin',  provider: 'Bandwidth', status: 'Active'  },
-  { name: 'Insurance',        phoneNumber: '(707) 555-0132', connection: 'SIP trunk',       routingMode: 'IVR',      assignedAgents: 'Frontdesk',              locations: '-',             provider: 'Bandwidth', status: 'Pending' },
-  { name: 'Night coverage',   phoneNumber: '(808) 555-0156', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: '-',                      locations: 'All locations', provider: 'Twilio',    status: 'Active'  },
-  { name: 'Toll-free main',   phoneNumber: '(909) 555-0173', connection: 'Call forwarding', routingMode: 'Overflow', assignedAgents: 'Frontdesk & Pre-visit',  locations: 'All locations', provider: 'Twilio',    status: 'Active'  },
+
+const DEFAULT_ROWS: PhoneNumber2Row[] = [
+  {
+    name:           'Main reception',
+    phoneNumber:    '+14155552671',
+    e164Format:     '+E.164',
+    terminationUri: 'sip:mainreception.pstn.twilio.com;transport=tcp',
+    transport:      'TCP',
+    sipUsername:    'myna_user',
+    sipPassword:    'p@ssw0rd',
+    connection:     'SIP trunk',
+    routingMode:    '—',
+    assignedAgents: '—',
+    locations:      'San Francisco',
+    provider:       'Twilio',
+    status:         'Active',
+  },
 ]
 
 const COLUMNS2: Column<PhoneNumber2Row>[] = [
@@ -239,42 +239,6 @@ const COLUMNS2: Column<PhoneNumber2Row>[] = [
   { key: 'locations',   label: 'Locations',    sortable: true },
 ]
 
-interface ForwardingRow {
-  yourNumber: string
-  birdeyeReceptionist: string
-  location: string
-  [key: string]: string
-}
-
-const FORWARDING_DATA: ForwardingRow[] = [
-  { yourNumber: '(303) 555-0198', birdeyeReceptionist: '(512) 900-0001', location: 'South Austin'  },
-  { yourNumber: '(404) 555-0167', birdeyeReceptionist: '(512) 900-0002', location: 'San Francisco' },
-  { yourNumber: '(606) 555-0145', birdeyeReceptionist: '(512) 900-0003', location: 'South Austin'  },
-  { yourNumber: '(707) 555-0132', birdeyeReceptionist: '(512) 900-0004', location: '—'             },
-  { yourNumber: '(909) 555-0173', birdeyeReceptionist: '(512) 900-0005', location: 'All locations' },
-]
-
-const FORWARDING_COLUMNS: Column<ForwardingRow>[] = [
-  { key: 'yourNumber',           label: 'Number',         sortable: true },
-  {
-    key: 'birdeyeReceptionist',
-    label: 'Birdeye number',
-    render: (val) => (
-      <span className="flex items-center gap-sm">
-        <span className="text-body text-text-primary">{String(val)}</span>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(String(val)) }}
-          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-selected"
-          title="Copy"
-        >
-          <Icon name="content_copy" size={14} />
-        </button>
-      </span>
-    ),
-  },
-  { key: 'location', label: 'Location', sortable: true },
-]
 
 const LOCATION_OPTIONS = [
   { value: 'North Austin',  label: 'North Austin'  },
@@ -284,6 +248,32 @@ const LOCATION_OPTIONS = [
 ]
 
 
+function applySipFormat(raw: string, transport: string): string {
+  // Strip any existing sip:/sips: prefix and ;transport=* suffix to get the bare host
+  const host = raw
+    .replace(/^sips?:\/?\/?/i, '')
+    .replace(/;transport=\w+$/i, '')
+    .trim()
+  if (!host) return ''
+  if (transport === 'TLS') return `sips:${host}`
+  if (transport === 'TCP') return `sip:${host};transport=tcp`
+  return `sip:${host}` // UDP — no transport param needed
+}
+
+function applyPhoneFormat(raw: string, format: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 11) // max 11 digits (country + 10)
+  if (format === '+E.164') return digits ? `+${digits}` : ''
+  if (format === 'National') {
+    const d = digits.slice(0, 10) // national = 10 digits
+    if (d.length === 0) return ''
+    if (d.length <= 3) return `(${d}`
+    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+  }
+  // E.164: digits only
+  return digits
+}
+
 const TRANSPORT_OPTIONS = [
   { value: 'TCP', label: 'TCP' },
   { value: 'UDP', label: 'UDP' },
@@ -291,9 +281,9 @@ const TRANSPORT_OPTIONS = [
 ]
 
 const E164_FORMAT_OPTIONS = [
-  { value: 'E.164',    label: 'E.164 — e.g. 14155552671'      },
-  { value: '+E.164',   label: '+E.164 — e.g. +14155552671'    },
-  { value: 'National', label: 'National — e.g. (415) 555-2671' },
+  { value: 'E.164',    label: 'E.164'    },
+  { value: '+E.164',   label: '+E.164'   },
+  { value: 'National', label: 'National' },
 ]
 
 interface ImportState {
@@ -313,36 +303,157 @@ const EMPTY_IMPORT: ImportState = {
   location: '',
 }
 
-function ImportDrawer({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
+// ── Prefix-dropdown-inside-input (e.g. format selector + phone number) ──────────
+interface PrefixDropdownInputProps {
+  prefixOptions: { value: string; label: string }[]
+  prefixValue: string
+  onPrefixChange: (v: string) => void
+  inputPlaceholder?: string
+  inputValue: string
+  inputType?: string
+  onInputChange: (v: string) => void
+}
+function PrefixDropdownInput({
+  prefixOptions, prefixValue, onPrefixChange,
+  inputPlaceholder, inputValue, inputType = 'text', onInputChange,
+}: PrefixDropdownInputProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  const displayLabel = prefixOptions.find(o => o.value === prefixValue)?.label ?? prefixValue
+
+  return (
+    <div ref={ref} className="relative">
+      <div className={`flex h-9 items-center rounded-sm border transition-colors focus-within:border-primary ${open ? 'border-primary' : 'border-border'}`}>
+        {/* Prefix dropdown trigger */}
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="flex shrink-0 items-center gap-xs px-md text-body text-text-primary hover:bg-surface-hover rounded-l-sm h-full"
+        >
+          {displayLabel}
+          <Icon name={open ? 'expand_less' : 'expand_more'} size={16} className="text-text-icon" />
+        </button>
+        {/* Divider */}
+        <span className="h-5 w-px shrink-0 bg-border" />
+        {/* Text input */}
+        <input
+          type={inputType}
+          placeholder={inputPlaceholder}
+          value={inputValue}
+          onChange={(e) => onInputChange(e.target.value)}
+          className="h-full flex-1 rounded-r-sm bg-transparent px-md text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
+        />
+      </div>
+      {open && (
+        <div className="absolute left-0 top-[calc(100%+4px)] z-[60] min-w-[220px]">
+          <SelectMenu
+            options={prefixOptions}
+            value={[prefixValue]}
+            onChange={(v) => { onPrefixChange(v[0] ?? prefixValue); setOpen(false) }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Reusable dropdown field (mirrors ATDropdownField in AppointmentTypeScreen) ──
+interface SIPDropdownFieldProps {
+  label: string
+  required?: boolean
+  options: { value: string; label: string }[]
+  value: string
+  placeholder?: string
+  disabled?: boolean
+  upward?: boolean
+  onChange: (v: string) => void
+}
+function SIPDropdownField({ label, required, options, value, placeholder = 'Select', disabled, upward, onChange }: SIPDropdownFieldProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  const displayLabel = options.find(o => o.value === value)?.label ?? placeholder
+
+  return (
+    <div className="flex flex-col gap-xs">
+      <label className={`text-small ${disabled ? 'text-text-tertiary' : 'text-text-secondary'}`}>
+        {label}{required && <span className="text-chip-danger-text"> *</span>}
+      </label>
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => !disabled && setOpen(o => !o)}
+          className={`flex h-9 w-full items-center justify-between rounded-sm border px-md text-body transition-colors ${
+            disabled
+              ? 'cursor-not-allowed border-border bg-surface-subtle text-text-tertiary'
+              : open
+              ? 'border-primary text-text-primary hover:bg-surface-hover'
+              : 'border-border text-text-primary hover:bg-surface-hover'
+          }`}
+        >
+          <span className={!value ? 'text-text-tertiary' : ''}>{displayLabel}</span>
+          <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0 text-text-icon" />
+        </button>
+        {open && (
+          <div className={`absolute left-0 z-[60] w-full ${upward ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]'}`}>
+            <SelectMenu
+              options={options}
+              value={value ? [value] : []}
+              onChange={(v) => { onChange(v[0] ?? ''); setOpen(false) }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; initialRow?: PhoneNumber2Row; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
+  const isEdit = !!initialRow
+
   const [form, setForm] = useState<ImportState>(EMPTY_IMPORT)
   const [verified, setVerified]   = useState(false)
   const [verifying, setVerifying] = useState(false)
-  const [locationOpen,  setLocationOpen]  = useState(false)
-  const [transportOpen, setTransportOpen] = useState(false)
-  const [e164Open,      setE164Open]      = useState(false)
-  const [locationAnchor,  setLocationAnchor]  = useState<{ top: number; left: number; width: number } | null>(null)
-  const [transportAnchor, setTransportAnchor] = useState<{ top: number; right: number } | null>(null)
-  const [e164Anchor,      setE164Anchor]      = useState<{ top: number; right: number } | null>(null)
 
   useEffect(() => {
     if (!open) {
       setForm(EMPTY_IMPORT)
       setVerified(false)
       setVerifying(false)
+    } else if (initialRow) {
+      setForm({
+        name:           initialRow.name,
+        phoneNumber:    initialRow.phoneNumber,
+        e164Format:     initialRow.e164Format     || 'E.164',
+        terminationUri: initialRow.terminationUri || '',
+        transport:      initialRow.transport      || 'TCP',
+        sipUsername:    initialRow.sipUsername     || '',
+        sipPassword:    initialRow.sipPassword     || '',
+        location:       initialRow.locations,
+      })
+      setVerified(true)
     }
-  }, [open])
-
-  function openDropdown(
-    e: React.MouseEvent<HTMLButtonElement>,
-    setter: (a: { top: number; left: number; width: number }) => void,
-    openSetter: (v: boolean) => void,
-    isOpen: boolean,
-  ) {
-    if (isOpen) { openSetter(false); return }
-    const r = e.currentTarget.getBoundingClientRect()
-    setter({ top: r.bottom + 4, left: r.left, width: r.width })
-    openSetter(true)
-  }
+  }, [open, initialRow])
 
   function handleVerify() {
     setVerifying(true)
@@ -355,111 +466,130 @@ function ImportDrawer({ open, onClose, onSave }: { open: boolean; onClose: () =>
   const canSave   = verified && form.location !== ''
 
   return (
-    <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-
-      <div className="absolute right-0 top-0 flex h-full w-[650px] flex-col bg-surface shadow-modal">
+    <>
+      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-50 flex h-full w-[650px] flex-col bg-surface shadow-modal">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-2xl py-lg">
-          <span className="text-h3 text-text-primary">Import number</span>
-          <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-            <Icon name="close" size={20} />
+        <div className="flex items-center justify-between px-2xl py-lg">
+          <div className="flex items-center gap-sm">
+            <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="arrow_back" size={18} />
+            </button>
+            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Import number'}</span>
+          </div>
+          <button
+            type="button"
+            disabled={!canSave}
+            onClick={() => {
+              if (!canSave) return
+              onSave({
+                name:           form.name,
+                phoneNumber:    form.phoneNumber,
+                e164Format:     form.e164Format,
+                terminationUri: form.terminationUri,
+                transport:      form.transport,
+                sipUsername:    form.sipUsername,
+                sipPassword:    form.sipPassword,
+                connection:     'SIP trunk',
+                routingMode:    '—',
+                assignedAgents: '—',
+                locations:      form.location,
+                provider:       'Twilio',
+                status:         'Active',
+              })
+              onClose()
+            }}
+            className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
+              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary hover:bg-primary-hover'
+            }`}
+          >
+            Save
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex flex-1 flex-col gap-lg overflow-y-auto px-2xl py-lg">
+        <div className="flex flex-1 flex-col gap-lg overflow-auto p-2xl">
 
           <p className="text-body text-text-secondary">Connect to your number via SIP trunking</p>
 
-          <div className="flex flex-col gap-lg pl-md">
-
           {/* Name */}
           <div className="flex flex-col gap-xs">
-            <span className="text-small text-text-primary">Name <span className="text-chip-danger-text">*</span></span>
+            <label className="text-small text-text-secondary">Name <span className="text-chip-danger-text">*</span></label>
             <input
               type="text"
               placeholder="e.g. Main reception"
               value={form.name}
               onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setVerified(false) }}
-              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
             />
           </div>
 
-          {/* Phone number */}
+          {/* Phone number with inline format selector */}
           <div className="flex flex-col gap-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-small text-text-primary">Phone number <span className="text-chip-danger-text">*</span></span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  if (e164Open) { setE164Open(false); return }
-                  const r = e.currentTarget.getBoundingClientRect()
-                  setE164Anchor({ top: r.bottom + 4, right: window.innerWidth - r.right })
-                  setE164Open(true)
-                }}
-                className="flex items-center gap-xs text-small text-text-action"
-              >
-                Format: {form.e164Format} <Icon name="expand_more" size={14} />
-              </button>
-            </div>
-            <input
-              type="text"
-              placeholder="Enter phone number"
-              value={form.phoneNumber}
-              onChange={(e) => { setForm((f) => ({ ...f, phoneNumber: e.target.value })); setVerified(false) }}
-              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            <label className="text-small text-text-secondary">Phone number <span className="text-chip-danger-text">*</span></label>
+            <PrefixDropdownInput
+              prefixOptions={E164_FORMAT_OPTIONS}
+              prefixValue={form.e164Format}
+              onPrefixChange={(v) => {
+                const reformatted = applyPhoneFormat(form.phoneNumber, v)
+                setForm((f) => ({ ...f, e164Format: v, phoneNumber: reformatted }))
+                setVerified(false)
+              }}
+              inputPlaceholder={form.e164Format === 'National' ? '(415) 555-2671' : form.e164Format === '+E.164' ? '+14155552671' : '14155552671'}
+              inputValue={form.phoneNumber}
+              onInputChange={(v) => {
+                setForm((f) => ({ ...f, phoneNumber: applyPhoneFormat(v, f.e164Format) }))
+                setVerified(false)
+              }}
             />
           </div>
 
-          {/* Termination URI */}
+          {/* Termination URI with inline transport selector */}
           <div className="flex flex-col gap-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-small text-text-primary">Termination URI <span className="text-chip-danger-text">*</span></span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  if (transportOpen) { setTransportOpen(false); return }
-                  const r = e.currentTarget.getBoundingClientRect()
-                  setTransportAnchor({ top: r.bottom + 4, right: window.innerWidth - r.right })
-                  setTransportOpen(true)
-                }}
-                className="flex items-center gap-xs text-small text-text-action"
-              >
-                Transport: {form.transport} <Icon name="expand_more" size={14} />
-              </button>
-            </div>
-            <input
-              type="text"
-              placeholder="Enter termination URI"
-              value={form.terminationUri}
-              onChange={(e) => { setForm((f) => ({ ...f, terminationUri: e.target.value })); setVerified(false) }}
-              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            <label className="text-small text-text-secondary">Termination URI <span className="text-chip-danger-text">*</span></label>
+            <PrefixDropdownInput
+              prefixOptions={TRANSPORT_OPTIONS}
+              prefixValue={form.transport}
+              onPrefixChange={(v) => {
+                const reformatted = applySipFormat(form.terminationUri, v)
+                setForm((f) => ({ ...f, transport: v, terminationUri: reformatted }))
+                setVerified(false)
+              }}
+              inputPlaceholder={
+                form.transport === 'TLS' ? 'sips:example.pstn.twilio.com'
+                : form.transport === 'TCP' ? 'sip:example.pstn.twilio.com;transport=tcp'
+                : 'sip:example.pstn.twilio.com'
+              }
+              inputValue={form.terminationUri}
+              onInputChange={(v) => {
+                setForm((f) => ({ ...f, terminationUri: applySipFormat(v, f.transport) }))
+                setVerified(false)
+              }}
             />
           </div>
 
           {/* Username */}
           <div className="flex flex-col gap-xs">
-            <span className="text-small text-text-primary">Username <span className="text-text-tertiary">(Optional)</span></span>
+            <label className="text-small text-text-secondary">Username <span className="text-text-tertiary">(Optional)</span></label>
             <input
               type="text"
               placeholder="Enter username"
               value={form.sipUsername}
               onChange={(e) => setForm((f) => ({ ...f, sipUsername: e.target.value }))}
-              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
             />
           </div>
 
-          {/* SIP password */}
+          {/* Password */}
           <div className="flex flex-col gap-xs">
-            <span className="text-small text-text-primary">Password <span className="text-text-tertiary">(Optional)</span></span>
+            <label className="text-small text-text-secondary">Password <span className="text-text-tertiary">(Optional)</span></label>
             <input
               type="password"
               placeholder="Enter password"
               value={form.sipPassword}
               onChange={(e) => setForm((f) => ({ ...f, sipPassword: e.target.value }))}
-              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
             />
           </div>
 
@@ -471,225 +601,210 @@ function ImportDrawer({ open, onClose, onSave }: { open: boolean; onClose: () =>
               onClick={handleVerify}
               className={`flex h-9 items-center gap-sm rounded-sm border px-lg text-body transition-colors ${
                 verified
-                  ? 'border-success bg-surface text-success cursor-default'
+                  ? 'cursor-default border-success bg-surface text-success'
                   : !canVerify || verifying
                   ? 'cursor-not-allowed border-border bg-surface text-text-tertiary'
-                  : 'border-border-selected bg-surface text-text-primary hover:bg-surface-l2'
+                  : 'border-border bg-surface text-text-primary hover:bg-surface-hover'
               }`}
             >
               {verifying ? (
-                <>
-                  <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />
-                  Verifying…
-                </>
+                <><span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />Verifying…</>
               ) : verified ? (
-                <>
-                  <Icon name="check_circle" size={16} className="text-success" />
-                  Verified
-                </>
-              ) : (
-                'Verify'
-              )}
+                <><Icon name="check_circle" size={16} className="text-success" />Verified</>
+              ) : 'Verify'}
             </button>
             {!verified && !verifying && (
               <span className={`text-small ${canVerify ? 'text-text-secondary' : 'text-text-tertiary'}`}>
-                {canVerify ? 'Ready to verify your SIP connection' : <><span className="text-chip-danger-text">*</span>Fill in all fields above to verify</>}
+                {canVerify
+                  ? 'Ready to verify your SIP connection'
+                  : <><span className="text-chip-danger-text">*</span>Fill in all fields above to verify</>}
               </span>
             )}
           </div>
 
-          </div>{/* end SIP fields indent */}
-
-          {/* Location section intro */}
+          {/* Location — unlocked after verify */}
           <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
             Assign to a location to start routing calls.
           </p>
+          <SIPDropdownField
+            label="Location"
+            options={LOCATION_OPTIONS}
+            value={form.location}
+            placeholder="Select location"
+            disabled={!verified}
+            upward
+            onChange={(v) => setForm((f) => ({ ...f, location: v }))}
+          />
 
-          <div className="pl-md">
-          {/* Location — unlocked after verify */}
-          <div className="flex flex-col gap-xs">
-            <span className={`text-small ${verified ? 'text-text-primary' : 'text-text-tertiary'}`}>Location</span>
-            <button
-              type="button"
-              disabled={!verified}
-              onClick={(e) => verified && openDropdown(e, setLocationAnchor, setLocationOpen, locationOpen)}
-              className={`flex h-9 w-full items-center gap-sm rounded-sm border pl-md pr-sm ${
-                !verified
-                  ? 'cursor-not-allowed border-border bg-surface-subtle'
-                  : locationOpen
-                  ? 'border-primary bg-surface hover:bg-surface-l2'
-                  : 'border-border-selected bg-surface hover:bg-surface-l2'
-              }`}
-            >
-              <span className={`flex-1 truncate text-left text-body ${form.location ? 'text-text-primary' : 'text-text-tertiary'}`}>
-                {form.location || 'Select location'}
-              </span>
-              <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
-            </button>
-          </div>
-          </div>{/* end location indent */}
-
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-sm border-t border-border px-2xl py-lg">
-          <button type="button" onClick={onClose} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={!canSave}
-            onClick={() => {
-              if (!canSave) return
-              onSave({
-                name:           form.name,
-                phoneNumber:    form.phoneNumber,
-                connection:     'SIP trunk',
-                routingMode:    '—',
-                assignedAgents: '—',
-                locations:      form.location,
-                provider:       'Twilio',
-                status:         'Active',
-              })
-              onClose()
-            }}
-            className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
-              !canSave
-                ? 'cursor-not-allowed bg-surface-selected text-text-tertiary'
-                : 'bg-primary hover:bg-primary-hover'
-            }`}
-          >
-            Save
-          </button>
         </div>
       </div>
-
-      {/* Floating dropdowns */}
-      {e164Open && e164Anchor && (
-        <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setE164Open(false)} />
-          <div className="fixed z-[130]" style={{ top: e164Anchor.top, right: e164Anchor.right, minWidth: 260 }}>
-            <SelectMenu
-              options={E164_FORMAT_OPTIONS}
-              value={[form.e164Format]}
-              onChange={(v) => { setForm((f) => ({ ...f, e164Format: v[0] ?? 'E.164' })); setE164Open(false) }}
-            />
-          </div>
-        </>
-      )}
-      {transportOpen && transportAnchor && (
-        <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setTransportOpen(false)} />
-          <div className="fixed z-[130]" style={{ top: transportAnchor.top, right: transportAnchor.right, minWidth: 120 }}>
-            <SelectMenu options={TRANSPORT_OPTIONS} value={[form.transport]} onChange={(v) => { setForm((f) => ({ ...f, transport: v[0] ?? 'TCP' })); setTransportOpen(false) }} />
-          </div>
-        </>
-      )}
-      {locationOpen && locationAnchor && (
-        <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setLocationOpen(false)} />
-          <div className="fixed z-[130]" style={{ top: locationAnchor.top, left: locationAnchor.left, width: locationAnchor.width }}>
-            <SelectMenu options={LOCATION_OPTIONS} value={form.location ? [form.location] : []} onChange={(v) => { setForm((f) => ({ ...f, location: v[0] ?? '' })); setLocationOpen(false) }} />
-          </div>
-        </>
-      )}
-    </div>
+    </>
   )
 }
 
 
+// ── Call Forwarding modal data ────────────────────────────────────────────────
+const CF_DATA = [
+  { location: 'North Austin',    business: '(512) 555-0101', receptionist: '(512) 900-0001' },
+  { location: 'South Austin',    business: '(512) 555-0102', receptionist: '(512) 900-0002' },
+  { location: 'San Francisco',   business: '(415) 555-0103', receptionist: '(415) 900-0003' },
+  { location: 'Palo Alto',       business: '(650) 555-0104', receptionist: '(650) 900-0004' },
+  { location: 'Oakland',         business: '(510) 555-0105', receptionist: '(510) 900-0005' },
+]
+
+function CallForwardingModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-[120]">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute left-1/2 top-[60px] w-[720px] -translate-x-1/2 rounded-md bg-surface shadow-modal">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-2xl pb-lg pt-2xl">
+          <div className="flex items-center gap-md">
+            <span className="text-h3 text-text-primary">Setup forwarding for unanswered calls</span>
+            <button
+              type="button"
+              className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+            >
+              Download this list (XLS)
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+          >
+            <Icon name="close" size={20} />
+          </button>
+        </div>
+
+        {/* Description */}
+        <div className="px-2xl pb-lg">
+          <p className="text-body text-text-secondary">
+            For instructions on how to forward unanswered calls from your landline number to the receptionist number, consult your phone system setup or{' '}
+            <a href="#" className="text-text-action hover:underline">learn more</a>
+          </p>
+        </div>
+
+        {/* Table */}
+        <div className="px-2xl pb-2xl">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="pb-sm text-body text-text-secondary font-normal">
+                  <div className="flex items-center gap-xs">
+                    Location <Icon name="expand_more" size={18} className="text-text-icon" />
+                  </div>
+                </th>
+                <th className="pb-sm text-body text-text-secondary font-normal">Business number</th>
+                <th className="pb-sm text-body text-text-secondary font-normal">Receptionist number</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CF_DATA.map((row) => (
+                <tr key={row.location} className="border-b border-border last:border-0">
+                  <td className="py-md text-body text-text-primary">{row.location}</td>
+                  <td className="py-md text-body text-text-primary">{row.business}</td>
+                  <td className="py-md text-body text-text-primary">{row.receptionist}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination footer */}
+        <div className="flex items-center justify-between border-t border-border px-2xl py-md">
+          <div className="flex items-center gap-xs">
+            <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="chevron_left" size={20} />
+            </button>
+            {[1, 2, 3].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`flex size-8 items-center justify-center rounded-sm text-body ${n === 1 ? 'border border-primary text-primary' : 'text-text-secondary hover:bg-surface-hover'}`}
+              >
+                {n}
+              </button>
+            ))}
+            <span className="px-xs text-text-tertiary">···</span>
+            <button type="button" className="flex size-8 items-center justify-center rounded-sm text-body text-text-secondary hover:bg-surface-hover">65</button>
+            <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="chevron_right" size={20} />
+            </button>
+          </div>
+          <button
+            type="button"
+            className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+          >
+            Show 25 <Icon name="expand_more" size={18} className="text-text-icon" />
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 export function PhoneNumber2Screen() {
-  const [rows, setRows] = useState<PhoneNumber2Row[]>(DATA2)
+  const [rows, setRows] = useState<PhoneNumber2Row[]>(DEFAULT_ROWS)
   const [importOpen, setImportOpen] = useState(false)
   const [editRow, setEditRow] = useState<PhoneNumber2Row | null>(null)
   const [testCallRow, setTestCallRow] = useState<PhoneNumber2Row | null>(null)
-  const [forwardingOpen, setForwardingOpen] = useState(false)
+  const [callForwardingOpen, setCallForwardingOpen] = useState(false)
+
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex flex-1 flex-col overflow-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between px-2xl py-xl">
-        <h1 className="text-h3 text-text-primary">Phone number</h1>
-        <div className="flex items-center gap-sm">
-          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-            <Icon name="search" size={20} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setImportOpen(true)}
-            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-          >
-            Import number
-          </button>
-          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-            <Icon name="view_column" size={20} />
-          </button>
-          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-            <Icon name="filter_list" size={20} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main table */}
-      <div className="px-lg">
-        <DataTable
-          columns={COLUMNS2}
-          data={rows}
-          rowActions={[
-            { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
-            { icon: 'edit',          label: 'Edit',      onClick: (row) => setEditRow(row) },
-          ]}
-        />
-      </div>
-
-      {/* Forwarding reference */}
-      <div className="px-lg py-lg">
-        <div className="rounded-md border border-border bg-surface p-2xl">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">Call forwarding reference</h3>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-2xl py-xl">
+          <h1 className="text-h3 text-text-primary">Phone number</h1>
+          <div className="flex items-center gap-sm">
+            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="search" size={20} />
+            </button>
             <button
               type="button"
-              onClick={() => setForwardingOpen((o) => !o)}
-              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              onClick={() => setImportOpen(true)}
+              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
             >
-              <Icon name={forwardingOpen ? 'expand_less' : 'expand_more'} size={20} />
+              Import number
+            </button>
+            <button
+              type="button"
+              onClick={() => setCallForwardingOpen(true)}
+              className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+            >
+              Call forwarding
+            </button>
+            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="view_column" size={20} />
+            </button>
+            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="filter_list" size={20} />
             </button>
           </div>
-          {forwardingOpen && (
-            <div className="mt-2xl">
-              <p className="mb-md text-small text-text-secondary">Share Birdeye receptionist numbers with your telephony provider</p>
-              <DataTable columns={FORWARDING_COLUMNS} data={FORWARDING_DATA} />
-            </div>
-          )}
         </div>
-      </div>
+
+        {/* Scrollable content */}
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="px-lg">
+            <DataTable
+              columns={COLUMNS2}
+              data={rows}
+              rowActions={[
+                { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
+                { icon: 'edit',          label: 'Edit',      onClick: (row) => setEditRow(row) },
+              ]}
+            />
+          </div>
+        </div>
 
       </div>
-
-      {/* Edit drawer */}
-      <FormDrawer
-        open={editRow !== null}
-        title="Edit"
-        fields={EDIT_FIELDS}
-        submitLabel="Save"
-        initialValues={editRow ? {
-          name: editRow.name,
-          phoneNumber: editRow.phoneNumber,
-          connection: editRow.connection,
-          provider: editRow.provider,
-          numberType: 'Local',
-          numberId: 'phnum_29944',
-          purchasedOn: 'Apr 07, 2026',
-          routingMode: editRow.routingMode,
-          assignedAgents: editRow.assignedAgents,
-          locations: editRow.locations,
-        } : undefined}
-        onClose={() => setEditRow(null)}
-        onSubmit={() => setEditRow(null)}
-      />
 
       {/* Test call modal */}
       <TestCallModal
@@ -698,11 +813,23 @@ export function PhoneNumber2Screen() {
         onClose={() => setTestCallRow(null)}
       />
 
-      {/* 3-step import drawer */}
+      {/* Call forwarding modal */}
+      <CallForwardingModal open={callForwardingOpen} onClose={() => setCallForwardingOpen(false)} />
+
+      {/* Import / Edit drawer */}
       <ImportDrawer
-        open={importOpen}
-        onClose={() => setImportOpen(false)}
-        onSave={(row) => setRows((prev) => [...prev, row])}
+        open={importOpen || editRow !== null}
+        initialRow={editRow ?? undefined}
+        onClose={() => { setImportOpen(false); setEditRow(null) }}
+        onSave={(row) => {
+          if (editRow) {
+            setRows((prev) => prev.map((r) => r === editRow ? row : r))
+          } else {
+            setRows((prev) => [...prev, row])
+          }
+          setEditRow(null)
+          setImportOpen(false)
+        }}
       />
     </div>
   )
