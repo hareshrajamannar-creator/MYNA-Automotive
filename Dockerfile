@@ -3,8 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-ENV VITE_BASE_PATH=/
-RUN npm run build
+RUN npx tsc -b && npx vite build --mode cloudrun
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
