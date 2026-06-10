@@ -626,15 +626,22 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
           <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
             Assign to a location to start routing calls.
           </p>
-          <SIPDropdownField
-            label="Location"
-            options={LOCATION_OPTIONS}
-            value={form.location}
-            placeholder="Select location"
-            disabled={!verified}
-            upward
-            onChange={(v) => setForm((f) => ({ ...f, location: v }))}
-          />
+          <div className="group/tooltip relative">
+            <SIPDropdownField
+              label="Location"
+              options={LOCATION_OPTIONS}
+              value={form.location}
+              placeholder="Select location"
+              disabled={!verified}
+              upward
+              onChange={(v) => setForm((f) => ({ ...f, location: v }))}
+            />
+            {!verified && (
+              <div className="pointer-events-none absolute bottom-[calc(100%+6px)] left-0 z-[70] whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                Complete SIP trunking setup and verify your connection before assigning a location.
+              </div>
+            )}
+          </div>
 
         </div>
       </div>
