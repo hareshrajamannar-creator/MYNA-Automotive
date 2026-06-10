@@ -233,6 +233,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
   const [showCreateFlow, setShowCreateFlow] = useState(false)
   const [showSetupWizard, setShowSetupWizard] = useState(false)
+  const [showSetupPage, setShowSetupPage] = useState(false)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Front desk agent': [
@@ -355,6 +356,75 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     )
   }
 
+  if (showSetupPage && isFrontdesk) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopNav initials="S" />
+        <div className="flex h-16 shrink-0 items-center gap-sm bg-surface px-2xl">
+          <button
+            type="button"
+            onClick={() => setShowSetupPage(false)}
+            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            aria-label="Back"
+          >
+            <Icon name="arrow_back" size={20} />
+          </button>
+          <h1 className="text-h3 text-text-primary">New front desk agent</h1>
+        </div>
+
+        <div className="flex flex-1 flex-col items-center justify-center gap-lg overflow-auto px-2xl py-3xl">
+          {/* Empty canvas hint */}
+          <div className="flex size-16 items-center justify-center rounded-full bg-surface-subtle">
+            <Icon name="smart_toy" size={32} className="text-text-tertiary" />
+          </div>
+
+          <div className="flex max-w-[440px] flex-col items-center gap-sm text-center">
+            <p className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">
+              Your agent canvas is empty
+            </p>
+            <p className="text-body text-text-secondary">
+              Start by adding a trigger to define when your agent should activate — for example, when an inbound call or web chat comes in.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setShowSetupPage(false)
+                setShowCreateFlow(false)
+                onEditAgent?.('')
+              }}
+              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+            >
+              Start building
+            </button>
+            <p className="text-small text-text-tertiary">
+              You can also add steps from the workflow editor
+            </p>
+          </div>
+
+          {/* Help tiles */}
+          <div className="mt-md grid w-full max-w-[640px] grid-cols-3 gap-md">
+            {[
+              { icon: 'bolt', title: 'Add a trigger', body: 'Choose what starts the agent — an inbound call, a scheduled time, or a CRM event.' },
+              { icon: 'list_alt', title: 'Define tasks', body: 'Add the steps your agent will follow: gather info, check records, route the caller.' },
+              { icon: 'call_split', title: 'Set up branches', body: 'Handle different outcomes by branching the flow based on conditions or responses.' },
+            ].map((tile) => (
+              <div key={tile.title} className="flex flex-col gap-sm rounded-md border border-border bg-surface p-lg">
+                <div className="flex size-8 items-center justify-center rounded-sm bg-surface-subtle">
+                  <Icon name={tile.icon} size={18} className="text-text-secondary" />
+                </div>
+                <p className="text-body text-text-primary">{tile.title}</p>
+                <p className="text-small leading-[18px] text-text-secondary">{tile.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (showCreateFlow && isFrontdesk) {
     return (
       <div className="flex h-full flex-col">
@@ -371,12 +441,12 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
               >
                 <Icon name="arrow_back" size={20} />
               </button>
-              <h1 className="text-h3 text-text-primary">Create agent</h1>
+              <h1 className="text-h3 text-text-primary">New front desk agent</h1>
             </div>
           </div>
           <div className="flex flex-1 items-center justify-center overflow-auto p-lg">
             <CreateAgentEmptyState
-              onCreateFromScratch={() => setShowSetupWizard(true)}
+              onCreateFromScratch={() => setShowSetupPage(true)}
               onSelectFromLibrary={(_templateId) => { setShowCreateFlow(false); onEditAgent?.('') }}
             />
           </div>
