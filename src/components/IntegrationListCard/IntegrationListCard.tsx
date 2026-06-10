@@ -54,41 +54,24 @@ export function IntegrationListCard({
         selected ? 'border-2 border-primary' : 'border border-border-selected'
       }`}
     >
-      {/* Top row: radio (left) + status/View (right) */}
+      {/* Top row: radio (left) + Connected/Connect (right) */}
       <div className="mb-md flex items-center justify-between">
         <SelectRadio checked={selected} />
-
-        <div className="relative h-5">
-          {/* Default: Connected / Connect — hidden on hover when onView present */}
-          <div className={`flex items-center gap-xs transition-opacity ${onView ? 'group-hover:opacity-0' : ''}`}>
-            {connected ? (
-              <>
-                <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
-                <span className="text-small text-text-secondary">Connected</span>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
-                className="flex items-center gap-xs text-small text-text-action hover:underline"
-              >
-                Connect
-                <Icon name="open_in_new" size={12} />
-              </button>
-            )}
+        {connected ? (
+          <div className="flex items-center gap-xs">
+            <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
+            <span className="text-small text-text-secondary">Connected</span>
           </div>
-
-          {/* Hover: View link */}
-          {onView && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onView() }}
-              className="absolute inset-0 flex items-center justify-end text-small text-primary opacity-0 transition-opacity hover:underline group-hover:opacity-100"
-            >
-              View
-            </button>
-          )}
-        </div>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
+            className="flex items-center gap-xs text-small text-text-action hover:underline"
+          >
+            Connect
+            <Icon name="open_in_new" size={12} />
+          </button>
+        )}
       </div>
 
       {/* Logo */}
@@ -104,8 +87,19 @@ export function IntegrationListCard({
       {/* Name */}
       <p className="mb-xs truncate text-body text-text-primary">{name}</p>
 
-      {/* Description */}
-      <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
+      {/* Description + View link */}
+      <div className="flex items-end justify-between gap-sm">
+        <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
+        {onView && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onView() }}
+            className="shrink-0 text-small text-primary opacity-0 transition-opacity hover:underline group-hover:opacity-100"
+          >
+            View
+          </button>
+        )}
+      </div>
     </div>
   )
 }
