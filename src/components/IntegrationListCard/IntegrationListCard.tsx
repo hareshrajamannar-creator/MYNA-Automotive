@@ -58,9 +58,7 @@ export function IntegrationListCard({
         {connected ? (
           <div className="flex items-center gap-xs">
             <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
-            <span className="text-small text-text-secondary">
-              {selected ? 'Selected' : 'Connected'}
-            </span>
+            <span className="text-small text-text-secondary">Connected</span>
           </div>
         ) : (
           <button
@@ -74,18 +72,18 @@ export function IntegrationListCard({
         )}
       </div>
 
-      {/* Logo + name row */}
-      <div className="mb-sm flex items-center gap-md">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
-          <div
-            className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
-            style={{ backgroundColor: iconBg }}
-          >
-            {iconLabel}
-          </div>
+      {/* Logo */}
+      <div className="mb-sm flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
+        <div
+          className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
+          style={{ backgroundColor: iconBg }}
+        >
+          {iconLabel}
         </div>
-        <p className="truncate text-body text-text-primary">{name}</p>
       </div>
+
+      {/* Name */}
+      <p className="mb-xs truncate text-body text-text-primary">{name}</p>
 
       {/* Description */}
       <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
