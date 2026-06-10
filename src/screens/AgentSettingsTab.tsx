@@ -165,9 +165,9 @@ function CheckboxRow({ label, description, checked, onChange }: CheckboxRowProps
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`flex w-full items-center rounded-sm text-left ${CHECKBOX_ROW_GAP}`}
+      className={`flex w-full items-start rounded-sm text-left ${CHECKBOX_ROW_GAP}`}
     >
-      <SettingsCheckboxBox checked={checked} />
+      <span className="mt-[3px] shrink-0"><SettingsCheckboxBox checked={checked} /></span>
       <div className="flex-1">
         <p className="text-body text-text-primary">{label}</p>
         {description && <SettingSubtext>{description}</SettingSubtext>}
@@ -523,16 +523,16 @@ function SettingsSectionHeader({
   addDisabled?: boolean
 }) {
   return (
-    <div className="mb-md flex items-center justify-between gap-md">
+    <div className="mb-md flex items-center gap-xs">
       <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h2>
       <button
         type="button"
         onClick={onAdd}
         disabled={addDisabled}
         aria-label={addAriaLabel}
-        className="flex size-9 shrink-0 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon transition-colors hover:bg-surface-l2 focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:text-text-tertiary"
+        className="flex size-6 shrink-0 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-hover hover:text-primary focus:outline-none disabled:cursor-not-allowed disabled:text-text-tertiary"
       >
-        <Icon name="edit" size={20} />
+        <Icon name="edit" size={16} />
       </button>
     </div>
   )
@@ -693,10 +693,9 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
   ]
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="px-2xl pt-lg pb-2xl">
-        {/* constrain settings content to ~700px */}
-        <div className="w-full max-w-[700px] space-y-xl">
+    <div className="px-2xl pt-lg pb-2xl">
+      {/* constrain settings content to ~700px */}
+      <div className="w-full max-w-[700px] space-y-xl">
 
         {/* Channel settings */}
         <section>
@@ -839,7 +838,6 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
           />
         </section>
 
-        </div>
       </div>
     </div>
   )
