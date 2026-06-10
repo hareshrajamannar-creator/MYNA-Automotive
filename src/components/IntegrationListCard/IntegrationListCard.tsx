@@ -1,5 +1,17 @@
 import { Icon } from '../Icon/Icon'
 
+function SelectRadio({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors ${
+        checked ? 'border-primary' : 'border-control-border bg-surface'
+      }`}
+    >
+      {checked && <span className="size-2 rounded-full bg-primary" />}
+    </span>
+  )
+}
+
 export interface IntegrationListCardProps {
   name: string
   description: string
@@ -37,14 +49,16 @@ export function IntegrationListCard({
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCardClick() }
       }}
       className={`group relative flex cursor-pointer flex-col rounded-md border bg-surface p-lg transition-colors hover:bg-surface-hover ${
-        selected
-          ? 'border-primary ring-1 ring-primary'
-          : 'border-border'
+        selected ? 'border-2 border-primary' : 'border border-border-selected'
       }`}
     >
-      {/* Top row: logo + status badge */}
-      <div className="mb-md flex items-start justify-between">
-        {/* Logo tile */}
+      {/* Radio — top-left, same as wizard IntegrationSelectCard */}
+      <div className="mb-md">
+        <SelectRadio checked={selected} />
+      </div>
+
+      {/* Logo + name + status row */}
+      <div className="mb-sm flex items-start gap-md">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
           <div
             className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
@@ -54,39 +68,30 @@ export function IntegrationListCard({
           </div>
         </div>
 
-        {/* Status badge / select indicator */}
-        {connected ? (
-          <div
-            className={`flex items-center gap-xs rounded-full px-sm py-[3px] text-small transition-colors ${
-              selected
-                ? 'bg-surface-subtle text-text-secondary'
-                : 'bg-surface-subtle text-text-secondary'
-            }`}
-          >
-            <span className="size-[6px] shrink-0 rounded-full bg-accent-positive" />
-            {selected ? 'Selected' : 'Connected'}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
-            className="flex items-center gap-xs rounded-sm px-sm py-[3px] text-small text-text-action transition-colors hover:text-primary"
-          >
-            Connect
-            <Icon name="open_in_new" size={13} />
-          </button>
-        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-body text-text-primary">{name}</p>
+          {connected ? (
+            <div className="mt-xs flex items-center gap-xs">
+              <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
+              <span className="text-small text-text-secondary">
+                {selected ? 'Selected' : 'Connected'}
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
+              className="mt-xs flex items-center gap-xs text-small text-text-action hover:underline"
+            >
+              Connect
+              <Icon name="open_in_new" size={12} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Name */}
-      <p className="truncate text-[14px] leading-5 tracking-[-0.28px] text-text-primary">
-        {name}
-      </p>
-
       {/* Description */}
-      <p className="mt-xs line-clamp-2 text-small leading-[18px] text-text-secondary">
-        {description}
-      </p>
+      <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
     </div>
   )
 }
