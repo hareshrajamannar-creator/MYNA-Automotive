@@ -81,7 +81,7 @@ const BASE_COLUMNS: Column<WaitlistRow>[] = [
   },
   { key: 'waitingSince', label: 'Waiting since',    sortable: true },
   { key: 'priority',     label: 'Priority',         sortable: true },
-  { key: 'apptType',     label: 'Appt type',        sortable: true },
+  { key: 'apptType',     label: 'Appointment type', sortable: true },
 ]
 
 function AddToWaitlistButton({ onSelect }: { onSelect: (mode: 'existing' | 'new') => void }) {
