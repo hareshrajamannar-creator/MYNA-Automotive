@@ -13,6 +13,7 @@ import {
 } from '../components'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { AgentLogsTab } from './AgentLogsTab'
+import { AgentSettingsTab } from './AgentSettingsTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 
 interface AgentInstanceScreenProps {
@@ -279,6 +280,8 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
             </>
           ) : showHealthcareLogs ? (
             <AgentLogsTab />
+          ) : activeTab === 'settings' ? (
+            <AgentSettingsTab product={product} agentName={instanceName} />
           ) : (
             <div className="flex h-64 items-center justify-center text-body text-text-secondary">
               No {TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} data yet.
