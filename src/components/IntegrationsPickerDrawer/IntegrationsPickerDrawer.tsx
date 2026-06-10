@@ -118,6 +118,11 @@ export function IntegrationsPickerDrawer({
                       ? () => onOpenIntegrationSettings(integration.id)
                       : undefined
                   }
+                  onView={
+                    onOpenIntegrationSettings
+                      ? () => onOpenIntegrationSettings(integration.id)
+                      : undefined
+                  }
                 />
               ))}
               </div>
