@@ -52,13 +52,30 @@ export function IntegrationListCard({
         selected ? 'border-2 border-primary' : 'border border-border-selected'
       }`}
     >
-      {/* Radio — top-left, same as wizard IntegrationSelectCard */}
-      <div className="mb-md">
+      {/* Top row: radio (left) + Connected/Connect CTA (right) */}
+      <div className="mb-md flex items-center justify-between">
         <SelectRadio checked={selected} />
+        {connected ? (
+          <div className="flex items-center gap-xs">
+            <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
+            <span className="text-small text-text-secondary">
+              {selected ? 'Selected' : 'Connected'}
+            </span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
+            className="flex items-center gap-xs text-small text-text-action hover:underline"
+          >
+            Connect
+            <Icon name="open_in_new" size={12} />
+          </button>
+        )}
       </div>
 
-      {/* Logo + name + status row */}
-      <div className="mb-sm flex items-start gap-md">
+      {/* Logo + name row */}
+      <div className="mb-sm flex items-center gap-md">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
           <div
             className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
@@ -67,29 +84,7 @@ export function IntegrationListCard({
             {iconLabel}
           </div>
         </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-sm">
-            <p className="truncate text-body text-text-primary">{name}</p>
-            {connected ? (
-              <div className="flex items-center gap-xs">
-                <span className="size-2 shrink-0 rounded-full bg-accent-positive" />
-                <span className="text-small text-text-secondary">
-                  {selected ? 'Selected' : 'Connected'}
-                </span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); (onOpenSettings ?? onConnect)?.() }}
-                className="flex items-center gap-xs text-small text-text-action hover:underline"
-              >
-                Connect
-                <Icon name="open_in_new" size={12} />
-              </button>
-            )}
-          </div>
-        </div>
+        <p className="truncate text-body text-text-primary">{name}</p>
       </div>
 
       {/* Description */}
