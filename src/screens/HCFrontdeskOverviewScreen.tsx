@@ -225,6 +225,7 @@ const CHAT_BY_CONVO: Record<string, ChatMsg[]> = {
     { id: '2', sender: 'agent',    text: "Great choice! I can get that set up for you. What date works best?",    time: '09:11 AM' },
     { id: '3', sender: 'customer', text: "June 14th around 11am would be perfect.",                               time: '09:12 AM' },
     { id: '4', sender: 'agent',    text: "Done! Test drive confirmed for Jun 14 at 11am at North Austin.",        time: '09:14 AM' },
+    { id: '5', sender: 'customer', text: "Perfect, thank you! Do I need to bring anything?",                      time: '09:15 AM' },
   ],
   ai2: [
     { id: '1', sender: 'customer', text: "Can I book a service appointment for this Saturday morning?",           time: '08:48 AM' },
@@ -237,6 +238,7 @@ const CHAT_BY_CONVO: Record<string, ChatMsg[]> = {
     { id: '2', sender: 'agent',    text: "I'll connect you with our financing team right away.",                   time: '09:39 AM' },
     { id: '3', sender: 'customer', text: "Great, I've been waiting for a callback.",                              time: '09:40 AM' },
     { id: '4', sender: 'agent',    text: "Transferring now — a financing advisor will call you shortly.",         time: '09:41 AM' },
+    { id: '5', sender: 'customer', text: "Got it, I'll keep my phone nearby.",                                    time: '09:42 AM' },
   ],
   p1: [
     { id: '1', sender: 'customer', text: "I submitted my financing application last week. Any update?",           time: '09:38 AM' },
@@ -249,6 +251,7 @@ const CHAT_BY_CONVO: Record<string, ChatMsg[]> = {
     { id: '2', sender: 'agent',    text: "I apologize for the confusion. Let me pull up your account.",           time: '10:14 AM' },
     { id: '3', sender: 'customer', text: "I have the original quote here showing $420 less.",                     time: '10:16 AM' },
     { id: '4', sender: 'agent',    text: "Escalating to our manager for review — pending resolution.",            time: '10:18 AM' },
+    { id: '5', sender: 'customer', text: "How long does that usually take?",                                      time: '10:19 AM' },
   ],
 }
 
@@ -257,6 +260,7 @@ const DEFAULT_CHAT: ChatMsg[] = [
   { id: '2', sender: 'agent',    text: "Of course! How can I help you today?",                 time: '09:01 AM' },
   { id: '3', sender: 'customer', text: "I wanted to confirm the details.",                     time: '09:02 AM' },
   { id: '4', sender: 'agent',    text: "Everything looks good on our end. You're all set!",   time: '09:03 AM' },
+  { id: '5', sender: 'customer', text: "Great, thanks for confirming!",                        time: '09:04 AM' },
 ]
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
@@ -450,7 +454,12 @@ export function HCFrontdeskOverviewScreen() {
                     </div>
                     <span className="shrink-0 text-small text-text-secondary">{convo.date}</span>
                   </div>
-                  <span className="truncate text-small text-text-secondary">{convo.message}</span>
+                  {(() => {
+                    const msgs = CHAT_BY_CONVO[convo.id] ?? DEFAULT_CHAT
+                    const last = msgs[msgs.length - 1]
+                    const preview = last.sender === 'agent' ? `Agent: ${last.text}` : last.text
+                    return <span className="truncate text-small text-text-secondary">{preview}</span>
+                  })()}
                   <div className="flex items-center gap-xs text-small text-text-tertiary">
                     <span>{convo.location}</span>
                     {convo.assignee && (
