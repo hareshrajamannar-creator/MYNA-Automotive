@@ -338,9 +338,9 @@ export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
-          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
             <div className="flex items-center gap-sm">
-              <h1 className="text-lg text-text-primary">Manage intake</h1>
+              <h1 className="text-h3 text-text-primary">Manage intake</h1>
               <Icon name="info" size={18} className="text-text-icon" />
             </div>
             <div className="flex items-center gap-sm">

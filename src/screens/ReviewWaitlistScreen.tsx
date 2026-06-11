@@ -256,7 +256,7 @@ export function ReviewWaitlistScreen() {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
         {/* Page header */}
-        <div className="flex items-center justify-between px-2xl py-xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
           <h1 className="text-h3 text-text-primary">Review waitlist</h1>
           <div className="flex items-center gap-sm">
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">

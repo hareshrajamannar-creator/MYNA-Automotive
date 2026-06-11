@@ -69,7 +69,7 @@ export function FilterPanel({
           <Link
             as="button"
             onClick={onAdvancedFilters}
-            className="self-start rounded-sm py-xs text-body font-medium"
+            className="self-start rounded-sm py-xs text-body font-normal text-primary"
           >
             Advanced filters
           </Link>

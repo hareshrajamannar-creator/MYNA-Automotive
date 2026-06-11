@@ -5,21 +5,32 @@ import {
   DataTable,
   DateRangeSelector,
   DonutChart,
+  FilterPanel,
+  Icon,
   ReportHeader,
   SankeyChart,
   StackedBarChart,
   SummaryStats,
   TopNav,
   type Column,
+  type FilterField,
   type SankeyLink,
   type SankeyNode,
 } from '../components'
+
+const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
+
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'location', label: 'Location', options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
+  { id: 'channel',  label: 'Channel',  options: opts('Voice', 'Website', 'SMS', 'Email') },
+  { id: 'outcome',  label: 'Outcome',  options: opts('Confirmed', 'Pending') },
+]
 
 // Healthcare chart card — uses the tune icon for the left action button
 function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
-const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
   { id: 'outreach', value: '5.5K',  label: 'Outreach sent slots', delta: '40%',  trend: 'down' as const },
@@ -67,7 +78,7 @@ const APPT_TYPE_DONUT = [
 
 function deltaSpan(delta: string) {
   const isPos = delta.startsWith('+')
-  return <span className={`text-xs ${isPos ? 'text-success' : 'text-danger'}`}>{delta}</span>
+  return <span className={`text-xs ${isPos ? 'text-chip-success-text' : 'text-chip-danger-text'}`}>{delta}</span>
 }
 
 interface ChannelRow {
@@ -139,22 +150,34 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
 ]
 
 export function HCWaitlistFilledScreen() {
-  const [dateRange, setDateRange] = useState('Last 3 months')
+  const [dateRange, setDateRange] = useState('Last 6 months')
+  const [filterOpen, setFilterOpen] = useState(false)
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
+      <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
           title="Waitlist filled"
           subtitle="Cancellation recovery and waitlist slot outcomes driven by the waitlist agent."
           rightSlot={
-            <DateRangeSelector
-              value={dateRange}
-              options={DATE_RANGE_OPTIONS}
-              onChange={setDateRange}
-            />
+            <div className="flex items-center gap-sm">
+              <DateRangeSelector
+                value={dateRange}
+                options={DATE_RANGE_OPTIONS}
+                onChange={setDateRange}
+              />
+              <button
+                type="button"
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="filter_list" size={20} />
+              </button>
+            </div>
           }
         />
 
@@ -202,6 +225,13 @@ export function HCWaitlistFilledScreen() {
           </HCCard>
 
         </div>
+      </div>
+      <FilterPanel
+        open={filterOpen}
+        fields={FILTER_FIELDS}
+        onClose={() => setFilterOpen(false)}
+        onAdvancedFilters={() => {}}
+      />
       </div>
     </div>
   )

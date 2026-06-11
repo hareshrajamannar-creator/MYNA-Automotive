@@ -13,6 +13,8 @@ import { ServiceScreen } from './screens/ServiceScreen'
 import { ProvidersScreen } from './screens/ProvidersScreen'
 import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
 import { AvailabilityScreen } from './screens/AvailabilityScreen'
+import { AutoAppointmentTypeScreen } from './screens/AutoAppointmentTypeScreen'
+import { AutoAvailabilityScreen } from './screens/AutoAvailabilityScreen'
 import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
 import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
@@ -116,7 +118,7 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview'   },
-      { id: 'auto-no-shows',             label: 'No shows prevented'   },
+      { id: 'auto-no-shows',             label: 'Appointment confirmation'   },
       { id: 'conversations',             label: 'Appointment overview', strikethrough: true },
       { id: 'sales',                     label: 'Sales',                strikethrough: true },
       { id: 'service',                   label: 'Service',              strikethrough: true },
@@ -126,13 +128,12 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     id: 'resources',
     label: 'Resources',
     items: [
-      { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
-      { id: 'procedure-library',  label: 'Procedures'          },
-      { id: 'phone-number',       label: 'Phone number'        },
-      { id: 'web-widget',         label: 'Web widget'          },
-      { id: 'appointment-widget', label: 'Appointment widget'  },
-      { id: 'providers',          label: 'Providers'           },
-      { id: 'forms',              label: 'Forms'               },
+      { id: 'auto-appointment-type',  label: 'Appointment type'},
+      { id: 'auto-availability',      label: 'Availability'    },
+      { id: 'procedure-library',      label: 'Procedures'      },
+      { id: 'phone-number',           label: 'Phone number'    },
+      { id: 'knowledge-base',         label: 'Knowledge base', external: true },
+      { id: 'widgets',                label: 'Widgets',        external: true },
     ],
   },
 ]
@@ -162,7 +163,7 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
-      { id: 'hc-no-shows',           label: 'No shows prevented' },
+      { id: 'hc-no-shows',           label: 'Appointment confirmation' },
       { id: 'hc-waitlist',           label: 'Waitlist filled'    },
       { id: 'hc-intakes',            label: 'Intakes completed'  },
     ],
@@ -210,7 +211,7 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
-      { id: 'dental-no-shows',           label: 'No shows prevented'   },
+      { id: 'dental-no-shows',           label: 'Appointment confirmation'   },
       { id: 'dental-waitlist',           label: 'Waitlist filled'       },
       { id: 'dental-intakes',            label: 'Intakes completed'     },
     ],
@@ -415,6 +416,10 @@ export function App() {
           <EmptyResourceScreen label="Forms" />
         ) : navActive === 'widgets' ? (
           <EmptyResourceScreen label="Widgets" />
+        ) : navActive === 'auto-appointment-type' ? (
+          <AutoAppointmentTypeScreen />
+        ) : navActive === 'auto-availability' ? (
+          <AutoAvailabilityScreen />
         ) : navActive === 'hc-providers' || navActive === 'providers' ? (
           <ProvidersScreen />
         ) : navActive === 'hc-appointment-type' || navActive === 'appointment-type' ? (

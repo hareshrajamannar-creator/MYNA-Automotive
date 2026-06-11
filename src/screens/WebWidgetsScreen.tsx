@@ -81,7 +81,7 @@ export function WebWidgetsScreen({ onBack }: WebWidgetsScreenProps) {
       </div>
 
       {/* Header bar */}
-      <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
         <h1 className="text-h3 text-text-primary">{DATA.length} Web widgets</h1>
 
         <div className="flex items-center gap-sm">

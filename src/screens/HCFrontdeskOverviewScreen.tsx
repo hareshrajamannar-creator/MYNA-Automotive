@@ -45,7 +45,7 @@ const CONVERSATIONS_BY_NODE: Record<string, FunnelConversation[]> = {
     { id: 'v3', name: 'Tasha Winters',                     message: 'Spoke with agent — scheduled for tire rotation Thu.',       location: 'San Francisco', assignee: 'Kelsy Hiltz',  date: 'Jun 10, 2025' },
     { id: 'v4', name: 'Omar Farouk',                       message: 'Robin: Was your question answered?',                        location: 'North Austin',  assignee: 'Frontdesk AI', date: 'Jun 9, 2025' },
   ],
-  'Text': [
+  'SMS': [
     { id: 't1', name: 'Brianna Cole',                      message: 'Hey, can I reschedule my 2pm to Friday instead?',           location: 'South Austin',  assignee: 'Frontdesk AI', date: '11:22 AM', unread: true },
     { id: 't2', name: 'Nathan Cruz',                       message: 'Texted back — confirmed appointment for Mon at 10am.',      location: 'North Austin',  assignee: 'Kelsy Hiltz',  date: '10:58 AM' },
     { id: 't3', name: 'Alicia Park',    verified: true,    message: 'Is the 2023 Civic still available? Saw it on your site.',   location: 'San Francisco', assignee: 'USA - Sales',  date: 'Jun 10, 2025' },
@@ -106,7 +106,7 @@ const CONVERSATIONS_BY_NODE: Record<string, FunnelConversation[]> = {
 function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
-const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
   { id: 'responses',  value: '7.9K', label: 'Responses',           delta: '2%',    trend: 'down' as const },
@@ -144,8 +144,8 @@ const OVERTIME_DATA = [
   { month: 'May',      resolved: 62, unresolved: 5  },
 ]
 const OVERTIME_SERIES = [
-  { key: 'resolved',   label: 'Resolved',   color: '#4cae3d' },
   { key: 'unresolved', label: 'Unresolved', color: '#ef4444' },
+  { key: 'resolved',   label: 'Resolved',   color: '#4cae3d' },
 ]
 
 const SOURCE_DONUT = [
@@ -172,7 +172,7 @@ const CONV_OVERTIME_SERIES = [
 const CHANNEL_DONUT = [
   { name: 'Website', value: 32.5, color: '#9c27b0' },
   { name: 'Voice',   value: 43.2, color: '#3f51b5' },
-  { name: 'Text',    value: 14.3, color: '#f59e0b' },
+  { name: 'SMS',    value: 14.3, color: '#f59e0b' },
   { name: 'Email',   value: 10.0, color: '#4cae3d' },
 ]
 
@@ -188,6 +188,7 @@ const INSURANCE_SERIES = [{ key: 'verified', label: 'Verified', color: '#1976d2'
 
 interface LocationRow {
   location: string
+  responses: number
   totalBookings: number
   rescheduled: number
   cancelled: number
@@ -195,17 +196,18 @@ interface LocationRow {
   [key: string]: string | number
 }
 const LOCATION_DATA: LocationRow[] = [
-  { location: 'Atlanta, GA',  totalBookings: 100, rescheduled: 60, cancelled: 40, insurancesVerified: 40 },
-  { location: 'Dallas, TX',   totalBookings: 90,  rescheduled: 23, cancelled: 4,  insurancesVerified: 4  },
-  { location: 'Chicago, IL',  totalBookings: 80,  rescheduled: 18, cancelled: 22, insurancesVerified: 22 },
-  { location: 'Miami, FL',    totalBookings: 70,  rescheduled: 2,  cancelled: 4,  insurancesVerified: 4  },
-  { location: 'Phoenix, AZ',  totalBookings: 60,  rescheduled: 9,  cancelled: 10, insurancesVerified: 10 },
-  { location: 'Austin, TX',   totalBookings: 50,  rescheduled: 11, cancelled: 12, insurancesVerified: 12 },
-  { location: 'Denver, CO',   totalBookings: 40,  rescheduled: 13, cancelled: 14, insurancesVerified: 14 },
-  { location: 'Seattle, WA',  totalBookings: 30,  rescheduled: 15, cancelled: 16, insurancesVerified: 16 },
+  { location: 'Atlanta, GA',  responses: 520, totalBookings: 100, rescheduled: 60, cancelled: 40, insurancesVerified: 40 },
+  { location: 'Dallas, TX',   responses: 480, totalBookings: 90,  rescheduled: 23, cancelled: 4,  insurancesVerified: 4  },
+  { location: 'Chicago, IL',  responses: 410, totalBookings: 80,  rescheduled: 18, cancelled: 22, insurancesVerified: 22 },
+  { location: 'Miami, FL',    responses: 370, totalBookings: 70,  rescheduled: 2,  cancelled: 4,  insurancesVerified: 4  },
+  { location: 'Phoenix, AZ',  responses: 320, totalBookings: 60,  rescheduled: 9,  cancelled: 10, insurancesVerified: 10 },
+  { location: 'Austin, TX',   responses: 280, totalBookings: 50,  rescheduled: 11, cancelled: 12, insurancesVerified: 12 },
+  { location: 'Denver, CO',   responses: 230, totalBookings: 40,  rescheduled: 13, cancelled: 14, insurancesVerified: 14 },
+  { location: 'Seattle, WA',  responses: 180, totalBookings: 30,  rescheduled: 15, cancelled: 16, insurancesVerified: 16 },
 ]
 const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',           label: 'Location',            width: 200, sortable: true },
+  { key: 'responses',          label: 'Responses',           width: 140, sortable: true },
   { key: 'totalBookings',      label: 'Total bookings',      width: 160, sortable: true },
   { key: 'rescheduled',        label: 'Rescheduled',         width: 160, sortable: true },
   { key: 'cancelled',          label: 'Cancelled',           width: 140, sortable: true },
@@ -260,14 +262,14 @@ const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase(
 
 const FILTER_FIELDS: FilterField[] = [
   { id: 'location',            label: 'Location',            options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
-  { id: 'channel',             label: 'Channel',             options: opts('Website', 'Voice', 'Text', 'Email') },
+  { id: 'channel',             label: 'Channel',             options: opts('Website', 'Voice', 'SMS', 'Email') },
   { id: 'handled-by',         label: 'Handled by',          options: opts('AI-driven', 'Human-driven') },
   { id: 'outcome',             label: 'Outcome',             options: opts('Answered', 'Bookings', 'Rescheduled', 'Cancellations', 'Pending') },
   { id: 'assignee',            label: 'Assignee',            options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales') },
 ]
 
 export function HCFrontdeskOverviewScreen() {
-  const [dateRange, setDateRange] = useState('Last 3 months')
+  const [dateRange, setDateRange] = useState('Last 6 months')
   const [filterOpen, setFilterOpen] = useState(false)
   const [nodeDrawer, setNodeDrawer] = useState<string | null>(null)
   const [selectedConvo, setSelectedConvo] = useState<FunnelConversation | null>(null)
@@ -326,7 +328,7 @@ export function HCFrontdeskOverviewScreen() {
               nodes={FUNNEL_NODES}
               links={FUNNEL_LINKS}
               height={400}
-              columnHeaders={['Channels', 'Handled by', 'Outcome']}
+              columnHeaders={['Total interactions by channels', 'Handled by', 'Outcome']}
               onNodeClick={(name) => setNodeDrawer(name)}
             />
           </HCCard>
@@ -367,7 +369,7 @@ export function HCFrontdeskOverviewScreen() {
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Website' },
                 { value: '2.4K', label: 'Voice'   },
-                { value: '1.4K', label: 'Text'    },
+                { value: '1.4K', label: 'SMS'    },
                 { value: '974',  label: 'Email'   },
               ]} />
               <DonutChart data={CHANNEL_DONUT} centerValue="6.8k" centerLabel="Total responses" />
