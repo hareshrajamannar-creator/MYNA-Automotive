@@ -102,7 +102,7 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     id: 'human-actions',
     label: 'Human actions',
     items: [
-      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'manage-appointments', label: 'Appointments' },
       { id: 'sales-pipeline',      label: 'Sales pipeline'      },
       { id: 'service-requests',    label: 'Service requests'    },
     ],
@@ -120,20 +120,20 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     id: 'outcomes',
     label: 'Outcomes',
     items: [
-      { id: 'auto-frontdesk-overview',   label: 'Front desk overview' },
-      { id: 'auto-no-shows',             label: 'No shows prevented' },
+      { id: 'auto-frontdesk-overview', label: 'Front desk overview' },
+      { id: 'auto-no-shows',           label: 'No shows prevented' },
     ],
   },
   {
     id: 'resources',
     label: 'Resources',
     items: [
-      { id: 'auto-appointment-type',  label: 'Appointment type'},
-      { id: 'auto-availability',      label: 'Availability'    },
-      { id: 'procedure-library',      label: 'Procedures'      },
-      { id: 'phone-number',           label: 'Phone number'    },
-      { id: 'knowledge-base',         label: 'Knowledge base', external: true },
-      { id: 'widgets',                label: 'Widgets',        external: true },
+      { id: 'auto-appointment-type', label: 'Appointment types' },
+      { id: 'auto-availability',     label: 'Availability'      },
+      { id: 'procedure-library',     label: 'Procedures'        },
+      { id: 'phone-number',          label: 'Phone numbers'     },
+      { id: 'knowledge-base',        label: 'Knowledge base', external: true },
+      { id: 'widgets',               label: 'Widgets',        external: true },
     ],
   },
 ]
@@ -143,9 +143,9 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     id: 'human-actions',
     label: 'Human actions',
     items: [
-      { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'review-waitlist',     label: 'Review waitlist'     },
-      { id: 'manage-intake',       label: 'Manage intake'       },
+      { id: 'manage-appointments', label: 'Appointments' },
+      { id: 'review-waitlist',     label: 'Waitlist'     },
+      { id: 'manage-intake',       label: 'Intake'       },
     ],
   },
   {
@@ -173,10 +173,10 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     items: [
       { id: 'providers',         label: 'Providers'          },
-      { id: 'appointment-type',  label: 'Appointment type'   },
+      { id: 'appointment-type',  label: 'Appointment types'   },
       { id: 'availability',      label: 'Availability'       },
       { id: 'procedure-library', label: 'Procedures'         },
-      { id: 'phone-number',      label: 'Phone number'       },
+      { id: 'phone-number',      label: 'Phone numbers'       },
       { id: 'knowledge-base',    label: 'Knowledge base',    external: true },
       { id: 'widgets',           label: 'Widgets',           external: true },
     ],
@@ -188,9 +188,9 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     id: 'human-actions',
     label: 'Human actions',
     items: [
-      { id: 'manage-appointments',   label: 'Manage appointments'   },
-      { id: 'review-waitlist',       label: 'Review waitlist'       },
-      { id: 'manage-intake',         label: 'Manage intake'         },
+      { id: 'manage-appointments',    label: 'Appointments' },
+      { id: 'review-waitlist',        label: 'Waitlist'     },
+      { id: 'manage-intake',          label: 'Intake'       },
       { id: 'manage-treatment-plans', label: 'Manage treatment plans' },
     ],
   },
@@ -488,7 +488,7 @@ export function App() {
                 onClick={() => setIntakeDetail(null)}
                 className="text-body"
               >
-                Manage intake
+                Intake
               </Link>
               <Icon name="chevron_right" size={16} className="text-text-icon" />
               <span className="text-body text-text-primary">{intakeDetail!.detail.patient}</span>

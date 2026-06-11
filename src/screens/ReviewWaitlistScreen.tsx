@@ -349,7 +349,7 @@ export function ReviewWaitlistScreen({ onViewDetail }: { onViewDetail?: (args: W
         <div className="flex flex-1 flex-col overflow-auto">
         {/* Page header */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
-          <h1 className="text-h3 text-text-primary">Review waitlist</h1>
+          <h1 className="text-h3 text-text-primary">Waitlist</h1>
           <div className="flex items-center gap-sm">
             <HeaderSearchField open={searchOpen} value={searchQuery} onOpenChange={setSearchOpen} onChange={setSearchQuery} />
             <AddToWaitlistButton onSelect={setAddMode} />
