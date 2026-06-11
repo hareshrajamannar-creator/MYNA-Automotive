@@ -64,7 +64,7 @@ function makePreview(name: string): IntakePreviewPatient {
 
 const INTAKE_ROWS: IntakeRow[] = [
   { patient: 'John Smith',           appointmentDate: 'May 27', formType: 'New patient',  sentVia: 'chat',  sentOn: 'Apr 27', status: 'Overdue',     preview: makePreview('John Smith') },
-  { patient: 'Alice Johnson',        appointmentDate: 'May 27', formType: 'Follow-up',    sentVia: 'chat',  sentOn: 'Apr 27', status: 'Overdue',     preview: makePreview('Alice Johnson') },
+  { patient: 'Alice Johnson',        appointmentDate: 'May 27', formType: 'Follow up',    sentVia: 'chat',  sentOn: 'Apr 27', status: 'Overdue',     preview: makePreview('Alice Johnson') },
   { patient: 'Robert Williams',      appointmentDate: 'May 27', formType: 'Referral',     sentVia: 'chat',  sentOn: 'May 18', status: 'Overdue',     preview: makePreview('Robert Williams') },
   { patient: 'Mary Brown',           appointmentDate: 'May 27', formType: 'New patient',  sentVia: 'email', sentOn: 'May 18', status: 'Overdue',     preview: makePreview('Mary Brown') },
   { patient: 'Michael Davis',        appointmentDate: 'May 27', formType: 'New patient',  sentVia: 'chat',  sentOn: 'May 18', status: 'Overdue',     preview: makePreview('Michael Davis') },
@@ -74,12 +74,12 @@ const INTAKE_ROWS: IntakeRow[] = [
   { patient: 'Christopher Martinez', appointmentDate: 'May 27', formType: 'New patient',  sentVia: 'chat',  sentOn: 'May 20', status: 'Not started', preview: makePreview('Christopher Martinez') },
   { patient: 'James Anderson',       appointmentDate: 'May 29', formType: 'New patient',  sentVia: 'email', sentOn: 'May 20', status: 'In progress', preview: makePreview('James Anderson') },
   { patient: 'Sarah Lee',            appointmentDate: 'May 30', formType: 'Referral',     sentVia: 'chat',  sentOn: 'May 21', status: 'In progress', preview: makePreview('Sarah Lee') },
-  { patient: 'Emily Thompson',       appointmentDate: 'May 28', formType: 'Follow-up',    sentVia: 'chat',  sentOn: 'May 19', status: 'In progress', preview: makePreview('Emily Thompson') },
-  { patient: 'Daniel White',         appointmentDate: 'May 31', formType: 'Follow-up',    sentVia: 'email', sentOn: 'May 20', status: 'In progress', preview: makePreview('Daniel White') },
+  { patient: 'Emily Thompson',       appointmentDate: 'May 28', formType: 'Follow up',    sentVia: 'chat',  sentOn: 'May 19', status: 'In progress', preview: makePreview('Emily Thompson') },
+  { patient: 'Daniel White',         appointmentDate: 'May 31', formType: 'Follow up',    sentVia: 'email', sentOn: 'May 20', status: 'In progress', preview: makePreview('Daniel White') },
   { patient: 'Noah Hayes',           appointmentDate: 'Jun 02', formType: 'New patient',  sentVia: 'email', sentOn: 'May 21', status: 'Completed',   preview: NOAH_HAYES_PREVIEW },
   { patient: 'Laura Jackson',        appointmentDate: 'Jun 01', formType: 'Referral',     sentVia: 'chat',  sentOn: 'May 20', status: 'Completed',   preview: makePreview('Laura Jackson') },
   { patient: 'Kevin Moore',          appointmentDate: 'Jun 03', formType: 'New patient',  sentVia: 'email', sentOn: 'May 22', status: 'Completed',   preview: makePreview('Kevin Moore') },
-  { patient: 'Amy Chen',             appointmentDate: 'Jun 04', formType: 'Follow-up',    sentVia: 'chat',  sentOn: 'May 22', status: 'Completed',   preview: makePreview('Amy Chen') },
+  { patient: 'Amy Chen',             appointmentDate: 'Jun 04', formType: 'Follow up',    sentVia: 'chat',  sentOn: 'May 22', status: 'Completed',   preview: makePreview('Amy Chen') },
 ]
 
 const SUMMARY_METRICS = [
@@ -131,7 +131,7 @@ const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
 const FILTER_FIELDS: FilterField[] = [
-  { id: 'form-type', label: 'Form type', options: opts('New patient', 'Follow-up', 'Referral') },
+  { id: 'form-type', label: 'Form type', options: opts('New patient', 'Follow up', 'Referral') },
   { id: 'sent-via',  label: 'Sent via',  options: opts('Chat', 'Email') },
   { id: 'status',    label: 'Status',    options: opts('Overdue', 'Not started', 'In progress', 'Completed') },
 ]

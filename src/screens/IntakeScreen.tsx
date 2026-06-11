@@ -58,7 +58,7 @@ const TODAY_DATE = 'May 27'
 
 const PATIENTS: IntakePatient[] = [
   { patient: 'John Smith',          appointmentDate: 'May 27', bookedOn: 'Apr 10', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
-  { patient: 'Alice Johnson',       appointmentDate: 'May 27', bookedOn: 'Apr 12', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Alice Johnson',       appointmentDate: 'May 27', bookedOn: 'Apr 12', formType: 'Follow up',   sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
   { patient: 'Robert Williams',     appointmentDate: 'May 27', bookedOn: 'Apr 15', formType: 'Referral',    sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
   { patient: 'Mary Brown',          appointmentDate: 'May 27', bookedOn: 'Apr 18', formType: 'New patient', sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
   { patient: 'Michael Davis',       appointmentDate: 'May 27', bookedOn: 'Apr 20', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
@@ -66,18 +66,18 @@ const PATIENTS: IntakePatient[] = [
   { patient: 'David Garcia',        appointmentDate: 'May 27', bookedOn: 'Apr 25', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
   { patient: 'Linda Rodriguez',     appointmentDate: 'May 27', bookedOn: 'Apr 28', formType: 'Referral',    sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
   { patient: 'Christopher Martinez',appointmentDate: 'May 27', bookedOn: 'May 01', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
-  { patient: 'Angela Anderson',     appointmentDate: 'May 27', bookedOn: 'May 03', formType: 'Follow-up',   sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
+  { patient: 'Angela Anderson',     appointmentDate: 'May 27', bookedOn: 'May 03', formType: 'Follow up',   sentVia: 'email', sentOn: 'May 20', status: 'Not started' },
   { patient: 'Thomas Taylor',       appointmentDate: 'May 27', bookedOn: 'May 05', formType: 'Text/Number', sentVia: 'sms',   sentOn: 'May 20', status: 'Not started' },
   { patient: 'Sarah Moore',         appointmentDate: 'May 28', bookedOn: 'Apr 14', formType: 'New patient', sentVia: 'email', sentOn: 'May 21', status: 'Not started' },
-  { patient: 'Kevin Jackson',       appointmentDate: 'May 28', bookedOn: 'Apr 16', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 21', status: 'Not started' },
+  { patient: 'Kevin Jackson',       appointmentDate: 'May 28', bookedOn: 'Apr 16', formType: 'Follow up',   sentVia: 'sms',   sentOn: 'May 21', status: 'Not started' },
   { patient: 'Emily White',         appointmentDate: 'May 28', bookedOn: 'Apr 18', formType: 'Referral',    sentVia: 'email', sentOn: 'May 21', status: 'In progress' },
   { patient: 'James Harris',        appointmentDate: 'May 28', bookedOn: 'Apr 20', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 21', status: 'In progress' },
-  { patient: 'Patricia Clark',      appointmentDate: 'May 29', bookedOn: 'Apr 22', formType: 'Follow-up',   sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
+  { patient: 'Patricia Clark',      appointmentDate: 'May 29', bookedOn: 'Apr 22', formType: 'Follow up',   sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
   { patient: 'Daniel Lewis',        appointmentDate: 'May 29', bookedOn: 'Apr 24', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 22', status: 'In progress' },
   { patient: 'Nancy Robinson',      appointmentDate: 'May 29', bookedOn: 'Apr 26', formType: 'Text/Number', sentVia: 'email', sentOn: 'May 22', status: 'In progress' },
   { patient: 'Mark Walker',         appointmentDate: 'May 30', bookedOn: 'Apr 28', formType: 'Referral',    sentVia: 'sms',   sentOn: 'May 23', status: 'In progress' },
   { patient: 'Betty Hall',          appointmentDate: 'May 30', bookedOn: 'Apr 30', formType: 'New patient', sentVia: 'email', sentOn: 'May 23', status: 'Completed' },
-  { patient: 'Steven Allen',        appointmentDate: 'May 30', bookedOn: 'May 02', formType: 'Follow-up',   sentVia: 'sms',   sentOn: 'May 23', status: 'Completed' },
+  { patient: 'Steven Allen',        appointmentDate: 'May 30', bookedOn: 'May 02', formType: 'Follow up',   sentVia: 'sms',   sentOn: 'May 23', status: 'Completed' },
   { patient: 'Sandra Young',        appointmentDate: 'May 31', bookedOn: 'May 04', formType: 'Referral',    sentVia: 'email', sentOn: 'May 24', status: 'Completed' },
   { patient: 'Joseph Hernandez',    appointmentDate: 'May 31', bookedOn: 'May 06', formType: 'New patient', sentVia: 'sms',   sentOn: 'May 24', status: 'Completed' },
 ]
@@ -129,7 +129,7 @@ const DEF_BY_KEY      = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
 const FILTER_FIELDS: FilterField[] = [
-  { id: 'form-type', label: 'Form type', options: opts('New patient', 'Follow-up', 'Referral', 'Text/Number'), multi: true },
+  { id: 'form-type', label: 'Form type', options: opts('New patient', 'Follow up', 'Referral', 'Text/Number'), multi: true },
   { id: 'status',    label: 'Status',    options: opts('Not started', 'In progress', 'Completed'),             multi: true },
   { id: 'sent-via',  label: 'Sent via',  options: opts('SMS', 'Email') },
   { id: 'provider',  label: 'Provider',  options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Garcia'), multi: true },
@@ -146,8 +146,8 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   'Betty Hall': {
     age: '45 years', gender: 'Female', phone: '+1 (555) 234-5678', email: 'betty.hall@gmail.com',
     dateOfBirth: 'Jun 12, 1981', insuranceName: 'Aetna PPO Gold',
-    appointmentType: 'Follow-up', appointmentTime: '02:00 PM', location: 'Dallas, TX',
-    questionText: 'Follow-up for blood pressure management',
+    appointmentType: 'Follow up', appointmentTime: '02:00 PM', location: 'Dallas, TX',
+    questionText: 'Follow up for blood pressure management',
     emergencyContact: 'Tom Hall', emergencyRelationship: 'Husband', emergencyPhone: '+1 (555) 234-5679', emergencyEmail: 'tom.hall@gmail.com',
     insuranceProvider: 'Aetna', memberId: 'AET-9823714', groupNumber: 'GRP-00147',
     consentTreatment: 'Accepted', consentHipaa: 'Accepted', consentFinancial: 'Accepted',
@@ -175,8 +175,8 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   'Alice Johnson': {
     age: '34 years', gender: 'Female', phone: '+1 (555) 987-6543', email: 'alice.johnson@gmail.com',
     dateOfBirth: 'Feb 14, 1992', insuranceProvider: 'Cigna', insuranceName: 'Cigna Open Access Plus',
-    appointmentType: 'Follow-up', appointmentTime: '11:00 AM', location: 'Austin, TX',
-    questionText: 'Follow-up on allergy test results',
+    appointmentType: 'Follow up', appointmentTime: '11:00 AM', location: 'Austin, TX',
+    questionText: 'Follow up on allergy test results',
   },
   'Robert Williams': {
     age: '47 years', gender: 'Male', phone: '+1 (555) 321-0987', email: 'robert.williams@gmail.com',
@@ -223,8 +223,8 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   'Angela Anderson': {
     age: '51 years', gender: 'Female', phone: '+1 (555) 369-2580', email: 'angela.anderson@gmail.com',
     dateOfBirth: 'Mar 27, 1975', insuranceProvider: 'Aetna', insuranceName: 'Aetna Choice POS II',
-    appointmentType: 'Follow-up', appointmentTime: '04:00 PM', location: 'Portland, OR',
-    questionText: 'Follow-up on thyroid medication dosage',
+    appointmentType: 'Follow up', appointmentTime: '04:00 PM', location: 'Portland, OR',
+    questionText: 'Follow up on thyroid medication dosage',
   },
   'Thomas Taylor': {
     age: '67 years', gender: 'Male', phone: '+1 (555) 482-1597', email: 'thomas.taylor@gmail.com',
@@ -241,8 +241,8 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   'Kevin Jackson': {
     age: '40 years', gender: 'Male', phone: '+1 (555) 604-8261', email: 'kevin.jackson@gmail.com',
     dateOfBirth: 'Sep 03, 1985', insuranceProvider: 'Cigna', insuranceName: 'Cigna Flex Select',
-    appointmentType: 'Follow-up', appointmentTime: '01:00 PM', location: 'Columbus, OH',
-    questionText: 'Follow-up after recent ER visit for back pain',
+    appointmentType: 'Follow up', appointmentTime: '01:00 PM', location: 'Columbus, OH',
+    questionText: 'Follow up after recent ER visit for back pain',
   },
   'James Harris': {
     age: '52 years', gender: 'Male', phone: '+1 (555) 345-6789', email: 'james.harris@gmail.com',
@@ -255,8 +255,8 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   'Patricia Clark': {
     age: '48 years', gender: 'Female', phone: '+1 (555) 713-4826', email: 'patricia.clark@gmail.com',
     dateOfBirth: 'Feb 28, 1978', insuranceProvider: 'Aetna', insuranceName: 'Aetna PPO Silver',
-    appointmentType: 'Follow-up', appointmentTime: '10:30 AM', location: 'Baltimore, MD',
-    questionText: 'Follow-up on diabetes management and A1C results',
+    appointmentType: 'Follow up', appointmentTime: '10:30 AM', location: 'Baltimore, MD',
+    questionText: 'Follow up on diabetes management and A1C results',
   },
   'Daniel Lewis': {
     age: '36 years', gender: 'Male', phone: '+1 (555) 824-9371', email: 'daniel.lewis@gmail.com',
@@ -279,7 +279,7 @@ const PATIENT_DETAILS: Partial<Record<string, Omit<PatientDetail, 'patient' | 's
   'Steven Allen': {
     age: '31 years', gender: 'Male', phone: '+1 (555) 157-2846', email: 'steven.allen@gmail.com',
     dateOfBirth: 'Sep 25, 1994', insuranceProvider: 'Blue Cross Blue Shield', insuranceName: 'BCBS HMO Blue',
-    appointmentType: 'Follow-up', appointmentTime: '12:00 PM', location: 'Oklahoma City, OK',
+    appointmentType: 'Follow up', appointmentTime: '12:00 PM', location: 'Oklahoma City, OK',
     questionText: 'Post-operative follow-up after shoulder surgery',
   },
   'Sandra Young': {
@@ -340,7 +340,7 @@ export function IntakeScreen({ onViewDetail: _onViewDetail }: { onViewDetail?: (
         <div className="flex flex-1 flex-col overflow-auto">
           <div className="flex items-center justify-between bg-surface px-2xl py-xl">
             <div className="flex items-center gap-sm">
-              <h1 className="text-lg text-text-primary">Manage intake</h1>
+              <h1 className="text-lg text-text-primary">Intake</h1>
               <Icon name="info" size={18} className="text-text-icon" />
             </div>
             <div className="flex items-center gap-sm">

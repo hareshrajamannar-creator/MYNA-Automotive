@@ -54,7 +54,7 @@ const DATE_PROPERTY_OPTIONS = [
   { value: 'last_activity', label: "Contact's last activity" },
   { value: 'created_at', label: 'Contact created date' },
   { value: 'appointment_date', label: 'Appointment date' },
-  { value: 'follow_up_date', label: 'Follow-up date' },
+  { value: 'follow_up_date', label: 'Follow up date' },
 ];
 
 function FieldLabel({ label, required }) {

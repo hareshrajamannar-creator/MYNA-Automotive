@@ -49,7 +49,7 @@ const DAY_LABELS: { key: DayKey; label: string }[] = [
   { key: 'sat', label: 'Sat' },
 ]
 
-const APPOINTMENT_TYPES = ['New patient exam', 'Emergency visit', 'Routine cleaning', 'Invisalign consultation', 'Follow-up visit']
+const APPOINTMENT_TYPES = ['New patient exam', 'Emergency visit', 'Routine cleaning', 'Invisalign consultation', 'Follow up visit']
 const OPERATORIES = ['Operatory 1', 'Operatory 2', 'Operatory 3', 'Operatory 4']
 const TIME_OPTIONS = [
   '07:00 AM', '07:30 AM', '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',

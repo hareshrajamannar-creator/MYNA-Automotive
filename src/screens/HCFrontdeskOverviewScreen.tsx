@@ -26,7 +26,7 @@ const SUMMARY_STATS = [
   { id: 'bookings',   value: '1.5K', label: 'Total bookings',      delta: '16.6%', trend: 'up'   as const },
   { id: 'reschedule', value: '450',  label: 'Rescheduled',         delta: '30%',   trend: 'down' as const },
   { id: 'cancelled',  value: '25',   label: 'Cancelled',           delta: '20%',   trend: 'up'   as const },
-  { id: 'verified',   value: '1.5K', label: 'Insurances verified', delta: '10%',   trend: 'down' as const },
+  { id: 'verified',   value: '1.5K', label: 'Insurance verified', delta: '10%',   trend: 'down' as const },
 ]
 
 // Funnel: Website/Voice/Text/Email → Agent-driven/Human-driven → Confirmed/Booking/Reschedule/Cancel
@@ -34,7 +34,7 @@ const SUMMARY_STATS = [
 const FUNNEL_NODES: SankeyNode[] = [
   { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'Text 23%' }, { name: 'Email 19%' },
   { name: 'Agent-driven 72%' }, { name: 'Human-driven 28%' },
-  { name: 'Confirmed 60%' }, { name: 'Booking 18%' }, { name: 'Reschedule 10%' }, { name: 'Cancel 4%' },
+  { name: 'Confirmed 60%' }, { name: 'Booked 18%' }, { name: 'Rescheduled 10%' }, { name: 'Canceled 4%' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   { source: 0, target: 4, value: 28 }, { source: 0, target: 5, value: 10 },
@@ -121,7 +121,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'totalBookings',      label: 'Total bookings',      width: 160, sortable: true },
   { key: 'rescheduled',        label: 'Rescheduled',         width: 160, sortable: true },
   { key: 'cancelled',          label: 'Cancelled',           width: 140, sortable: true },
-  { key: 'insurancesVerified', label: 'Insurances verified', width: 180, sortable: true },
+  { key: 'insurancesVerified', label: 'Insurance verified', width: 180, sortable: true },
 ]
 
 export function HCFrontdeskOverviewScreen() {
@@ -157,7 +157,7 @@ export function HCFrontdeskOverviewScreen() {
             />
           </HCCard>
 
-          <HCCard title="Response rate overtime">
+          <HCCard title="Response rate over time">
             <StackedBarChart
               data={OVERTIME_DATA}
               series={OVERTIME_SERIES}
@@ -177,7 +177,7 @@ export function HCFrontdeskOverviewScreen() {
               <DonutChart data={SOURCE_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>
 
-            <HCCard title="Conversations overtime">
+            <HCCard title="Conversations over time">
               <StackedBarChart
                 data={CONV_OVERTIME_DATA}
                 series={CONV_OVERTIME_SERIES}
@@ -199,7 +199,7 @@ export function HCFrontdeskOverviewScreen() {
               <DonutChart data={CHANNEL_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>
 
-            <HCCard title="Insurances verified">
+            <HCCard title="Insurance verified">
               <ChartStatRow stats={[
                 { value: '1.2K',  label: 'Total verified'    },
                 { value: '94.2%', label: 'Verification rate' },

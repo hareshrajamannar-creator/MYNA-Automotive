@@ -58,7 +58,7 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total appointment reminders sent by the agent at this location in the selected period.' },
     { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of reminders that received a confirmed response from the customer.' },
     { id: 'avgTime', value: '2m', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
-    { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
+    { id: 'noshow', value: '11%', label: 'Missed appointment rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
   ],
   'Outreach agent': [
     { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true, tooltip: 'Total leads the agent reached out to at this location in the selected period.' },
@@ -153,7 +153,7 @@ const REMINDER_COLUMNS: Column<LocationRow>[] = [
   { key: 'remindersSent',    label: 'Reminders sent',         width: 170, sortable: true },
   { key: 'responseRate',     label: 'Reminder response rate', width: 210, sortable: true },
   { key: 'avgResponseTime',  label: 'Average response time',  width: 200, sortable: true },
-  { key: 'noshowRate',       label: 'No-show rate',           width: 160, sortable: true },
+  { key: 'noshowRate',       label: 'Missed appointment rate', width: 160, sortable: true },
 ]
 
 export function AgentInstanceScreen({

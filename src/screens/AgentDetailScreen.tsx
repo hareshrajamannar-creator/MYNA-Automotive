@@ -98,9 +98,9 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
   'Waitlist agent': [
     // Total: 2,850 outreach | 2,760 slots filled | 92% fill rate | 37m time saved
     { region: 'North region', status: 'Running', outreachSent: '800',  slotsFilled: '780',  fillRate: '90%', timeSaved: '20m', locations: '500' },
-    { region: 'East Region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '85%', timeSaved: '5m',  locations: '250' },
-    { region: 'South Region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '75%', timeSaved: '10m', locations: '200' },
-    { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
+    { region: 'East region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '85%', timeSaved: '5m',  locations: '250' },
+    { region: 'South region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '75%', timeSaved: '10m', locations: '200' },
+    { region: 'West region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
   ],
 }
 
@@ -115,22 +115,22 @@ const LIBRARY_TEMPLATES = [
   {
     id: 'routing',
     title: 'Routing and triage',
-    description: 'Handles inbound calls, identifies intent, routes urgent symptoms, and transfers to the right team with context',
+    description: 'Answers every inbound call, triages patient needs, and routes to the right person with full context.',
   },
   {
     id: 'new-patient',
-    title: 'New patient intake',
+    title: 'Collect new patient details',
     description: 'Guides new patients through intake, verifies their insurance, and books the right appointment',
   },
   {
     id: 'established',
     title: 'Established patient scheduling',
-    description: 'Validates existing records, checks coverage, and books or reschedules follow-up visits with preferred providers',
+    description: 'Finds returning patient records, confirms coverage, and books or reschedules visits',
   },
   {
     id: 'urgent',
     title: 'Urgent escalations',
-    description: 'Detects high-risk symptoms, follows escalation policy, and hands off immediately to clinical staff or emergency guidance',
+    description: 'Identifies urgent situations and escalates to clinical staff immediately with full call context',
   },
 ]
 
@@ -246,7 +246,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total appointment reminders sent by the agent via voice and chat in the selected period.' },
       { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of reminders that received a confirmed response from the customer.' },
       { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
-      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
+      { id: 'noshow', value: '11%', label: 'Missed appointment rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
     ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted', info: true, tooltip: 'Total leads the agent reached out to via call or message in the selected period.' },
@@ -299,7 +299,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
       { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
       { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
-      { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
+      { key: 'noshowRate' as keyof AgentInstance, label: 'Missed appointment rate', width: 150, sortable: true },
     ] : isFrontdesk ? [
       { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },
