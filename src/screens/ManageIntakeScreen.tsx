@@ -167,7 +167,7 @@ export function ManageIntakeScreen() {
         <div className="flex flex-1 flex-col overflow-auto">
           <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
             <div className="flex items-center gap-xs">
-              <h1 className="text-h3 text-text-primary">Manage intake</h1>
+              <h1 className="text-h3 text-text-primary">Intake</h1>
               <Icon name="info" size={18} className="text-text-icon" />
             </div>
             <div className="flex items-center gap-sm">
