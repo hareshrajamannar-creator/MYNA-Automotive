@@ -22,45 +22,32 @@ function HCCard(props: React.ComponentProps<typeof ChartCard>) {
 const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
-  { id: 'sent',        value: '1.4K',  label: 'Intake forms sent',    delta: '36.6%', trend: 'up'   as const },
+  { id: 'sent',        value: '1.4K',  label: 'Outreach sent',        delta: '36.6%', trend: 'up'   as const },
   { id: 'completed',   value: '750',   label: 'Intakes completed',    delta: '18%',   trend: 'up'   as const },
   { id: 'rate',        value: '52.4%', label: 'Completion rate',      delta: '4.2%',  trend: 'up'   as const },
   { id: 'avgTime',     value: '8.5 m', label: 'Avg completion time',  delta: '20%',   trend: 'down' as const },
-  { id: 'notAttempted',value: '120',   label: 'Not attempted',        delta: '20%',   trend: 'up'   as const },
 ]
 
-// 0=Pre-visit agents, 1=Human-driven,
-// 2=Text/SMS, 3=Email, 4=Portal, 5=In-office,
-// 6=Completed, 7=Not attempted, 8=Pending
+// 0=Website, 1=Voice, 2=Text, 3=Email          (channel)
+// 4=New patient, 5=Returning patient           (patient type)
+// 6=Completed, 7=In-progress, 8=Pending        (outcome)
 const FUNNEL_NODES: SankeyNode[] = [
-  {
-    name: 'Pre-visit agents (74.3%)',
-    breakdown: [
-      { label: 'Pre-visit agent – North region', pct: '44%', value: 2756 },
-      { label: 'Pre-visit agent – South region', pct: '34%', value: 2127 },
-      { label: 'Pre-visit agent – West region',  pct: '22%', value: 1375 },
-    ],
-  },
-  { name: 'Human-driven (25.7%)' },
-  { name: 'Text/SMS (42.6%)' }, { name: 'Email (33.8%)' }, { name: 'Portal (15.6%)' }, { name: 'In-office (8.1%)' },
-  { name: 'Completed (52.4%)' }, { name: 'Pending (13.4%)' }, { name: 'Not attempted (34.2%)' },
+  { name: 'Website (28.4%)' }, { name: 'Voice (35.2%)' }, { name: 'Text (22.1%)' }, { name: 'Email (14.3%)' },
+  { name: 'New patient (57.4%)' }, { name: 'Returning patient (42.6%)' },
+  { name: 'Completed (52.4%)' }, { name: 'In-progress (13.4%)' }, { name: 'Pending (34.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
-  { source: 0, target: 2, value: 30 }, { source: 0, target: 3, value: 24 }, { source: 0, target: 4, value: 11 }, { source: 0, target: 5, value: 6 },
-  { source: 1, target: 2, value: 10 }, { source: 1, target: 3, value: 8  }, { source: 1, target: 4, value: 4  }, { source: 1, target: 5, value: 2 },
-  { source: 2, target: 6, value: 22 }, { source: 2, target: 7, value: 4  }, { source: 2, target: 8, value: 14 },
-  { source: 3, target: 6, value: 18 }, { source: 3, target: 7, value: 2  }, { source: 3, target: 8, value: 12 },
-  { source: 4, target: 6, value: 9  }, { source: 4, target: 7, value: 1  }, { source: 4, target: 8, value: 5  },
-  { source: 5, target: 6, value: 4  }, { source: 5, target: 7, value: 1  }, { source: 5, target: 8, value: 3  },
+  // channel → patient type
+  { source: 0, target: 4, value: 16 }, { source: 0, target: 5, value: 12 },
+  { source: 1, target: 4, value: 20 }, { source: 1, target: 5, value: 15 },
+  { source: 2, target: 4, value: 13 }, { source: 2, target: 5, value: 9  },
+  { source: 3, target: 4, value: 7  }, { source: 3, target: 5, value: 6  },
+  // patient type → outcome
+  { source: 4, target: 6, value: 30 }, { source: 4, target: 7, value: 8  }, { source: 4, target: 8, value: 18 },
+  { source: 5, target: 6, value: 21 }, { source: 5, target: 7, value: 6  }, { source: 5, target: 8, value: 15 },
 ]
-// 0=Pre-visit agents(purple), 1=Human(gray)
-// 2=SMS(blue), 3=Email(teal), 4=Portal(dark-orange), 5=In-office(light-orange)
-// 6=Completed(green), 7=Pending(orange), 8=Not attempted(orange-red)
-const FUNNEL_NODE_COLORS: Record<number, string> = {
-  0: '#7c4dff', 1: '#bdbdbd',
-  2: '#1976d2', 3: '#00bcd4', 4: '#f5a623', 5: '#fbbf24',
-  6: '#4cae3d', 7: '#f59e0b', 8: '#f97316',
-}
+// outcome overrides only — channels and patient type inherit categorical defaults
+const FUNNEL_NODE_COLORS: Record<number, string> = { 7: '#f5a623', 8: '#de1b0c' }
 
 const INTAKE_OVERTIME_DATA = [
   { month: 'Dec 2023', completed: 280, attempted: 80, notAttempted: 74 },
@@ -113,15 +100,15 @@ const LOCATION_DATA: LocationRow[] = [
 ]
 const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',   label: 'Location',        width: 200, sortable: true },
-  { key: 'completed',  label: 'Completed',        width: 160, sortable: true },
-  { key: 'attempted',  label: 'Attempted',        width: 160, sortable: true },
+  { key: 'completed',  label: 'Intake completed',  width: 160, sortable: true },
+  { key: 'attempted',  label: 'Outreach sent',     width: 160, sortable: true },
   {
     key: 'completionRate', label: 'Completion rate', width: 200, sortable: true,
     render: (_v, row) => (
       <span>{row.completionRate} {deltaSpan(row.completionDelta as string)}</span>
     ),
   },
-  { key: 'avgTime',    label: 'Avg time',         width: 160, sortable: true },
+  { key: 'avgTime',    label: 'Avg completion time', width: 180, sortable: true },
 ]
 
 export function HCIntakesCompletedScreen() {
@@ -149,7 +136,7 @@ export function HCIntakesCompletedScreen() {
           <SummaryStats stats={SUMMARY_STATS} />
 
           <HCCard title="Intake funnel">
-            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Intake forms sent', 'Channel', 'Outcome']} />
+            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Intake reminders sent by channel', 'Patient type', 'Outcome']} />
           </HCCard>
 
           <HCCard title="Intake overtime">
