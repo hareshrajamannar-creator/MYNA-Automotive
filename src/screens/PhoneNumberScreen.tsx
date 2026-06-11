@@ -417,7 +417,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
   const [form, setForm] = useState<ImportState>(EMPTY_IMPORT)
   const [verified, setVerified]   = useState(false)
   const [verifying, setVerifying] = useState(false)
-  const [locationTooltip, setLocationTooltip] = useState<{ x: number; y: number } | null>(null)
+
 
   useEffect(() => {
     if (!open) {
@@ -606,36 +606,21 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             )}
           </div>
 
-          {/* Location — unlocked after verify */}
-          <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
-            Assign to a location to start routing calls.
-          </p>
-          <div
-            onMouseEnter={(e) => {
-              if (!verified) {
-                const r = e.currentTarget.getBoundingClientRect()
-                setLocationTooltip({ x: r.left + r.width / 2, y: r.bottom + 6 })
-              }
-            }}
-            onMouseLeave={() => setLocationTooltip(null)}
-          >
-            <DropdownField
-              label="Location"
-              options={LOCATION_OPTIONS}
-              value={form.location}
-              multi
-              placeholder="Select location"
-              disabled={!verified}
-              onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
-            />
-          </div>
-          {locationTooltip && (
-            <div
-              className="pointer-events-none fixed z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
-              style={{ left: locationTooltip.x, top: locationTooltip.y }}
-            >
-              Complete SIP trunking setup and verify your connection first.
-            </div>
+          {/* Location — visible only after verify */}
+          {verified && (
+            <>
+              <p className="mt-[16px] text-body text-text-secondary">
+                Assign to a location to start routing calls.
+              </p>
+              <DropdownField
+                label="Location"
+                options={LOCATION_OPTIONS}
+                value={form.location}
+                multi
+                placeholder="Select location"
+                onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
+              />
+            </>
           )}
 
         </div>
