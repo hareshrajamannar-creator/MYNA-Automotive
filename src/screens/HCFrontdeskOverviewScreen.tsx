@@ -494,11 +494,11 @@ export function HCFrontdeskOverviewScreen() {
       {/* Detail drawer — slides on top of list drawer */}
       {selectedConvo !== null && (
         <div className={`fixed right-0 top-0 z-[90] flex h-full w-[650px] flex-col overflow-hidden bg-surface shadow-modal transition-transform duration-300 ease-in-out ${detailVisible ? 'translate-x-0' : 'translate-x-full'}`}>
-          {/* Chat header — exact copy of InboxScreen right panel header */}
-          <div className="flex items-center justify-between px-2xl py-md">
+          {/* Chat header — matches list drawer header */}
+          <div className="flex items-center justify-between px-2xl py-lg">
             <div className="flex items-center gap-sm">
-              <button type="button" onClick={closeDetail} className="flex size-7 items-center justify-center text-text-icon hover:text-text-primary">
-                <Icon name="arrow_back" size={20} />
+              <button type="button" onClick={closeDetail} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+                <Icon name="arrow_back" size={18} />
               </button>
               <span className="text-h3 text-text-primary">{selectedConvo.name}</span>
               {selectedConvo.verified && <Icon name="mode_heat" size={16} className="text-text-icon" />}
@@ -509,8 +509,8 @@ export function HCFrontdeskOverviewScreen() {
                 <span className="text-body text-text-primary">{selectedConvo.assignee ?? 'Savannah'}</span>
                 <Icon name="expand_more" size={14} className="text-text-icon" />
               </button>
-              <button type="button" className="flex size-7 items-center justify-center text-text-icon hover:text-text-primary">
-                <Icon name="more_vert" size={20} />
+              <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+                <Icon name="more_vert" size={18} />
               </button>
             </div>
           </div>
