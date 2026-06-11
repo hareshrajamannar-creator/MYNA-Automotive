@@ -34,7 +34,7 @@ const CATALOG_DETAIL_KEY: Record<string, string> = {
   unclear: 'Handle unclear message',
   'talk-human': 'Talk to human',
   'identify-patient': 'Identify patient',
-  'new-patient': 'New patient intake',
+  'new-patient': 'Collect new patient details',
   'book-appointment': 'Book new appointment',
 }
 
@@ -64,7 +64,7 @@ const FALLBACK_STEPS: Record<string, string> = {
     '• Match the caller to an existing patient record using {{patient_lookup}}.',
     '2.Confirm match',
     '• Read back the matched name and last four digits of the phone number.',
-    '• If no match, route to {{New patient intake}}.',
+    '• If no match, route to {{Collect new patient details}}.',
   ].join('\n'),
   'new-patient': [
     '1.Collect demographics',
