@@ -43,22 +43,22 @@ interface Appointment {
 
 const APPOINTMENTS: Appointment[] = [
   // Unconfirmed — 5
-  { name: 'Megan Harris',   location: 'Mountain View', status: 'Unconfirmed', staff: 'Lopez',     apptType: 'Follow Up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', opCode: 'FLLWUP',  phone: '(650) 555-0144', email: 'm.harris@email.com'    },
-  { name: 'Chris Evans',    location: 'Palo Alto',     status: 'Unconfirmed', staff: 'Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', opCode: 'TIRRTN',  phone: '(415) 555-0132', email: 'c.evans@email.com'     },
-  { name: 'Linda Thomas',   location: 'San Jose',      status: 'Unconfirmed', staff: 'Carter',    apptType: 'New Consult',     insuranceStatus: 'In Progress', dateTime: 'Oct 19, 2024 11:15 AM', opCode: 'NCNSLT',  phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
-  { name: 'Patricia Clark', location: 'Sunnyvale',     status: 'Unconfirmed', staff: 'Adams',     apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', opCode: 'OILCHG',  phone: '(415) 555-0199', email: 'p.clark@email.com'     },
-  { name: 'William Harris', location: 'Mountain View', status: 'Unconfirmed', staff: 'Baker',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', opCode: 'DIAG',    phone: '(408) 555-0166', email: 'w.harris@email.com'    },
+  { patient: 'Megan Harris',   location: 'Main Campus',   status: 'Unconfirmed', provider: 'Dr. Lopez',     apptType: 'Follow up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', phone: '(650) 555-0144', email: 'm.harris@email.com'    },
+  { patient: 'Chris Evans',    location: 'North Clinic',  status: 'Unconfirmed', provider: 'Dr. Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', phone: '(415) 555-0132', email: 'c.evans@email.com'     },
+  { patient: 'Linda Thomas',   location: 'South Clinic',  status: 'Unconfirmed', provider: 'Dr. Carter',    apptType: 'New consult',     insuranceStatus: 'In progress', dateTime: 'Oct 19, 2024 11:15 AM', phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
+  { patient: 'Patricia Clark', location: 'East Branch',   status: 'Unconfirmed', provider: 'Dr. Adams',     apptType: 'Annual physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', phone: '(415) 555-0199', email: 'p.clark@email.com'     },
+  { patient: 'William Harris', location: 'Main Campus',   status: 'Unconfirmed', provider: 'Dr. Baker',     apptType: 'Urgent care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', phone: '(408) 555-0166', email: 'w.harris@email.com'    },
   // Cancelled — 5
-  { name: 'Michael Wilson', location: 'Palo Alto',     status: 'Cancelled',   staff: 'Jones',     apptType: 'Urgent Care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', opCode: 'BRKREP',  phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
-  { name: 'James Thomas',   location: 'San Jose',      status: 'Cancelled',   staff: 'Davis',     apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', opCode: 'ENGDIAG', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
-  { name: 'Laura Jackson',  location: 'Sunnyvale',     status: 'Cancelled',   staff: 'Martinez',  apptType: 'Annual Physical', insuranceStatus: 'In Progress', dateTime: 'Jul 30, 2024 06:40 AM', opCode: 'OILCHG',  phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
-  { name: 'Daniel White',   location: 'Mountain View', status: 'Cancelled',   staff: 'Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', opCode: 'BATTREP', phone: '(669) 555-0101', email: 'd.white@email.com'     },
-  { name: 'Kevin Moore',    location: 'Palo Alto',     status: 'Cancelled',   staff: 'Edwards',   apptType: 'Follow Up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', opCode: 'ACREPR',  phone: '(408) 555-0188', email: 'k.moore@email.com'     },
+  { patient: 'Michael Wilson', location: 'North Clinic',  status: 'Cancelled',   provider: 'Dr. Jones',     apptType: 'Urgent care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
+  { patient: 'James Thomas',   location: 'South Clinic',  status: 'Cancelled',   provider: 'Dr. Davis',     apptType: 'New consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
+  { patient: 'Laura Jackson',  location: 'East Branch',   status: 'Cancelled',   provider: 'Dr. Martinez',  apptType: 'Annual physical', insuranceStatus: 'In progress', dateTime: 'Jul 30, 2024 06:40 AM', phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
+  { patient: 'Daniel White',   location: 'Main Campus',   status: 'Cancelled',   provider: 'Dr. Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', phone: '(669) 555-0101', email: 'd.white@email.com'     },
+  { patient: 'Kevin Moore',    location: 'North Clinic',  status: 'Cancelled',   provider: 'Dr. Edwards',   apptType: 'Follow up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', phone: '(408) 555-0188', email: 'k.moore@email.com'     },
   // No-show — 4
-  { name: 'David Martinez', location: 'San Jose',      status: 'No-show',     staff: 'Rodriguez', apptType: 'Follow Up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', opCode: 'FLLWUP',  phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
-  { name: 'Sarah Anderson', location: 'Sunnyvale',     status: 'No-show',     staff: 'Miller',    apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', opCode: 'INSPREP', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
-  { name: 'Jessica Taylor', location: 'Mountain View', status: 'No-show',     staff: 'Garcia',    apptType: 'Procedure',       insuranceStatus: 'In Progress', dateTime: 'Mar 11, 2024 12:30 PM', opCode: 'TIRRTN',  phone: '(415) 555-0155', email: 'jess.t@email.com'      },
-  { name: 'Robert Brown',   location: 'Palo Alto',     status: 'No-show',     staff: 'Williams',  apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', opCode: 'TRNSMSN', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
+  { patient: 'David Martinez', location: 'South Clinic',  status: 'No-show',     provider: 'Dr. Rodriguez', apptType: 'Follow up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
+  { patient: 'Sarah Anderson', location: 'East Branch',   status: 'No-show',     provider: 'Dr. Miller',    apptType: 'New consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
+  { patient: 'Jessica Taylor', location: 'Main Campus',   status: 'No-show',     provider: 'Dr. Garcia',    apptType: 'Procedure',       insuranceStatus: 'In progress', dateTime: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 'jess.t@email.com'      },
+  { patient: 'Robert Brown',   location: 'North Clinic',  status: 'No-show',     provider: 'Dr. Williams',  apptType: 'Annual physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
 ]
 
 const TAB_STATUS_MAP: Record<string, string> = {
@@ -95,42 +95,18 @@ interface ColumnDef extends Column<Appointment> {
   locked?: boolean
 }
 
-// Automotive columns
-const AUTO_COLUMN_DEFS: ColumnDef[] = [
-  { key: 'name',            label: 'Name',             sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
-  { key: 'staff',           label: 'Staff',            sortable: true },
+const COLUMN_DEFS: ColumnDef[] = [
+  { key: 'patient', label: 'Patient', sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.patient as string} location={row.location as string} /> },
+  { key: 'provider',        label: 'Provider',         sortable: true },
   { key: 'apptType',        label: 'Appointment type', sortable: true },
-  { key: 'opCode',          label: 'Operation code',   sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
   { key: 'dateTime',        label: 'Appointment time', sortable: true },
   { key: 'phone',           label: 'Phone',            sortable: true },
   { key: 'email',           label: 'Email',            sortable: true },
 ]
-const AUTO_DEFAULT_VISIBLE = ['name', 'staff', 'apptType', 'opCode', 'insuranceStatus', 'dateTime']
-
-// Healthcare / Dental columns (no opCode; Patient + Provider labels)
-const HC_COLUMN_DEFS: ColumnDef[] = [
-  { key: 'name',            label: 'Patient',          sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
-  { key: 'staff',           label: 'Provider',         sortable: true },
-  { key: 'apptType',        label: 'Appt type',        sortable: true },
-  { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
-  { key: 'dateTime',        label: 'Appt time',        sortable: true },
-  { key: 'phone',           label: 'Phone',            sortable: true },
-  { key: 'email',           label: 'Email',            sortable: true },
-]
-const HC_DEFAULT_VISIBLE = ['name', 'staff', 'apptType', 'insuranceStatus', 'dateTime']
-
-// Shared helpers — resolved at render time based on product
-const COLUMN_DEFS_BY_PRODUCT: Record<string, ColumnDef[]> = {
-  automotive: AUTO_COLUMN_DEFS,
-  healthcare:  HC_COLUMN_DEFS,
-  dental:      HC_COLUMN_DEFS,
-}
-const DEFAULT_VISIBLE_BY_PRODUCT: Record<string, string[]> = {
-  automotive: AUTO_DEFAULT_VISIBLE,
-  healthcare:  HC_DEFAULT_VISIBLE,
-  dental:      HC_DEFAULT_VISIBLE,
-}
+const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
+const DEFAULT_VISIBLE = ['patient', 'provider', 'apptType', 'insuranceStatus', 'dateTime']
+const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
@@ -144,19 +120,14 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'content-manager',      label: 'Content manager',      options: opts('Manager A', 'Manager B', 'Manager C') },
   { id: 'conversation-status',  label: 'Conversation status',  options: opts('Open', 'Closed', 'Pending', 'Resolved') },
   { id: 'provider',             label: 'Provider',             options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
-  { id: 'appointment-type',     label: 'Appointment type',     options: opts('Procedure', 'New Consult', 'Follow Up', 'Annual Physical', 'Urgent Care') },
-  { id: 'insurance-status',     label: 'Insurance status',     options: opts('Verified', 'In Progress', 'Denied', 'Pending') },
+  { id: 'appointment-type',     label: 'Appointment type',     options: opts('Procedure', 'New consult', 'Follow up', 'Annual physical', 'Urgent care') },
+  { id: 'insurance-status',     label: 'Insurance status',     options: opts('Verified', 'In progress', 'Denied', 'Pending') },
   { id: 'appointment-status',   label: 'Appointment status',   options: opts('Unconfirmed', 'Cancellations', 'No-shows') },
 ]
 
 const BASE_DATE = new Date(2026, 4, 25)
 
 export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?: string }) {
-  const COLUMN_DEFS = COLUMN_DEFS_BY_PRODUCT[product] ?? HC_COLUMN_DEFS
-  const DEFAULT_VISIBLE = DEFAULT_VISIBLE_BY_PRODUCT[product] ?? HC_DEFAULT_VISIBLE
-  const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-  const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
-
   const [date, setDate] = useState(new Date(BASE_DATE))
   const [view, setView] = useState<AppointmentView>('table')
   const [timescale, setTimescale] = useState<AppointmentTimescale>('day')
@@ -289,7 +260,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?:
                 type="button"
                 className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
-                Book an appointment
+                Book appointment
               </button>
 
               <button
