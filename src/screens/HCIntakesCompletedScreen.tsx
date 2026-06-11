@@ -32,41 +32,6 @@ function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
 
-function InfoTooltip({ text }: { text: string }) {
-  const [visible, setVisible] = React.useState(false)
-  const ref = React.useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null)
-
-  function show() {
-    if (!ref.current) return
-    const r = ref.current.getBoundingClientRect()
-    setPos({ x: r.left + r.width / 2, y: r.bottom + 8 })
-    setVisible(true)
-  }
-
-  return (
-    <>
-      <button
-        ref={ref}
-        type="button"
-        onMouseEnter={show}
-        onMouseLeave={() => setVisible(false)}
-        className="flex items-center justify-center text-text-tertiary hover:text-text-secondary"
-        aria-label="More info"
-      >
-        <Icon name="help_outline" size={16} />
-      </button>
-      {visible && pos && (
-        <div
-          className="pointer-events-none fixed z-[120] w-[260px] rounded-md border border-border bg-surface p-[12px] shadow-dropdown"
-          style={{ left: pos.x, top: pos.y, transform: 'translateX(-50%)' }}
-        >
-          <p className="text-small text-text-tertiary">{text}</p>
-        </div>
-      )}
-    </>
-  )
-}
 const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
@@ -199,7 +164,7 @@ export function HCIntakesCompletedScreen() {
             <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Intake reminders sent by channel', 'Patient type', 'Outcome']} />
           </HCCard>
 
-          <HCCard title="Intake overtime" titleSuffix={<InfoTooltip text="Monthly breakdown of patient intakes by status — completed, in progress, and pending." />}>
+          <HCCard title="Intake overtime" tooltip="Monthly breakdown of patient intakes by status — completed, in progress, and pending.">
             <StackedBarChart
               data={INTAKE_OVERTIME_DATA}
               series={INTAKE_OVERTIME_SERIES}

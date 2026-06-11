@@ -1,4 +1,5 @@
 export { Chip } from './Chip/Chip'
+export { InfoTooltip } from './InfoTooltip/InfoTooltip'
 export { ContextModal } from './ContextModal/ContextModal'
 export { CustomizeColumnsDrawer } from './CustomizeColumnsDrawer/CustomizeColumnsDrawer'
 export { EmptyHintField } from './EmptyHintField/EmptyHintField'

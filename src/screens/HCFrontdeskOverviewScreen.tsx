@@ -107,41 +107,6 @@ function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
 
-function InfoTooltip({ text }: { text: string }) {
-  const [visible, setVisible] = useState(false)
-  const ref = React.useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
-
-  function show() {
-    if (!ref.current) return
-    const r = ref.current.getBoundingClientRect()
-    setPos({ x: r.left + r.width / 2, y: r.bottom + 8 })
-    setVisible(true)
-  }
-
-  return (
-    <>
-      <button
-        ref={ref}
-        type="button"
-        onMouseEnter={show}
-        onMouseLeave={() => setVisible(false)}
-        className="flex items-center justify-center text-text-tertiary hover:text-text-secondary"
-        aria-label="More info"
-      >
-        <Icon name="help_outline" size={16} />
-      </button>
-      {visible && pos && (
-        <div
-          className="pointer-events-none fixed z-[120] w-[260px] rounded-md border border-border bg-surface p-[12px] shadow-dropdown"
-          style={{ left: pos.x, top: pos.y, transform: 'translateX(-50%)' }}
-        >
-          <p className="text-small text-text-tertiary">{text}</p>
-        </div>
-      )}
-    </>
-  )
-}
 const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
@@ -369,7 +334,7 @@ export function HCFrontdeskOverviewScreen() {
             />
           </HCCard>
 
-          <HCCard title="Response rate overtime" titleSuffix={<InfoTooltip text="Monthly view of unique conversations that received a response from the front desk agent." />}>
+          <HCCard title="Response rate overtime" tooltip="Monthly view of unique conversations that received a response from the front desk agent.">
             <StackedBarChart
               data={OVERTIME_DATA}
               series={OVERTIME_SERIES}
@@ -380,7 +345,7 @@ export function HCFrontdeskOverviewScreen() {
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="Response from source" titleSuffix={<InfoTooltip text="Shows the last source used to respond in each unique conversation, broken down by source type." />}>
+            <HCCard title="Response from source" tooltip="Shows the last source used to respond in each unique conversation, broken down by source type.">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Link' },
                 { value: '2.4K', label: 'FAQ'  },
@@ -389,7 +354,7 @@ export function HCFrontdeskOverviewScreen() {
               <DonutChart data={SOURCE_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>
 
-            <HCCard title="Conversations overtime" titleSuffix={<InfoTooltip text="Monthly breakdown of unique conversations handled by the AI agent, a human, or left unresolved." />}>
+            <HCCard title="Conversations overtime" tooltip="Monthly breakdown of unique conversations handled by the AI agent, a human, or left unresolved.">
               <StackedBarChart
                 data={CONV_OVERTIME_DATA}
                 series={CONV_OVERTIME_SERIES}
@@ -401,7 +366,7 @@ export function HCFrontdeskOverviewScreen() {
           </div>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="Conversations by channel" titleSuffix={<InfoTooltip text="Shows the last channel used in each unique conversation, broken down by channel type." />}>
+            <HCCard title="Conversations by channel" tooltip="Shows the last channel used in each unique conversation, broken down by channel type.">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Website' },
                 { value: '2.4K', label: 'Voice'   },
@@ -411,7 +376,7 @@ export function HCFrontdeskOverviewScreen() {
               <DonutChart data={CHANNEL_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>
 
-            <HCCard title="Insurances verified" titleSuffix={<InfoTooltip text="Monthly view of unique conversations where the patient's insurance was successfully verified by the agent." />}>
+            <HCCard title="Insurances verified" tooltip="Monthly view of unique conversations where the patient's insurance was successfully verified by the agent.">
               <ChartStatRow stats={[
                 { value: '1.2K',  label: 'Total verified'    },
                 { value: '94.2%', label: 'Verification rate' },

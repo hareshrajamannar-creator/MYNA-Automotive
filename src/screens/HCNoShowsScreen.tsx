@@ -31,41 +31,6 @@ function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
 
-function InfoTooltip({ text }: { text: string }) {
-  const [visible, setVisible] = React.useState(false)
-  const ref = React.useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null)
-
-  function show() {
-    if (!ref.current) return
-    const r = ref.current.getBoundingClientRect()
-    setPos({ x: r.left + r.width / 2, y: r.bottom + 8 })
-    setVisible(true)
-  }
-
-  return (
-    <>
-      <button
-        ref={ref}
-        type="button"
-        onMouseEnter={show}
-        onMouseLeave={() => setVisible(false)}
-        className="flex items-center justify-center text-text-tertiary hover:text-text-secondary"
-        aria-label="More info"
-      >
-        <Icon name="help_outline" size={16} />
-      </button>
-      {visible && pos && (
-        <div
-          className="pointer-events-none fixed z-[120] w-[260px] rounded-md border border-border bg-surface p-[12px] shadow-dropdown"
-          style={{ left: pos.x, top: pos.y, transform: 'translateX(-50%)' }}
-        >
-          <p className="text-small text-text-tertiary">{text}</p>
-        </div>
-      )}
-    </>
-  )
-}
 const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
@@ -196,7 +161,7 @@ export function HCNoShowsScreen() {
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="Appointment confirmation by channel" titleSuffix={<InfoTooltip text="Shows the channel that sent the last reminder resulting in a confirmed appointment. Each conversation is counted once." />}>
+            <HCCard title="Appointment confirmation by channel" tooltip="Shows the channel that sent the last reminder resulting in a confirmed appointment. Each conversation is counted once.">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Voice' },
                 { value: '2.4K', label: 'Email' },
@@ -209,7 +174,7 @@ export function HCNoShowsScreen() {
               />
             </HCCard>
 
-            <HCCard title="Reminders sent vs confirmed" titleSuffix={<InfoTooltip text="Compares the total reminders sent to the number of appointments confirmed. Each appointment is counted once, regardless of how many reminders were sent." />}>
+            <HCCard title="Reminders sent vs confirmed" tooltip="Compares the total reminders sent to the number of appointments confirmed. Each appointment is counted once, regardless of how many reminders were sent.">
               <StackedBarChart
                 data={REMINDERS_DATA}
                 series={REMINDERS_SERIES}
