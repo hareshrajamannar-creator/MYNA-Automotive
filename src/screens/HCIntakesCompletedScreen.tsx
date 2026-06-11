@@ -40,11 +40,11 @@ const SUMMARY_STATS = [
   { id: 'avgTime',     value: '8.5 m', label: 'Avg completion time',  delta: '20%',   trend: 'down' as const },
 ]
 
-// 0=Website, 1=Voice, 2=Text, 3=Email          (channel)
+// 0=Website, 1=Voice, 2=SMS, 3=Email           (channel)
 // 4=New patient, 5=Returning patient           (patient type)
 // 6=Completed, 7=In-progress, 8=Pending        (outcome)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Website (28.4%)' }, { name: 'Voice (35.2%)' }, { name: 'Text (22.1%)' }, { name: 'Email (14.3%)' },
+  { name: 'Website (28.4%)' }, { name: 'Voice (35.2%)' }, { name: 'SMS (22.1%)' }, { name: 'Email (14.3%)' },
   { name: 'New patient (57.4%)' }, { name: 'Returning patient (42.6%)' },
   { name: 'Completed (52.4%)' }, { name: 'In-progress (13.4%)' }, { name: 'Pending (34.2%)' },
 ]
@@ -147,7 +147,7 @@ export function HCIntakesCompletedScreen() {
                 type="button"
                 aria-label="Filters"
                 onClick={() => setFilterOpen((o) => !o)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className={`flex size-9 items-center justify-center rounded-sm text-text-icon ${filterOpen ? 'bg-surface-selected' : 'border border-border-selected bg-surface hover:bg-surface-l2'}`}
               >
                 <Icon name="filter_list" size={20} />
               </button>
