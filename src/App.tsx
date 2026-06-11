@@ -13,7 +13,6 @@ import { ServiceScreen } from './screens/ServiceScreen'
 import { ProvidersScreen } from './screens/ProvidersScreen'
 import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
 import { AvailabilityScreen } from './screens/AvailabilityScreen'
-import { AutoProvidersScreen } from './screens/AutoProvidersScreen'
 import { AutoAppointmentTypeScreen } from './screens/AutoAppointmentTypeScreen'
 import { AutoAvailabilityScreen } from './screens/AutoAvailabilityScreen'
 import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
@@ -129,7 +128,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     id: 'resources',
     label: 'Resources',
     items: [
-      { id: 'auto-providers',         label: 'Providers'       },
       { id: 'auto-appointment-type',  label: 'Appointment type'},
       { id: 'auto-availability',      label: 'Availability'    },
       { id: 'procedure-library',      label: 'Procedures'      },
@@ -418,8 +416,6 @@ export function App() {
           <EmptyResourceScreen label="Forms" />
         ) : navActive === 'widgets' ? (
           <EmptyResourceScreen label="Widgets" />
-        ) : navActive === 'auto-providers' ? (
-          <AutoProvidersScreen />
         ) : navActive === 'auto-appointment-type' ? (
           <AutoAppointmentTypeScreen />
         ) : navActive === 'auto-availability' ? (

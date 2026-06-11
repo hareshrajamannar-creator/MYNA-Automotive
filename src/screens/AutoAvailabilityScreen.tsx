@@ -51,13 +51,11 @@ const DAY_LABELS: { key: DayKey; label: string }[] = [
 ]
 
 // ── Dropdown data ──────────────────────────────────────────────────────────────
-const ADVISOR_OPTIONS: SelectOption[] = [
-  { value: 'mike',    label: 'Mike Johnson' },
-  { value: 'sarah',   label: 'Sarah Rodriguez' },
-  { value: 'david',   label: 'David Lee' },
-  { value: 'alex',    label: 'Alex Kim' },
-  { value: 'tom',     label: 'Tom Wilson' },
-  { value: 'jessica', label: 'Jessica Park' },
+const DEPARTMENT_OPTIONS: SelectOption[] = [
+  { value: 'service',  label: 'Service'   },
+  { value: 'sales',    label: 'Sales'     },
+  { value: 'parts',    label: 'Parts'     },
+  { value: 'bodyshop', label: 'Body shop' },
 ]
 
 const SERVICE_TYPE_OPTIONS: SelectOption[] = [
@@ -196,12 +194,12 @@ const SOURCE_OPTIONS = [
   {
     id: 'birdeye' as const,
     title: 'Manage in Birdeye',
-    description: 'Define advisor booking windows here. Best for CDK Global, Reynolds & Reynolds, and DealerSocket',
+    description: 'Define department booking windows here. Best for CDK Drive, Reynolds & Reynolds, and DealerTrack',
   },
   {
     id: 'dms' as const,
     title: 'Sync from DMS',
-    description: 'Read availability directly from your DMS in real time. Best for Tekion and Auto/Mate',
+    description: 'Read availability directly from your DMS in real time. Best for Tekion (cloud DMS with real-time API)',
   },
 ]
 
@@ -353,7 +351,7 @@ function AddTimeOffDrawer({ open, onClose, onSave }: { open: boolean; onClose: (
   const [dateFrom,     setDateFrom]     = useState('')
   const [dateTo,       setDateTo]       = useState('')
   const [label,        setLabel]        = useState('')
-  const [advisor,      setAdvisor]      = useState<string[]>([])
+  const [staffDept,    setStaffDept]    = useState<string[]>([])
   const [allAdvisors,  setAllAdvisors]  = useState(false)
   const [allLocations, setAllLocations] = useState(false)
 
@@ -393,7 +391,7 @@ function AddTimeOffDrawer({ open, onClose, onSave }: { open: boolean; onClose: (
             </div>
           </div>
 
-          <DropdownField label="Advisor" options={ADVISOR_OPTIONS} value={advisor} multi searchable placeholder="All advisors" onChange={setAdvisor} />
+          <DropdownField label="Department" options={DEPARTMENT_OPTIONS} value={staffDept} multi placeholder="All departments" onChange={setStaffDept} />
 
           <div className="flex flex-col gap-sm">
             <label className="text-body text-text-primary">Label <span className="text-danger">*</span></label>
@@ -416,9 +414,65 @@ function AddTimeOffDrawer({ open, onClose, onSave }: { open: boolean; onClose: (
   )
 }
 
+// ── Booking constraints ───────────────────────────────────────────────────────
+const BOOKING_DEFAULTS: Record<string, { leadTime: string; horizon: string; bufferBefore: string; bufferAfter: string; slotHold: string; walkInReserve: string }> = {
+  service:  { leadTime: '2',  horizon: '90', bufferBefore: '0', bufferAfter: '15', slotHold: '10', walkInReserve: '20' },
+  sales:    { leadTime: '0',  horizon: '30', bufferBefore: '0', bufferAfter: '0',  slotHold: '10', walkInReserve: '0'  },
+  parts:    { leadTime: '0',  horizon: '14', bufferBefore: '0', bufferAfter: '0',  slotHold: '5',  walkInReserve: '30' },
+  bodyshop: { leadTime: '24', horizon: '60', bufferBefore: '0', bufferAfter: '30', slotHold: '15', walkInReserve: '0'  },
+}
+
+function BookingConstraints({ department }: { department: string }) {
+  const defaults = BOOKING_DEFAULTS[department] ?? BOOKING_DEFAULTS.service
+  const [leadTime,      setLeadTime]      = useState(defaults.leadTime)
+  const [horizon,       setHorizon]       = useState(defaults.horizon)
+  const [bufferBefore,  setBufferBefore]  = useState(defaults.bufferBefore)
+  const [bufferAfter,   setBufferAfter]   = useState(defaults.bufferAfter)
+  const [slotHold,      setSlotHold]      = useState(defaults.slotHold)
+  const [walkInReserve, setWalkInReserve] = useState(defaults.walkInReserve)
+
+  return (
+    <div className="flex flex-col gap-lg">
+      <div>
+        <h2 className="text-[16px] text-text-primary">Booking constraints</h2>
+        <p className="mt-xs text-small text-text-secondary">
+          Rules that govern when and how far in advance customers can book. Applied per department.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-lg rounded-sm border border-border p-lg">
+        {[
+          { label: 'Min lead time',    unit: 'hours', value: leadTime,      setValue: setLeadTime,      info: 'How far ahead a booking must be made' },
+          { label: 'Booking horizon',  unit: 'days',  value: horizon,       setValue: setHorizon,       info: 'How far in advance customers can book' },
+          { label: 'Buffer before',    unit: 'min',   value: bufferBefore,  setValue: setBufferBefore,  info: 'Prep time blocked before each appointment' },
+          { label: 'Buffer after',     unit: 'min',   value: bufferAfter,   setValue: setBufferAfter,   info: 'Clean-up time blocked after each appointment' },
+          { label: 'Slot hold',        unit: 'min',   value: slotHold,      setValue: setSlotHold,      info: 'How long an unconfirmed booking holds a slot' },
+          { label: 'Walk-in reserve',  unit: '%',     value: walkInReserve, setValue: setWalkInReserve, info: 'Capacity held open for walk-in customers' },
+        ].map(({ label, unit, value, setValue, info }) => (
+          <div key={label} className="flex flex-col gap-xs">
+            <div className="flex items-center gap-xs">
+              <label className="text-small text-text-secondary">{label}</label>
+              <span title={info}><Icon name="info" size={13} className="cursor-help text-text-tertiary" /></span>
+            </div>
+            <div className="flex h-9 items-center overflow-hidden rounded-sm border border-border focus-within:border-primary">
+              <input
+                type="number"
+                min="0"
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                className="h-full flex-1 px-md text-body text-text-primary outline-none"
+              />
+              <span className="flex h-full items-center border-l border-border bg-surface-subtle px-sm text-small text-text-secondary">{unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── AutoAvailabilityScreen ────────────────────────────────────────────────────
 export function AutoAvailabilityScreen() {
-  const [advisor,             setAdvisor]             = useState(['mike'])
+  const [department,          setDepartment]          = useState(['service'])
   const [schedule,            setSchedule]            = useState<Record<DayKey, DaySchedule>>(INITIAL_SCHEDULE)
   const [timeOffs,            setTimeOffs]            = useState<TimeOffEntry[]>(INITIAL_TIME_OFFS)
   const [addWindowDay,        setAddWindowDay]        = useState<DayKey | null>(null)
@@ -478,8 +532,8 @@ export function AutoAvailabilityScreen() {
             </div>
             {availabilitySource === 'birdeye' && (
               <div className="flex flex-col gap-xs">
-                <label className="text-small text-text-secondary">Select advisor <span className="text-danger">*</span></label>
-                <DropdownField label="" options={ADVISOR_OPTIONS} value={advisor} onChange={setAdvisor} />
+                <label className="text-small text-text-secondary">Select department <span className="text-danger">*</span></label>
+                <DropdownField label="" options={DEPARTMENT_OPTIONS} value={department} onChange={setDepartment} />
               </div>
             )}
           </div>
@@ -494,7 +548,7 @@ export function AutoAvailabilityScreen() {
               <div>
                 <h2 className="text-[16px] text-text-primary">Manage availability</h2>
                 <p className="mt-xs text-small text-text-secondary">
-                  Define each advisor's availability and service types. These are not actual appointments — they are the rules the booking agent uses to find and offer open slots.
+                  Define department-level booking windows and service types. These are not actual appointments — they are the rules the booking agent uses to find and offer open slots.
                 </p>
               </div>
 
@@ -541,6 +595,9 @@ export function AutoAvailabilityScreen() {
                   )
                 })}
               </div>
+
+              {/* Booking constraints */}
+              <BookingConstraints department={department[0] ?? 'service'} />
 
               {/* Time off & closures */}
               <div className="flex flex-col gap-lg">

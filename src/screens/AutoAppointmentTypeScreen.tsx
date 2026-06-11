@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { DataTable, Icon, SelectMenu, Toast, TopNav, type Column, type SelectOption } from '../components'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { CustomizeColumnsDrawer, DataTable, Icon, SelectMenu, Tabs, Toast, TopNav, type Column, type SelectOption } from '../components'
 
 // ── Toggle ────────────────────────────────────────────────────────────────────
 interface ToggleProps { value: boolean; onChange: (v: boolean) => void }
@@ -16,31 +16,65 @@ function Toggle({ value, onChange }: ToggleProps) {
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+type Department = 'Service' | 'Sales' | 'Parts' | 'Body shop'
+
 interface ServiceTypeRow {
   name: string
   description: string
+  department: Department
   duration: string
   advisors: string
   dmsMapping: string
   recognitionHints: string
   recognitionExtra?: string
+  dropOff?: boolean
+  walkIn?: boolean
+  loaner?: boolean
   active: boolean
-  [key: string]: string | boolean | undefined
+  [key: string]: string | boolean | undefined | Department
 }
 
 const SERVICE_TYPES: ServiceTypeRow[] = [
-  { name: 'Oil change',               description: 'Full-synthetic or conventional oil + filter',      duration: '45 min',  advisors: 'All',                        dmsMapping: 'LOFS',  recognitionHints: '"oil change"',       recognitionExtra: '+1 more', active: true  },
-  { name: 'Tire rotation',            description: 'Rotate all four tires to even out wear',           duration: '30 min',  advisors: 'David Lee, +1 more',         dmsMapping: 'TIROT', recognitionHints: '"tire rotation"',                             active: true  },
-  { name: 'Brake inspection',         description: 'Inspect pads, rotors, and brake fluid',            duration: '45 min',  advisors: 'Alex Kim',                   dmsMapping: 'BRKSP', recognitionHints: '"brakes"',           recognitionExtra: '+1 more', active: true  },
-  { name: 'Engine diagnostic',        description: 'Full OBD-II scan and fault code analysis',         duration: '60 min',  advisors: 'David Lee, +1 more',         dmsMapping: 'DIAG',  recognitionHints: '"check engine"',     recognitionExtra: '+1 more', active: true  },
-  { name: 'Transmission service',     description: 'Fluid flush and filter replacement',               duration: '90 min',  advisors: 'Brian Torres',               dmsMapping: 'TRANS', recognitionHints: '"transmission"',                              active: true  },
-  { name: 'Multi-point inspection',   description: '30-point vehicle health check',                    duration: '60 min',  advisors: 'All',                        dmsMapping: 'MPI',   recognitionHints: '"inspection"',                                active: true  },
-  { name: 'AC recharge',              description: 'Refrigerant recharge and leak check',              duration: '45 min',  advisors: 'Carlos Reyes',               dmsMapping: 'ACSVC', recognitionHints: '"AC"',               recognitionExtra: '+1 more', active: false },
-  { name: 'Collision estimate',       description: 'Damage assessment and repair cost estimate',       duration: '60 min',  advisors: 'Jessica Park',               dmsMapping: 'EST',   recognitionHints: '"estimate"',         recognitionExtra: '+1 more', active: true  },
-  { name: 'Recall service',           description: 'Manufacturer-issued recall repair',                duration: '120 min', advisors: 'David Lee, +2 more',         dmsMapping: 'RCALL', recognitionHints: '"recall"',                                    active: true  },
-  { name: 'Battery replacement',      description: 'Battery test and replacement if needed',           duration: '30 min',  advisors: 'Alex Kim',                   dmsMapping: 'BATT',  recognitionHints: '"battery"',          recognitionExtra: '+1 more', active: true  },
-  { name: 'Wheel alignment',          description: 'Two- or four-wheel alignment to spec',             duration: '60 min',  advisors: 'All',                        dmsMapping: 'ALIGN', recognitionHints: '"alignment"',                                 active: true  },
+  { name: 'Oil change (conventional)', description: 'Conventional oil + filter',              department: 'Service',   duration: '30 min',  advisors: 'All',                dmsMapping: 'LOFS',  recognitionHints: '"oil change"',    active: true,  walkIn: true  },
+  { name: 'Oil change (synthetic)',     description: 'Full-synthetic oil + filter',            department: 'Service',   duration: '45 min',  advisors: 'All',                dmsMapping: 'LOFS',  recognitionHints: '"synthetic"',     active: true,  walkIn: true  },
+  { name: 'Tire rotation',             description: 'Rotate all four tires to even out wear', department: 'Service',   duration: '30 min',  advisors: 'David Lee, +1 more', dmsMapping: 'TIROT', recognitionHints: '"tire rotation"', active: true,  walkIn: true  },
+  { name: 'Brake service',             description: 'Inspect pads, rotors, and fluid',        department: 'Service',   duration: '60 min',  advisors: 'Alex Kim',           dmsMapping: 'BRKSP', recognitionHints: '"brakes"',        active: true,  dropOff: true },
+  { name: 'Diagnostic / check engine', description: 'OBD-II scan and fault code analysis',    department: 'Service',   duration: '60 min',  advisors: 'David Lee, +1 more', dmsMapping: 'DIAG',  recognitionHints: '"check engine"',  active: true,  dropOff: true },
+  { name: 'Multi-point inspection',    description: '30-point vehicle health check',          department: 'Service',   duration: '45 min',  advisors: 'All',                dmsMapping: 'MPI',   recognitionHints: '"inspection"',    active: true  },
+  { name: 'Wheel alignment',           description: 'Two- or four-wheel alignment to spec',   department: 'Service',   duration: '60 min',  advisors: 'All',                dmsMapping: 'ALIGN', recognitionHints: '"alignment"',     active: true  },
+  { name: 'Recall service',            description: 'Manufacturer-issued recall repair',      department: 'Service',   duration: '120 min', advisors: 'David Lee, +2 more', dmsMapping: 'RCALL', recognitionHints: '"recall"',        active: true,  dropOff: true, loaner: true },
+  { name: 'Scheduled maintenance',     description: 'Factory-scheduled service interval',     department: 'Service',   duration: '90 min',  advisors: 'All',                dmsMapping: 'SCHED', recognitionHints: '"maintenance"',   active: true,  dropOff: true, loaner: true },
+  { name: 'Test drive',                description: 'New or pre-owned vehicle test drive',    department: 'Sales',     duration: '45 min',  advisors: 'Tom Wilson, +1 more',dmsMapping: 'TDRV',  recognitionHints: '"test drive"',    active: true  },
+  { name: 'Sales consultation',        description: 'New purchase or lease consultation',     department: 'Sales',     duration: '60 min',  advisors: 'Tom Wilson, +1 more',dmsMapping: 'SCON',  recognitionHints: '"buy"',           active: true  },
+  { name: 'Trade-in appraisal',        description: 'Vehicle trade-in evaluation',            department: 'Sales',     duration: '30 min',  advisors: 'Tom Wilson, +1 more',dmsMapping: 'TRADE', recognitionHints: '"trade in"',      active: true  },
+  { name: 'F&I appointment',           description: 'Finance & insurance review session',     department: 'Sales',     duration: '60 min',  advisors: 'Brian Torres',       dmsMapping: 'FANDI', recognitionHints: '"financing"',     active: true  },
+  { name: 'Parts pickup',              description: 'Pre-ordered parts pickup at counter',    department: 'Parts',     duration: '15 min',  advisors: 'Parts staff',        dmsMapping: 'PTPK',  recognitionHints: '"parts"',         active: true  },
+  { name: 'Body shop estimate',        description: 'Damage assessment and repair estimate',  department: 'Body shop', duration: '30 min',  advisors: 'Jessica Park',       dmsMapping: 'EST',   recognitionHints: '"estimate"',      active: true  },
 ]
+
+// Extra advisors shown in tooltip on hover
+const ADVISOR_EXTRAS: Record<string, string[]> = {
+  'Tire rotation':             ['Alex Kim'],
+  'Diagnostic / check engine': ['Carlos Reyes'],
+  'Recall service':            ['Sarah Rodriguez', 'Alex Kim'],
+  'Scheduled maintenance':     ['Mike Johnson'],
+  'Test drive':                ['Sarah Rodriguez'],
+  'Sales consultation':        ['Brian Torres'],
+  'Trade-in appraisal':        ['Sarah Rodriguez'],
+}
+
+// Extra recognition hints shown in tooltip on hover
+const HINT_EXTRAS: Record<string, string[]> = {
+  'Oil change (conventional)': ['lube service', 'lof'],
+  'Oil change (synthetic)':    ['synthetic oil', 'full synthetic'],
+  'Brake service':             ['brake pad', 'brake repair'],
+  'Diagnostic / check engine': ['check engine light', 'fault codes'],
+  'Scheduled maintenance':     ['30k service', '60k service'],
+  'Sales consultation':        ['lease', 'new car'],
+  'F&I appointment':           ['finance', 'insurance'],
+  'Parts pickup':              ['order pickup', 'parts counter'],
+  'Body shop estimate':        ['collision estimate', 'damage quote'],
+}
 
 // ── Dropdown data ─────────────────────────────────────────────────────────────
 const ST_LOCATION_OPTIONS: SelectOption[] = [
@@ -51,13 +85,20 @@ const ST_LOCATION_OPTIONS: SelectOption[] = [
   { value: 'berk', label: 'Berkeley, CA' },
 ]
 
+const ST_DEPARTMENT_OPTIONS: SelectOption[] = [
+  { value: 'service',   label: 'Service'   },
+  { value: 'sales',     label: 'Sales'     },
+  { value: 'parts',     label: 'Parts'     },
+  { value: 'bodyshop',  label: 'Body shop' },
+]
+
 const ST_DURATION_OPTIONS: SelectOption[] = [
   { value: '15',  label: '15 min' },
   { value: '30',  label: '30 min' },
   { value: '45',  label: '45 min' },
   { value: '60',  label: '60 min' },
   { value: '90',  label: '90 min' },
-  { value: '120', label: '2 hr' },
+  { value: '120', label: '2 hr'   },
 ]
 
 const ST_ADVISOR_OPTIONS: SelectOption[] = [
@@ -69,23 +110,33 @@ const ST_ADVISOR_OPTIONS: SelectOption[] = [
   { value: 'tom',    label: 'Tom Wilson' },
 ]
 
-const ST_MAPPING_TYPE_OPTIONS: SelectOption[] = [
-  { value: 'none',     label: 'None' },
-  { value: 'op-code',  label: 'Op code' },
-  { value: 'labor',    label: 'Labor code' },
+const ST_BAY_OPTIONS: SelectOption[] = [
+  { value: 'none',      label: 'None'          },
+  { value: 'alignment', label: 'Alignment rack' },
+  { value: 'paint',     label: 'Paint booth'    },
+  { value: 'express',   label: 'Express lane'   },
+  { value: 'lift',      label: 'Lift bay'       },
 ]
 
-const ST_DMS_OPCODE_OPTIONS: SelectOption[] = [
+const ST_MAPPING_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'none',      label: 'None'                 },
+  { value: 'appt-type', label: 'DMS appointment type' },
+  { value: 'labor-op',  label: 'Labor op code'        },
+]
+
+const ST_DMS_CODE_OPTIONS: SelectOption[] = [
   { value: 'lofs',   label: 'LOFS – Lube, oil & filter service' },
-  { value: 'tirot',  label: 'TIROT – Tire rotation' },
-  { value: 'brksp',  label: 'BRKSP – Brake inspection' },
-  { value: 'diag',   label: 'DIAG – Vehicle diagnostic' },
-  { value: 'trans',  label: 'TRANS – Transmission service' },
-  { value: 'mpi',    label: 'MPI – Multi-point inspection' },
-  { value: 'acsvc',  label: 'ACSVC – AC service' },
-  { value: 'est',    label: 'EST – Estimate' },
-  { value: 'align',  label: 'ALIGN – Wheel alignment' },
-  { value: 'batt',   label: 'BATT – Battery service' },
+  { value: 'tirot',  label: 'TIROT – Tire rotation'             },
+  { value: 'brksp',  label: 'BRKSP – Brake inspection'          },
+  { value: 'diag',   label: 'DIAG – Vehicle diagnostic'         },
+  { value: 'sched',  label: 'SCHED – Scheduled maintenance'     },
+  { value: 'mpi',    label: 'MPI – Multi-point inspection'      },
+  { value: 'align',  label: 'ALIGN – Wheel alignment'           },
+  { value: 'rcall',  label: 'RCALL – Recall service'            },
+  { value: 'batt',   label: 'BATT – Battery service'            },
+  { value: 'tdrv',   label: 'TDRV – Test drive'                 },
+  { value: 'trade',  label: 'TRADE – Trade-in appraisal'        },
+  { value: 'est',    label: 'EST – Body shop estimate'          },
 ]
 
 // ── DropdownField ─────────────────────────────────────────────────────────────
@@ -157,21 +208,27 @@ function STDropdownField({ label, required, infoIcon, options, value, multi = fa
 function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'create' | 'edit'; onClose: () => void }) {
   const isEdit = mode === 'edit'
 
-  const [displayName,  setDisplayName]  = useState(isEdit ? 'Oil change' : '')
-  const [description,  setDescription]  = useState(isEdit ? 'Full-synthetic or conventional oil + filter' : '')
-  const [pmsExpanded,  setPmsExpanded]  = useState(isEdit)
-  const [tags,         setTags]         = useState<string[]>(isEdit ? ['oil change', 'lube service'] : [])
-  const [tagInput,     setTagInput]     = useState('')
+  const [displayName,    setDisplayName]    = useState(isEdit ? 'Oil change (conventional)' : '')
+  const [description,    setDescription]    = useState(isEdit ? 'Conventional oil + filter' : '')
+  const [pmsExpanded,    setPmsExpanded]    = useState(isEdit)
+  const [tags,           setTags]           = useState<string[]>(isEdit ? ['oil change', 'lube service'] : [])
+  const [tagInput,       setTagInput]       = useState('')
 
-  const [location,     setLocation]     = useState<string[]>(isEdit ? ['sf']       : [])
-  const [duration,     setDuration]     = useState<string[]>(isEdit ? ['45']       : [])
-  const [advisors,     setAdvisors]     = useState<string[]>(isEdit ? ['all']      : [])
-  const [mappingType,  setMappingType]  = useState<string[]>(isEdit ? ['op-code']  : ['none'])
-  const [dmsOpCode,    setDmsOpCode]    = useState<string[]>(isEdit ? ['lofs']     : [])
+  const [location,       setLocation]       = useState<string[]>(isEdit ? ['sf']       : [])
+  const [department,     setDepartment]     = useState<string[]>(isEdit ? ['service']  : [])
+  const [duration,       setDuration]       = useState<string[]>(isEdit ? ['30']       : [])
+  const [advisors,       setAdvisors]       = useState<string[]>(isEdit ? ['all']      : [])
+  const [bay,            setBay]            = useState<string[]>(isEdit ? ['none']     : [])
+  const [mappingType,    setMappingType]    = useState<string[]>(isEdit ? ['appt-type'] : ['none'])
+  const [dmsCode,        setDmsCode]        = useState<string[]>(isEdit ? ['lofs']     : [])
+  const [dropOff,        setDropOff]        = useState(false)
+  const [estTotalTime,   setEstTotalTime]   = useState('')
+  const [walkIn,         setWalkIn]         = useState(false)
+  const [loaner,         setLoaner]         = useState(false)
 
   function handleMappingTypeChange(v: string[]) {
     setMappingType(v)
-    if (v[0] !== 'op-code') setDmsOpCode([])
+    if (v[0] === 'none') setDmsCode([])
   }
 
   function addTag(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -201,6 +258,7 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
 
         <div className="flex flex-1 flex-col gap-lg overflow-auto p-2xl">
           <STDropdownField label="Location" required infoIcon options={ST_LOCATION_OPTIONS} value={location} onChange={setLocation} />
+          <STDropdownField label="Department" required options={ST_DEPARTMENT_OPTIONS} value={department} onChange={setDepartment} placeholder="Select department" />
 
           <div className="flex flex-col gap-xs">
             <label className="text-small text-text-secondary">Display name <span className="text-danger">*</span></label>
@@ -213,6 +271,45 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
           </div>
 
           <STDropdownField label="Duration" options={ST_DURATION_OPTIONS} value={duration} onChange={setDuration} placeholder="Select duration" />
+
+          {/* Drop-off mode */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-body text-text-primary">Drop-off mode</p>
+              <p className="text-small text-text-secondary">Customer leaves the vehicle for the service period</p>
+            </div>
+            <Toggle value={dropOff} onChange={v => { setDropOff(v); if (!v) setLoaner(false) }} />
+          </div>
+
+          {dropOff && (
+            <div className="flex flex-col gap-xs">
+              <label className="text-small text-text-secondary">Estimated total time</label>
+              <input className="h-9 rounded-sm border border-border px-md text-body text-text-primary focus:border-primary focus:outline-none" placeholder="e.g. 3–5 hours" value={estTotalTime} onChange={e => setEstTotalTime(e.target.value)} />
+              <p className="text-xs text-text-tertiary">Shown to the customer as the pickup estimate</p>
+            </div>
+          )}
+
+          {/* Walk-in eligible */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-body text-text-primary">Walk-in eligible</p>
+              <p className="text-small text-text-secondary">Customers can arrive without a pre-booked appointment</p>
+            </div>
+            <Toggle value={walkIn} onChange={setWalkIn} />
+          </div>
+
+          {/* Loaner eligible — only shown for drop-off types */}
+          {dropOff && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-body text-text-primary">Loaner eligible</p>
+                <p className="text-small text-text-secondary">Offer a loaner vehicle to the customer during service</p>
+              </div>
+              <Toggle value={loaner} onChange={setLoaner} />
+            </div>
+          )}
+
+          <STDropdownField label="Service bay requirement" options={ST_BAY_OPTIONS} value={bay} onChange={setBay} placeholder="Select bay type" />
           <STDropdownField label="Eligible advisors" options={ST_ADVISOR_OPTIONS} value={advisors} multi onChange={setAdvisors} placeholder="Select advisors" />
 
           <div className="flex flex-col gap-xs">
@@ -234,7 +331,7 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
                 onKeyDown={addTag}
               />
             </div>
-            <p className="text-xs text-text-tertiary">Phrases that assist the agent in identifying this service type</p>
+            <p className="text-xs text-text-tertiary">Phrases that assist the agent in identifying this appointment type</p>
           </div>
 
           <div className="rounded-sm border border-border">
@@ -245,10 +342,15 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
             {pmsExpanded && (
               <div className="flex flex-col gap-md border-t border-border p-md">
                 <STDropdownField label="Mapping type" options={ST_MAPPING_TYPE_OPTIONS} value={mappingType} onChange={handleMappingTypeChange} />
-                {mappingType[0] === 'op-code' && (
-                  <STDropdownField label="DMS op code" options={ST_DMS_OPCODE_OPTIONS} value={dmsOpCode} onChange={setDmsOpCode} placeholder="Select op code" searchable />
+                {mappingType[0] === 'appt-type' && (
+                  <STDropdownField label="DMS appointment type" options={ST_DMS_CODE_OPTIONS} value={dmsCode} onChange={setDmsCode} placeholder="Select DMS type" searchable />
                 )}
-                <p className="text-small text-text-secondary">Links this service type to an op code in your DMS. The mapped code's labor time sets the maximum duration.</p>
+                {mappingType[0] === 'labor-op' && (
+                  <STDropdownField label="Labor op code" options={ST_DMS_CODE_OPTIONS} value={dmsCode} onChange={setDmsCode} placeholder="Select op code" searchable />
+                )}
+                <p className="text-small text-text-secondary">
+                  Maps to either a DMS appointment type or a labor op code — mutually exclusive. The mapped entry's labor time is used as the advisory duration.
+                </p>
               </div>
             )}
           </div>
@@ -258,47 +360,116 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
   )
 }
 
+// ── Department tabs ───────────────────────────────────────────────────────────
+const deptMap: Record<string, Department> = {
+  service: 'Service', sales: 'Sales', parts: 'Parts', bodyshop: 'Body shop',
+}
+
+const DEPT_TABS = [
+  { id: 'all',      label: 'All',       count: SERVICE_TYPES.length },
+  { id: 'service',  label: 'Service',   count: SERVICE_TYPES.filter(r => r.department === 'Service').length   },
+  { id: 'sales',    label: 'Sales',     count: SERVICE_TYPES.filter(r => r.department === 'Sales').length     },
+  { id: 'parts',    label: 'Parts',     count: SERVICE_TYPES.filter(r => r.department === 'Parts').length     },
+  { id: 'bodyshop', label: 'Body shop', count: SERVICE_TYPES.filter(r => r.department === 'Body shop').length },
+]
+
+// ── Column definitions ────────────────────────────────────────────────────────
+interface STColumnDef extends Column<ServiceTypeRow> { locked?: boolean }
+
+const ST_COLUMN_DEFS: STColumnDef[] = [
+  { key: 'name',             label: 'Name',              width: 220, sortable: true, locked: true },
+  { key: 'department',       label: 'Department',        width: 110, sortable: true },
+  { key: 'duration',         label: 'Duration',          width: 90,  sortable: true },
+  { key: 'advisors',         label: 'Advisors',          width: 170, sortable: true },
+  { key: 'dmsMapping',       label: 'DMS mapping',       width: 110, sortable: true },
+  { key: 'recognitionHints', label: 'Recognition hints', width: 190, sortable: true },
+  { key: 'active',           label: 'Active',            width: 80,  sortable: true, locked: true },
+]
+
+const ST_DEFAULT_ORDER   = ST_COLUMN_DEFS.map(c => String(c.key))
+const ST_DEFAULT_VISIBLE = ST_DEFAULT_ORDER.slice()
+const ST_DEF_BY_KEY      = new Map(ST_COLUMN_DEFS.map(c => [String(c.key), c]))
+
 // ── AutoAppointmentTypeScreen ─────────────────────────────────────────────────
 export function AutoAppointmentTypeScreen() {
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false)
   const [editDrawerOpen,   setEditDrawerOpen]   = useState(false)
+  const [customizeOpen,    setCustomizeOpen]    = useState(false)
   const [toastVisible,     setToastVisible]     = useState(false)
   const [locationFilter,   setLocationFilter]   = useState<string[]>([])
   const [locationOpen,     setLocationOpen]     = useState(false)
+  const [deptTab,          setDeptTab]          = useState('all')
+  const [colOrder,   setColOrder]   = useState<string[]>(ST_DEFAULT_ORDER)
+  const [colVisible, setColVisible] = useState<string[]>(ST_DEFAULT_VISIBLE)
+  const [hintTooltip,    setHintTooltip]    = useState<{ hints: string[]; x: number; y: number } | null>(null)
+  const [advisorTooltip, setAdvisorTooltip] = useState<{ names: string[]; x: number; y: number } | null>(null)
   const [activeMap, setActiveMap] = useState<Record<number, boolean>>(
     Object.fromEntries(SERVICE_TYPES.map((r, i) => [i, r.active]))
   )
 
-  const COLUMNS: Column<ServiceTypeRow>[] = [
-    {
-      key: 'name', label: 'Name', width: 240, sortable: true,
-      render: (_v, row) => (
-        <div>
-          <div className="text-body text-text-primary">{row.name as string}</div>
-          <div className="text-xs text-text-tertiary">{row.description as string}</div>
-        </div>
-      ),
-    },
-    { key: 'duration',  label: 'Duration',    width: 100, sortable: true },
-    { key: 'advisors',  label: 'Advisors',    width: 180, sortable: true },
-    { key: 'dmsMapping',label: 'DMS mapping', width: 140, sortable: true },
-    {
-      key: 'recognitionHints', label: 'Recognition hints', width: 200, sortable: true,
-      render: (_v, row) => (
-        <span>
-          {row.recognitionHints as string}
-          {row.recognitionExtra && <span className="text-text-tertiary">, {row.recognitionExtra as string}</span>}
-        </span>
-      ),
-    },
-    {
-      key: 'active', label: 'Active', width: 80, sortable: true,
-      render: (_v, row) => {
-        const idx = SERVICE_TYPES.indexOf(row as ServiceTypeRow)
-        return <Toggle value={activeMap[idx] ?? false} onChange={v => setActiveMap(m => ({ ...m, [idx]: v }))} />
-      },
-    },
-  ]
+  const filtered = deptTab === 'all'
+    ? SERVICE_TYPES
+    : SERVICE_TYPES.filter(r => r.department === deptMap[deptTab])
+
+  const columnOptions = useMemo(
+    () => colOrder.map(k => ({ key: k, label: ST_DEF_BY_KEY.get(k)!.label, locked: ST_DEF_BY_KEY.get(k)!.locked })),
+    [colOrder],
+  )
+
+  const COLUMNS = useMemo<Column<ServiceTypeRow>[]>(() =>
+    colOrder
+      .filter(k => colVisible.includes(k))
+      .map(k => {
+        const def = ST_DEF_BY_KEY.get(k)!
+        if (k === 'name') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => (
+          <div>
+            <div className="text-body text-text-primary">{row.name as string}</div>
+            <div className="text-xs text-text-tertiary">{row.description as string}</div>
+          </div>
+        )}
+        if (k === 'department') return { ...def, render: (_v: unknown, row: ServiceTypeRow) =>
+          <span className="text-body text-text-primary">{row.department as string}</span>
+        }
+        if (k === 'advisors') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => {
+          const raw = row.advisors as string
+          const extras = ADVISOR_EXTRAS[row.name as string] ?? []
+          const primary = raw.replace(/,?\s*\+\d+ more/, '')
+          return (
+            <span className="flex items-center gap-xs">
+              <span>{primary}</span>
+              {extras.length > 0 && (
+                <span
+                  className="cursor-default text-text-tertiary hover:text-primary"
+                  onMouseEnter={e => { const r = (e.target as HTMLElement).getBoundingClientRect(); setAdvisorTooltip({ names: extras, x: r.left, y: r.bottom + 6 }) }}
+                  onMouseLeave={() => setAdvisorTooltip(null)}
+                >+{extras.length} more</span>
+              )}
+            </span>
+          )
+        }}
+        if (k === 'recognitionHints') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => {
+          const extras = HINT_EXTRAS[row.name as string] ?? []
+          return (
+            <span className="flex items-center gap-xs">
+              <span>{row.recognitionHints as string}</span>
+              {extras.length > 0 && (
+                <span
+                  className="cursor-default text-text-tertiary hover:text-primary"
+                  onMouseEnter={e => { const r = (e.target as HTMLElement).getBoundingClientRect(); setHintTooltip({ hints: extras, x: r.left, y: r.bottom + 6 }) }}
+                  onMouseLeave={() => setHintTooltip(null)}
+                >+{extras.length} more</span>
+              )}
+            </span>
+          )
+        }}
+        if (k === 'active') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => {
+          const idx = SERVICE_TYPES.indexOf(row as ServiceTypeRow)
+          return <Toggle value={activeMap[idx] ?? false} onChange={v => setActiveMap(m => ({ ...m, [idx]: v }))} />
+        }}
+        return def as Column<ServiceTypeRow>
+      }),
+    [colOrder, colVisible, activeMap],
+  )
 
   const rowMenuItems = [
     { label: 'Edit',   onClick: () => setEditDrawerOpen(true) },
@@ -318,6 +489,9 @@ export function AutoAppointmentTypeScreen() {
           <div className="flex items-center gap-sm">
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="search" size={20} />
+            </button>
+            <button type="button" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="view_column" size={20} />
             </button>
             <div className="relative w-[200px]">
               <button
@@ -349,13 +523,52 @@ export function AutoAppointmentTypeScreen() {
           </div>
         </div>
 
-        <div className="px-2xl pb-2xl">
-          <DataTable columns={COLUMNS} data={SERVICE_TYPES} rowMenuItems={rowMenuItems} rowClassName={() => ''} />
+        {/* Department filter tabs */}
+        <div className="px-2xl">
+          <Tabs tabs={DEPT_TABS} activeTab={deptTab} onChange={setDeptTab} />
+        </div>
+
+        <div className="px-2xl pb-2xl pt-lg">
+          <DataTable columns={COLUMNS} data={filtered} rowMenuItems={rowMenuItems} rowClassName={() => ''} />
         </div>
       </div>
 
+      {/* Advisor extras tooltip */}
+      {advisorTooltip && (
+        <div
+          className="pointer-events-none fixed z-[120] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+          style={{ left: advisorTooltip.x, top: advisorTooltip.y }}
+        >
+          {advisorTooltip.names.map((name, i) => (
+            <div key={i} className="px-md py-xs text-body text-text-primary">{name}</div>
+          ))}
+        </div>
+      )}
+
+      {/* Hint extras tooltip — fixed to escape overflow container */}
+      {hintTooltip && (
+        <div
+          className="pointer-events-none fixed z-[120] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+          style={{ left: hintTooltip.x, top: hintTooltip.y }}
+        >
+          {hintTooltip.hints.map((hint, i) => (
+            <div key={i} className="px-md py-xs text-body text-text-primary">
+              "{hint}"
+            </div>
+          ))}
+        </div>
+      )}
+
       <ServiceTypeDrawer open={createDrawerOpen} mode="create" onClose={() => setCreateDrawerOpen(false)} />
       <ServiceTypeDrawer open={editDrawerOpen}   mode="edit"   onClose={() => setEditDrawerOpen(false)}   />
+      <CustomizeColumnsDrawer
+        open={customizeOpen}
+        options={columnOptions}
+        visibleKeys={colVisible}
+        onClose={() => setCustomizeOpen(false)}
+        onSave={(orderedKeys, visibleKeys) => { setColOrder(orderedKeys); setColVisible(visibleKeys); setCustomizeOpen(false) }}
+        onRestoreDefault={() => { setColOrder(ST_DEFAULT_ORDER); setColVisible(ST_DEFAULT_VISIBLE); setCustomizeOpen(false) }}
+      />
     </div>
   )
 }
