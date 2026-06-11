@@ -189,7 +189,7 @@ export function ManageAppointmentsScreen() {
             {view === 'calendar' ? (
               <DateChange date={date} isToday={isToday} timescale={timescale} onPrev={prevStep} onNext={nextStep} onToday={goToToday} />
             ) : (
-              <h1 className="text-h3 text-text-primary">Manage appointments</h1>
+              <h1 className="text-h3 text-text-primary">Appointments</h1>
             )}
 
             {/* Right side controls */}

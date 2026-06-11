@@ -133,7 +133,7 @@ export function HCFrontdeskOverviewScreen() {
 
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
-          title="Frontdesk overview"
+          title="Front desk overview"
           subtitle="All human and agent-driven appointment outcomes across all channels and locations."
           rightSlot={
             <DateRangeSelector
