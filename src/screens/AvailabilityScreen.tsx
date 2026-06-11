@@ -568,8 +568,8 @@ export function AvailabilityScreen() {
 
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         {/* Page header */}
-        <div className="flex items-center justify-between bg-surface px-2xl py-lg">
-          <span className="text-h2 text-text-primary">Availability</span>
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-lg">
+          <span className="text-h3 text-text-primary">Availability</span>
           <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
             Save
           </button>

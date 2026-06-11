@@ -85,7 +85,7 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
 
       <div className="flex-1 overflow-auto bg-surface">
         {/* Header — matches the Human actions header bar */}
-        <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
           <h1 className="text-h3 text-text-primary">Procedures</h1>
 
           <div className="flex items-center gap-sm">

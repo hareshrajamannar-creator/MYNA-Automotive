@@ -181,7 +181,7 @@ export function ServiceRequestsScreen() {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
           {/* Header: date nav + actions */}
-          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
             <DateChange date={date} isToday={isToday} onPrev={prevDay} onNext={nextDay} />
             <div className="flex items-center gap-sm">
               <button

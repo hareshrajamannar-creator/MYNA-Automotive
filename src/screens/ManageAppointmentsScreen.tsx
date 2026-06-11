@@ -184,7 +184,7 @@ export function ManageAppointmentsScreen() {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
           {/* Header — changes based on table vs calendar view */}
-          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
             {/* Left side */}
             {view === 'calendar' ? (
               <DateChange date={date} isToday={isToday} timescale={timescale} onPrev={prevStep} onNext={nextStep} onToday={goToToday} />
