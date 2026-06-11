@@ -22,15 +22,18 @@ export interface SankeyChartProps {
   columnHeaderTooltips?: Record<number, string>
   /** Per-node color overrides keyed by node index */
   nodeColors?: Record<number, string>
+  /** Called when a node label is clicked, with the node name (without percentage) */
+  onNodeClick?: (name: string) => void
 }
 
 const colorAt = (i: number, overrides?: Record<number, string>) =>
   overrides?.[i] ?? chartColors.categorical[i % chartColors.categorical.length]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | null, x: number, y: number) => void, measuredWidth?: number) {
+function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | null, x: number, y: number) => void, measuredWidth?: number, onNodeClick?: (name: string) => void) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function Node({ x, y, width, height, index, payload, containerWidth }: any) {
+    const [hovered, setHovered] = useState(false)
     const cw = measuredWidth || containerWidth || 800
     const onRightEdge = x > cw - 60
     const fill = colorAt(index, overrides)
@@ -43,15 +46,16 @@ function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | n
     const midY = y + height / 2
     return (
       <g
-        onMouseEnter={(e) => onHover?.(index, e.clientX, e.clientY)}
-        onMouseLeave={() => onHover?.(null, 0, 0)}
-        style={{ cursor: payload?.breakdown ? 'pointer' : 'default' }}
+        onMouseEnter={(e) => { setHovered(true); onHover?.(index, e.clientX, e.clientY) }}
+        onMouseLeave={() => { setHovered(false); onHover?.(null, 0, 0) }}
+        onClick={() => onNodeClick?.(labelName)}
+        style={{ cursor: 'pointer' }}
       >
         <rect x={x} y={y} width={width} height={height} rx={2} fill={fill} />
-        <text x={lx} y={midY - 7} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={500} fill="#212121">
+        <text x={lx} y={midY - 7} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={500} fill="#212121" textDecoration={hovered ? 'underline' : 'none'}>
           {labelName}
         </text>
-        <text x={lx} y={midY + 7} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={500} fill="#6B7280">
+        <text x={lx} y={midY + 7} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={500} fill="#6B7280" textDecoration={hovered ? 'underline' : 'none'}>
           {labelPct.replace(/[()]/g, '')}
         </text>
       </g>
@@ -113,7 +117,7 @@ function BreakdownTooltip({ x, y, items }: BreakdownTooltipProps) {
   )
 }
 
-export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnHeaderTooltips, nodeColors }: SankeyChartProps) {
+export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnHeaderTooltips, nodeColors, onNodeClick }: SankeyChartProps) {
   const [hoverState, setHoverState] = useState<{ idx: number; x: number; y: number } | null>(null)
   const [headerTooltip, setHeaderTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const [measuredWidth, setMeasuredWidth] = useState(0)
@@ -133,7 +137,7 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnH
   }, [nodes])
 
   const nameToIndex = new Map(nodes.map((n, i) => [n.name, i]))
-  const NodeComponent = makeNode(nodeColors, handleHover, measuredWidth)
+  const NodeComponent = makeNode(nodeColors, handleHover, measuredWidth, onNodeClick)
   const LinkComponent = makeLink(nodeColors, nameToIndex)
 
   const activeBreakdown = hoverState !== null ? nodes[hoverState.idx]?.breakdown : undefined
