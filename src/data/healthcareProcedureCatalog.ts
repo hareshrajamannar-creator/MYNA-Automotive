@@ -47,7 +47,7 @@ export const HEALTHCARE_PROCEDURE_CATALOG: HealthcareProcedureCatalogItem[] = [
   },
   {
     id: 'new-patient',
-    title: 'New patient intake',
+    title: 'Collect new patient details',
     description: 'Collects details to create a record for patients not found in the system.',
     lastEdited: '5 days ago',
   },

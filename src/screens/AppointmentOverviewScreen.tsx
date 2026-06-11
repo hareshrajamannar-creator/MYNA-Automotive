@@ -23,7 +23,7 @@ const SUMMARY_STATS = [
   { id: 'bookings',   value: '7.9K', label: 'Total bookings',     delta: '36.6%', trend: 'up'   as const },
   { id: 'reschedule', value: '450',  label: 'Rescheduled',        delta: '5%',    trend: 'down' as const },
   { id: 'cancelled',  value: '25',   label: 'Cancelled',          delta: '20%',   trend: 'up'   as const },
-  { id: 'verified',   value: '200',  label: 'Insurances verified', delta: '10%',   trend: 'down' as const },
+  { id: 'verified',   value: '200',  label: 'Insurance verified', delta: '10%',   trend: 'down' as const },
 ]
 
 // ── Appointments funnel (Sankey) ────────────────────────────────────────────
@@ -76,7 +76,7 @@ const NO_SHOW_DATA = [
 ]
 const NO_SHOW_SERIES = [{ key: 'prevented', label: 'Prevented', color: '#1976d2' }]
 
-// ── Insurances verified ─────────────────────────────────────────────────────
+// ── Insurance verified ─────────────────────────────────────────────────────
 const INSURANCE_DATA = [
   { month: 'Dec', verified: 454 },
   { month: 'Jan', verified: 155 },
@@ -111,7 +111,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'totalBookings',     label: 'Total bookings',      width: 160, sortable: true },
   { key: 'rescheduled',       label: 'Rescheduled',         width: 160, sortable: true },
   { key: 'cancelled',         label: 'Cancelled',           width: 140, sortable: true },
-  { key: 'insurancesVerified',label: 'Insurances verified', width: 180, sortable: true },
+  { key: 'insurancesVerified',label: 'Insurance verified', width: 180, sortable: true },
 ]
 
 // ── Peak booking heatmap ────────────────────────────────────────────────────
@@ -173,7 +173,7 @@ export function AppointmentOverviewScreen() {
             />
           </ChartCard>
 
-          {/* Appointment confirmation + Insurances verified */}
+          {/* Appointments confirmed + Insurance verified */}
           <div className="grid grid-cols-2 gap-lg">
             <ChartCard title="Appointment confirmation" tooltip="Monthly view of confirmed appointments and the resulting no-show rate.">
               <ChartStatRow stats={[
@@ -189,7 +189,7 @@ export function AppointmentOverviewScreen() {
               />
             </ChartCard>
 
-            <ChartCard title="Insurances verified" tooltip="Monthly view of unique conversations where the patient's insurance was successfully verified by the agent.">
+            <ChartCard title="Insurance verified" tooltip="Monthly view of unique conversations where the patient's insurance was successfully verified by the agent.">
               <ChartStatRow stats={[
                 { value: '1.2K',   label: 'Total verified'    },
                 { value: '94.2%',  label: 'Verification rate' },

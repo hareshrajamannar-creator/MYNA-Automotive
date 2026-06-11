@@ -17,7 +17,7 @@ const DATA: ApptWidgetRow[] = [
   { name: 'Reschedule Wizard',     location: 'Philadelphia, PA',  createdBy: 'Sarah Martinez',     createdOn: 'Jun 05, 2026' },
   { name: 'Waitlist Organizer',    location: 'San Antonio, TX',   createdBy: 'James Rodriguez',    createdOn: 'Jul 27, 2026' },
   { name: 'Availability Checker',  location: 'San Diego, CA',     createdBy: 'Linda White',        createdOn: 'Aug 09, 2026' },
-  { name: 'Follow-up Manager',     location: 'Dallas, TX',        createdBy: 'William Harris',     createdOn: 'Sep 15, 2026' },
+  { name: 'Follow up Manager',     location: 'Dallas, TX',        createdBy: 'William Harris',     createdOn: 'Sep 15, 2026' },
   { name: 'Calendar Integrator',   location: 'San Jose, CA',      createdBy: 'Patricia Clark',     createdOn: 'Oct 30, 2026' },
   { name: 'Appointment Dashboard', location: 'Austin, TX',        createdBy: 'Daniel Lewis',       createdOn: 'Nov 11, 2026' },
   { name: 'Booking Insights',      location: 'Jacksonville, FL',  createdBy: 'Sophia Walker',      createdOn: 'Dec 25, 2026' },

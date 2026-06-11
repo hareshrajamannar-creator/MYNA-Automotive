@@ -437,24 +437,24 @@ const CM_SANKEY_LINKS = [
 ]
 
 const CM_STATUS_DATA = [
-  { week: 'Mar\n3',  'Missed Call': 60,  'Scheduling': 100, 'Follow-up': 80, 'Resolved': 130, 'Routed': 64 },
-  { week: '2',       'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 40, 'Resolved': 60,  'Routed': 44 },
-  { week: '3',       'Missed Call': 60,  'Scheduling': 90,  'Follow-up': 80, 'Resolved': 120, 'Routed': 62 },
-  { week: '4',       'Missed Call': 50,  'Scheduling': 80,  'Follow-up': 70, 'Resolved': 110, 'Routed': 88 },
-  { week: '5',       'Missed Call': 30,  'Scheduling': 40,  'Follow-up': 30, 'Resolved': 60,  'Routed': 38 },
-  { week: '6',       'Missed Call': 50,  'Scheduling': 70,  'Follow-up': 60, 'Resolved': 110, 'Routed': 88 },
-  { week: '7',       'Missed Call': 60,  'Scheduling': 90,  'Follow-up': 70, 'Resolved': 120, 'Routed': 72 },
-  { week: '8',       'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 40, 'Resolved': 80,  'Routed': 68 },
-  { week: '9',       'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 50, 'Resolved': 80,  'Routed': 78 },
-  { week: '10',      'Missed Call': 40,  'Scheduling': 60,  'Follow-up': 50, 'Resolved': 90,  'Routed': 62 },
-  { week: '11',      'Missed Call': 40,  'Scheduling': 60,  'Follow-up': 50, 'Resolved': 90,  'Routed': 62 },
-  { week: '12',      'Missed Call': 40,  'Scheduling': 50,  'Follow-up': 40, 'Resolved': 80,  'Routed': 68 },
+  { week: 'Mar\n3',  'Missed Call': 60,  'Scheduling': 100, 'Follow up': 80, 'Resolved': 130, 'Routed': 64 },
+  { week: '2',       'Missed Call': 40,  'Scheduling': 50,  'Follow up': 40, 'Resolved': 60,  'Routed': 44 },
+  { week: '3',       'Missed Call': 60,  'Scheduling': 90,  'Follow up': 80, 'Resolved': 120, 'Routed': 62 },
+  { week: '4',       'Missed Call': 50,  'Scheduling': 80,  'Follow up': 70, 'Resolved': 110, 'Routed': 88 },
+  { week: '5',       'Missed Call': 30,  'Scheduling': 40,  'Follow up': 30, 'Resolved': 60,  'Routed': 38 },
+  { week: '6',       'Missed Call': 50,  'Scheduling': 70,  'Follow up': 60, 'Resolved': 110, 'Routed': 88 },
+  { week: '7',       'Missed Call': 60,  'Scheduling': 90,  'Follow up': 70, 'Resolved': 120, 'Routed': 72 },
+  { week: '8',       'Missed Call': 40,  'Scheduling': 50,  'Follow up': 40, 'Resolved': 80,  'Routed': 68 },
+  { week: '9',       'Missed Call': 40,  'Scheduling': 50,  'Follow up': 50, 'Resolved': 80,  'Routed': 78 },
+  { week: '10',      'Missed Call': 40,  'Scheduling': 60,  'Follow up': 50, 'Resolved': 90,  'Routed': 62 },
+  { week: '11',      'Missed Call': 40,  'Scheduling': 60,  'Follow up': 50, 'Resolved': 90,  'Routed': 62 },
+  { week: '12',      'Missed Call': 40,  'Scheduling': 50,  'Follow up': 40, 'Resolved': 80,  'Routed': 68 },
 ]
 
 const CM_STATUS_SERIES = [
   { key: 'Missed Call', label: 'Missed Call', color: '#42A5F5' },
   { key: 'Scheduling',  label: 'Scheduling',  color: '#7E57C2' },
-  { key: 'Follow-up',   label: 'Follow-up',   color: '#4cae3d' },
+  { key: 'Follow up',   label: 'Follow up',   color: '#4cae3d' },
   { key: 'Resolved',    label: 'Resolved',     color: '#F5A623' },
   { key: 'Routed',      label: 'Routed',       color: '#FF7043' },
 ]
