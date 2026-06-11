@@ -65,7 +65,7 @@ const FUNNEL_NODE_COLORS: Record<number, string> = {
 const CHANNEL_DONUT = [
   { name: 'Voice', value: 43.2, color: '#3f51b5' },
   { name: 'Email', value: 32.5, color: '#e91e63' },
-  { name: 'Text',  value: 24.3, color: '#f59e0b' },
+  { name: 'SMS',   value: 24.3, color: '#f59e0b' },
 ]
 
 const REMINDERS_DATA = [
@@ -80,11 +80,6 @@ const REMINDERS_SERIES = [
   { key: 'sent',      label: 'Sent',      color: '#1976d2' },
   { key: 'confirmed', label: 'Confirmed', color: '#4cae3d' },
 ]
-
-function deltaSpan(delta: string) {
-  const isPos = delta.startsWith('+')
-  return <span className={`text-xs ml-1 ${isPos ? 'text-success' : 'text-danger'}`}>{delta}</span>
-}
 
 interface LocationRow {
   location: string
@@ -169,7 +164,7 @@ export function HCNoShowsScreen() {
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Voice' },
                 { value: '2.4K', label: 'Email' },
-                { value: '1.4K', label: 'Text'  },
+                { value: '1.4K', label: 'SMS'   },
               ]} />
               <DonutChart
                 data={CHANNEL_DONUT}

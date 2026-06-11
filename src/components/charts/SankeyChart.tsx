@@ -142,32 +142,52 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnH
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      {columnHeaders && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          paddingLeft: 10,
-          paddingRight: 10,
-          height: 20,
-          marginBottom: 0,
-        }}>
-          {columnHeaders.map((label, i) => {
-            const tip = columnHeaderTooltips?.[i]
-            return (
-              <span key={label} style={{ fontSize: 12, fontWeight: 400, color: '#9CA3AF', fontFamily: 'Roboto, sans-serif', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
-                {label}
-                {tip && (
-                  <span
-                    onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setHeaderTooltip({ text: tip, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
-                    onMouseLeave={() => setHeaderTooltip(null)}
-                    style={{ cursor: 'default', color: '#bdbdbd', fontSize: 13, lineHeight: 1 }}
-                  >ⓘ</span>
-                )}
-              </span>
-            )
-          })}
-        </div>
-      )}
+      {columnHeaders && measuredWidth > 0 && (() => {
+        // Recharts Sankey places column i at: marginLeft + i * (width - marginLeft - marginRight - nodeWidth) / (n-1)
+        // We center the header over the node bar (nodeWidth=12, marginLeft=10, marginRight=10)
+        const n = columnHeaders.length
+        const marginL = 10, marginR = 10, nodeW = 12
+        const colX = (i: number) =>
+          marginL + i * (measuredWidth - marginL - marginR - nodeW) / (n - 1)
+        return (
+          <div style={{ position: 'relative', height: 20, marginBottom: 0 }}>
+            {columnHeaders.map((label, i) => {
+              const tip = columnHeaderTooltips?.[i]
+              const isFirst = i === 0
+              const isLast = i === n - 1
+              const leftPos = isFirst ? colX(i) : isLast ? undefined : colX(i) + nodeW / 2
+              const rightPos = isLast ? measuredWidth - colX(n - 1) - nodeW : undefined
+              return (
+                <span
+                  key={label}
+                  style={{
+                    position: 'absolute',
+                    ...(isLast ? { right: rightPos } : { left: leftPos }),
+                    transform: (!isFirst && !isLast) ? 'translateX(-50%)' : 'none',
+                    fontSize: 12,
+                    fontWeight: 400,
+                    color: '#9CA3AF',
+                    fontFamily: 'Roboto, sans-serif',
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  {label}
+                  {tip && (
+                    <span
+                      onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setHeaderTooltip({ text: tip, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
+                      onMouseLeave={() => setHeaderTooltip(null)}
+                      style={{ cursor: 'default', color: '#bdbdbd', fontSize: 13, lineHeight: 1 }}
+                    >ⓘ</span>
+                  )}
+                </span>
+              )
+            })}
+          </div>
+        )
+      })()}
       <ResponsiveContainer width="100%" height={height}>
         <Sankey
           data={{ nodes, links: links.map((l) => {
