@@ -119,7 +119,7 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview'      },
-      { id: 'auto-no-shows',             label: 'Appointment confirmation' },
+      { id: 'auto-no-shows',             label: 'No shows prevented' },
     ],
   },
   {
