@@ -200,7 +200,7 @@ function ApptTypeDrawer({ open, mode, onClose }: DrawerProps) {
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={18} />
             </button>
-            <span className="text-h3 text-text-primary">{isEdit ? 'Edit' : 'Create new'}</span>
+            <span className="text-h3 text-text-primary">{isEdit ? 'Edit appointment type' : 'Create new'}</span>
           </div>
           <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
             Save
@@ -236,9 +236,9 @@ function ApptTypeDrawer({ open, mode, onClose }: DrawerProps) {
           <ATDropdownField label="Duration" options={AT_DURATION_OPTIONS} value={duration} onChange={setDuration} placeholder="Select duration" />
           <ATDropdownField label="Eligible providers" options={AT_PROVIDER_OPTIONS} value={providers} multi onChange={setProviders} placeholder="Select providers" />
 
-          {/* Recognition hints */}
+          {/* Keywords */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Recognition hints <span className="text-danger">*</span></label>
+            <label className="text-small text-text-secondary">Keywords <span className="text-danger">*</span></label>
             <div className="flex min-h-[36px] flex-wrap items-center gap-xs rounded-sm border border-border px-md py-xs focus-within:border-primary">
               {tags.map((tag, i) => (
                 <span key={i} className="flex items-center gap-xs rounded-full bg-surface-selected px-sm py-0.5 text-small text-text-primary">
@@ -256,7 +256,7 @@ function ApptTypeDrawer({ open, mode, onClose }: DrawerProps) {
                 onKeyDown={addTag}
               />
             </div>
-            <p className="text-xs text-text-tertiary">Phrases that assist the agent in identifying this type</p>
+            <p className="text-xs text-text-tertiary">Words or phrases patients use when asking for this appointment</p>
           </div>
 
           {/* PMS mapping accordion */}
@@ -287,7 +287,7 @@ function ApptTypeDrawer({ open, mode, onClose }: DrawerProps) {
                     searchable
                   />
                 )}
-                <p className="text-small text-text-secondary">Links this type to a code in your PMS. The mapped code's duration sets the maximum allowed below.</p>
+                <p className="text-small text-text-secondary">Links this appointment type to a code in your PMS. The mapped code's duration sets the maximum booking duration.</p>
               </div>
             )}
           </div>
@@ -320,7 +320,7 @@ export function AppointmentTypeScreen() {
     { key: 'providers',     label: 'Providers',         width: 180, sortable: true },
     { key: 'pmsMapping',    label: 'PMS mapping',       width: 140, sortable: true },
     {
-      key: 'recognitionHints', label: 'Recognition hints', width: 200, sortable: true,
+      key: 'recognitionHints', label: 'Keywords', width: 200, sortable: true,
       render: (_v, row) => (
         <span>
           {row.recognitionHints as string}
@@ -362,7 +362,7 @@ export function AppointmentTypeScreen() {
         {/* Page header */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
           <div className="flex flex-col gap-xs">
-            <span className="text-h3 text-text-primary">9 Appointment types</span>
+            <span className="text-h2 text-text-primary">Appointment types</span>
           </div>
           <div className="flex items-center gap-sm">
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
