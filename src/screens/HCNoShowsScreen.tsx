@@ -49,8 +49,9 @@ const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Las
 
 const SUMMARY_STATS = [
   { id: 'bookings',   value: '450',   label: 'Total bookings',               delta: '20%',   trend: 'down' as const },
-  { id: 'confirmed',  value: '100',   label: 'Appointment confirmed',        delta: '36.6%', trend: 'up'   as const },
-  { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',  trend: 'up'   as const },
+  { id: 'reminders',   value: '2.4K',  label: 'Total reminders sent',         delta: '12%',   trend: 'up' as const },
+  { id: 'prevented',   value: '100',   label: 'Appointments confirmed',        delta: '36.6%', trend: 'up' as const },
+  { id: 'confirmRate', value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',   trend: 'up' as const },
 ]
 
 // 0=Text, 1=Voice, 2=Webchat                        (channel)
