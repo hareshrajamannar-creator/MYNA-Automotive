@@ -30,7 +30,7 @@ const SUMMARY_STATS = [
 ]
 
 // 0=Pre-visit agents, 1=Human-driven,
-// 2=Text/SMS, 3=Email, 4=Portal, 5=In-office,
+// 2=Text, 3=Email, 4=Portal, 5=In-office,
 // 6=Completed, 7=Not attempted, 8=Pending
 const FUNNEL_NODES: SankeyNode[] = [
   {
@@ -42,7 +42,7 @@ const FUNNEL_NODES: SankeyNode[] = [
     ],
   },
   { name: 'Human-driven (25.7%)' },
-  { name: 'Text/SMS (42.6%)' }, { name: 'Email (33.8%)' }, { name: 'Portal (15.6%)' }, { name: 'In-office (8.1%)' },
+  { name: 'Text (42.6%)' }, { name: 'Email (33.8%)' }, { name: 'Portal (15.6%)' }, { name: 'In-office (8.1%)' },
   { name: 'Completed (52.4%)' }, { name: 'Pending (13.4%)' }, { name: 'Not attempted (34.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
@@ -54,7 +54,7 @@ const FUNNEL_LINKS: SankeyLink[] = [
   { source: 5, target: 6, value: 4  }, { source: 5, target: 7, value: 1  }, { source: 5, target: 8, value: 3  },
 ]
 // 0=Pre-visit agents(purple), 1=Human(gray)
-// 2=SMS(blue), 3=Email(teal), 4=Portal(dark-orange), 5=In-office(light-orange)
+// 2=Text(blue), 3=Email(teal), 4=Portal(dark-orange), 5=In-office(light-orange)
 // 6=Completed(green), 7=Pending(orange), 8=Not attempted(orange-red)
 const FUNNEL_NODE_COLORS: Record<number, string> = {
   0: '#7c4dff', 1: '#bdbdbd',
@@ -82,7 +82,7 @@ const PATIENT_TYPE_DONUT = [
 ]
 
 const CHANNEL_DONUT = [
-  { name: 'SMS',   value: 43.2, color: '#3f51b5' },
+  { name: 'Text',  value: 43.2, color: '#3f51b5' },
   { name: 'Email', value: 32.5, color: '#e91e63' },
   { name: 'Call',  value: 24.3, color: '#f59e0b' },
 ]
@@ -178,7 +178,7 @@ export function HCIntakesCompletedScreen() {
             <HCCard title="Completion by channel">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Forms sent' },
-                { value: '2.4K', label: 'SMS'        },
+                { value: '2.4K', label: 'Text'       },
                 { value: '1.4K', label: 'Email'      },
                 { value: '974',  label: 'Call'       },
               ]} />
