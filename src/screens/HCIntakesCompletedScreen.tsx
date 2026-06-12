@@ -54,13 +54,21 @@ const SUMMARY_STATS = [
   { id: 'avgTime',     value: '8.5 m', label: 'Avg completion time',  delta: '20%',   trend: 'down' as const },
 ]
 
-// 0=Webchat, 1=Voice, 2=Text             (channel)
-// 3=New patient, 4=Returning patient   (patient type)
-// 5=Completed, 6=In-progress, 7=Pending (outcome)
+// 0=Pre-visit agents, 1=Human-driven,
+// 2=Text, 3=Email, 4=Portal, 5=In-office,
+// 6=Completed, 7=Not attempted, 8=Pending
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Webchat (33.0%)' }, { name: 'Voice (41.0%)' }, { name: 'Text (26.0%)' },
-  { name: 'New patient (57.4%)' }, { name: 'Returning patient (42.6%)' },
-  { name: 'Completed (52.4%)' }, { name: 'In-progress (13.4%)' }, { name: 'Pending (34.2%)' },
+  {
+    name: 'Pre-visit agents (74.3%)',
+    breakdown: [
+      { label: 'Pre-visit agent – North region', pct: '44%', value: 2756 },
+      { label: 'Pre-visit agent – South region', pct: '34%', value: 2127 },
+      { label: 'Pre-visit agent – West region',  pct: '22%', value: 1375 },
+    ],
+  },
+  { name: 'Human-driven (25.7%)' },
+  { name: 'Text (42.6%)' }, { name: 'Email (33.8%)' }, { name: 'Portal (15.6%)' }, { name: 'In-office (8.1%)' },
+  { name: 'Completed (52.4%)' }, { name: 'Pending (13.4%)' }, { name: 'Not attempted (34.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → patient type

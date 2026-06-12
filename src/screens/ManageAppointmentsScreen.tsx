@@ -55,29 +55,29 @@ const APPOINTMENTS: Appointment[] = [
   { patient: 'Daniel White',   location: 'Main Campus',   status: 'Cancelled',   provider: 'Dr. Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', phone: '(669) 555-0101', email: 'd.white@email.com'     },
   { patient: 'Kevin Moore',    location: 'North Clinic',  status: 'Cancelled',   provider: 'Dr. Edwards',   apptType: 'Follow up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', phone: '(408) 555-0188', email: 'k.moore@email.com'     },
   // No-show — 4
-  { patient: 'David Martinez', location: 'South Clinic',  status: 'No-show',     provider: 'Dr. Rodriguez', apptType: 'Follow up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
-  { patient: 'Sarah Anderson', location: 'East Branch',   status: 'No-show',     provider: 'Dr. Miller',    apptType: 'New consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
-  { patient: 'Jessica Taylor', location: 'Main Campus',   status: 'No-show',     provider: 'Dr. Garcia',    apptType: 'Procedure',       insuranceStatus: 'In progress', dateTime: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 'jess.t@email.com'      },
-  { patient: 'Robert Brown',   location: 'North Clinic',  status: 'No-show',     provider: 'Dr. Williams',  apptType: 'Annual physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
+  { patient: 'David Martinez', location: 'South Clinic',  status: 'Missed',     provider: 'Dr. Rodriguez', apptType: 'Follow up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
+  { patient: 'Sarah Anderson', location: 'East Branch',   status: 'Missed',     provider: 'Dr. Miller',    apptType: 'New consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
+  { patient: 'Jessica Taylor', location: 'Main Campus',   status: 'Missed',     provider: 'Dr. Garcia',    apptType: 'Procedure',       insuranceStatus: 'In progress', dateTime: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 'jess.t@email.com'      },
+  { patient: 'Robert Brown',   location: 'North Clinic',  status: 'Missed',     provider: 'Dr. Williams',  apptType: 'Annual physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
 ]
 
 const TAB_STATUS_MAP: Record<string, string> = {
   unconfirmed:   'Unconfirmed',
   cancellations: 'Cancelled',
-  'no-shows':    'No-show',
+  'no-shows':    'Missed',
 }
 
 const STATUS_CHIP: Record<string, ChipVariant> = {
   'Unconfirmed': 'warning',
   'Cancelled':   'danger',
-  'No-show':     'danger',
+  'Missed':      'danger',
   'Confirmed':   'success',
   'Rescheduled': 'neutral',
 }
 
 const STATUS_COLUMN: Column<Appointment> = {
   key: 'status',
-  label: 'Appt status',
+  label: 'Appointment status',
   sortable: true,
   render: (val) => (
     <Chip label={String(val)} variant={STATUS_CHIP[String(val)] ?? 'neutral'} />
@@ -87,7 +87,7 @@ const STATUS_COLUMN: Column<Appointment> = {
 const TABS = [
   { id: 'unconfirmed',   label: 'Unconfirmed',   count: 5  },
   { id: 'cancellations', label: 'Cancellations', count: 5  },
-  { id: 'no-shows',      label: 'No-shows',      count: 4  },
+  { id: 'no-shows',      label: 'Missed',        count: 4  },
   { id: 'all',           label: 'All',           count: 14 },
 ]
 
@@ -122,7 +122,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'provider',             label: 'Provider',             options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
   { id: 'appointment-type',     label: 'Appointment type',     options: opts('Procedure', 'New consult', 'Follow up', 'Annual physical', 'Urgent care') },
   { id: 'insurance-status',     label: 'Insurance status',     options: opts('Verified', 'In progress', 'Denied', 'Pending') },
-  { id: 'appointment-status',   label: 'Appointment status',   options: opts('Unconfirmed', 'Cancellations', 'No-shows') },
+  { id: 'appointment-status',   label: 'Appointment status',   options: opts('Unconfirmed', 'Cancellations', 'Missed') },
 ]
 
 const BASE_DATE = new Date(2026, 4, 25)
