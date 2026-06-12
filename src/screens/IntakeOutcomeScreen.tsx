@@ -23,13 +23,13 @@ const SUMMARY: SummaryStat[] = [
 
 // Intake funnel — 4-layer Sankey
 // Nodes: 0=Agent-driven, 1=Human-driven, 2=New patient, 3=Returning patient,
-//        4=Text/SMS, 5=Email, 6=Portal, 7=In-office, 8=Completed, 9=Drop-off, 10=Pending
+//        4=Text, 5=Email, 6=Portal, 7=In-office, 8=Completed, 9=Drop-off, 10=Pending
 const sankeyNodes = [
   { name: 'Agent-driven' },
   { name: 'Human-driven' },
   { name: 'New patient' },
   { name: 'Returning patient' },
-  { name: 'Text / SMS' },
+  { name: 'Text' },
   { name: 'Email' },
   { name: 'Portal' },
   { name: 'In-office' },
@@ -90,7 +90,7 @@ const patientTypeDonut = [
 
 // Completion by channel (donut)
 const channelDonut = [
-  { name: 'SMS',   value: 43, color: c.channel.sms   },
+  { name: 'Text',  value: 43, color: c.channel.sms   },
   { name: 'Email', value: 33, color: c.channel.email },
   { name: 'Call',  value: 24, color: c.channel.call  },
 ]
@@ -237,7 +237,7 @@ export function IntakeOutcomeScreen() {
             <MiniKpis
               items={[
                 { value: '4.4K', label: 'Forms sent' },
-                { value: '2.4K', label: 'SMS',   delta: '1.3%', trend: 'up' },
+                { value: '2.4K', label: 'Text',  delta: '1.3%', trend: 'up' },
                 { value: '1.4K', label: 'Email', delta: '1.3%', trend: 'up' },
                 { value: '974',  label: 'Call' },
               ]}
