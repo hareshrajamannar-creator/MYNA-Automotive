@@ -25,7 +25,7 @@ const SUMMARY_STATS = [
   { id: 'outreach', value: '5.5K',  label: 'Outreach sent', delta: '40%',  trend: 'down' as const },
   { id: 'filled',   value: '7.9K',  label: 'Slots filled',  delta: '36.6%',trend: 'up'   as const },
   { id: 'fillRate', value: '23.7%', label: 'Fill rate',     delta: '20%',  trend: 'up'   as const },
-  { id: 'avgTime',  value: '2.5 hrs',label: 'Avg fill time', delta: '20%', trend: 'down' as const },
+  { id: 'avgTime',  value: '2.5 hrs',label: 'Average fill time', delta: '20%', trend: 'down' as const },
 ]
 
 // 0=Agent communications, 1=Human-driven, 2=SMS, 3=Email, 4=Voice,
@@ -41,7 +41,7 @@ const FUNNEL_NODES: SankeyNode[] = [
     ],
   },
   { name: 'Human-driven (23.5%)' },
-  { name: 'SMS (50.5%)' }, { name: 'Email (37.5%)' }, { name: 'Voice (12%)' },
+  { name: 'Text (50.5%)' }, { name: 'Email (37.5%)' }, { name: 'Voice (12%)' },
   { name: '<1hr (41.7%)' }, { name: '1-4hrs (31.3%)' }, { name: '4-24hrs (17.2%)' }, { name: '>24hrs (9.9%)' },
   { name: 'Filled (23.7%)' }, { name: 'Pending (17.2%)' }, { name: 'No response (38.3%)' }, { name: 'Declined (20.8%)' },
 ]
@@ -98,7 +98,7 @@ interface ChannelRow {
   [key: string]: string | number
 }
 const CHANNEL_DATA: ChannelRow[] = [
-  { channel: 'SMS',   outreachSent: 824, responded: 468, responseRate: '56.8%', responseDelta: '+2%', slotsFilled: 242, fillRate: '29.4%', fillDelta: '+2%' },
+  { channel: 'Text',   outreachSent: 824, responded: 468, responseRate: '56.8%', responseDelta: '+2%', slotsFilled: 242, fillRate: '29.4%', fillDelta: '+2%' },
   { channel: 'Email', outreachSent: 612, responded: 188, responseRate: '30.7%', responseDelta: '+2%', slotsFilled: 98,  fillRate: '16%',   fillDelta: '+2%' },
   { channel: 'Voice', outreachSent: 196, responded: 112, responseRate: '57.1%', responseDelta: '-5%', slotsFilled: 47,  fillRate: '24%',   fillDelta: '-5%' },
 ]
@@ -150,7 +150,7 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
       <span>{row.fillRate} {deltaSpan(row.fillDelta as string)}</span>
     ),
   },
-  { key: 'avgFillTime', label: 'Avg fill time', width: 160, sortable: true },
+  { key: 'avgFillTime', label: 'Average fill time', width: 160, sortable: true },
 ]
 
 export function HCWaitlistFilledScreen() {
