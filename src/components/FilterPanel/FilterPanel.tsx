@@ -7,12 +7,20 @@ import { FilterField, FilterPanelProps } from './FilterPanel.types'
 export function FilterPanel({
   open,
   fields,
+  selections: controlledSelections,
+  onSelectionsChange,
   onAdvancedFilters,
   onSelectionChange,
 }: FilterPanelProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
-  const [selections, setSelections] = useState<Record<string, string[]>>({})
+  const [internalSelections, setInternalSelections] = useState<Record<string, string[]>>({})
+  const selections = controlledSelections ?? internalSelections
+
+  function updateSelections(next: Record<string, string[]>) {
+    if (onSelectionsChange) onSelectionsChange(next)
+    else setInternalSelections(next)
+  }
 
   function updateSelections(next: Record<string, string[]>) {
     setSelections(next)
@@ -45,7 +53,7 @@ export function FilterPanel({
         </div>
 
         {/* Fields — scrollable, padded bottom so content clears the sticky footer */}
-        <div className="flex flex-1 flex-col gap-sm overflow-y-auto px-xl pb-[56px]">
+        <div className={`flex flex-1 flex-col gap-sm overflow-y-auto px-xl ${onAdvancedFilters ? 'pb-[56px]' : 'pb-xl'}`}>
           <div className="flex flex-col gap-sm">
             {fields.map((field) => {
               const count = selections[field.id]?.length ?? 0
@@ -73,16 +81,17 @@ export function FilterPanel({
           </div>
         </div>
 
-        {/* Advanced filters — sticky at bottom */}
-        <div className="sticky bottom-0 w-[280px] bg-surface px-xl py-md">
-          <Link
-            as="button"
-            onClick={onAdvancedFilters}
-            className="rounded-sm py-xs text-body font-normal text-primary"
-          >
-            Advanced filters
-          </Link>
-        </div>
+        {onAdvancedFilters && (
+          <div className="sticky bottom-0 w-[280px] bg-surface px-xl py-md">
+            <Link
+              as="button"
+              onClick={onAdvancedFilters}
+              className="rounded-sm py-xs text-body font-normal text-primary"
+            >
+              Advanced filters
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Select menu popover */}
@@ -90,10 +99,12 @@ export function FilterPanel({
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setOpenId(null)} />
           <div
-            className="fixed z-[110]"
-            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+            className="fixed z-[110] w-[232px]"
+            style={{ top: anchor.top, left: anchor.left }}
           >
             <SelectMenu
+              key={activeField.id}
+              title={activeField.label}
               options={activeField.options ?? []}
               value={selections[activeField.id] ?? []}
               multi={activeField.multi ?? true}
