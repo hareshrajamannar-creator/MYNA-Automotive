@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChartCard, DataTable, DonutChart, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
+import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
 
 interface Conversation {
   id: string
@@ -65,7 +65,7 @@ const INBOX_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     defaultExpanded: true,
     items: [
-      { id: 'responses',              label: 'Responses' },
+      // { id: 'responses',              label: 'Responses' },
       { id: 'conversation-managed',   label: 'Conversation managed' },
       { id: 'all-reports',            label: 'All reports', external: true },
     ],
@@ -235,196 +235,128 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
   )
 }
 
-// ─── Responses dashboard ──────────────────────────────────────────────────────
-
-const SUMMARY_STATS = [
-  { id: 'total',      value: '7.9K', label: 'Total Conversations', delta: '+36.6%', trend: 'up' as const },
-  { id: 'involve',    value: '39.2%', label: 'Involvement Rate',   delta: '-40%',   trend: 'down' as const },
-  { id: 'resolution', value: '61.2%', label: 'Resolution Rate',    delta: '+20%',   trend: 'up' as const },
-  { id: 'unresolved', value: '9.8%',  label: 'Unresolved',         delta: '-10%',   trend: 'down' as const },
-]
-
-const SANKEY_NODES = [
-  { name: 'Voice' },
-  { name: 'Text' },
-  { name: 'Chat' },
-  { name: 'Email' },
-  { name: 'Agent involved' },
-  { name: 'Human involved' },
-  { name: 'Resolved' },
-  { name: 'Routed' },
-  { name: 'Unresolved' },
-]
-
-const SANKEY_LINKS = [
-  { source: 'Voice',          target: 'Agent involved', value: 3200 },
-  { source: 'Voice',          target: 'Human involved', value: 1800 },
-  { source: 'Text',           target: 'Agent involved', value: 2400 },
-  { source: 'Text',           target: 'Human involved', value: 1400 },
-  { source: 'Chat',           target: 'Agent involved', value: 1800 },
-  { source: 'Chat',           target: 'Human involved', value: 1200 },
-  { source: 'Email',          target: 'Agent involved', value: 1100 },
-  { source: 'Email',          target: 'Human involved', value:  700 },
-  { source: 'Agent involved', target: 'Resolved',       value: 5100 },
-  { source: 'Agent involved', target: 'Routed',         value: 2200 },
-  { source: 'Agent involved', target: 'Unresolved',     value: 1200 },
-  { source: 'Human involved', target: 'Resolved',       value: 3100 },
-  { source: 'Human involved', target: 'Routed',         value: 1100 },
-  { source: 'Human involved', target: 'Unresolved',     value: 1000 },
-]
-
-const OVERTIME_DATA = [
-  { month: 'Dec\n2023', Resolved: 180, Routed: 120, Unresolved: 134 },
-  { month: 'Jan\n2024', Resolved: 100, Routed: 60,  Unresolved: 74  },
-  { month: 'Feb',       Resolved: 180, Routed: 120, Unresolved: 112 },
-  { month: 'Mar',       Resolved: 170, Routed: 130, Unresolved: 98  },
-  { month: 'Apr',       Resolved: 80,  Routed: 50,  Unresolved: 68  },
-  { month: 'May',       Resolved: 160, Routed: 100, Unresolved: 118 },
-]
-const OVERTIME_SERIES = [
-  { key: 'Resolved',   label: 'Resolved',   color: '#4cae3d' },
-  { key: 'Routed',     label: 'Routed',     color: '#f5a623' },
-  { key: 'Unresolved', label: 'Unresolved', color: '#de1b0c' },
-]
-
-const DONUT_DATA = [
-  { name: 'Voice', value: 35.0, color: '#1976d2' },
-  { name: 'Text',  value: 26.5, color: '#4cae3d' },
-  { name: 'Chat',  value: 22.0, color: '#9c27b0' },
-  { name: 'Email', value: 16.5, color: '#f5a623' },
-]
-
-const CHANNEL_STATS = [
-  { id: 'total', value: '10.3k', label: 'Total conversations', delta: '+1.3%',  trend: 'up'   as const },
-  { id: 'voice', value: '3.6k',  label: 'Voice',               delta: '+4.2%',  trend: 'up'   as const },
-  { id: 'text',  value: '2.7k',  label: 'Text',                delta: '-1.1%',  trend: 'down' as const },
-  { id: 'chat',  value: '2.3k',  label: 'Chat',                delta: '+0.8%',  trend: 'up'   as const },
-  { id: 'email', value: '1.7k',  label: 'Email',               delta: '-2.4%',  trend: 'down' as const },
-]
-
-interface LocationRow {
-  location: string
-  totalConversation: string
-  resolved: string
-  routed: string
-  unresolved: string
-  [key: string]: string
-}
-
-const LOCATION_DATA: LocationRow[] = [
-  { location: 'Atlanta, GA',  totalConversation: '643', resolved: '15', routed: '12', unresolved: '2'  },
-  { location: 'Dallas, TX',   totalConversation: '324', resolved: '22', routed: '23', unresolved: '4'  },
-  { location: 'Chicago, IL',  totalConversation: '85',  resolved: '4',  routed: '18', unresolved: '22' },
-  { location: 'Miami, FL',    totalConversation: '523', resolved: '27', routed: '2',  unresolved: '4'  },
-  { location: 'Phoenix, AZ',  totalConversation: '323', resolved: '19', routed: '9',  unresolved: '10' },
-  { location: 'Austin, TX',   totalConversation: '143', resolved: '25', routed: '11', unresolved: '12' },
-  { location: 'Denver, CO',   totalConversation: '256', resolved: '30', routed: '13', unresolved: '14' },
-  { location: 'Seattle, WA',  totalConversation: '235', resolved: '21', routed: '15', unresolved: '16' },
-]
-
-const LOCATION_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',          label: 'Location',           sortable: true },
-  { key: 'totalConversation', label: 'Total conversation', sortable: true },
-  { key: 'resolved',          label: 'Resolved',           sortable: true },
-  { key: 'routed',            label: 'Routed',             sortable: true },
-  { key: 'unresolved',        label: 'Unresolved',         sortable: true },
-]
-
-function ResponsesPanel() {
-  return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between px-2xl py-xl">
-        <div>
-          <h1 className="text-h3 text-text-primary">Responses</h1>
-          <p className="mt-xs text-body text-text-secondary">Customer response handling and resolution outcomes across channels and locations</p>
-        </div>
-        <div className="flex items-center gap-sm">
-          <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
-            <Icon name="calendar_today" size={16} className="text-text-icon" />
-            Last 3 months
-          </button>
-          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-            <Icon name="filter_list" size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-lg px-2xl pb-2xl">
-        {/* Summary */}
-        <SummaryStats title="Summary" stats={SUMMARY_STATS} />
-
-        {/* Performance funnel — Sankey */}
-        <ChartCard
-          title="Performance funnel"
-          showActions={false}
-          toolbar={
-            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="more_vert" size={20} />
-            </button>
-          }
-        >
-          <div className="relative mb-sm h-5 text-small text-text-secondary">
-            <span className="absolute left-0">Channel</span>
-            <span className="absolute" style={{ left: '50%', transform: 'translateX(-50%)' }}>Handler</span>
-            <span className="absolute right-0">Status</span>
-          </div>
-          <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={520} />
-        </ChartCard>
-
-        {/* Conversations overtime — customize + 3-dot menu */}
-        <ChartCard title="Conversations overtime" className="h-[556px]">
-          <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={430} showBarLabels />
-        </ChartCard>
-
-        {/* Conversation by channel — filter dropdown + 3-dot menu */}
-        <ChartCard
-          title="Conversation by channel"
-          className="h-[556px]"
-          showActions={false}
-          toolbar={
-            <div className="flex items-center gap-xs text-text-icon">
-              <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-                <Icon name="tune" size={20} />
-              </button>
-              <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-                <Icon name="more_vert" size={20} />
-              </button>
-            </div>
-          }
-        >
-          <div className="mb-lg flex items-center gap-2xl">
-            {CHANNEL_STATS.map((s) => (
-              <div key={s.id} className="flex flex-col">
-                <div className="flex items-center gap-xs">
-                  <span className="text-h3 text-text-primary">{s.value}</span>
-                  {s.delta && (
-                    <span className={`text-small ${s.trend === 'up' ? 'text-success' : 'text-chip-danger-text'}`}>{s.delta}</span>
-                  )}
-                </div>
-                <span className="text-small text-text-secondary">{s.label}</span>
-              </div>
-            ))}
-          </div>
-          <DonutChart data={DONUT_DATA} centerValue="10.3k" centerLabel="Total conversations" height={380} />
-        </ChartCard>
-
-        {/* Conversation across locations — only 3-dot menu */}
-        <ChartCard
-          title="Conversation across locations"
-          showActions={false}
-          toolbar={
-            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="more_vert" size={20} />
-            </button>
-          }
-        >
-          <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
-        </ChartCard>
-      </div>
-    </div>
-  )
-}
+// ─── Responses dashboard (commented out) ─────────────────────────────────────
+// const SUMMARY_STATS = [
+//   { id: 'total',      value: '7.9K', label: 'Total Conversations', delta: '+36.6%', trend: 'up' as const },
+//   { id: 'involve',    value: '39.2%', label: 'Involvement Rate',   delta: '-40%',   trend: 'down' as const },
+//   { id: 'resolution', value: '61.2%', label: 'Resolution Rate',    delta: '+20%',   trend: 'up' as const },
+//   { id: 'unresolved', value: '9.8%',  label: 'Unresolved',         delta: '-10%',   trend: 'down' as const },
+// ]
+// const SANKEY_NODES = [
+//   { name: 'Voice' }, { name: 'Text' }, { name: 'Chat' }, { name: 'Email' },
+//   { name: 'Agent involved' }, { name: 'Human involved' },
+//   { name: 'Resolved' }, { name: 'Routed' }, { name: 'Unresolved' },
+// ]
+// const SANKEY_LINKS = [
+//   { source: 'Voice',          target: 'Agent involved', value: 3200 },
+//   { source: 'Voice',          target: 'Human involved', value: 1800 },
+//   { source: 'Text',           target: 'Agent involved', value: 2400 },
+//   { source: 'Text',           target: 'Human involved', value: 1400 },
+//   { source: 'Chat',           target: 'Agent involved', value: 1800 },
+//   { source: 'Chat',           target: 'Human involved', value: 1200 },
+//   { source: 'Email',          target: 'Agent involved', value: 1100 },
+//   { source: 'Email',          target: 'Human involved', value:  700 },
+//   { source: 'Agent involved', target: 'Resolved',       value: 5100 },
+//   { source: 'Agent involved', target: 'Routed',         value: 2200 },
+//   { source: 'Agent involved', target: 'Unresolved',     value: 1200 },
+//   { source: 'Human involved', target: 'Resolved',       value: 3100 },
+//   { source: 'Human involved', target: 'Routed',         value: 1100 },
+//   { source: 'Human involved', target: 'Unresolved',     value: 1000 },
+// ]
+// const OVERTIME_DATA = [
+//   { month: 'Dec\n2023', Resolved: 180, Routed: 120, Unresolved: 134 },
+//   { month: 'Jan\n2024', Resolved: 100, Routed: 60,  Unresolved: 74  },
+//   { month: 'Feb',       Resolved: 180, Routed: 120, Unresolved: 112 },
+//   { month: 'Mar',       Resolved: 170, Routed: 130, Unresolved: 98  },
+//   { month: 'Apr',       Resolved: 80,  Routed: 50,  Unresolved: 68  },
+//   { month: 'May',       Resolved: 160, Routed: 100, Unresolved: 118 },
+// ]
+// const OVERTIME_SERIES = [
+//   { key: 'Resolved',   label: 'Resolved',   color: '#4cae3d' },
+//   { key: 'Routed',     label: 'Routed',     color: '#f5a623' },
+//   { key: 'Unresolved', label: 'Unresolved', color: '#de1b0c' },
+// ]
+// const DONUT_DATA = [
+//   { name: 'Voice', value: 35.0, color: '#1976d2' },
+//   { name: 'Text',  value: 26.5, color: '#4cae3d' },
+//   { name: 'Chat',  value: 22.0, color: '#9c27b0' },
+//   { name: 'Email', value: 16.5, color: '#f5a623' },
+// ]
+// const CHANNEL_STATS = [
+//   { id: 'total', value: '10.3k', label: 'Total conversations', delta: '+1.3%',  trend: 'up'   as const },
+//   { id: 'voice', value: '3.6k',  label: 'Voice',               delta: '+4.2%',  trend: 'up'   as const },
+//   { id: 'text',  value: '2.7k',  label: 'Text',                delta: '-1.1%',  trend: 'down' as const },
+//   { id: 'chat',  value: '2.3k',  label: 'Chat',                delta: '+0.8%',  trend: 'up'   as const },
+//   { id: 'email', value: '1.7k',  label: 'Email',               delta: '-2.4%',  trend: 'down' as const },
+// ]
+// interface LocationRow {
+//   location: string
+//   totalConversation: string
+//   resolved: string
+//   routed: string
+//   unresolved: string
+//   [key: string]: string
+// }
+// const LOCATION_DATA: LocationRow[] = [
+//   { location: 'Atlanta, GA',  totalConversation: '643', resolved: '15', routed: '12', unresolved: '2'  },
+//   { location: 'Dallas, TX',   totalConversation: '324', resolved: '22', routed: '23', unresolved: '4'  },
+//   { location: 'Chicago, IL',  totalConversation: '85',  resolved: '4',  routed: '18', unresolved: '22' },
+//   { location: 'Miami, FL',    totalConversation: '523', resolved: '27', routed: '2',  unresolved: '4'  },
+//   { location: 'Phoenix, AZ',  totalConversation: '323', resolved: '19', routed: '9',  unresolved: '10' },
+//   { location: 'Austin, TX',   totalConversation: '143', resolved: '25', routed: '11', unresolved: '12' },
+//   { location: 'Denver, CO',   totalConversation: '256', resolved: '30', routed: '13', unresolved: '14' },
+//   { location: 'Seattle, WA',  totalConversation: '235', resolved: '21', routed: '15', unresolved: '16' },
+// ]
+// const LOCATION_COLUMNS: Column<LocationRow>[] = [
+//   { key: 'location',          label: 'Location',           sortable: true },
+//   { key: 'totalConversation', label: 'Total conversation', sortable: true },
+//   { key: 'resolved',          label: 'Resolved',           sortable: true },
+//   { key: 'routed',            label: 'Routed',             sortable: true },
+//   { key: 'unresolved',        label: 'Unresolved',         sortable: true },
+// ]
+// function ResponsesPanel() {
+//   return (
+//     <div className="flex flex-1 flex-col overflow-y-auto">
+//       <div className="flex items-center justify-between px-2xl py-xl">
+//         <div>
+//           <h1 className="text-h3 text-text-primary">Responses</h1>
+//           <p className="mt-xs text-body text-text-secondary">Customer response handling and resolution outcomes across channels and locations</p>
+//         </div>
+//         <div className="flex items-center gap-sm">
+//           <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
+//             <Icon name="calendar_today" size={16} className="text-text-icon" />
+//             Last 3 months
+//           </button>
+//           <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+//             <Icon name="filter_list" size={20} />
+//           </button>
+//         </div>
+//       </div>
+//       <div className="flex flex-col gap-lg px-2xl pb-2xl">
+//         <SummaryStats title="Summary" stats={SUMMARY_STATS} />
+//         <ChartCard title="Performance funnel" showActions={false} toolbar={<button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button>}>
+//           <div className="relative mb-sm h-5 text-small text-text-secondary">
+//             <span className="absolute left-0">Channel</span>
+//             <span className="absolute" style={{ left: '50%', transform: 'translateX(-50%)' }}>Handler</span>
+//             <span className="absolute right-0">Status</span>
+//           </div>
+//           <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={520} />
+//         </ChartCard>
+//         <ChartCard title="Conversations overtime" className="h-[556px]">
+//           <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={430} showBarLabels />
+//         </ChartCard>
+//         <ChartCard title="Conversation by channel" className="h-[556px]" showActions={false} toolbar={<div className="flex items-center gap-xs text-text-icon"><button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="tune" size={20} /></button><button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button></div>}>
+//           <div className="mb-lg flex items-center gap-2xl">{CHANNEL_STATS.map((s) => (<div key={s.id} className="flex flex-col"><div className="flex items-center gap-xs"><span className="text-h3 text-text-primary">{s.value}</span>{s.delta && (<span className={`text-small ${s.trend === 'up' ? 'text-success' : 'text-chip-danger-text'}`}>{s.delta}</span>)}</div><span className="text-small text-text-secondary">{s.label}</span></div>))}</div>
+//           <DonutChart data={DONUT_DATA} centerValue="10.3k" centerLabel="Total conversations" height={380} />
+//         </ChartCard>
+//         <ChartCard title="Conversation across locations" showActions={false} toolbar={<button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button>}>
+//           <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+//         </ChartCard>
+//       </div>
+//     </div>
+//   )
+// }
+// ─── Responses dashboard end ──────────────────────────────────────────────────
 
 // ─── Conversation Managed dashboard ───────────────────────────────────────────
 
@@ -701,9 +633,7 @@ export function InboxScreen() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopNav initials="S" />
 
-        {activeNav === 'responses' ? (
-          <ResponsesPanel />
-        ) : activeNav === 'conversation-managed' ? (
+        {activeNav === 'conversation-managed' ? (
           <ConversationManagedPanel />
         ) : (
         <div className="flex flex-1 overflow-hidden">

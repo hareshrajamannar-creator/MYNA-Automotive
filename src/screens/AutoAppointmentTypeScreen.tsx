@@ -366,11 +366,11 @@ const deptMap: Record<string, Department> = {
 }
 
 const DEPT_TABS = [
-  { id: 'all',      label: 'All',       count: SERVICE_TYPES.length },
   { id: 'service',  label: 'Service',   count: SERVICE_TYPES.filter(r => r.department === 'Service').length   },
   { id: 'sales',    label: 'Sales',     count: SERVICE_TYPES.filter(r => r.department === 'Sales').length     },
   { id: 'parts',    label: 'Parts',     count: SERVICE_TYPES.filter(r => r.department === 'Parts').length     },
   { id: 'bodyshop', label: 'Body shop', count: SERVICE_TYPES.filter(r => r.department === 'Body shop').length },
+  { id: 'all',      label: 'All',       count: SERVICE_TYPES.length },
 ]
 
 // ── Column definitions ────────────────────────────────────────────────────────
@@ -398,7 +398,7 @@ export function AutoAppointmentTypeScreen() {
   const [toastVisible,     setToastVisible]     = useState(false)
   const [locationFilter,   setLocationFilter]   = useState<string[]>([])
   const [locationOpen,     setLocationOpen]     = useState(false)
-  const [deptTab,          setDeptTab]          = useState('all')
+  const [deptTab,          setDeptTab]          = useState('service')
   const [colOrder,   setColOrder]   = useState<string[]>(ST_DEFAULT_ORDER)
   const [colVisible, setColVisible] = useState<string[]>(ST_DEFAULT_VISIBLE)
   const [hintTooltip,    setHintTooltip]    = useState<{ hints: string[]; x: number; y: number } | null>(null)
@@ -418,7 +418,7 @@ export function AutoAppointmentTypeScreen() {
 
   const COLUMNS = useMemo<Column<ServiceTypeRow>[]>(() =>
     colOrder
-      .filter(k => colVisible.includes(k))
+      .filter(k => colVisible.includes(k) && (deptTab === 'all' || k !== 'department'))
       .map(k => {
         const def = ST_DEF_BY_KEY.get(k)!
         if (k === 'name') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => (
@@ -468,7 +468,7 @@ export function AutoAppointmentTypeScreen() {
         }}
         return def as Column<ServiceTypeRow>
       }),
-    [colOrder, colVisible, activeMap],
+    [colOrder, colVisible, activeMap, deptTab],
   )
 
   const rowMenuItems = [

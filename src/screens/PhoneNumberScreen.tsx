@@ -38,90 +38,6 @@ import emptyPhoneNumberUrl from '../assets/empty-phone-number.svg'
 //   { key: 'provider',       label: 'Provider',        sortable: true },
 // ]
 // 
-const AGENT_OPTIONS = [
-  { value: 'Frontdesk', label: 'Frontdesk' },
-  { value: 'Scheduling', label: 'Scheduling' },
-  { value: 'Pre-visit', label: 'Pre-visit' },
-  { value: 'Waitlist', label: 'Waitlist' },
-  { value: 'Reminder', label: 'Reminder' },
-]
-// 
-function TestCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [agent, setAgent] = useState('')
-  const [agentMenuOpen, setAgentMenuOpen] = useState(false)
-  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
-
-  if (!open) return null
-
-  return (
-    <>
-      <div className="fixed inset-0 z-[200] bg-black/20" onClick={onClose} />
-      <div className="fixed left-1/2 top-[72px] z-[201] w-[520px] -translate-x-1/2 rounded-sm bg-surface shadow-[0px_4px_8px_rgba(33,33,33,0.18)]">
-
-        {/* Header — pt-24 pb-12 px-24 */}
-        <div className="flex items-center justify-between px-2xl pt-2xl pb-md">
-          <span className="text-[16px] leading-[24px] tracking-[-0.32px] text-text-primary">Test call</span>
-          <button type="button" onClick={onClose} className="flex size-6 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-
-        {/* Body — pl-24 pr-8 py-12 */}
-        <div className="flex flex-col gap-md pl-2xl pr-sm py-md">
-          {/* Agent */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-tertiary">Agent</label>
-            <button
-              type="button"
-              onClick={(e) => {
-                if (agentMenuOpen) { setAgentMenuOpen(false); return }
-                const r = e.currentTarget.getBoundingClientRect()
-                setAnchor({ top: r.bottom + 4, left: r.left, width: r.width })
-                setAgentMenuOpen(true)
-              }}
-              className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-hover ${
-                agentMenuOpen ? 'border-primary' : 'border-border'
-              }`}
-            >
-              <span className={`min-w-0 flex-1 truncate text-left text-body ${agent ? 'text-text-primary' : 'text-text-tertiary'}`}>
-                {agent || 'Select agent'}
-              </span>
-              <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
-            </button>
-          </div>
-        </div>
-
-        {/* Footer — pt-12 pb-24 px-24, gap-[10px] */}
-        <div className="flex justify-end gap-[10px] px-2xl pt-md pb-2xl">
-          <button type="button" onClick={onClose} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-          >
-            Start test call
-          </button>
-        </div>
-      </div>
-
-      {/* Agent dropdown */}
-      {agentMenuOpen && anchor && (
-        <>
-          <div className="fixed inset-0 z-[202]" onClick={() => setAgentMenuOpen(false)} />
-          <div className="fixed z-[203]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
-            <SelectMenu
-              options={AGENT_OPTIONS}
-              value={agent ? [agent] : []}
-              onChange={(val) => { setAgent(val[0] ?? ''); setAgentMenuOpen(false) }}
-            />
-          </div>
-        </>
-      )}
-    </>
-  )
-}
 //
 // function ImportNumberButton({ onSelect }: { onSelect: (source: 'twilio' | 'sip') => void }) {
 //   const [open, setOpen] = useState(false)
@@ -417,7 +333,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
   const [form, setForm] = useState<ImportState>(EMPTY_IMPORT)
   const [verified, setVerified]   = useState(false)
   const [verifying, setVerifying] = useState(false)
-  const [locationTooltip, setLocationTooltip] = useState<{ x: number; y: number } | null>(null)
+
 
   useEffect(() => {
     if (!open) {
@@ -460,7 +376,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={18} />
             </button>
-            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Import number'}</span>
+            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Add number'}</span>
           </div>
           <button
             type="button"
@@ -484,8 +400,8 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
               })
               onClose()
             }}
-            className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
-              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary hover:bg-primary-hover'
+            className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
+              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary text-white hover:bg-primary-hover'
             }`}
           >
             Save
@@ -555,7 +471,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
 
           {/* Username */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Username <span className="text-text-tertiary">(Optional)</span></label>
+            <label className="text-small text-text-secondary">Username</label>
             <input
               type="text"
               placeholder="Enter username"
@@ -567,7 +483,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
 
           {/* Password */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Password <span className="text-text-tertiary">(Optional)</span></label>
+            <label className="text-small text-text-secondary">Password</label>
             <input
               type="password"
               placeholder="Enter password"
@@ -606,36 +522,21 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             )}
           </div>
 
-          {/* Location — unlocked after verify */}
-          <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
-            Assign to a location to start routing calls.
-          </p>
-          <div
-            onMouseEnter={(e) => {
-              if (!verified) {
-                const r = e.currentTarget.getBoundingClientRect()
-                setLocationTooltip({ x: r.left + r.width / 2, y: r.bottom + 6 })
-              }
-            }}
-            onMouseLeave={() => setLocationTooltip(null)}
-          >
-            <DropdownField
-              label="Location"
-              options={LOCATION_OPTIONS}
-              value={form.location}
-              multi
-              placeholder="Select location"
-              disabled={!verified}
-              onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
-            />
-          </div>
-          {locationTooltip && (
-            <div
-              className="pointer-events-none fixed z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
-              style={{ left: locationTooltip.x, top: locationTooltip.y }}
-            >
-              Complete SIP trunking setup and verify your connection first.
-            </div>
+          {/* Location — visible only after verify */}
+          {verified && (
+            <>
+              <p className="mt-[16px] text-body text-text-secondary">
+                Assign to a location to start routing calls.
+              </p>
+              <DropdownField
+                label="Location"
+                options={LOCATION_OPTIONS}
+                value={form.location}
+                multi
+                placeholder="Select location"
+                onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
+              />
+            </>
           )}
 
         </div>
@@ -762,7 +663,6 @@ export function PhoneNumber2Screen() {
   const [rows, setRows] = useState<PhoneNumber2Row[]>(DEFAULT_ROWS)
   const [importOpen, setImportOpen] = useState(false)
   const [editRow, setEditRow] = useState<PhoneNumber2Row | null>(null)
-  const [testCallRow, setTestCallRow] = useState<PhoneNumber2Row | null>(null)
   const [callForwardingOpen, setCallForwardingOpen] = useState(false)
 
 
@@ -791,7 +691,7 @@ export function PhoneNumber2Screen() {
                 onClick={() => setImportOpen(true)}
                 className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
-                Import number
+                Add number
               </button>
             </div>
           )}
@@ -803,9 +703,9 @@ export function PhoneNumber2Screen() {
             <div className="flex flex-1 flex-col items-center justify-center py-3xl">
               <img src={emptyPhoneNumberUrl} alt="" className="w-[200px]" />
               <div className="mt-lg flex flex-col items-center gap-sm text-center">
-                <span className="text-h3 text-text-primary">Import phone number</span>
+                <span className="text-h3 text-text-primary">Add phone number</span>
                 <span className="max-w-[420px] text-body text-text-tertiary">
-                  Start adding your agent phone numbers to assign them to locations and route calls from one place.
+                  Add phone numbers to start routing calls across your locations.
                 </span>
               </div>
               <button
@@ -813,7 +713,7 @@ export function PhoneNumber2Screen() {
                 onClick={() => setImportOpen(true)}
                 className="mt-2xl flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
-                Import number
+                Add number
               </button>
             </div>
           ) : (
@@ -821,9 +721,6 @@ export function PhoneNumber2Screen() {
               <DataTable
                 columns={COLUMNS2}
                 data={rows}
-                rowActions={[
-                  { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
-                ]}
                 rowMenuItems={[
                   { label: 'Edit',   onClick: (row) => setEditRow(row) },
                   { label: 'Delete', onClick: (row) => setRows((prev) => prev.filter((r) => r !== row)) },
@@ -834,12 +731,6 @@ export function PhoneNumber2Screen() {
         </div>
 
       </div>
-
-      {/* Test call modal */}
-      <TestCallModal
-        open={testCallRow !== null}
-        onClose={() => setTestCallRow(null)}
-      />
 
       {/* Call forwarding modal */}
       <CallForwardingDrawer open={callForwardingOpen} onClose={() => setCallForwardingOpen(false)} />

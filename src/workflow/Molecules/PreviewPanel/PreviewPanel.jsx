@@ -247,12 +247,213 @@ function TranscriptMessages({ messages, interim }) {
   );
 }
 
+/* ── Outbound (Reminder Agent) preview panel ────────────────── */
+function OutboundPreviewPanel({ onClose, onToggleLogs, logsView, onTestCall }) {
+  const [callState, setCallState] = useState('idle'); // idle | calling | done
+  const [outcome, setOutcome] = useState(null); // answered | rejected | missed | voicemail
+  const [skipDelays, setSkipDelays] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toast, setToast] = useState(false);
+
+  const handleCall = () => {
+    setCallState('calling');
+    setTimeout(() => {
+      setCallState('done');
+      setToast(true);
+      setTimeout(() => setToast(false), 3000);
+    }, 2000);
+  };
+
+  const handleReset = () => {
+    setCallState('idle');
+    setOutcome(null);
+  };
+
+  const OUTCOMES = [
+    { id: 'answered',  label: 'Answered',  icon: 'call' },
+    { id: 'rejected',  label: 'Rejected',  icon: 'call_end' },
+    { id: 'missed',    label: 'Missed',    icon: 'phone_missed' },
+    { id: 'voicemail', label: 'Voicemail', icon: 'voicemail' },
+  ];
+
+  return (
+    <div className="preview-panel" style={{ position: 'relative' }}>
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+          background: '#16a34a', color: '#fff', borderRadius: 8, padding: '8px 16px',
+          fontSize: 13, zIndex: 99, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+        }}>
+          Outbound call initiated
+        </div>
+      )}
+
+      {/* Header */}
+      <PreviewSidePanelHeader
+        panel={logsView ? 'logs' : 'preview'}
+        onToggle={onToggleLogs}
+        showClose={true}
+        onClose={onClose}
+        showViewLogs={true}
+        logsLinkDisabled={false}
+      />
+
+      <div className="preview-panel__body" style={{ overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* Appointment details card */}
+        <div style={{ position: 'relative', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: '8px 12px' }}>
+          {/* Card header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, color: '#9ca3af' }}>Appointment details</span>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(v => !v)}
+              aria-label="Edit settings"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 4, border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
+            </button>
+          </div>
+
+          {/* Name + status chip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 14, color: '#111827', lineHeight: '20px' }}>Sarah Lawson</span>
+            <span style={{ fontSize: 11, color: '#166534', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 20, padding: '1px 8px', lineHeight: '18px' }}>Confirmed</span>
+          </div>
+
+          {/* Detail rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#9ca3af' }}>calendar_today</span>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>Teeth cleaning · Jun 15 at 10:00 AM</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#9ca3af' }}>call</span>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>+1(404)555-1092</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#9ca3af' }}>notifications</span>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>24-hour reminder · Voice call</span>
+            </div>
+          </div>
+
+          {/* Inline settings panel — shown when pencil is clicked */}
+          {settingsOpen && (
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #f3f4f6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 12, color: '#374151' }}>Skip delays</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af' }}>Run workflow without wait steps</div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={skipDelays}
+                  onClick={() => setSkipDelays(v => !v)}
+                  style={{
+                    width: 30, height: 16, borderRadius: 8, border: 'none', cursor: 'pointer',
+                    background: skipDelays ? '#2563eb' : '#d1d5db', padding: 2,
+                    display: 'flex', alignItems: 'center', transition: 'background 0.2s', flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    width: 12, height: 12, borderRadius: '50%', background: '#fff',
+                    transform: skipDelays ? 'translateX(14px)' : 'translateX(0)',
+                    transition: 'transform 0.2s',
+                  }} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Outbound call CTA */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '20px 14px' }}>
+          <button
+            type="button"
+            onClick={callState === 'done' ? handleReset : handleState => handleCall()}
+            aria-label="Initiate outbound call"
+            style={{
+              width: 64, height: 64, borderRadius: '50%', border: 'none', cursor: 'pointer',
+              background: callState === 'calling' ? '#d1fae5' : callState === 'done' ? '#16a34a' : '#2563eb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s',
+              boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
+            }}
+          >
+            {callState === 'calling' ? (
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%',
+                border: '3px solid #16a34a', borderTopColor: 'transparent',
+                animation: 'spin 0.7s linear infinite',
+              }} />
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: 26, color: '#fff' }}>
+                {callState === 'done' ? 'replay' : 'phone_forwarded'}
+              </span>
+            )}
+          </button>
+          <span style={{ fontSize: 13, color: '#374151' }}>
+            {callState === 'calling' ? 'Calling...' : callState === 'done' ? 'Call complete — try again' : 'Initiate outbound call'}
+          </span>
+        </div>
+
+        {/* Section 4: Simulate call outcome */}
+        {callState === 'done' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>Simulate call outcome</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {OUTCOMES.map(o => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => setOutcome(o.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
+                    border: `2px solid ${outcome === o.id ? '#2563eb' : '#e5e7eb'}`,
+                    borderRadius: 8, background: outcome === o.id ? '#eff6ff' : '#fff',
+                    cursor: 'pointer', fontSize: 13, color: '#111827',
+                    boxShadow: outcome === o.id ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: outcome === o.id ? '#2563eb' : '#6b7280' }}>{o.icon}</span>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            {outcome && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 12, color: '#166534' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>
+                Outcome set to <strong style={{ marginLeft: 3 }}>{OUTCOMES.find(o2 => o2.id === outcome)?.label}</strong>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Info tip */}
+        <div style={{ display: 'flex', gap: 8, padding: '10px 12px', background: '#fafafa', border: '1px solid #f3f4f6', borderRadius: 8 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#9ca3af', marginTop: 1, flexShrink: 0 }}>info</span>
+          <span style={{ fontSize: 12, color: '#6b7280', lineHeight: '18px' }}>
+            This preview simulates a real outbound reminder call. No actual call is placed and no messages are sent to the patient.
+          </span>
+        </div>
+
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
 export default function PreviewPanel({
   onClose,
   onPreviewActiveChange,
   showClose = true,
   showViewDetails = true,
   showViewLogs = true,
+  agentName = '',
+  onTestCall = null,
 }) {
   const [panelView, setPanelView]   = useState('preview'); // preview | logs | details
   const [phase, setPhase]         = useState('idle');   // idle | dialing | active | ended
@@ -467,6 +668,19 @@ export default function PreviewPanel({
   const chatInputDisabled = phase === 'ended' || agentTalking;
 
   /* ── Render ─────────────────────────────────────────────── */
+
+  // Outbound agents get a different preview UI
+  const isOutbound = /reminder/i.test(agentName);
+  if (isOutbound) {
+    return (
+      <OutboundPreviewPanel
+        onClose={() => { handleReset(); onClose?.(); }}
+        onToggleLogs={handleToggleView}
+        logsView={showLogs}
+        onTestCall={onTestCall}
+      />
+    );
+  }
 
   return (
     <>

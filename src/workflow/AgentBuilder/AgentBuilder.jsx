@@ -546,6 +546,7 @@ export default function AgentBuilder({
   onAddProcedure,
   publishDisabled = false,
   defaultOpenSection = 'Tasks',
+  onTestCall,
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -1875,6 +1876,8 @@ export default function AgentBuilder({
               <PreviewPanel
                 onClose={() => { setPreviewOpen(false); setPreviewActive(false); }}
                 onPreviewActiveChange={setPreviewActive}
+                agentName={agentName}
+                onTestCall={onTestCall}
               />
             </div>
           )}

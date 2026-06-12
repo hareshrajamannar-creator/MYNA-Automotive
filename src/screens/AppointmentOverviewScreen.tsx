@@ -65,7 +65,7 @@ const OVERTIME_SERIES = [
   { key: 'cancelled',   label: 'Cancelled',   color: '#ef4444' },
 ]
 
-// ── No-shows prevented ──────────────────────────────────────────────────────
+// ── Appointment confirmation ──────────────────────────────────────────────────────
 const NO_SHOW_DATA = [
   { month: 'Dec', prevented: 454 },
   { month: 'Jan', prevented: 146 },
@@ -173,11 +173,11 @@ export function AppointmentOverviewScreen() {
             />
           </ChartCard>
 
-          {/* No-shows prevented + Insurances verified */}
+          {/* Appointment confirmation + Insurances verified */}
           <div className="grid grid-cols-2 gap-lg">
-            <ChartCard title="No-shows prevented">
+            <ChartCard title="Appointment confirmation">
               <ChartStatRow stats={[
-                { value: '275',  label: 'No-shows prevented' },
+                { value: '275',  label: 'Appointment confirmation' },
                 { value: '9.7%', label: 'No-show rate'       },
               ]} />
               <StackedBarChart

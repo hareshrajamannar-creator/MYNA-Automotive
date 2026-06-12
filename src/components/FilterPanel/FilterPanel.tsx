@@ -38,8 +38,8 @@ export function FilterPanel({
           <h2 className="text-h3 text-text-primary">Filter</h2>
         </div>
 
-        {/* Fields */}
-        <div className="flex flex-1 flex-col gap-sm overflow-y-auto px-xl pb-2xl">
+        {/* Fields — scrollable, padded bottom so content clears the sticky footer */}
+        <div className="flex flex-1 flex-col gap-sm overflow-y-auto px-xl pb-[56px]">
           <div className="flex flex-col gap-sm">
             {fields.map((field) => {
               const count = selections[field.id]?.length ?? 0
@@ -65,11 +65,14 @@ export function FilterPanel({
               )
             })}
           </div>
+        </div>
 
+        {/* Advanced filters — sticky at bottom */}
+        <div className="sticky bottom-0 w-[280px] bg-surface px-xl py-md">
           <Link
             as="button"
             onClick={onAdvancedFilters}
-            className="self-start rounded-sm py-xs text-body font-normal text-primary"
+            className="rounded-sm py-xs text-body font-normal text-primary"
           >
             Advanced filters
           </Link>

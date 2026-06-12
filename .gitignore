@@ -13,3 +13,4 @@ vite.config.d.ts
 .DS_Store
 .claude
 vite.config.js.timestamp-*.mjs
+dummy/

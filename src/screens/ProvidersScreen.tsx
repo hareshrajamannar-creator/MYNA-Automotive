@@ -317,7 +317,7 @@ export function ProvidersScreen() {
   const [availableMap, setAvailableMap] = useState<Record<number, boolean>>(
     Object.fromEntries(PROVIDERS.map((p, i) => [i, p.available]))
   )
-  const [_location] = useState('San Francisco, CA')
+  const [selectedLocation, setSelectedLocation] = useState<string[]>([])
 
   // Sort: available rows first
   const sortedProviders = [...PROVIDERS].sort((a, b) => {
@@ -403,9 +403,15 @@ export function ProvidersScreen() {
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="search" size={20} />
             </button>
-            <select className="h-9 rounded-sm border border-border-selected bg-surface pl-md pr-2xl text-body text-text-primary hover:bg-surface-l2 focus:outline-none">
-              <option>{_location}</option>
-            </select>
+            <div className="w-48 [&>div>div:first-child]:hidden">
+              <DropdownField
+                label=""
+                options={LOCATION_OPTIONS}
+                value={selectedLocation}
+                placeholder="All locations"
+                onChange={setSelectedLocation}
+              />
+            </div>
             <button
               type="button"
               onClick={() => setToastVisible(true)}

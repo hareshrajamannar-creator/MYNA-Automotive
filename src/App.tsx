@@ -19,6 +19,7 @@ import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
 import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
 import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
+import { DentalRevenueScreen } from './screens/DentalRevenueScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -117,8 +118,8 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     id: 'outcomes',
     label: 'Outcomes',
     items: [
-      { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview' },
-      { id: 'auto-no-shows',             label: 'No shows prevented' },
+      { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview'      },
+      { id: 'auto-no-shows',             label: 'Appointment confirmation' },
     ],
   },
   {
@@ -160,7 +161,7 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
-      { id: 'hc-no-shows',           label: 'No shows prevented' },
+      { id: 'hc-no-shows',           label: 'No-shows prevented'      },
       { id: 'hc-waitlist',           label: 'Waitlist filled'    },
       { id: 'hc-intakes',            label: 'Intakes completed'  },
     ],
@@ -207,18 +208,24 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     id: 'outcomes',
     label: 'Outcomes',
     items: [
-      { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
-      { id: 'dental-no-shows',           label: 'No shows prevented'   },
-      { id: 'dental-waitlist',           label: 'Waitlist filled'       },
-      { id: 'dental-intakes',            label: 'Intakes completed'     },
+      { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'       },
+      { id: 'dental-no-shows',           label: 'Appointment confirmation' },
+      { id: 'dental-waitlist',           label: 'Waitlist filled'          },
+      { id: 'dental-intakes',            label: 'Intakes completed'        },
+      { id: 'dental-revenue',            label: 'Revenue generated'        },
     ],
   },
   {
     id: 'resources',
     label: 'Resources',
     items: [
-      { id: 'providers',         label: 'Providers'  },
-      { id: 'procedure-library', label: 'Procedures' },
+      { id: 'providers',         label: 'Providers'        },
+      { id: 'appointment-type',  label: 'Appointment type' },
+      { id: 'availability',      label: 'Availability'     },
+      { id: 'procedure-library', label: 'Procedures'       },
+      { id: 'phone-number',      label: 'Phone number'     },
+      { id: 'knowledge-base',    label: 'Knowledge base', external: true },
+      { id: 'widgets',           label: 'Widgets',        external: true },
     ],
   },
 ]
@@ -248,11 +255,14 @@ const PRODUCT_BRAND: Record<string, string> = {
 }
 
 const AGENT_NAMES: Record<string, string> = {
-  'frontdesk-agent': 'Front desk agent',
-  'reminder-agent':  'Reminder agent',
-  'outreach-agent':  'Outreach agent',
-  'waitlist-agent':  'Waitlist agent',
-  'pre-visit-agent': 'Pre-visit agent',
+  'frontdesk-agent':      'Front desk agent',
+  'reminder-agent':       'Reminder agent',
+  'outreach-agent':       'Outreach agent',
+  'waitlist-agent':       'Waitlist agent',
+  'pre-visit-agent':      'Pre-visit agent',
+  'recall-agent':         'Recall agent',
+  'revenue-agent':        'Revenue agent',
+  'treatment-plan-agent': 'Treatment plan agent',
 }
 
 
@@ -424,13 +434,15 @@ export function App() {
         ) : navActive === 'hc-availability' || navActive === 'availability' ? (
           <AvailabilityScreen />
         ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' || navActive === 'auto-frontdesk-overview' ? (
-          <HCFrontdeskOverviewScreen />
+          <HCFrontdeskOverviewScreen isDental={navActive === 'dental-frontdesk-overview'} />
         ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' || navActive === 'auto-no-shows' ? (
-          <HCNoShowsScreen />
+          <HCNoShowsScreen isDental={navActive === 'dental-no-shows'} />
         ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
-          <HCWaitlistFilledScreen />
+          <HCWaitlistFilledScreen isDental={navActive === 'dental-waitlist'} />
         ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
-          <HCIntakesCompletedScreen />
+          <HCIntakesCompletedScreen isDental={navActive === 'dental-intakes'} />
+        ) : navActive === 'dental-revenue' ? (
+          <DentalRevenueScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

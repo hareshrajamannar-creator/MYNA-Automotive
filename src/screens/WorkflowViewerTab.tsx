@@ -22,9 +22,10 @@ interface WorkflowViewerTabProps {
   instanceName: string
   onEdit: () => void
   product?: string
+  onTestCall?: () => void
 }
 
-export function WorkflowViewerTab({ instanceName, onEdit, product }: WorkflowViewerTabProps) {
+export function WorkflowViewerTab({ instanceName, onEdit, product, onTestCall }: WorkflowViewerTabProps) {
   const { procedures } = useProcedureStore()
   // instanceName is e.g. "Frontdesk agent - North region"; extract the agent name prefix
   const agentName = instanceName.replace(/ - .+$/, '')
@@ -68,6 +69,7 @@ export function WorkflowViewerTab({ instanceName, onEdit, product }: WorkflowVie
             viewOnly={true}
             onEdit={onEdit}
             product={product ?? 'automotive'}
+            onTestCall={onTestCall}
             moduleSlug="myna"
             moduleContext="myna"
             sectionContext="workflow"

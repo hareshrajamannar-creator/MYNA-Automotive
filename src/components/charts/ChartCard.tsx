@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChartCardButton } from './ChartCardButton'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 
 export interface ChartCardProps {
   title: string
+  /** When provided, renders an info icon next to the title that shows this text on hover. */
+  tooltip?: string
   /** Renders inline immediately after the title text. */
   titleSuffix?: ReactNode
   /** Optional content shown between the title and the menu (e.g. mini KPIs). */
@@ -13,6 +16,15 @@ export interface ChartCardProps {
   leftActionIcon?: string
   className?: string
   children: ReactNode
+}
+
+function ChartCardTitle({ title, tooltip }: { title: string; tooltip?: string }) {
+  return (
+    <div className="flex items-center gap-xs">
+      <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+      {tooltip && <InfoTooltip text={tooltip} />}
+    </div>
+  )
 }
 
 function MoreMenu() {
@@ -48,12 +60,12 @@ function MoreMenu() {
   )
 }
 
-export function ChartCard({ title, titleSuffix, toolbar, showActions = true, className = '', children }: ChartCardProps) {
+export function ChartCard({ title, tooltip, titleSuffix, toolbar, showActions = true, className = '', children }: ChartCardProps) {
   return (
     <section className={`flex min-h-[400px] flex-col rounded-md border border-border bg-surface p-2xl ${className}`}>
       <header className="mb-2xl flex shrink-0 items-center justify-between gap-md">
         <div className="flex items-center gap-xs">
-          <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+          <ChartCardTitle title={title} tooltip={tooltip} />
           {titleSuffix}
         </div>
         <div className="flex items-center gap-sm">

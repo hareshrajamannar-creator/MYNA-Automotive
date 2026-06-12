@@ -153,7 +153,7 @@ export function StackedBarChart({ data, series, xKey, height = 300, grouped = fa
             maxBarSize={24}
             isAnimationActive={false}
           >
-            {showBarLabels && (
+            {showBarLabels && i === series.length - 1 && (
               <LabelList
                 dataKey={s.key}
                 position="top"
