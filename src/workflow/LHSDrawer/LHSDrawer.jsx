@@ -368,8 +368,8 @@ export const HEALTHCARE_PROCEDURE_CARDS = [
   { label: 'Handle slot conflict',               svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle slot conflict' },
   { label: 'Handle booking failure',             svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle booking failure' },
   { label: 'Verify insurance',                   svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Verify insurance' },
-  { label: 'Appointment confirmation',           svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Appointment confirmation' },
-  { label: 'Waitlist slot confirmation',         svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Waitlist slot confirmation' },
+  { label: 'Confirm appointment',           svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Confirm appointment' },
+  { label: 'Confirm waitlist slot',         svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Confirm waitlist slot' },
   { label: 'Handle emergency or urgent concern', svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle emergency or urgent concern' },
   { label: 'Handle unclear message',             svgIcon: true, action: 'drag', nodeType: 'procedures', procedureId: 'Handle unclear message' },
 ];
