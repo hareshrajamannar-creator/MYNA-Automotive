@@ -57,110 +57,6 @@ const FRONTDESK_NODE_DETAILS: Record<string, any> = {
 }
 
 // ─── Reminder Agent ──────────────────────────────────────────────────────────
-// Workflow: Conversation trigger → Send confirmation → Delay 24h → SMS reminder
-//           → Branch (Confirmed | Reschedule | No response → Delay 22h → Voice call)
-
-const REMINDER_NODES = [
-  { id: 'rem-1', ...CONV_TRIGGER, data: { ...CONV_TRIGGER.data, title: 'Appointment Scheduled' } },
-  {
-    id: 'rem-2',
-    flowType: 'task',
-    data: { title: 'Send Appointment Confirmation', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' },
-  },
-  {
-    id: 'rem-3',
-    flowType: 'delay',
-    data: { title: 'Wait until T-24h', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter delay name', descriptionPlaceholder: 'Enter description' },
-  },
-  {
-    id: 'rem-4',
-    flowType: 'task',
-    data: { title: 'T-24h SMS Reminder', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' },
-  },
-  {
-    id: 'rem-5',
-    flowType: 'branch',
-    data: { title: 'Customer Response', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Enter description' },
-  },
-]
-
-const REMINDER_NODE_DETAILS: Record<string, any> = {
-  '__start__': {
-    agentName: 'Reminder agent',
-    goals: 'Manage appointment confirmation and reminder journeys through multi-channel touchpoints — SMS, voice, and email — to reduce no-shows and improve service lane throughput.',
-    outcomes: 'Appointment confirmation rates improve, no-shows decrease, and customers receive timely reminders with one-click reschedule options.',
-    locations: ['1001 - Mountain View, CA', '1002 - Seattle, WA', '1004 - Chicago, IL'],
-  },
-  'rem-1': {
-    triggerName: 'Appointment Scheduled',
-    description: 'Fires when a new appointment is created or confirmed in the DMS for any configured location.',
-    voiceConditions: [{ field: 'event', operator: 'is', value: 'Appointment created in DMS' }],
-    webchatConditions: [{ field: 'event', operator: 'is', value: 'SMS opt-in received' }],
-  },
-  'rem-2': {
-    taskName: 'Send Appointment Confirmation',
-    description: 'Send immediate SMS confirmation with appointment details, date, time, and service advisor name.',
-    selectedTools: ['send-confirmation'],
-  },
-  'rem-3': { name: 'Wait until T-24h', duration: '24', unit: 'hours' },
-  'rem-4': {
-    taskName: 'T-24h SMS Reminder',
-    description: 'Send SMS reminder with confirm/reschedule quick-reply options 24 hours before the appointment.',
-    selectedTools: ['schedule-appointment'],
-  },
-  'rem-5': {
-    basedOn: 'conditions',
-    branches: [
-      { id: 'rem-5-path-1', name: 'Confirmed' },
-      { id: 'rem-5-path-2', name: 'Reschedule Requested' },
-      { id: 'rem-5-path-fallback', name: 'No response', isFallback: true },
-    ],
-  },
-  'rem-5-path-1': {
-    branchName: 'Confirmed',
-    description: 'Customer confirmed appointment via quick-reply or voice',
-    conditions: [],
-    parentId: 'rem-5',
-    isBranchPath: true,
-    nodes: [
-      { id: 'rem-6', flowType: 'task', data: { title: 'Mark Confirmed & Close Journey', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' } },
-    ],
-  },
-  'rem-5-path-2': {
-    branchName: 'Reschedule Requested',
-    description: 'Customer requested to reschedule or cancel',
-    conditions: [],
-    parentId: 'rem-5',
-    isBranchPath: true,
-    nodes: [
-      { id: 'rem-7', flowType: 'procedures', data: { title: 'Process Reschedule', subtype: 'Procedures', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' } },
-    ],
-  },
-  'rem-5-path-fallback': {
-    branchName: 'No response',
-    description: 'No response received — escalate to T-2h voice call',
-    conditions: [],
-    parentId: 'rem-5',
-    isBranchPath: true,
-    isFallback: true,
-    nodes: [
-      { id: 'rem-8', flowType: 'delay', data: { title: 'Wait until T-2h', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter delay name', descriptionPlaceholder: 'Enter description' } },
-      { id: 'rem-9', flowType: 'task', data: { title: 'T-2h Voice Confirmation Call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' } },
-    ],
-  },
-  'rem-6': {
-    taskName: 'Mark Confirmed & Close Journey',
-    description: 'Mark appointment as confirmed in DMS and end the reminder journey.',
-    selectedTools: ['crm-update'],
-  },
-  'rem-7': { procedureIds: ['Reschedule / Cancel Appointment'] },
-  'rem-8': { name: 'Wait until T-2h', duration: '22', unit: 'hours' },
-  'rem-9': {
-    taskName: 'T-2h Voice Confirmation Call',
-    description: 'Place outbound voice call for final confirmation 2 hours before the appointment.',
-    selectedTools: ['voice-call'],
-  },
-}
 
 // ─── Outreach Agent ──────────────────────────────────────────────────────────
 // Workflow: Conversation trigger → LLM outreach call → Branch (Interested | No Answer | Objection)
@@ -298,13 +194,6 @@ const FRONTDESK_HC_NODE_DETAILS: Record<string, any> = {
   },
 }
 
-// ─── Export ───────────────────────────────────────────────────────────────────
-
-export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
-  'Front desk agent': { nodes: FRONTDESK_NODES, nodeDetails: FRONTDESK_NODE_DETAILS },
-  'Reminder agent':  { nodes: REMINDER_NODES,  nodeDetails: REMINDER_NODE_DETAILS  },
-  'Outreach agent':  { nodes: OUTREACH_NODES,  nodeDetails: OUTREACH_NODE_DETAILS  },
-}
 
 const HEALTHCARE_REMINDER_NODES = [
   { id: 'hcr-1', flowType: 'trigger',    data: { title: 'Appointment is booked',          subtype: 'Appointment booked', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name',          descriptionPlaceholder: 'Enter description' } },
@@ -584,6 +473,12 @@ const HEALTHCARE_REMINDER_NODE_DETAILS: Record<string, any> = {
   'hcr-9':  { taskName: 'Send text reminder', description: '3 hours before', selectedTools: ['send-confirmation'] },
   'hcr-10': { taskName: 'Send text reminder', description: '3 hours before', selectedTools: ['send-confirmation'] },
   'hcr-11': { name: 'Wait 2 hours', duration: '2', unit: 'hours' },
+}
+
+export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
+  'Front desk agent': { nodes: FRONTDESK_NODES,           nodeDetails: FRONTDESK_NODE_DETAILS           },
+  'Reminder agent':  { nodes: HEALTHCARE_REMINDER_NODES,  nodeDetails: HEALTHCARE_REMINDER_NODE_DETAILS },
+  'Outreach agent':  { nodes: OUTREACH_NODES,             nodeDetails: OUTREACH_NODE_DETAILS            },
 }
 
 export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
