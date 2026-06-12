@@ -65,28 +65,28 @@ const INITIAL_SCHEDULE: Record<DayKey, DaySchedule> = {
     enabled: true,
     windows: [
       { id: 'w1', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
-      { id: 'w2', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w2', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   wed: {
     enabled: true,
     windows: [
       { id: 'w3', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
-      { id: 'w4', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w4', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   thu: {
     enabled: true,
     windows: [
       { id: 'w5', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
-      { id: 'w6', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w6', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   fri: {
     enabled: true,
     windows: [
       { id: 'w7', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
-      { id: 'w8', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w8', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   sat: { enabled: false, windows: [] },
@@ -377,13 +377,13 @@ export function AvailabilityScreen() {
             <div className="flex items-center gap-sm rounded-sm border border-border bg-surface-hover px-lg py-md">
               <Icon name="info" size={18} className="shrink-0 text-text-secondary" />
               <p className="text-body text-text-secondary">
-                Define each provider's availability and appointment types. These are not actual appointments — they are the rules the booking agent uses to find and offer open slots.
+                Define each provider's availability and appointment types. These are the rules used to find and offer open slots, not actual appointments.
               </p>
             </div>
 
             {/* Provider selector */}
             <div className="flex items-center gap-md">
-              <label className="text-body text-text-secondary">Select provider:</label>
+              <label className="text-body text-text-secondary">Provider</label>
               <select
                 value={provider}
                 onChange={e => setProvider(e.target.value)}
@@ -449,13 +449,13 @@ export function AvailabilityScreen() {
               })}
             </div>
 
-            {/* Time off & closures */}
+            {/* Time off and closures */}
             <div className="flex flex-col gap-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-[16px] text-text-primary">Time off & closures</h2>
+                  <h2 className="text-[16px] text-text-primary">Time off and closures</h2>
                   <p className="mt-xs text-small text-text-secondary">
-                    Block full days when the clinic is closed or a provider is unavailable. The agent won't offer slots on these dates, overriding the weekly booking windows.
+                    Block full days when the clinic is closed or a provider is unavailable. No slots will be offered on these dates, overriding the weekly booking windows.
                   </p>
                 </div>
                 <button

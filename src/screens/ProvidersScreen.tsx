@@ -332,7 +332,7 @@ export function ProvidersScreen() {
     },
     { key: 'role', label: 'Role', width: 160, sortable: true },
     {
-      key: 'operatory', label: 'Operatory', width: 180, sortable: true,
+      key: 'operatory', label: 'Exam room', width: 180, sortable: true,
       render: (_v, row) => {
         const parts = (row.operatory as string).split(', ')
         return (
@@ -388,8 +388,8 @@ export function ProvidersScreen() {
         {/* Page header */}
         <div className="flex items-center justify-between bg-surface px-2xl py-xl">
           <div className="flex flex-col gap-xs">
-            <span className="text-h2 text-text-primary">9 Providers</span>
-            <span className="text-small text-text-secondary">Manage your business providers here</span>
+            <span className="text-h2 text-text-primary">Providers</span>
+            <span className="text-small text-text-secondary">Manage the providers at your practice</span>
           </div>
           <div className="flex items-center gap-sm">
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
@@ -415,7 +415,7 @@ export function ProvidersScreen() {
             <div className="flex items-start gap-sm rounded-sm border border-primary/30 bg-primary/5 px-md py-sm">
               <Icon name="info" size={18} className="mt-0.5 shrink-0 text-primary" />
               <p className="flex-1 text-small text-text-primary">
-                Update the display name, map operatories, set bookable status, and assign appointment types. To add or remove a provider, do it in your PMS and click Sync.
+                Update display names, set bookable status, and assign appointment types. To add or remove a provider, make the change in your PMS and sync.
               </p>
               <button type="button" onClick={() => setBannerDismissed(true)} className="shrink-0 text-text-icon hover:text-text-primary">
                 <Icon name="close" size={16} />
