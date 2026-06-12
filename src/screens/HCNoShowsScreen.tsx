@@ -5,59 +5,67 @@ import {
   DataTable,
   DateRangeSelector,
   DonutChart,
-  FilterPanel,
-  Icon,
   ReportHeader,
   SankeyChart,
   StackedBarChart,
   SummaryStats,
   TopNav,
   type Column,
-  type FilterField,
   type SankeyLink,
   type SankeyNode,
 } from '../components'
-
-const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
 
 // Healthcare chart card — uses the tune icon for the left action button
 function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
-
-const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
   { id: 'bookings',   value: '450',   label: 'Total bookings',               delta: '20%',   trend: 'down' as const },
-  { id: 'confirmed',  value: '100',   label: 'Appointment confirmed',        delta: '36.6%', trend: 'up'   as const },
-  { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',  trend: 'up'   as const },
+  { id: 'reminders',  value: '2.4K',  label: 'Total reminders sent',         delta: '12%',   trend: 'up'   as const },
+  { id: 'prevented',  value: '100',   label: 'No-shows prevented',           delta: '36.6%', trend: 'up'   as const },
+  { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',   trend: 'up'   as const },
 ]
 
-// 0=Text, 1=Voice, 2=Webchat                        (channel)
-// 3=Confirmed, 4=Declined & rescheduled, 5=Pending  (outcome)
-// 6=<1hr, 7=1-4hrs, 8=4-24hrs, 9=>24hrs            (time to confirm)
+// 0=Agent communications, 1=SMS, 2=Email, 3=Voice,
+// 4=<1hr, 5=1-4hrs, 6=4-24hrs, 7=>24hrs,
+// 8=Confirmed, 9=Pending, 10=No response, 11=Declined
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Text (56%)' }, { name: 'Voice (26%)' }, { name: 'Webchat (18%)' },
-  { name: 'Confirmed (52.4%)' }, { name: 'Declined & rescheduled (21.8%)' }, { name: 'Pending (25.8%)' },
+  {
+    name: 'Agent communications',
+    breakdown: [
+      { label: 'Reminder agent – North region', pct: '42%', value: 2634 },
+      { label: 'Reminder agent – South region', pct: '35%', value: 2191 },
+      { label: 'Reminder agent – West region',  pct: '23%', value: 1440 },
+    ],
+  },
+  { name: 'SMS (50.5%)' }, { name: 'Email (37.5%)' }, { name: 'Voice (12%)' },
   { name: '<1hr (41.7%)' }, { name: '1-4hrs (31.3%)' }, { name: '4-24hrs (17.2%)' }, { name: '>24hrs (9.9%)' },
+  { name: 'Confirmed (23.7%)' }, { name: 'Pending (17.2%)' }, { name: 'No response (38.3%)' }, { name: 'Declined (20.8%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
-  // channel → outcome
-  { source: 0, target: 3, value: 30 }, { source: 0, target: 4, value: 13 }, { source: 0, target: 5, value: 14 },
-  { source: 1, target: 3, value: 15 }, { source: 1, target: 4, value: 6  }, { source: 1, target: 5, value: 7  },
-  { source: 2, target: 3, value: 8  }, { source: 2, target: 4, value: 3  }, { source: 2, target: 5, value: 5  },
-  // outcome → time to confirm (only Confirmed connects — Declined & rescheduled and Pending do not)
-  { source: 3, target: 6, value: 22 }, { source: 3, target: 7, value: 17 }, { source: 3, target: 8, value: 9  }, { source: 3, target: 9, value: 5  },
+  { source: 0, target: 1, value: 50 }, { source: 0, target: 2, value: 26 }, { source: 0, target: 3, value: 8  },
+  { source: 1, target: 4, value: 25 }, { source: 1, target: 5, value: 19 }, { source: 1, target: 6, value: 10 }, { source: 1, target: 7, value: 6  },
+  { source: 2, target: 4, value: 17 }, { source: 2, target: 5, value: 13 }, { source: 2, target: 6, value: 7  }, { source: 2, target: 7, value: 4  },
+  { source: 3, target: 4, value: 8  }, { source: 3, target: 5, value: 6  }, { source: 3, target: 6, value: 3  }, { source: 3, target: 7, value: 2  },
+  { source: 4, target: 8, value: 21 }, { source: 4, target: 9, value: 9  }, { source: 4, target: 10, value: 10 }, { source: 4, target: 11, value: 10 },
+  { source: 5, target: 8, value: 3  }, { source: 5, target: 9, value: 3  }, { source: 5, target: 10, value: 10 }, { source: 5, target: 11, value: 3  },
+  { source: 6, target: 8, value: 1  }, { source: 6, target: 9, value: 5  }, { source: 6, target: 10, value: 10 }, { source: 6, target: 11, value: 5  },
+  { source: 7, target: 8, value: 1  }, { source: 7, target: 9, value: 1  }, { source: 7, target: 10, value: 10 }, { source: 7, target: 11, value: 2  },
 ]
+// purple=agent, SMS=blue, Email=teal, Voice=light-orange, time=greens/orange/gray, outcomes
 const FUNNEL_NODE_COLORS: Record<number, string> = {
-  0: '#1976d2', 1: '#fbbf24', 2: '#9c27b0',
-  3: '#4cae3d', 4: '#de1b0c', 5: '#f59e0b',
+  0: '#7c4dff',
+  1: '#1976d2', 2: '#00bcd4', 3: '#fbbf24',
+  4: '#4cae3d', 5: '#8bc34a', 6: '#f59e0b', 7: '#bdbdbd',
+  8: '#4cae3d', 9: '#f59e0b', 10: '#9e9e9e', 11: '#ef4444',
 }
 
 const CHANNEL_DONUT = [
-  { name: 'Text',    value: 56.0, color: '#1976d2' },
-  { name: 'Voice',   value: 26.0, color: '#fbbf24' },
-  { name: 'Webchat', value: 18.0, color: '#9c27b0' },
+  { name: 'Voice', value: 43.2, color: '#3f51b5' },
+  { name: 'Email', value: 32.5, color: '#e91e63' },
+  { name: 'Text',  value: 24.3, color: '#f59e0b' },
 ]
 
 const REMINDERS_DATA = [
@@ -72,6 +80,11 @@ const REMINDERS_SERIES = [
   { key: 'sent',      label: 'Sent',      color: '#1976d2' },
   { key: 'confirmed', label: 'Confirmed', color: '#4cae3d' },
 ]
+
+function deltaSpan(delta: string) {
+  const isPos = delta.startsWith('+')
+  return <span className={`text-xs ml-1 ${isPos ? 'text-success' : 'text-danger'}`}>{delta}</span>
+}
 
 interface LocationRow {
   location: string
@@ -93,65 +106,33 @@ const LOCATION_DATA: LocationRow[] = [
   { location: 'Seattle, WA', totalBookings: 30,  noshowsPrevented: 15, cancelled: 16, confirmRate: '23.7%', confirmDelta: '+2%'  },
 ]
 const LOCATION_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',         label: 'Location',                     width: 180, sortable: true },
-  { key: 'totalBookings',    label: 'Total bookings',               width: 160, sortable: true },
-  { key: 'noshowsPrevented', label: 'Appointment confirmed',        width: 200, sortable: true },
+  { key: 'location',         label: 'Location',             width: 180, sortable: true },
+  { key: 'totalBookings',    label: 'Total bookings',       width: 160, sortable: true },
+  { key: 'noshowsPrevented', label: 'No-shows prevented',  width: 200, sortable: true },
+  { key: 'cancelled',        label: 'Cancelled',            width: 140, sortable: true },
   {
-    key: 'confirmRate', label: 'Appointment confirmation rate', width: 220, sortable: true,
-    render: (_v, row) => {
-      const delta = row.confirmDelta as string
-      const isPos = delta.startsWith('+')
-      return (
-        <span className="flex items-center gap-sm">
-          {row.confirmRate}
-          <span className={`text-xs ${isPos ? 'text-chip-success-text' : 'text-chip-danger-text'}`}>{delta}</span>
-        </span>
-      )
-    },
+    key: 'confirmRate', label: 'Confirmation rate', width: 180, sortable: true,
+    render: (_v, row) => <span>{row.confirmRate}{deltaSpan(row.confirmDelta as string)}</span>,
   },
 ]
 
-const DENTAL_FILTER_FIELDS: FilterField[] = [
-  { id: 'location',  label: 'Location',  options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
-  { id: 'provider',  label: 'Provider',  options: opts('Dr. Smith', 'Dr. Patel', 'Dr. Nguyen', 'Dr. Carter', 'Dr. Rivera') },
-  { id: 'agent',     label: 'Agent',     options: opts('Reminder agent', 'Front desk agent', 'Pre-visit agent') },
-  { id: 'channel',   label: 'Channel',   options: opts('Voice', 'Text', 'Webchat') },
-  { id: 'outcome',   label: 'Outcome',   options: opts('Confirmed', 'Declined & rescheduled', 'Pending') },
-]
-
-interface HCNoShowsScreenProps { isDental?: boolean }
-
-export function HCNoShowsScreen({ isDental }: HCNoShowsScreenProps) {
-  const [dateRange, setDateRange] = useState(isDental ? 'Last 6 months' : 'Last 3 months')
-  const [filterOpen, setFilterOpen] = useState(false)
+export function HCNoShowsScreen(_props: { isDental?: boolean }) {
+  const [dateRange, setDateRange] = useState('Last 3 months')
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-auto bg-surface">
+      <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
           title="No-shows prevented"
           subtitle="Insights into no-shows prevented across different channels and locations."
           rightSlot={
-            <div className="flex items-center gap-sm">
-              <DateRangeSelector
-                value={dateRange}
-                options={DATE_RANGE_OPTIONS}
-                onChange={setDateRange}
-              />
-              {isDental && (
-                <button
-                  type="button"
-                  aria-label="Filters"
-                  onClick={() => setFilterOpen((o) => !o)}
-                  className={`flex size-9 items-center justify-center rounded-sm text-text-icon ${filterOpen ? 'bg-surface-selected' : 'border border-border-selected bg-surface hover:bg-surface-l2'}`}
-                >
-                  <Icon name="filter_list" size={20} />
-                </button>
-              )}
-            </div>
+            <DateRangeSelector
+              value={dateRange}
+              options={DATE_RANGE_OPTIONS}
+              onChange={setDateRange}
+            />
           }
         />
 
@@ -159,23 +140,16 @@ export function HCNoShowsScreen({ isDental }: HCNoShowsScreenProps) {
 
           <SummaryStats stats={SUMMARY_STATS} />
 
-          <HCCard title="Appointment confirmation funnel">
-            <SankeyChart
-              nodes={FUNNEL_NODES}
-              links={FUNNEL_LINKS}
-              height={400}
-              nodeColors={FUNNEL_NODE_COLORS}
-              terminalNodes={[4, 5]}
-              columnHeaders={['Reminders sent by channel', 'Outcome', 'Time to confirm the appointment']}
-            />
+          <HCCard title="No-show funnel">
+            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Total reminders sent', 'Channel', 'Time to confirm', 'Outcome']} />
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="Appointment confirmation by channel" tooltip="Shows the channel that sent the last reminder resulting in a confirmed appointment. Each conversation is counted once.">
+            <HCCard title="No-shows prevented by channel">
               <ChartStatRow stats={[
-                { value: '4.4K', label: 'Text'    },
-                { value: '2.4K', label: 'Voice'   },
-                { value: '1.4K', label: 'Webchat' },
+                { value: '4.4K', label: 'Voice' },
+                { value: '2.4K', label: 'Email' },
+                { value: '1.4K', label: 'Text'  },
               ]} />
               <DonutChart
                 data={CHANNEL_DONUT}
@@ -184,7 +158,7 @@ export function HCNoShowsScreen({ isDental }: HCNoShowsScreenProps) {
               />
             </HCCard>
 
-            <HCCard title="Reminders sent vs confirmed" tooltip="Compares the total reminders sent to the number of appointments confirmed. Each appointment is counted once, regardless of how many reminders were sent.">
+            <HCCard title="Reminders sent vs confirmed">
               <StackedBarChart
                 data={REMINDERS_DATA}
                 series={REMINDERS_SERIES}
@@ -195,20 +169,11 @@ export function HCNoShowsScreen({ isDental }: HCNoShowsScreenProps) {
             </HCCard>
           </div>
 
-          <HCCard title="Appointment confirmation by location">
+          <HCCard title="No-shows prevented by location">
             <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
           </HCCard>
 
         </div>
-        </div>
-        {isDental && (
-          <FilterPanel
-            open={filterOpen}
-            fields={DENTAL_FILTER_FIELDS}
-            onClose={() => setFilterOpen(false)}
-            onAdvancedFilters={() => {}}
-          />
-        )}
       </div>
     </div>
   )
