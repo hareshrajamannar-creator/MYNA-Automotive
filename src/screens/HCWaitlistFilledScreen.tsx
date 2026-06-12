@@ -51,7 +51,7 @@ const SUMMARY_STATS = [
   { id: 'outreach', value: '5.5K',  label: 'Outreach sent slots', delta: '40%',  trend: 'down' as const },
   { id: 'filled',   value: '7.9K',  label: 'Slots filled',  delta: '36.6%',trend: 'up'   as const },
   { id: 'fillRate', value: '23.7%', label: 'Fill rate',     delta: '20%',  trend: 'up'   as const },
-  { id: 'avgTime',  value: '2.5 hrs',label: 'Avg fill time', delta: '20%', trend: 'down' as const },
+  { id: 'avgTime',  value: '2.5 hrs',label: 'Average fill time', delta: '20%', trend: 'down' as const },
 ]
 
 // 0=Voice, 1=Text                        (channel)
@@ -156,7 +156,7 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
       <span>{row.fillRate} {deltaSpan(row.fillDelta as string)}</span>
     ),
   },
-  { key: 'avgFillTime', label: 'Avg fill time', width: 160, sortable: true },
+  { key: 'avgFillTime', label: 'Average fill time', width: 160, sortable: true },
 ]
 
 export function HCWaitlistFilledScreen({ isDental = false }: { isDental?: boolean }) {
