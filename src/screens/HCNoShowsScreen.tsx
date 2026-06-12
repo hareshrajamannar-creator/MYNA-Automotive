@@ -24,7 +24,7 @@ const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Las
 const SUMMARY_STATS = [
   { id: 'bookings',   value: '450',   label: 'Total bookings',               delta: '20%',   trend: 'down' as const },
   { id: 'reminders',  value: '2.4K',  label: 'Total reminders sent',         delta: '12%',   trend: 'up'   as const },
-  { id: 'prevented',  value: '100',   label: 'No-shows prevented',           delta: '36.6%', trend: 'up'   as const },
+  { id: 'prevented',  value: '100',   label: 'Appointments confirmed',           delta: '36.6%', trend: 'up'   as const },
   { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',   trend: 'up'   as const },
 ]
 
@@ -108,7 +108,7 @@ const LOCATION_DATA: LocationRow[] = [
 const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',         label: 'Location',             width: 180, sortable: true },
   { key: 'totalBookings',    label: 'Total bookings',       width: 160, sortable: true },
-  { key: 'noshowsPrevented', label: 'No-shows prevented',  width: 200, sortable: true },
+  { key: 'noshowsPrevented', label: 'Appointments confirmed',  width: 200, sortable: true },
   { key: 'cancelled',        label: 'Cancelled',            width: 140, sortable: true },
   {
     key: 'confirmRate', label: 'Confirmation rate', width: 180, sortable: true,
@@ -125,8 +125,8 @@ export function HCNoShowsScreen() {
 
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
-          title="No-shows prevented"
-          subtitle="Insights into no-shows prevented across different channels and locations."
+          title="Appointments confirmed"
+          subtitle="Insights into appointment confirmations across all channels and locations."
           rightSlot={
             <DateRangeSelector
               value={dateRange}
@@ -140,12 +140,12 @@ export function HCNoShowsScreen() {
 
           <SummaryStats stats={SUMMARY_STATS} />
 
-          <HCCard title="No-show funnel">
+          <HCCard title="Appointments confirmed">
             <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Total reminders sent', 'Channel', 'Time to confirm', 'Outcome']} />
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="No-shows prevented by channel">
+            <HCCard title="Appointments confirmed by channel">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Voice' },
                 { value: '2.4K', label: 'Email' },
@@ -169,7 +169,7 @@ export function HCNoShowsScreen() {
             </HCCard>
           </div>
 
-          <HCCard title="No-shows prevented by location">
+          <HCCard title="Appointments confirmed by location">
             <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
           </HCCard>
 
