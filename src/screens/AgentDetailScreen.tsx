@@ -44,6 +44,18 @@ interface AgentInstance {
   slotsFilled?: string
   fillRate?: string
   timeSaved?: string
+  patientsContacted?: string
+  recallConversionRate?: string
+  avgTouchesToBook?: string
+  revenueRecovered?: string
+  balancesContacted?: string
+  amountCollected?: string
+  arDaysReduced?: string
+  clickToPayRate?: string
+  plansFollowedUp?: string
+  acceptanceRate?: string
+  revenueUnlocked?: string
+  avgTouchesToAccept?: string
   [key: string]: string | undefined
 }
 
@@ -74,6 +86,18 @@ interface RegionRow {
   slotsFilled?: string
   fillRate?: string
   timeSaved?: string
+  patientsContacted?: string
+  recallConversionRate?: string
+  avgTouchesToBook?: string
+  revenueRecovered?: string
+  balancesContacted?: string
+  amountCollected?: string
+  arDaysReduced?: string
+  clickToPayRate?: string
+  plansFollowedUp?: string
+  acceptanceRate?: string
+  revenueUnlocked?: string
+  avgTouchesToAccept?: string
 }
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
@@ -96,11 +120,28 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
   ],
   'Waitlist agent': [
-    // Total: 2,850 outreach | 2,760 slots filled | 92% fill rate | 37m time saved
     { region: 'North region', status: 'Running', outreachSent: '800',  slotsFilled: '780',  fillRate: '90%', timeSaved: '20m', locations: '500' },
     { region: 'East Region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '85%', timeSaved: '5m',  locations: '250' },
     { region: 'South Region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '75%', timeSaved: '10m', locations: '200' },
     { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
+  ],
+  'Recall agent': [
+    { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', revenueRecovered: '$44K', timeSaved: '18h', locations: '358' },
+    { region: 'East region',  status: 'Running', patientsContacted: '890',   recallConversionRate: '69%', avgTouchesToBook: '2.4', revenueRecovered: '$32K', timeSaved: '14h', locations: '212' },
+    { region: 'South region', status: 'Paused',  patientsContacted: '820',   recallConversionRate: '66%', avgTouchesToBook: '2.6', revenueRecovered: '$28K', timeSaved: '11h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', avgTouchesToBook: '2.8', revenueRecovered: '$20K', timeSaved: '8h',  locations: '140' },
+  ],
+  'Revenue agent': [
+    { region: 'North region', status: 'Running', balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', locations: '358' },
+    { region: 'East region',  status: 'Running', balancesContacted: '440', amountCollected: '$38K', arDaysReduced: '-28%', clickToPayRate: '74%', locations: '212' },
+    { region: 'South region', status: 'Paused',  balancesContacted: '490', amountCollected: '$34K', arDaysReduced: '-26%', clickToPayRate: '72%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   balancesContacted: '300', amountCollected: '$22K', arDaysReduced: '-23%', clickToPayRate: '70%', locations: '140' },
+  ],
+  'Treatment plan agent': [
+    { region: 'North region', status: 'Running', plansFollowedUp: '680', acceptanceRate: '63%', revenueUnlocked: '$288K', avgTouchesToAccept: '2.0', locations: '358' },
+    { region: 'East region',  status: 'Running', plansFollowedUp: '530', acceptanceRate: '61%', revenueUnlocked: '$224K', avgTouchesToAccept: '2.1', locations: '212' },
+    { region: 'South region', status: 'Paused',  plansFollowedUp: '490', acceptanceRate: '59%', revenueUnlocked: '$204K', avgTouchesToAccept: '2.2', locations: '180' },
+    { region: 'West region',  status: 'Draft',   plansFollowedUp: '440', acceptanceRate: '57%', revenueUnlocked: '$176K', avgTouchesToAccept: '2.4', locations: '140' },
   ],
 }
 
@@ -254,6 +295,24 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'appointments', value: '641', label: 'Appointments scheduled', info: true, tooltip: 'Leads that confirmed a visit or test drive after being contacted.' },
       { id: 'conversion', value: '11%', label: 'Conversion rate', info: true, tooltip: 'Percentage of contacted leads that resulted in a scheduled appointment. Calculated as appointments ÷ leads contacted.' },
     ],
+    'Recall agent': [
+      { id: 'patientsContacted', value: '3,410', label: 'Patients contacted', delta: '4.2%', trend: 'up', info: true, tooltip: 'Distinct patients who received at least one successfully delivered agent touch in the period. Base population = patients flagged recall-due (hygiene, dormant, or unscheduled treatment).' },
+      { id: 'recallConversion', value: '68%', label: 'Recall conversion rate', delta: '2.1%', trend: 'up', info: true, tooltip: 'Share of contacted patients who booked a recare/recall appointment attributable to the agent within the attribution window.' },
+      { id: 'avgTouchesToBook', value: '2.4', label: 'Avg touches to book', delta: '0.3', trend: 'down', positiveDown: true, info: true, tooltip: 'Average number of agent touches sent before the booking, across converted patients. Lower is better.' },
+      { id: 'revenueRecovered', value: '$124K', label: 'Revenue recovered', delta: '5.8%', trend: 'up', info: true, tooltip: 'Production value of attributed recare appointments, recognized on completion.' },
+    ],
+    'Revenue agent': [
+      { id: 'balancesContacted', value: '1,820', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct patient accounts with outstanding balances that received at least one agent touch in the period.' },
+      { id: 'amountCollected', value: '$142K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments received from patients contacted by the agent, attributed within the collection window.' },
+      { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', info: true, tooltip: 'Reduction in average days outstanding for agent-contacted accounts vs. the prior period baseline.' },
+      { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of patients who clicked the payment link and completed payment within the attribution window.' },
+    ],
+    'Treatment plan agent': [
+      { id: 'plansFollowedUp', value: '2,140', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
+      { id: 'acceptanceRate', value: '61%', label: 'Acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans where the patient scheduled at least one procedure within the attribution window.' },
+      { id: 'revenueUnlocked', value: '$892K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Production value of treatment plan procedures booked through agent follow-up, recognized on scheduling.' },
+      { id: 'avgTouchesToAccept', value: '2.1', label: 'Avg touches to accept', delta: '0.2', trend: 'down', positiveDown: true, info: true, tooltip: 'Average agent touches before the patient scheduled, across accepted plans. Lower is better.' },
+    ],
   }
 
   const DEFAULT_METRICS: Metric[] = [
@@ -282,10 +341,25 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     slotsFilled: r.slotsFilled,
     fillRate: r.fillRate,
     timeSaved: r.timeSaved,
+    patientsContacted: r.patientsContacted,
+    recallConversionRate: r.recallConversionRate,
+    avgTouchesToBook: r.avgTouchesToBook,
+    revenueRecovered: r.revenueRecovered,
+    balancesContacted: r.balancesContacted,
+    amountCollected: r.amountCollected,
+    arDaysReduced: r.arDaysReduced,
+    clickToPayRate: r.clickToPayRate,
+    plansFollowedUp: r.plansFollowedUp,
+    acceptanceRate: r.acceptanceRate,
+    revenueUnlocked: r.revenueUnlocked,
+    avgTouchesToAccept: r.avgTouchesToAccept,
   }))
 
-  const isReminder = agentName === 'Reminder agent'
-  const isFrontdesk = agentName === 'Front desk agent'
+  const isReminder      = agentName === 'Reminder agent'
+  const isFrontdesk     = agentName === 'Front desk agent'
+  const isRecall        = agentName === 'Recall agent'
+  const isRevenue       = agentName === 'Revenue agent'
+  const isTreatmentPlan = agentName === 'Treatment plan agent'
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -305,6 +379,21 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },
       { key: 'aht' as keyof AgentInstance, label: 'Resolution rate', width: 150, sortable: true },
       { key: 'escalation' as keyof AgentInstance, label: 'Time saved', width: 130, sortable: true },
+    ] : isRecall ? [
+      { key: 'patientsContacted' as keyof AgentInstance, label: 'Patients contacted', width: 180, sortable: true },
+      { key: 'recallConversionRate' as keyof AgentInstance, label: 'Recall conversion rate', width: 200, sortable: true },
+      { key: 'avgTouchesToBook' as keyof AgentInstance, label: 'Avg touches to book', width: 180, sortable: true },
+      { key: 'revenueRecovered' as keyof AgentInstance, label: 'Revenue recovered', width: 170, sortable: true },
+    ] : isRevenue ? [
+      { key: 'balancesContacted' as keyof AgentInstance, label: 'Balances contacted', width: 190, sortable: true },
+      { key: 'amountCollected' as keyof AgentInstance, label: 'Amount collected', width: 180, sortable: true },
+      { key: 'arDaysReduced' as keyof AgentInstance, label: 'A/R days reduced', width: 170, sortable: true },
+      { key: 'clickToPayRate' as keyof AgentInstance, label: 'Click-to-pay rate', width: 170, sortable: true },
+    ] : isTreatmentPlan ? [
+      { key: 'plansFollowedUp' as keyof AgentInstance, label: 'Plans followed up', width: 180, sortable: true },
+      { key: 'acceptanceRate' as keyof AgentInstance, label: 'Acceptance rate', width: 170, sortable: true },
+      { key: 'revenueUnlocked' as keyof AgentInstance, label: 'Revenue unlocked', width: 170, sortable: true },
+      { key: 'avgTouchesToAccept' as keyof AgentInstance, label: 'Avg touches to accept', width: 190, sortable: true },
     ] : [
       { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution rate', width: 220, sortable: true },
