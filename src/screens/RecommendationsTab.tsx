@@ -438,10 +438,12 @@ function StatusDropdown({
 function RecCard({
   rec,
   selected,
+  recStatus,
   onClick,
 }: {
   rec: Recommendation
   selected: boolean
+  recStatus: RecStatus
   onClick: () => void
 }) {
   return (
@@ -459,7 +461,11 @@ function RecCard({
           <Icon name={GAP_ICON[rec.gapType]} size={14} className="shrink-0 text-text-icon" />
           <span className="truncate text-small text-text-tertiary">{GAP_LABEL[rec.gapType]}</span>
         </div>
-        <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />
+        <div className="flex items-center gap-xs">
+          <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />
+          {recStatus === 'accepted' && <Chip label="Accepted" variant="success" />}
+          {recStatus === 'rejected' && <Chip label="Rejected" variant="danger" />}
+        </div>
       </div>
 
       <p className="text-body text-text-primary">
@@ -1366,10 +1372,10 @@ export function RecommendationsTab() {
   const rec = visibleRecommendations.find((r) => r.id === selected) ?? visibleRecommendations[0]
 
   return (
-    <div className="flex min-h-full">
-      <div className="flex min-h-full flex-1 overflow-hidden">
+    <div className="flex h-full min-h-0 w-full">
+      <div className="flex h-full min-h-0 flex-1 overflow-hidden">
       {/* Left panel */}
-      <div className="flex w-[384px] shrink-0 flex-col border-r border-border">
+      <div className="flex h-full min-h-0 w-[384px] shrink-0 flex-col border-r border-border">
         {/* List header */}
         <div className="flex flex-col border-b border-border px-lg py-lg">
           <GapLegend />
@@ -1393,6 +1399,7 @@ export function RecommendationsTab() {
               key={r.id}
               rec={r}
               selected={r.id === selected}
+              recStatus={getRecStatus(r.id, rejected, accepted)}
               onClick={() => setSelected(r.id)}
             />
           ))}
