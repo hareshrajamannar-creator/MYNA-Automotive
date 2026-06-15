@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
+import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
 
 interface Conversation {
   id: string
@@ -23,19 +23,20 @@ const CONVERSATIONS: Conversation[] = [
   { id: '7', name: 'Brooklyn Simmons',                   message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022' },
 ]
 
-interface ChatMessage {
-  id: string
-  sender: 'customer' | 'agent'
-  text?: string
-  imageUrl?: string
-  time: string
-}
+type ChatEvent =
+  | { kind: 'date';      id: string; label: string }
+  | { kind: 'status';    id: string; text: string; time: string }
+  | { kind: 'bubble';    id: string; sender: 'customer' | 'agent'; text: string; attribution?: string; time: string }
+  | { kind: 'recording'; id: string; time: string }
 
-const CHAT_MESSAGES: ChatMessage[] = [
-  { id: '1', sender: 'customer', text: "I've sent you my preferred date and time through the appointment scheduling tool. Additionally, can you guide me through the payment options available?", time: '09:12 PM' },
-  { id: '2', sender: 'agent',    text: 'Of course! We have a variety of fitness equipment available',                                                                                              time: '09:12 PM' },
-  { id: '3', sender: 'agent',    text: 'Of course! We have a variety of fitness equipment available, including treadmills, exercise bikes, and weightlifting machines.',                            time: '09:12 PM' },
-  { id: '4', sender: 'agent',    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop',                                                                   time: '09:12 PM' },
+const CHAT_EVENTS: ChatEvent[] = [
+  { kind: 'date',      id: 'd1', label: 'Today • Jun 15' },
+  { kind: 'status',    id: 's1', text: 'Call started',                              time: '01:35 PM' },
+  { kind: 'status',    id: 's2', text: 'Text conversation started',                 time: '01:36 PM' },
+  { kind: 'bubble',    id: 'm1', sender: 'agent', text: 'hi', attribution: 'Kuldeep Rathee', time: '01:36 PM' },
+  { kind: 'status',    id: 's3', text: 'Auto assigned to Kuldeep Rathee',           time: '01:36 PM' },
+  { kind: 'status',    id: 's4', text: 'Call ended - Call Duration: 57s',           time: '01:36 PM' },
+  { kind: 'recording', id: 'r1', time: '01:37 PM' },
 ]
 
 const INBOX_NAV_SECTIONS: NavSection[] = [
@@ -739,33 +740,78 @@ export function InboxScreen() {
 
             {/* Chat messages */}
             <div className="flex flex-1 flex-col gap-md overflow-y-auto px-2xl py-lg">
+
+              {/* Date separator */}
               <div className="flex items-center justify-center">
-                <span className="text-small text-text-secondary">Thu • Dec 17</span>
+                <span className="text-small text-text-tertiary">Fri • Jun 12</span>
               </div>
 
-              {CHAT_MESSAGES.map((msg) => (
-                <div key={msg.id} className={`flex flex-col ${msg.sender === 'agent' ? 'items-end' : 'items-start'}`}>
-                  <div
-                    className={`max-w-[70%] rounded-lg px-md py-sm ${
-                      msg.sender === 'agent'
-                        ? 'bg-[#dbeafe] text-body text-text-primary'
-                        : 'bg-[#f0f0f0] text-body text-text-primary'
-                    }`}
-                  >
-                    {msg.text && <span>{msg.text}</span>}
-                    {msg.imageUrl && (
-                      <div className="relative overflow-hidden rounded-md">
-                        <img src={msg.imageUrl} alt="" className="h-[180px] w-full object-cover" />
-                        <div className="absolute bottom-sm left-sm flex items-center gap-xs rounded-sm bg-black/60 px-sm py-xs text-small text-white">
-                          <Icon name="pause" size={14} />
-                          <span>0:53 / 5:13</span>
-                        </div>
+              {/* Voicemail bubble */}
+              <VoicemailMessage
+                variant="voice-chat"
+                transcript="Hello. I was trying to get a hold of Joanne about her rental. She can call me back at 5807437121. Thank you."
+                summary="Patient reported tooth-origin pain with mild swelling (no fever or breathing issues). Myna screened symptoms and offered an urgent appointment, but the patient ended the call."
+                duration="00:11"
+                durationSecs={11}
+                time="10:42 PM"
+                audioUrl="/src/assets/voicemail_sample.mp3"
+              />
+
+              {/* Subsequent events */}
+              {CHAT_EVENTS.map(event => {
+                if (event.kind === 'date') {
+                  return (
+                    <div key={event.id} className="flex items-center justify-center">
+                      <span className="text-small text-text-tertiary">{event.label}</span>
+                    </div>
+                  )
+                }
+
+                if (event.kind === 'status') {
+                  return (
+                    <div key={event.id} className="flex items-center justify-center">
+                      <span className="text-small text-text-tertiary">
+                        {event.text} • {event.time}
+                      </span>
+                    </div>
+                  )
+                }
+
+                if (event.kind === 'bubble') {
+                  const isAgent = event.sender === 'agent'
+                  return (
+                    <div key={event.id} className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
+                      <div className={`max-w-[70%] rounded-lg px-md py-sm text-body text-text-primary ${isAgent ? 'bg-[#dbeafe]' : 'bg-[#f0f0f0]'}`}>
+                        {event.text}
                       </div>
-                    )}
-                  </div>
-                  <span className="mt-xs text-small text-text-secondary">{msg.time}</span>
-                </div>
-              ))}
+                      <span className="mt-xs text-small text-text-tertiary">
+                        {event.attribution ? `${event.attribution} • ` : ''}{event.time}
+                      </span>
+                    </div>
+                  )
+                }
+
+                if (event.kind === 'recording') {
+                  return (
+                    <div key={event.id} className="flex flex-col items-end">
+                      <div className="flex w-[220px] flex-col gap-sm rounded-lg border border-border bg-[#dbeafe] px-md py-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-body text-text-primary">Call recording</span>
+                          <span className="text-small text-text-secondary">{event.time}</span>
+                        </div>
+                        <button type="button" className="flex items-center gap-sm">
+                          <div className="flex size-9 items-center justify-center rounded-full bg-[#1f1f1f]">
+                            <Icon name="play_arrow" size={20} fill className="text-white" />
+                          </div>
+                          <span className="text-body text-text-primary">Play recording</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+
+                return null
+              })}
             </div>
 
             {/* Compose box */}
