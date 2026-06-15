@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
+import voicemailSample from '../assets/voicemail_sample.mp3'
 
 interface Conversation {
   id: string
@@ -754,7 +755,7 @@ export function InboxScreen() {
                 duration="00:11"
                 durationSecs={11}
                 time="10:42 PM"
-                audioUrl="/src/assets/voicemail_sample.mp3"
+                audioUrl={voicemailSample}
               />
 
               {/* Subsequent events */}
