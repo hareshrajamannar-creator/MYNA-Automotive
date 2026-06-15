@@ -5,67 +5,79 @@ import {
   DataTable,
   DateRangeSelector,
   DonutChart,
+  FilterPanel,
+  Icon,
   ReportHeader,
   SankeyChart,
   StackedBarChart,
   SummaryStats,
   TopNav,
   type Column,
+  type FilterField,
   type SankeyLink,
   type SankeyNode,
 } from '../components'
+
+const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
+
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'region',          label: 'Region',              options: opts('Northeast', 'Southeast', 'Midwest', 'Southwest', 'West Coast', 'Pacific Northwest') },
+  { id: 'division',        label: 'Division',            options: opts('Division A', 'Division B', 'Division C', 'Division D', 'Division E') },
+  { id: 'city',            label: 'City',                options: opts('Austin', 'San Francisco', 'Phoenix', 'Denver', 'Seattle', 'Dallas', 'Houston', 'Chicago') },
+  { id: 'zip',             label: 'Zip',                 options: opts('78701', '78702', '94102', '85001', '80201', '98101', '75201', '60601') },
+  { id: 'outcome',         label: 'Outcome',             options: opts('Resolved', 'Human transfer', 'Pending') },
+  { id: 'content-manager', label: 'Content manager',     options: opts('Kelsy Hiltz', 'Marcus Webb', 'Priya Nair', 'Sofia Mendez', 'Derek Okafor') },
+  { id: 'social-manager',  label: 'Social manager',      options: opts('Tasha Winters', 'Omar Farouk', 'Brianna Cole', 'Nathan Cruz', 'Linda Hargrove') },
+  { id: 'area-code',       label: 'Area code',           options: opts('512', '415', '602', '303', '206', '214', '713', '312') },
+  { id: 'region-manager',  label: 'Region manager',      options: opts('James Whitfield', 'Ray Castellano', 'Ana Reyes', 'David Park', 'Michelle Torres') },
+  { id: 'room-custom',     label: 'Room custom',         options: opts('Exam Room 1', 'Exam Room 2', 'Consultation A', 'Consultation B', 'Waiting Bay') },
+  { id: 'new-alpha-beta',  label: 'New alpha beta test', options: opts('Alpha Group', 'Beta Group', 'Control Group', 'Pilot A', 'Pilot B') },
+  { id: 'custom-test',     label: 'Custom test',         options: opts('Test Group A', 'Test Group B', 'Cohort 1', 'Cohort 2', 'Cohort 3') },
+  { id: 'location',              label: 'Location',                        options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
+  { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
+  { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
+  { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
+]
 
 // Healthcare chart card — uses the tune icon for the left action button
 function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
-const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
+
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
   { id: 'bookings',   value: '450',   label: 'Total bookings',               delta: '20%',   trend: 'down' as const },
-  { id: 'reminders',  value: '2.4K',  label: 'Total reminders sent',         delta: '12%',   trend: 'up'   as const },
-  { id: 'prevented',  value: '100',   label: 'No-shows prevented',           delta: '36.6%', trend: 'up'   as const },
-  { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',   trend: 'up'   as const },
+  { id: 'confirmed',  value: '100',   label: 'Appointment confirmed',        delta: '36.6%', trend: 'up'   as const },
+  { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',  trend: 'up'   as const },
 ]
 
-// 0=Agent communications, 1=SMS, 2=Email, 3=Voice,
-// 4=<1hr, 5=1-4hrs, 6=4-24hrs, 7=>24hrs,
-// 8=Confirmed, 9=Pending, 10=No response, 11=Declined
+// 0=Text, 1=Voice, 2=Webchat                        (channel)
+// 3=Confirmed, 4=Declined & rescheduled, 5=Pending  (outcome)
+// 6=<1hr, 7=1-4hrs, 8=4-24hrs, 9=>24hrs            (time to confirm)
 const FUNNEL_NODES: SankeyNode[] = [
-  {
-    name: 'Agent communications',
-    breakdown: [
-      { label: 'Reminder agent – North region', pct: '42%', value: 2634 },
-      { label: 'Reminder agent – South region', pct: '35%', value: 2191 },
-      { label: 'Reminder agent – West region',  pct: '23%', value: 1440 },
-    ],
-  },
-  { name: 'SMS (50.5%)' }, { name: 'Email (37.5%)' }, { name: 'Voice (12%)' },
+  { name: 'Text (56%)' }, { name: 'Voice (26%)' }, { name: 'Webchat (18%)' },
+  { name: 'Confirmed (52.4%)' }, { name: 'Declined & rescheduled (21.8%)' }, { name: 'Pending (25.8%)' },
   { name: '<1hr (41.7%)' }, { name: '1-4hrs (31.3%)' }, { name: '4-24hrs (17.2%)' }, { name: '>24hrs (9.9%)' },
-  { name: 'Confirmed (23.7%)' }, { name: 'Pending (17.2%)' }, { name: 'No response (38.3%)' }, { name: 'Declined (20.8%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
-  { source: 0, target: 1, value: 50 }, { source: 0, target: 2, value: 26 }, { source: 0, target: 3, value: 8  },
-  { source: 1, target: 4, value: 25 }, { source: 1, target: 5, value: 19 }, { source: 1, target: 6, value: 10 }, { source: 1, target: 7, value: 6  },
-  { source: 2, target: 4, value: 17 }, { source: 2, target: 5, value: 13 }, { source: 2, target: 6, value: 7  }, { source: 2, target: 7, value: 4  },
-  { source: 3, target: 4, value: 8  }, { source: 3, target: 5, value: 6  }, { source: 3, target: 6, value: 3  }, { source: 3, target: 7, value: 2  },
-  { source: 4, target: 8, value: 21 }, { source: 4, target: 9, value: 9  }, { source: 4, target: 10, value: 10 }, { source: 4, target: 11, value: 10 },
-  { source: 5, target: 8, value: 3  }, { source: 5, target: 9, value: 3  }, { source: 5, target: 10, value: 10 }, { source: 5, target: 11, value: 3  },
-  { source: 6, target: 8, value: 1  }, { source: 6, target: 9, value: 5  }, { source: 6, target: 10, value: 10 }, { source: 6, target: 11, value: 5  },
-  { source: 7, target: 8, value: 1  }, { source: 7, target: 9, value: 1  }, { source: 7, target: 10, value: 10 }, { source: 7, target: 11, value: 2  },
+  // channel → outcome
+  { source: 0, target: 3, value: 30 }, { source: 0, target: 4, value: 13 }, { source: 0, target: 5, value: 14 },
+  { source: 1, target: 3, value: 15 }, { source: 1, target: 4, value: 6  }, { source: 1, target: 5, value: 7  },
+  { source: 2, target: 3, value: 8  }, { source: 2, target: 4, value: 3  }, { source: 2, target: 5, value: 5  },
+  // outcome → time to confirm (only Confirmed connects — Declined & rescheduled and Pending do not)
+  { source: 3, target: 6, value: 22 }, { source: 3, target: 7, value: 17 }, { source: 3, target: 8, value: 9  }, { source: 3, target: 9, value: 5  },
 ]
-// purple=agent, SMS=blue, Email=teal, Voice=light-orange, time=greens/orange/gray, outcomes
 const FUNNEL_NODE_COLORS: Record<number, string> = {
-  0: '#7c4dff',
-  1: '#1976d2', 2: '#00bcd4', 3: '#fbbf24',
-  4: '#4cae3d', 5: '#8bc34a', 6: '#f59e0b', 7: '#bdbdbd',
-  8: '#4cae3d', 9: '#f59e0b', 10: '#9e9e9e', 11: '#ef4444',
+  0: '#1976d2', 1: '#fbbf24', 2: '#9c27b0',
+  3: '#4cae3d', 4: '#de1b0c', 5: '#f59e0b',
 }
 
 const CHANNEL_DONUT = [
-  { name: 'Voice', value: 43.2, color: '#3f51b5' },
-  { name: 'Email', value: 32.5, color: '#e91e63' },
-  { name: 'Text',  value: 24.3, color: '#f59e0b' },
+  { name: 'Text',    value: 56.0, color: '#1976d2' },
+  { name: 'Voice',   value: 26.0, color: '#fbbf24' },
+  { name: 'Webchat', value: 18.0, color: '#9c27b0' },
 ]
 
 const REMINDERS_DATA = [
@@ -80,11 +92,6 @@ const REMINDERS_SERIES = [
   { key: 'sent',      label: 'Sent',      color: '#1976d2' },
   { key: 'confirmed', label: 'Confirmed', color: '#4cae3d' },
 ]
-
-function deltaSpan(delta: string) {
-  const isPos = delta.startsWith('+')
-  return <span className={`text-xs ml-1 ${isPos ? 'text-success' : 'text-danger'}`}>{delta}</span>
-}
 
 interface LocationRow {
   location: string
@@ -106,33 +113,53 @@ const LOCATION_DATA: LocationRow[] = [
   { location: 'Seattle, WA', totalBookings: 30,  noshowsPrevented: 15, cancelled: 16, confirmRate: '23.7%', confirmDelta: '+2%'  },
 ]
 const LOCATION_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',         label: 'Location',             width: 180, sortable: true },
-  { key: 'totalBookings',    label: 'Total bookings',       width: 160, sortable: true },
-  { key: 'noshowsPrevented', label: 'No-shows prevented',  width: 200, sortable: true },
-  { key: 'cancelled',        label: 'Cancelled',            width: 140, sortable: true },
+  { key: 'location',         label: 'Location',                     width: 180, sortable: true },
+  { key: 'totalBookings',    label: 'Total bookings',               width: 160, sortable: true },
+  { key: 'noshowsPrevented', label: 'Appointment confirmed',        width: 200, sortable: true },
   {
-    key: 'confirmRate', label: 'Confirmation rate', width: 180, sortable: true,
-    render: (_v, row) => <span>{row.confirmRate}{deltaSpan(row.confirmDelta as string)}</span>,
+    key: 'confirmRate', label: 'Appointment confirmation rate', width: 220, sortable: true,
+    render: (_v, row) => {
+      const delta = row.confirmDelta as string
+      const isPos = delta.startsWith('+')
+      return (
+        <span className="flex items-center gap-sm">
+          {row.confirmRate}
+          <span className={`text-xs ${isPos ? 'text-chip-success-text' : 'text-chip-danger-text'}`}>{delta}</span>
+        </span>
+      )
+    },
   },
 ]
 
 export function HCNoShowsScreen(_props: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
+  const [filterOpen, setFilterOpen] = useState(false)
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
+      <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
           title="No-shows prevented"
           subtitle="Insights into no-shows prevented across different channels and locations."
           rightSlot={
-            <DateRangeSelector
-              value={dateRange}
-              options={DATE_RANGE_OPTIONS}
-              onChange={setDateRange}
-            />
+            <div className="flex items-center gap-sm">
+              <DateRangeSelector
+                value={dateRange}
+                options={DATE_RANGE_OPTIONS}
+                onChange={setDateRange}
+              />
+              <button
+                type="button"
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className={`flex size-9 items-center justify-center rounded-sm text-text-icon ${filterOpen ? 'bg-surface-selected' : 'border border-border-selected bg-surface hover:bg-surface-l2'}`}
+              >
+                <Icon name="filter_list" size={20} />
+              </button>
+            </div>
           }
         />
 
@@ -140,16 +167,23 @@ export function HCNoShowsScreen(_props: { isDental?: boolean }) {
 
           <SummaryStats stats={SUMMARY_STATS} />
 
-          <HCCard title="No-show funnel">
-            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Total reminders sent', 'Channel', 'Time to confirm', 'Outcome']} />
+          <HCCard title="Appointment confirmation funnel">
+            <SankeyChart
+              nodes={FUNNEL_NODES}
+              links={FUNNEL_LINKS}
+              height={400}
+              nodeColors={FUNNEL_NODE_COLORS}
+              terminalNodes={[4, 5]}
+              columnHeaders={['Reminders sent by channel', 'Outcome', 'Time to confirm the appointment']}
+            />
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="No-shows prevented by channel">
+            <HCCard title="Appointment confirmation by channel" tooltip="Shows the channel that sent the last reminder resulting in a confirmed appointment. Each conversation is counted once.">
               <ChartStatRow stats={[
-                { value: '4.4K', label: 'Voice' },
-                { value: '2.4K', label: 'Email' },
-                { value: '1.4K', label: 'Text'  },
+                { value: '4.4K', label: 'Text'    },
+                { value: '2.4K', label: 'Voice'   },
+                { value: '1.4K', label: 'Webchat' },
               ]} />
               <DonutChart
                 data={CHANNEL_DONUT}
@@ -158,7 +192,7 @@ export function HCNoShowsScreen(_props: { isDental?: boolean }) {
               />
             </HCCard>
 
-            <HCCard title="Reminders sent vs confirmed">
+            <HCCard title="Reminders sent vs confirmed" tooltip="Compares the total reminders sent to the number of appointments confirmed. Each appointment is counted once, regardless of how many reminders were sent.">
               <StackedBarChart
                 data={REMINDERS_DATA}
                 series={REMINDERS_SERIES}
@@ -169,11 +203,18 @@ export function HCNoShowsScreen(_props: { isDental?: boolean }) {
             </HCCard>
           </div>
 
-          <HCCard title="No-shows prevented by location">
+          <HCCard title="Appointment confirmation by location">
             <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
           </HCCard>
 
         </div>
+      </div>
+      <FilterPanel
+        open={filterOpen}
+        fields={FILTER_FIELDS}
+        onClose={() => setFilterOpen(false)}
+        onAdvancedFilters={() => {}}
+      />
       </div>
     </div>
   )
