@@ -308,7 +308,6 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'amountCollected', value: '$142K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments completed that are attributable to the agent within the window (via agent-sent link or call).' },
       { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', positiveDown: true, info: true, tooltip: 'Reduction in the balance-weighted average age of outstanding A/R versus baseline. Lower is better.' },
       { id: 'staffHoursSaved', value: '176h', label: 'Staff hours saved', delta: '6.4%', trend: 'up', info: true, tooltip: 'Staff time avoided by automating outreach touches.' },
-      { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of payment links sent that resulted in a completed payment.' },
     ],
     'Treatment plan agent': [
       { id: 'plansFollowedUp', value: '2,140', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
