@@ -51,6 +51,8 @@ interface LocationRow {
   acceptanceRate?: string
   revenueUnlocked?: string
   avgTouchesToAccept?: string
+  callToBookingConversion?: string
+  warmTransferRate?: string
   [key: string]: string | undefined
 }
 
@@ -94,10 +96,10 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'staffHoursSaved', value: '62h', label: 'Staff hours saved', delta: '6.4%', trend: 'up', info: true, tooltip: 'Staff time avoided by automating outreach touches.' },
   ],
   'Treatment plan agent': [
-    { id: 'plansFollowedUp', value: '535', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
-    { id: 'acceptanceRate', value: '61%', label: 'Acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans where the patient scheduled at least one procedure within the attribution window.' },
-    { id: 'revenueUnlocked', value: '$223K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Production value of treatment plan procedures booked through agent follow-up, recognized on scheduling.' },
-    { id: 'avgTouchesToAccept', value: '2.1', label: 'Avg touches to accept', delta: '0.2', trend: 'down', positiveDown: true, info: true, tooltip: 'Average agent touches before the patient scheduled, across accepted plans. Lower is better.' },
+    { id: 'plansFollowedUp', value: '535', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans that received ≥1 delivered agent touch. Base = presented, unscheduled plans aged ≥ T+3 days, not opted out / suppressed.' },
+    { id: 'acceptanceRate', value: '61%', label: 'Treatment plan acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans accepted (agreed + booked, or marked accepted) attributable to the agent within the window.' },
+    { id: 'revenueUnlocked', value: '$223K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Estimated value of accepted + booked plans attributable to the agent.' },
+    { id: 'staffHoursSaved', value: '88h', label: 'Staff hours saved', delta: '7.8%', trend: 'up', info: true, tooltip: 'Staff follow-up time avoided by automating outreach.' },
   ],
 }
 
@@ -146,10 +148,10 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', count: '60',  balancesContacted: '102', amountCollected: '$6.9K',  arDaysReduced: '-25%', clickToPayRate: '71%', staffHoursSaved: '14h' },
   ],
   'Treatment plan agent': [
-    { location: 'Atlanta, GA',      count: '124', plansFollowedUp: '148', acceptanceRate: '63%', revenueUnlocked: '$62K',  avgTouchesToAccept: '2.0' },
-    { location: 'Chicago, IL',      count: '98',  plansFollowedUp: '132', acceptanceRate: '61%', revenueUnlocked: '$54K',  avgTouchesToAccept: '2.1' },
-    { location: 'Boston, MA',       count: '76',  plansFollowedUp: '141', acceptanceRate: '59%', revenueUnlocked: '$58K',  avgTouchesToAccept: '2.2' },
-    { location: 'Philadelphia, PA', count: '60',  plansFollowedUp: '114', acceptanceRate: '58%', revenueUnlocked: '$49K',  avgTouchesToAccept: '2.3' },
+    { location: 'Atlanta, GA',      count: '124', plansFollowedUp: '148', acceptanceRate: '63%', revenueUnlocked: '$62K',  callToBookingConversion: '48%', warmTransferRate: '9%',  avgTouchesToAccept: '2.0', staffHoursSaved: '24h' },
+    { location: 'Chicago, IL',      count: '98',  plansFollowedUp: '132', acceptanceRate: '61%', revenueUnlocked: '$54K',  callToBookingConversion: '44%', warmTransferRate: '11%', avgTouchesToAccept: '2.1', staffHoursSaved: '20h' },
+    { location: 'Boston, MA',       count: '76',  plansFollowedUp: '141', acceptanceRate: '59%', revenueUnlocked: '$58K',  callToBookingConversion: '41%', warmTransferRate: '12%', avgTouchesToAccept: '2.2', staffHoursSaved: '22h' },
+    { location: 'Philadelphia, PA', count: '60',  plansFollowedUp: '114', acceptanceRate: '58%', revenueUnlocked: '$49K',  callToBookingConversion: '38%', warmTransferRate: '14%', avgTouchesToAccept: '2.3', staffHoursSaved: '18h' },
   ],
 }
 
@@ -225,11 +227,14 @@ const REVENUE_COLUMNS: Column<LocationRow>[] = [
 ]
 
 const TREATMENT_PLAN_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',          label: 'Location',           width: 220, sortable: true },
-  { key: 'plansFollowedUp',   label: 'Plans followed up',  width: 180, sortable: true },
-  { key: 'acceptanceRate',    label: 'Acceptance rate',    width: 170, sortable: true },
-  { key: 'revenueUnlocked',   label: 'Revenue unlocked',   width: 170, sortable: true },
-  { key: 'avgTouchesToAccept',label: 'Avg touches to accept',width: 190, sortable: true },
+  { key: 'location',               label: 'Location',                  width: 190, sortable: true },
+  { key: 'plansFollowedUp',        label: 'Plans followed up',         width: 160, sortable: true },
+  { key: 'acceptanceRate',         label: 'Acceptance rate',           width: 150, sortable: true },
+  { key: 'revenueUnlocked',        label: 'Revenue unlocked',          width: 155, sortable: true },
+  { key: 'callToBookingConversion',label: 'Call-to-booking conversion', width: 200, sortable: true },
+  { key: 'warmTransferRate',       label: 'Warm-transfer rate',        width: 165, sortable: true },
+  { key: 'avgTouchesToAccept',     label: 'Avg touches to accept',     width: 180, sortable: true },
+  { key: 'staffHoursSaved',        label: 'Staff hours saved',         width: 155, sortable: true },
 ]
 
 export function AgentInstanceScreen({

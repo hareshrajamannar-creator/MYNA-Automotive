@@ -57,6 +57,8 @@ interface AgentInstance {
   acceptanceRate?: string
   revenueUnlocked?: string
   avgTouchesToAccept?: string
+  callToBookingConversion?: string
+  warmTransferRate?: string
   [key: string]: string | undefined
 }
 
@@ -100,6 +102,8 @@ interface RegionRow {
   acceptanceRate?: string
   revenueUnlocked?: string
   avgTouchesToAccept?: string
+  callToBookingConversion?: string
+  warmTransferRate?: string
 }
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
@@ -140,10 +144,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West region',  status: 'Draft',   balancesContacted: '300', amountCollected: '$22K', arDaysReduced: '-23%', clickToPayRate: '70%', staffHoursSaved: '28h', locations: '140' },
   ],
   'Treatment plan agent': [
-    { region: 'North region', status: 'Running', plansFollowedUp: '680', acceptanceRate: '63%', revenueUnlocked: '$288K', avgTouchesToAccept: '2.0', locations: '358' },
-    { region: 'East region',  status: 'Running', plansFollowedUp: '530', acceptanceRate: '61%', revenueUnlocked: '$224K', avgTouchesToAccept: '2.1', locations: '212' },
-    { region: 'South region', status: 'Paused',  plansFollowedUp: '490', acceptanceRate: '59%', revenueUnlocked: '$204K', avgTouchesToAccept: '2.2', locations: '180' },
-    { region: 'West region',  status: 'Draft',   plansFollowedUp: '440', acceptanceRate: '57%', revenueUnlocked: '$176K', avgTouchesToAccept: '2.4', locations: '140' },
+    { region: 'North region', status: 'Running', plansFollowedUp: '680', acceptanceRate: '63%', revenueUnlocked: '$288K', callToBookingConversion: '48%', warmTransferRate: '9%', avgTouchesToAccept: '2.0', staffHoursSaved: '88h', locations: '358' },
+    { region: 'East region',  status: 'Running', plansFollowedUp: '530', acceptanceRate: '61%', revenueUnlocked: '$224K', callToBookingConversion: '44%', warmTransferRate: '11%', avgTouchesToAccept: '2.1', staffHoursSaved: '68h', locations: '212' },
+    { region: 'South region', status: 'Paused',  plansFollowedUp: '490', acceptanceRate: '59%', revenueUnlocked: '$204K', callToBookingConversion: '41%', warmTransferRate: '12%', avgTouchesToAccept: '2.2', staffHoursSaved: '58h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   plansFollowedUp: '440', acceptanceRate: '57%', revenueUnlocked: '$176K', callToBookingConversion: '38%', warmTransferRate: '14%', avgTouchesToAccept: '2.4', staffHoursSaved: '48h', locations: '140' },
   ],
 }
 
@@ -310,10 +314,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'staffHoursSaved', value: '176h', label: 'Staff hours saved', delta: '6.4%', trend: 'up', info: true, tooltip: 'Staff time avoided by automating outreach touches.' },
     ],
     'Treatment plan agent': [
-      { id: 'plansFollowedUp', value: '2,140', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
-      { id: 'acceptanceRate', value: '61%', label: 'Acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans where the patient scheduled at least one procedure within the attribution window.' },
-      { id: 'revenueUnlocked', value: '$892K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Production value of treatment plan procedures booked through agent follow-up, recognized on scheduling.' },
-      { id: 'avgTouchesToAccept', value: '2.1', label: 'Avg touches to accept', delta: '0.2', trend: 'down', positiveDown: true, info: true, tooltip: 'Average agent touches before the patient scheduled, across accepted plans. Lower is better.' },
+      { id: 'plansFollowedUp', value: '2,140', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans that received ≥1 delivered agent touch. Base = presented, unscheduled plans aged ≥ T+3 days, not opted out / suppressed.' },
+      { id: 'acceptanceRate', value: '61%', label: 'Treatment plan acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans accepted (agreed + booked, or marked accepted) attributable to the agent within the window.' },
+      { id: 'revenueUnlocked', value: '$892K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Estimated value of accepted + booked plans attributable to the agent.' },
+      { id: 'staffHoursSaved', value: '262h', label: 'Staff hours saved', delta: '7.8%', trend: 'up', info: true, tooltip: 'Staff follow-up time avoided by automating outreach.' },
     ],
   }
 
@@ -355,6 +359,8 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     plansFollowedUp: r.plansFollowedUp,
     acceptanceRate: r.acceptanceRate,
     revenueUnlocked: r.revenueUnlocked,
+    callToBookingConversion: r.callToBookingConversion,
+    warmTransferRate: r.warmTransferRate,
     avgTouchesToAccept: r.avgTouchesToAccept,
   }))
 
@@ -395,10 +401,13 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'clickToPayRate' as keyof AgentInstance, label: 'Click-to-pay rate', width: 170, sortable: true },
       { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
     ] : isTreatmentPlan ? [
-      { key: 'plansFollowedUp' as keyof AgentInstance, label: 'Plans followed up', width: 180, sortable: true },
-      { key: 'acceptanceRate' as keyof AgentInstance, label: 'Acceptance rate', width: 170, sortable: true },
-      { key: 'revenueUnlocked' as keyof AgentInstance, label: 'Revenue unlocked', width: 170, sortable: true },
-      { key: 'avgTouchesToAccept' as keyof AgentInstance, label: 'Avg touches to accept', width: 190, sortable: true },
+      { key: 'plansFollowedUp' as keyof AgentInstance, label: 'Plans followed up', width: 170, sortable: true },
+      { key: 'acceptanceRate' as keyof AgentInstance, label: 'Acceptance rate', width: 160, sortable: true },
+      { key: 'revenueUnlocked' as keyof AgentInstance, label: 'Revenue unlocked', width: 160, sortable: true },
+      { key: 'callToBookingConversion' as keyof AgentInstance, label: 'Call-to-booking conversion', width: 210, sortable: true },
+      { key: 'warmTransferRate' as keyof AgentInstance, label: 'Warm-transfer rate', width: 170, sortable: true },
+      { key: 'avgTouchesToAccept' as keyof AgentInstance, label: 'Avg touches to accept', width: 185, sortable: true },
+      { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 160, sortable: true },
     ] : [
       { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution rate', width: 220, sortable: true },
