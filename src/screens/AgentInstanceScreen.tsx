@@ -88,10 +88,11 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'revenueRecovered', value: '$31K', label: 'Revenue recovered', delta: '5.8%', trend: 'up', info: true, tooltip: 'Production value of attributed recare appointments, recognized on completion.' },
   ],
   'Revenue agent': [
-    { id: 'balancesContacted', value: '455', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct patient accounts with outstanding balances that received at least one agent touch in the period.' },
-    { id: 'amountCollected', value: '$35.5K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments received from patients contacted by the agent, attributed within the collection window.' },
-    { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', info: true, tooltip: 'Reduction in average days outstanding for agent-contacted accounts vs. the prior period baseline.' },
-    { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of patients who clicked the payment link and completed payment within the attribution window.' },
+    { id: 'balancesContacted', value: '455', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct A/R accounts that received ≥1 delivered agent touch about a balance. Base = balance ≥ threshold and aging ≥ threshold days, excluded (active plan / in collections / disputed).' },
+    { id: 'amountCollected', value: '$35.5K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments completed that are attributable to the agent within the window (via agent-sent link or call).' },
+    { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', positiveDown: true, info: true, tooltip: 'Reduction in the balance-weighted average age of outstanding A/R versus baseline. Lower is better.' },
+    { id: 'staffHoursSaved', value: '62h', label: 'Staff hours saved', delta: '6.4%', trend: 'up', info: true, tooltip: 'Staff time avoided by automating outreach touches.' },
+    { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of payment links sent that resulted in a completed payment.' },
   ],
   'Treatment plan agent': [
     { id: 'plansFollowedUp', value: '535', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
@@ -140,10 +141,10 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', count: '60',  patientsContacted: '188', recallConversionRate: '65%', staffHoursSaved: '22h', revenueRecovered: '$6.8K' },
   ],
   'Revenue agent': [
-    { location: 'Atlanta, GA',      count: '124', balancesContacted: '128', amountCollected: '$10.2K', arDaysReduced: '-30%', clickToPayRate: '76%' },
-    { location: 'Chicago, IL',      count: '98',  balancesContacted: '107', amountCollected: '$8.8K',  arDaysReduced: '-27%', clickToPayRate: '74%' },
-    { location: 'Boston, MA',       count: '76',  balancesContacted: '118', amountCollected: '$9.6K',  arDaysReduced: '-29%', clickToPayRate: '73%' },
-    { location: 'Philadelphia, PA', count: '60',  balancesContacted: '102', amountCollected: '$6.9K',  arDaysReduced: '-25%', clickToPayRate: '71%' },
+    { location: 'Atlanta, GA',      count: '124', balancesContacted: '128', amountCollected: '$10.2K', arDaysReduced: '-30%', clickToPayRate: '76%', staffHoursSaved: '18h' },
+    { location: 'Chicago, IL',      count: '98',  balancesContacted: '107', amountCollected: '$8.8K',  arDaysReduced: '-27%', clickToPayRate: '74%', staffHoursSaved: '14h' },
+    { location: 'Boston, MA',       count: '76',  balancesContacted: '118', amountCollected: '$9.6K',  arDaysReduced: '-29%', clickToPayRate: '73%', staffHoursSaved: '16h' },
+    { location: 'Philadelphia, PA', count: '60',  balancesContacted: '102', amountCollected: '$6.9K',  arDaysReduced: '-25%', clickToPayRate: '71%', staffHoursSaved: '14h' },
   ],
   'Treatment plan agent': [
     { location: 'Atlanta, GA',      count: '124', plansFollowedUp: '148', acceptanceRate: '63%', revenueUnlocked: '$62K',  avgTouchesToAccept: '2.0' },
@@ -216,11 +217,12 @@ const RECALL_COLUMNS: Column<LocationRow>[] = [
 ]
 
 const REVENUE_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',          label: 'Location',         width: 220, sortable: true },
-  { key: 'balancesContacted', label: 'Balances contacted',width: 190, sortable: true },
-  { key: 'amountCollected',   label: 'Amount collected', width: 180, sortable: true },
-  { key: 'arDaysReduced',     label: 'A/R days reduced', width: 170, sortable: true },
-  { key: 'clickToPayRate',    label: 'Click-to-pay rate',width: 170, sortable: true },
+  { key: 'location',          label: 'Location',          width: 200, sortable: true },
+  { key: 'balancesContacted', label: 'Balances contacted', width: 180, sortable: true },
+  { key: 'amountCollected',   label: 'Amount collected',  width: 170, sortable: true },
+  { key: 'arDaysReduced',     label: 'A/R days reduced',  width: 160, sortable: true },
+  { key: 'clickToPayRate',    label: 'Click-to-pay rate', width: 160, sortable: true },
+  { key: 'staffHoursSaved',   label: 'Staff hours saved', width: 160, sortable: true },
 ]
 
 const TREATMENT_PLAN_COLUMNS: Column<LocationRow>[] = [

@@ -134,10 +134,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', avgTouchesToBook: '2.8', staffHoursSaved: '44h', revenueRecovered: '$20K', locations: '140' },
   ],
   'Revenue agent': [
-    { region: 'North region', status: 'Running', balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', locations: '358' },
-    { region: 'East region',  status: 'Running', balancesContacted: '440', amountCollected: '$38K', arDaysReduced: '-28%', clickToPayRate: '74%', locations: '212' },
-    { region: 'South region', status: 'Paused',  balancesContacted: '490', amountCollected: '$34K', arDaysReduced: '-26%', clickToPayRate: '72%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   balancesContacted: '300', amountCollected: '$22K', arDaysReduced: '-23%', clickToPayRate: '70%', locations: '140' },
+    { region: 'North region', status: 'Running', balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', staffHoursSaved: '62h', locations: '358' },
+    { region: 'East region',  status: 'Running', balancesContacted: '440', amountCollected: '$38K', arDaysReduced: '-28%', clickToPayRate: '74%', staffHoursSaved: '46h', locations: '212' },
+    { region: 'South region', status: 'Paused',  balancesContacted: '490', amountCollected: '$34K', arDaysReduced: '-26%', clickToPayRate: '72%', staffHoursSaved: '40h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   balancesContacted: '300', amountCollected: '$22K', arDaysReduced: '-23%', clickToPayRate: '70%', staffHoursSaved: '28h', locations: '140' },
   ],
   'Treatment plan agent': [
     { region: 'North region', status: 'Running', plansFollowedUp: '680', acceptanceRate: '63%', revenueUnlocked: '$288K', avgTouchesToAccept: '2.0', locations: '358' },
@@ -304,10 +304,11 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'revenueRecovered', value: '$124K', label: 'Revenue recovered', delta: '5.8%', trend: 'up', info: true, tooltip: 'Production value of attributed recare appointments, recognized on completion.' },
     ],
     'Revenue agent': [
-      { id: 'balancesContacted', value: '1,820', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct patient accounts with outstanding balances that received at least one agent touch in the period.' },
-      { id: 'amountCollected', value: '$142K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments received from patients contacted by the agent, attributed within the collection window.' },
-      { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', info: true, tooltip: 'Reduction in average days outstanding for agent-contacted accounts vs. the prior period baseline.' },
-      { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of patients who clicked the payment link and completed payment within the attribution window.' },
+      { id: 'balancesContacted', value: '1,820', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct A/R accounts that received ≥1 delivered agent touch about a balance. Base = balance ≥ threshold and aging ≥ threshold days, excluded (active plan / in collections / disputed).' },
+      { id: 'amountCollected', value: '$142K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments completed that are attributable to the agent within the window (via agent-sent link or call).' },
+      { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', positiveDown: true, info: true, tooltip: 'Reduction in the balance-weighted average age of outstanding A/R versus baseline. Lower is better.' },
+      { id: 'staffHoursSaved', value: '176h', label: 'Staff hours saved', delta: '6.4%', trend: 'up', info: true, tooltip: 'Staff time avoided by automating outreach touches.' },
+      { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of payment links sent that resulted in a completed payment.' },
     ],
     'Treatment plan agent': [
       { id: 'plansFollowedUp', value: '2,140', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
@@ -393,6 +394,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'amountCollected' as keyof AgentInstance, label: 'Amount collected', width: 180, sortable: true },
       { key: 'arDaysReduced' as keyof AgentInstance, label: 'A/R days reduced', width: 170, sortable: true },
       { key: 'clickToPayRate' as keyof AgentInstance, label: 'Click-to-pay rate', width: 170, sortable: true },
+      { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
     ] : isTreatmentPlan ? [
       { key: 'plansFollowedUp' as keyof AgentInstance, label: 'Plans followed up', width: 180, sortable: true },
       { key: 'acceptanceRate' as keyof AgentInstance, label: 'Acceptance rate', width: 170, sortable: true },
