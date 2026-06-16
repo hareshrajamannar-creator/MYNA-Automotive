@@ -41,6 +41,7 @@ interface LocationRow {
   patientsContacted?: string
   recallConversionRate?: string
   avgTouchesToBook?: string
+  staffHoursSaved?: string
   revenueRecovered?: string
   balancesContacted?: string
   amountCollected?: string
@@ -83,7 +84,7 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
   'Recall agent': [
     { id: 'patientsContacted', value: '852', label: 'Patients contacted', delta: '4.2%', trend: 'up', info: true, tooltip: 'Distinct patients who received at least one successfully delivered agent touch in the period. Base population = patients flagged recall-due (hygiene, dormant, or unscheduled treatment).' },
     { id: 'recallConversion', value: '68%', label: 'Recall conversion rate', delta: '2.1%', trend: 'up', info: true, tooltip: 'Share of contacted patients who booked a recare/recall appointment attributable to the agent within the attribution window.' },
-    { id: 'avgTouchesToBook', value: '2.4', label: 'Avg touches to book', delta: '0.3', trend: 'down', positiveDown: true, info: true, tooltip: 'Average number of agent touches sent before the booking, across converted patients. Lower is better.' },
+    { id: 'staffHoursSaved', value: '94h', label: 'Staff hours saved', delta: '8.2%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating recall outreach — based on average time-per-manual-contact across converted patients.' },
     { id: 'revenueRecovered', value: '$31K', label: 'Revenue recovered', delta: '5.8%', trend: 'up', info: true, tooltip: 'Production value of attributed recare appointments, recognized on completion.' },
   ],
   'Revenue agent': [
@@ -133,10 +134,10 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', interactions: '150', fcr: '88%', aht: '24m', escalation: '8%', count: '70'  },
   ],
   'Recall agent': [
-    { location: 'Atlanta, GA',      count: '124', patientsContacted: '234', recallConversionRate: '71%', avgTouchesToBook: '2.2', revenueRecovered: '$8.6K' },
-    { location: 'Chicago, IL',      count: '98',  patientsContacted: '198', recallConversionRate: '69%', avgTouchesToBook: '2.4', revenueRecovered: '$7.2K' },
-    { location: 'Boston, MA',       count: '76',  patientsContacted: '232', recallConversionRate: '67%', avgTouchesToBook: '2.5', revenueRecovered: '$8.4K' },
-    { location: 'Philadelphia, PA', count: '60',  patientsContacted: '188', recallConversionRate: '65%', avgTouchesToBook: '2.7', revenueRecovered: '$6.8K' },
+    { location: 'Atlanta, GA',      count: '124', patientsContacted: '234', recallConversionRate: '71%', staffHoursSaved: '24h', revenueRecovered: '$8.6K' },
+    { location: 'Chicago, IL',      count: '98',  patientsContacted: '198', recallConversionRate: '69%', staffHoursSaved: '20h', revenueRecovered: '$7.2K' },
+    { location: 'Boston, MA',       count: '76',  patientsContacted: '232', recallConversionRate: '67%', staffHoursSaved: '28h', revenueRecovered: '$8.4K' },
+    { location: 'Philadelphia, PA', count: '60',  patientsContacted: '188', recallConversionRate: '65%', staffHoursSaved: '22h', revenueRecovered: '$6.8K' },
   ],
   'Revenue agent': [
     { location: 'Atlanta, GA',      count: '124', balancesContacted: '128', amountCollected: '$10.2K', arDaysReduced: '-30%', clickToPayRate: '76%' },
@@ -210,7 +211,7 @@ const RECALL_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',             label: 'Location',              width: 220, sortable: true },
   { key: 'patientsContacted',    label: 'Patients contacted',    width: 180, sortable: true },
   { key: 'recallConversionRate', label: 'Recall conversion rate',width: 200, sortable: true },
-  { key: 'avgTouchesToBook',     label: 'Avg touches to book',   width: 180, sortable: true },
+  { key: 'staffHoursSaved',      label: 'Staff hours saved',      width: 170, sortable: true },
   { key: 'revenueRecovered',     label: 'Revenue recovered',     width: 170, sortable: true },
 ]
 
@@ -373,7 +374,7 @@ export function AgentInstanceScreen({
                 <MetricTiles metrics={metrics} />
               </div>
               <div className="px-lg py-lg">
-                <DataTable columns={COLUMNS} data={locations} />
+                <DataTable columns={COLUMNS} data={locations} scrollOnHover />
               </div>
             </>
           ) : showHealthcareLogs ? (

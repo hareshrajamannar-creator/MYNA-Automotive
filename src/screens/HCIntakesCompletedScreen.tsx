@@ -215,7 +215,7 @@ export function HCIntakesCompletedScreen(_props: { isDental?: boolean }) {
           </div>
 
           <HCCard title="Intakes by location">
-            <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+            <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} scrollOnHover={isDental} />
           </HCCard>
 
         </div>

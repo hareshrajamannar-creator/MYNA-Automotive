@@ -8,6 +8,29 @@
   }
 }
 
+/* Horizontal scrollbar hidden by default, visible on hover */
+.scroll-on-hover {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scroll-on-hover:hover {
+  scrollbar-color: rgba(0,0,0,0.25) transparent;
+}
+.scroll-on-hover::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-on-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-on-hover::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+.scroll-on-hover:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.25);
+}
+
 @layer components {
   .ai-summary-panel {
     @apply rounded-sm border px-lg py-md;

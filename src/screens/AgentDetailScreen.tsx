@@ -47,6 +47,7 @@ interface AgentInstance {
   patientsContacted?: string
   recallConversionRate?: string
   avgTouchesToBook?: string
+  staffHoursSaved?: string
   revenueRecovered?: string
   balancesContacted?: string
   amountCollected?: string
@@ -89,6 +90,7 @@ interface RegionRow {
   patientsContacted?: string
   recallConversionRate?: string
   avgTouchesToBook?: string
+  staffHoursSaved?: string
   revenueRecovered?: string
   balancesContacted?: string
   amountCollected?: string
@@ -126,10 +128,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
   ],
   'Recall agent': [
-    { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', revenueRecovered: '$44K', timeSaved: '18h', locations: '358' },
-    { region: 'East region',  status: 'Running', patientsContacted: '890',   recallConversionRate: '69%', avgTouchesToBook: '2.4', revenueRecovered: '$32K', timeSaved: '14h', locations: '212' },
-    { region: 'South region', status: 'Paused',  patientsContacted: '820',   recallConversionRate: '66%', avgTouchesToBook: '2.6', revenueRecovered: '$28K', timeSaved: '11h', locations: '180' },
-    { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', avgTouchesToBook: '2.8', revenueRecovered: '$20K', timeSaved: '8h',  locations: '140' },
+    { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
+    { region: 'East region',  status: 'Running', patientsContacted: '890',   recallConversionRate: '69%', staffHoursSaved: '74h', revenueRecovered: '$32K', locations: '212' },
+    { region: 'South region', status: 'Paused',  patientsContacted: '820',   recallConversionRate: '66%', staffHoursSaved: '62h', revenueRecovered: '$28K', locations: '180' },
+    { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', staffHoursSaved: '44h', revenueRecovered: '$20K', locations: '140' },
   ],
   'Revenue agent': [
     { region: 'North region', status: 'Running', balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', locations: '358' },
@@ -298,7 +300,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     'Recall agent': [
       { id: 'patientsContacted', value: '3,410', label: 'Patients contacted', delta: '4.2%', trend: 'up', info: true, tooltip: 'Distinct patients who received at least one successfully delivered agent touch in the period. Base population = patients flagged recall-due (hygiene, dormant, or unscheduled treatment).' },
       { id: 'recallConversion', value: '68%', label: 'Recall conversion rate', delta: '2.1%', trend: 'up', info: true, tooltip: 'Share of contacted patients who booked a recare/recall appointment attributable to the agent within the attribution window.' },
-      { id: 'avgTouchesToBook', value: '2.4', label: 'Avg touches to book', delta: '0.3', trend: 'down', positiveDown: true, info: true, tooltip: 'Average number of agent touches sent before the booking, across converted patients. Lower is better.' },
+      { id: 'staffHoursSaved', value: '274h', label: 'Staff hours saved', delta: '8.2%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating recall outreach — based on average time-per-manual-contact across converted patients.' },
       { id: 'revenueRecovered', value: '$124K', label: 'Revenue recovered', delta: '5.8%', trend: 'up', info: true, tooltip: 'Production value of attributed recare appointments, recognized on completion.' },
     ],
     'Revenue agent': [
@@ -344,6 +346,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     patientsContacted: r.patientsContacted,
     recallConversionRate: r.recallConversionRate,
     avgTouchesToBook: r.avgTouchesToBook,
+    staffHoursSaved: r.staffHoursSaved,
     revenueRecovered: r.revenueRecovered,
     balancesContacted: r.balancesContacted,
     amountCollected: r.amountCollected,
@@ -382,7 +385,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     ] : isRecall ? [
       { key: 'patientsContacted' as keyof AgentInstance, label: 'Patients contacted', width: 180, sortable: true },
       { key: 'recallConversionRate' as keyof AgentInstance, label: 'Recall conversion rate', width: 200, sortable: true },
-      { key: 'avgTouchesToBook' as keyof AgentInstance, label: 'Avg touches to book', width: 180, sortable: true },
+      { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
       { key: 'revenueRecovered' as keyof AgentInstance, label: 'Revenue recovered', width: 170, sortable: true },
     ] : isRevenue ? [
       { key: 'balancesContacted' as keyof AgentInstance, label: 'Balances contacted', width: 190, sortable: true },
@@ -566,6 +569,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
                 <DataTable
                   columns={columns}
                   data={data}
+                  scrollOnHover
                   onRowClick={(row) => setSelectedInstance(row.name)}
                   rowMenuItems={[
                     { label: 'Edit', onClick: (row) => onEditAgent?.(row.name) },

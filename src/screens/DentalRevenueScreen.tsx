@@ -193,7 +193,7 @@ export function DentalRevenueScreen() {
             </div>
 
             <HCCard title="A/R performance by location">
-              <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+              <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} scrollOnHover />
             </HCCard>
 
           </div>
