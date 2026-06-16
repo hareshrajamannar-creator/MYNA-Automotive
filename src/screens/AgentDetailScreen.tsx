@@ -128,10 +128,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
   ],
   'Recall agent': [
-    { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
-    { region: 'East region',  status: 'Running', patientsContacted: '890',   recallConversionRate: '69%', staffHoursSaved: '74h', revenueRecovered: '$32K', locations: '212' },
-    { region: 'South region', status: 'Paused',  patientsContacted: '820',   recallConversionRate: '66%', staffHoursSaved: '62h', revenueRecovered: '$28K', locations: '180' },
-    { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', staffHoursSaved: '44h', revenueRecovered: '$20K', locations: '140' },
+    { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
+    { region: 'East region',  status: 'Running', patientsContacted: '890',   recallConversionRate: '69%', avgTouchesToBook: '2.4', staffHoursSaved: '74h', revenueRecovered: '$32K', locations: '212' },
+    { region: 'South region', status: 'Paused',  patientsContacted: '820',   recallConversionRate: '66%', avgTouchesToBook: '2.6', staffHoursSaved: '62h', revenueRecovered: '$28K', locations: '180' },
+    { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', avgTouchesToBook: '2.8', staffHoursSaved: '44h', revenueRecovered: '$20K', locations: '140' },
   ],
   'Revenue agent': [
     { region: 'North region', status: 'Running', balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', locations: '358' },
@@ -385,6 +385,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     ] : isRecall ? [
       { key: 'patientsContacted' as keyof AgentInstance, label: 'Patients contacted', width: 180, sortable: true },
       { key: 'recallConversionRate' as keyof AgentInstance, label: 'Recall conversion rate', width: 200, sortable: true },
+      { key: 'avgTouchesToBook' as keyof AgentInstance, label: 'Avg touches to book', width: 180, sortable: true },
       { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
       { key: 'revenueRecovered' as keyof AgentInstance, label: 'Revenue recovered', width: 170, sortable: true },
     ] : isRevenue ? [
