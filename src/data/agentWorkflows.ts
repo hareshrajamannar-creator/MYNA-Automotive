@@ -368,7 +368,7 @@ const HEALTHCARE_REMINDER_NODE_DETAILS: Record<string, any> = {
     parentId: 'hcr-5',
     isBranchPath: true,
     nodes: [
-      { id: 'hcr-6', flowType: 'subagent', data: { title: 'Front desk agent', subtype: 'Sub-agent', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Call subagent', descriptionPlaceholder: 'Call subagent workflow.' } },
+      { id: 'hcr-6', flowType: 'subagent', data: { title: 'Front desk agent - North region', subtype: 'Sub-agent', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Call subagent', descriptionPlaceholder: 'Call subagent workflow.' } },
     ],
   },
   'hcr-5-vc-rejected': {
@@ -487,13 +487,738 @@ export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Outreach agent':  { nodes: OUTREACH_NODES,              nodeDetails: OUTREACH_NODE_DETAILS              },
 }
 
-// Dental shares the healthcare configuration
-export const DENTAL_AGENT_WORKFLOWS = HEALTHCARE_AGENT_WORKFLOWS
+// ─── Shared voice-call conditionOptions (reused across all three dental agents) ─
+
+const VC_CONDITION_OPTIONS = {
+  field: [
+    { value: 'call_status',      label: 'Call status' },
+    { value: 'call_duration',    label: 'Call duration' },
+    { value: 'patient_response', label: 'Patient response' },
+    { value: 'call_attempt',     label: 'Call attempt' },
+  ],
+  operator: [
+    { value: 'equals',       label: 'Equals' },
+    { value: 'not_equals',   label: 'Does not equal' },
+    { value: 'greater_than', label: 'Greater than' },
+  ],
+  value: [
+    { value: 'answered',  label: 'Answered' },
+    { value: 'rejected',  label: 'Rejected' },
+    { value: 'missed',    label: 'Missed' },
+    { value: 'voicemail', label: 'Voicemail' },
+  ],
+}
+
+// ─── Dental: Recall Agent ────────────────────────────────────────────────────
+// Sketch: trigger → send recall email → send recall SMS → delay 2 days
+//   → branch (app not booked / booked)
+//     → "App not booked": initiate voice call
+//         → call answered:  (empty — frontdesk routing done inside call)
+//         → call rejected:  (empty)
+//         → call missed:    delay 1 day → send recall SMS → branch (same condition)
+//     → "Appointment booked" fallback: (empty)
+
+const RECALL_NODES = [
+  {
+    id: 'rcl-1',
+    flowType: 'trigger' as const,
+    data: { title: 'Contact is added to segment — Hygiene recall', subtype: 'Trigger', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' },
+  },
+  {
+    id: 'rcl-2',
+    flowType: 'task' as const,
+    data: { title: 'Send recall email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Personalized hygiene recall email with self-schedule link' },
+  },
+  {
+    id: 'rcl-3',
+    flowType: 'task' as const,
+    data: { title: 'Send recall SMS', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Short recall SMS with booking link' },
+  },
+  {
+    id: 'rcl-4',
+    flowType: 'delay' as const,
+    data: { title: 'Delay for 2 days', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for specific time or event.' },
+  },
+  {
+    id: 'rcl-5',
+    flowType: 'branch' as const,
+    data: { title: 'Based on conditions', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Appointment booked or not?' },
+  },
+]
+
+const RECALL_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Recall agent',
+    goals: 'Reactivate overdue patients by sending personalized recall outreach via email, SMS, and voice, and booking them into hygiene appointments with minimal staff effort.',
+    outcomes:
+      '1. Patient books a hygiene appointment via self-schedule link\n' +
+      '2. Patient books over the phone during the voice call\n' +
+      '3. Voicemail left — patient calls back to book\n' +
+      '4. Patient does not respond — sequence completes without booking',
+    locations: ['Atlanta, GA', 'Dallas, TX', 'Chicago, IL', 'Miami, FL'],
+  },
+  'rcl-1': {
+    triggerName: 'Contact is added to segment — Hygiene recall',
+    description: 'Fires when a contact is added to the Hygiene recall segment, indicating the patient is overdue for a hygiene visit.',
+    conditions: [
+      { id: 1, fieldValue: 'segment', operatorValue: 'equals', valueValue: 'hygiene_recall' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'segment',         label: 'Segment' },
+        { value: 'last_visit_date', label: 'Last visit date' },
+        { value: 'recall_due_date', label: 'Recall due date' },
+        { value: 'patient_status',  label: 'Patient status' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'hygiene_recall', label: 'Hygiene recall' },
+        { value: 'active',         label: 'Active' },
+        { value: 'inactive',       label: 'Inactive' },
+      ],
+    },
+  },
+  'rcl-2': {
+    taskName: 'Send recall email',
+    description: 'Personalized hygiene recall email with self-schedule link',
+    selectedTools: ['send-confirmation', 'dms-integration'],
+  },
+  'rcl-3': {
+    taskName: 'Send recall SMS',
+    description: 'Short recall SMS with booking link',
+    selectedTools: ['send-confirmation'],
+  },
+  'rcl-4': { name: 'Delay for 2 days', duration: '2', unit: 'days' },
+  'rcl-5': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'rcl-5-path-1', name: 'Appointment not booked' },
+      { id: 'rcl-5-path-2', name: 'Appointment booked', isFallback: true },
+    ],
+  },
+  'rcl-5-path-1': {
+    branchName: 'Appointment not booked',
+    description: 'Patient has not booked after email and SMS — escalate to voice call.',
+    conditions: [
+      { id: 1, fieldValue: 'future_appointment', operatorValue: 'equals', valueValue: 'false' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'future_appointment', label: 'Future appointment' },
+        { value: 'appointment_status', label: 'Appointment status' },
+        { value: 'booking_response',   label: 'Booking response' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Equals' },
+        { value: 'not_equals', label: 'Does not equal' },
+      ],
+      value: [
+        { value: 'true',  label: 'True' },
+        { value: 'false', label: 'False' },
+      ],
+    },
+    parentId: 'rcl-5',
+    isBranchPath: true,
+    nodes: [
+      {
+        id: 'rcl-6',
+        flowType: 'voiceCall',
+        data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter name', descriptionPlaceholder: 'Call the patient to book a hygiene recall appointment', branches: [{ id: 'rcl-6-vc-completed', name: 'Call answered', isVoiceCallBranch: true }, { id: 'rcl-6-vc-rejected', name: 'Call rejected', isVoiceCallBranch: true }, { id: 'rcl-6-vc-missed', name: 'Call missed', isVoiceCallBranch: true }, { id: 'rcl-6-vc-voicemail', name: 'Voice mail', isVoiceCallBranch: true, isFallback: true }] },
+      },
+    ],
+  },
+  'rcl-5-path-2': {
+    branchName: 'Appointment booked',
+    description: 'Patient already booked — no further outreach needed.',
+    conditions: [
+      { id: 1, fieldValue: 'future_appointment', operatorValue: 'equals', valueValue: 'true' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'future_appointment', label: 'Future appointment' },
+        { value: 'appointment_status', label: 'Appointment status' },
+      ],
+      operator: [{ value: 'equals', label: 'Equals' }],
+      value: [{ value: 'true', label: 'True' }, { value: 'false', label: 'False' }],
+    },
+    parentId: 'rcl-5',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'rcl-6': {
+    taskName: 'Initiate voice call',
+    description: 'Call the patient to book a hygiene recall appointment.',
+    toolId: 'initiate-voice-call',
+    phoneNumber: 'Contact.PhoneNumber',
+    callFrom: '',
+    startingProcedure: 'Hygiene recall procedure',
+    routeToFrontdesk: true,
+    contextItems: [
+      { id: '1', label: 'Patient ID',       variable: 'Contact.PatientId'      },
+      { id: '2', label: 'Patient name',     variable: 'Contact.FullName'       },
+      { id: '3', label: 'Last visit date',  variable: 'Contact.LastVisitDate'  },
+      { id: '4', label: 'Recall due date',  variable: 'Contact.RecallDueDate'  },
+      { id: '5', label: 'Provider ID',      variable: 'Contact.ProviderId'     },
+    ],
+    retrySettings: { noAnswer: true, callRejected: false, voiceMail: true },
+    voicemailMessage: 'Hi {{Contact.FirstName}}, this is {{Practice.Name}} calling to schedule your hygiene recall appointment. Please call us back at {{Practice.PhoneNumber}} to book your visit.',
+    maxAttempts: 2,
+    retryInterval: 24,
+    retryIntervalUnit: 'Hours',
+    branches: [
+      { id: 'rcl-6-vc-completed', name: 'Call answered', isVoiceCallBranch: true, isFallback: false },
+      { id: 'rcl-6-vc-rejected',  name: 'Call rejected', isVoiceCallBranch: true, isFallback: false },
+      { id: 'rcl-6-vc-missed',    name: 'Call missed',   isVoiceCallBranch: true, isFallback: false },
+      { id: 'rcl-6-vc-voicemail', name: 'Voice mail',    isVoiceCallBranch: true, isFallback: true  },
+    ],
+  },
+  'rcl-6-vc-completed': {
+    branchName: 'Call answered',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'answered' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rcl-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rcl-6-fd', flowType: 'subagent', data: { title: 'Front desk agent - North region', subtype: 'Sub-agent', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Call subagent', descriptionPlaceholder: 'Call subagent workflow.' } },
+    ],
+  },
+  'rcl-6-vc-rejected': {
+    branchName: 'Call rejected',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'rejected' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rcl-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rcl-r1', flowType: 'delay', data: { title: 'Delay for 1 day',   subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'rcl-r-email', flowType: 'task', data: { title: 'Send recall email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up recall email with booking link' } },
+      { id: 'rcl-r2', flowType: 'task',  data: { title: 'Send recall SMS',    subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up recall SMS with booking link' } },
+    ],
+  },
+  'rcl-6-vc-missed': {
+    branchName: 'Call missed',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'missed' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rcl-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rcl-m1', flowType: 'delay', data: { title: 'Delay for 1 day',   subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'rcl-m-email', flowType: 'task', data: { title: 'Send recall email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up recall email with booking link' } },
+      { id: 'rcl-m2', flowType: 'task',  data: { title: 'Send recall SMS',    subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up recall SMS with booking link' } },
+    ],
+  },
+  'rcl-6-vc-voicemail': {
+    branchName: 'Voice mail',
+    isVoiceCallBranch: true,
+    isFallback: true,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'voicemail' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rcl-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rcl-v1', flowType: 'delay', data: { title: 'Delay for 1 day',   subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'rcl-v-email', flowType: 'task', data: { title: 'Send recall email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up recall email with booking link' } },
+      { id: 'rcl-v2', flowType: 'task',  data: { title: 'Send recall SMS',    subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up recall SMS with booking link' } },
+    ],
+  },
+  // ── Rejected path sub-nodes ──
+  'rcl-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'rcl-r2': { taskName: 'Send recall SMS', description: 'Follow-up recall SMS with booking link', selectedTools: ['send-confirmation'] },
+  // ── Missed path sub-nodes ──
+  'rcl-m1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'rcl-m2': { taskName: 'Send recall SMS', description: 'Follow-up recall SMS with booking link', selectedTools: ['send-confirmation'] },
+  // ── Voicemail path sub-nodes ──
+  'rcl-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'rcl-v2': { taskName: 'Send recall SMS', description: 'Follow-up recall SMS with booking link', selectedTools: ['send-confirmation'] },
+  // Front desk agent subagent node
+  'rcl-6-fd': { selectedAgent: 'frontdesk-north', name: 'Front desk agent - North region', description: 'Transfer to the front desk agent for assisted patient handling on recall call.', intent: 'Recall' },
+  // ── Email task nodeDetails ──
+  'rcl-r-email': { taskName: 'Send recall email', description: 'Follow-up recall email with booking link', selectedTools: ['send-confirmation'] },
+  'rcl-m-email': { taskName: 'Send recall email', description: 'Follow-up recall email with booking link', selectedTools: ['send-confirmation'] },
+  'rcl-v-email': { taskName: 'Send recall email', description: 'Follow-up recall email with booking link', selectedTools: ['send-confirmation'] },
+}
+
+// ─── Dental: Revenue (Payment) Agent ─────────────────────────────────────────
+// Sketch: trigger → send payment due email → send payment due SMS → delay 2 days
+//   → branch (payment not done / done)
+//     → "Payment not done": initiate voice call → start procedure: payment reminder
+//         → call rejected:  repeat-after-branch (same sequence)
+//         → call missed:    delay 1 day → send payment due SMS → repeat-after-branch
+//     → fallback (payment done): (empty)
+
+const REVENUE_NODES = [
+  {
+    id: 'rev-1',
+    flowType: 'trigger' as const,
+    data: { title: 'Contact added to segment — Overdue 30 days', subtype: 'Trigger', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' },
+  },
+  {
+    id: 'rev-2',
+    flowType: 'task' as const,
+    data: { title: 'Send payment due email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Personalized payment reminder email with click-to-pay link' },
+  },
+  {
+    id: 'rev-3',
+    flowType: 'task' as const,
+    data: { title: 'Send payment due SMS', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Short SMS with secure payment link' },
+  },
+  {
+    id: 'rev-4',
+    flowType: 'delay' as const,
+    data: { title: 'Delay for 2 days', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for specific time or event.' },
+  },
+  {
+    id: 'rev-5',
+    flowType: 'branch' as const,
+    data: { title: 'Based on conditions', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Payment done or not?' },
+  },
+]
+
+const REVENUE_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Revenue agent',
+    goals: 'Collect outstanding patient balances by delivering timely, personalized payment reminders via email, SMS, and voice, reducing A/R days and minimizing staff effort.',
+    outcomes:
+      '1. Patient pays via click-to-pay link in email or SMS\n' +
+      '2. Payment collected or payment plan set up over the phone\n' +
+      '3. Dispute escalated to billing team for resolution\n' +
+      '4. Patient does not respond — sequence completes after retry',
+    locations: ['Atlanta, GA', 'Dallas, TX', 'Chicago, IL', 'Miami, FL'],
+  },
+  'rev-1': {
+    triggerName: 'Contact added to segment — Overdue 30 days',
+    description: 'Fires when a patient is added to the Overdue 30 days segment, indicating an outstanding balance older than 30 days.',
+    conditions: [
+      { id: 1, fieldValue: 'segment',     operatorValue: 'equals',       valueValue: 'overdue_30_days' },
+      { id: 2, fieldValue: 'balance_age', operatorValue: 'greater_than', valueValue: '30_days' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'segment',         label: 'Segment' },
+        { value: 'balance_age',     label: 'Balance age (days)' },
+        { value: 'balance_amount',  label: 'Balance amount' },
+        { value: 'payment_status',  label: 'Payment status' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'overdue_30_days', label: 'Overdue 30 days' },
+        { value: '30_days',         label: '30 days' },
+        { value: '60_days',         label: '60 days' },
+        { value: 'paid',            label: 'Paid' },
+        { value: 'unpaid',          label: 'Unpaid' },
+      ],
+    },
+  },
+  'rev-2': {
+    taskName: 'Send payment due email',
+    description: 'Personalized payment reminder email with click-to-pay link',
+    selectedTools: ['send-confirmation', 'dms-integration'],
+  },
+  'rev-3': {
+    taskName: 'Send payment due SMS',
+    description: 'Short SMS with secure payment link',
+    selectedTools: ['send-confirmation'],
+  },
+  'rev-4': { name: 'Delay for 2 days', duration: '2', unit: 'days' },
+  'rev-5': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'rev-5-path-1', name: 'Payment not done' },
+      { id: 'rev-5-path-2', name: 'Payment done', isFallback: true },
+    ],
+  },
+  'rev-5-path-1': {
+    branchName: 'Payment not done',
+    description: 'Balance still outstanding after email and SMS — escalate to voice call.',
+    conditions: [
+      { id: 1, fieldValue: 'payment_done', operatorValue: 'equals', valueValue: 'false' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'payment_done',   label: 'Payment done' },
+        { value: 'payment_status', label: 'Payment status' },
+        { value: 'balance_amount', label: 'Balance amount' },
+      ],
+      operator: [{ value: 'equals', label: 'Equals' }, { value: 'not_equals', label: 'Does not equal' }],
+      value: [{ value: 'true', label: 'True' }, { value: 'false', label: 'False' }],
+    },
+    parentId: 'rev-5',
+    isBranchPath: true,
+    nodes: [
+      {
+        id: 'rev-6',
+        flowType: 'voiceCall',
+        data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter name', descriptionPlaceholder: 'Call the patient to collect payment or arrange a plan', branches: [{ id: 'rev-6-vc-completed', name: 'Call answered', isVoiceCallBranch: true }, { id: 'rev-6-vc-rejected', name: 'Call rejected', isVoiceCallBranch: true }, { id: 'rev-6-vc-missed', name: 'Call missed', isVoiceCallBranch: true }, { id: 'rev-6-vc-voicemail', name: 'Voice mail', isVoiceCallBranch: true, isFallback: true }] },
+      },
+    ],
+  },
+  'rev-5-path-2': {
+    branchName: 'Payment done',
+    description: 'Payment received — sequence complete.',
+    conditions: [
+      { id: 1, fieldValue: 'payment_done', operatorValue: 'equals', valueValue: 'true' },
+    ],
+    conditionOptions: {
+      field: [{ value: 'payment_done', label: 'Payment done' }],
+      operator: [{ value: 'equals', label: 'Equals' }],
+      value: [{ value: 'true', label: 'True' }, { value: 'false', label: 'False' }],
+    },
+    parentId: 'rev-5',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'rev-6': {
+    taskName: 'Initiate voice call',
+    description: 'Call the patient to collect payment or arrange a payment plan.',
+    toolId: 'initiate-voice-call',
+    phoneNumber: 'Contact.PhoneNumber',
+    callFrom: '',
+    startingProcedure: 'Payment reminder procedure',
+    routeToFrontdesk: false,
+    contextItems: [
+      { id: '1', label: 'Patient ID',        variable: 'Contact.PatientId'       },
+      { id: '2', label: 'Patient name',      variable: 'Contact.FullName'        },
+      { id: '3', label: 'Balance amount',    variable: 'Contact.BalanceAmount'   },
+      { id: '4', label: 'Invoice ID',        variable: 'Contact.InvoiceId'       },
+      { id: '5', label: 'Payment due date',  variable: 'Contact.PaymentDueDate'  },
+    ],
+    retrySettings: { noAnswer: true, callRejected: false, voiceMail: true },
+    voicemailMessage: 'Hi {{Contact.FirstName}}, this is {{Practice.Name}} calling regarding an outstanding balance of {{Contact.BalanceAmount}} on your account. Please call us back at {{Practice.PhoneNumber}} to discuss your payment options.',
+    maxAttempts: 2,
+    retryInterval: 24,
+    retryIntervalUnit: 'Hours',
+    branches: [
+      { id: 'rev-6-vc-completed', name: 'Call answered', isVoiceCallBranch: true, isFallback: false },
+      { id: 'rev-6-vc-rejected',  name: 'Call rejected', isVoiceCallBranch: true, isFallback: false },
+      { id: 'rev-6-vc-missed',    name: 'Call missed',   isVoiceCallBranch: true, isFallback: false },
+      { id: 'rev-6-vc-voicemail', name: 'Voice mail',    isVoiceCallBranch: true, isFallback: true  },
+    ],
+  },
+  'rev-6-vc-completed': {
+    branchName: 'Call answered',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'answered' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rev-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rev-6-fd', flowType: 'subagent', data: { title: 'Front desk agent - North region', subtype: 'Sub-agent', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Call subagent', descriptionPlaceholder: 'Call subagent workflow.' } },
+    ],
+  },
+  'rev-6-vc-rejected': {
+    branchName: 'Call rejected',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'rejected' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rev-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rev-r1', flowType: 'delay', data: { title: 'Delay for 1 day',       subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'rev-r-email', flowType: 'task', data: { title: 'Send payment due email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up payment reminder email with click-to-pay link' } },
+      { id: 'rev-r2', flowType: 'task',  data: { title: 'Send payment due SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up payment reminder SMS' } },
+    ],
+  },
+  'rev-6-vc-missed': {
+    branchName: 'Call missed',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'missed' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rev-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rev-m1', flowType: 'delay', data: { title: 'Delay for 1 day',       subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'rev-m-email', flowType: 'task', data: { title: 'Send payment due email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up payment reminder email with click-to-pay link' } },
+      { id: 'rev-m2', flowType: 'task',  data: { title: 'Send payment due SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up payment reminder SMS' } },
+    ],
+  },
+  'rev-6-vc-voicemail': {
+    branchName: 'Voice mail',
+    isVoiceCallBranch: true,
+    isFallback: true,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'voicemail' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'rev-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'rev-v1', flowType: 'delay', data: { title: 'Delay for 1 day',       subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'rev-v-email', flowType: 'task', data: { title: 'Send payment due email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up payment reminder email with click-to-pay link' } },
+      { id: 'rev-v2', flowType: 'task',  data: { title: 'Send payment due SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up payment reminder SMS' } },
+    ],
+  },
+  // ── Rejected/Missed/Voicemail path sub-nodes ──
+  'rev-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'rev-r2': { taskName: 'Send payment due SMS', description: 'Follow-up payment reminder SMS', selectedTools: ['send-confirmation'] },
+  'rev-m1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'rev-m2': { taskName: 'Send payment due SMS', description: 'Follow-up payment reminder SMS', selectedTools: ['send-confirmation'] },
+  'rev-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'rev-v2': { taskName: 'Send payment due SMS', description: 'Follow-up payment reminder SMS', selectedTools: ['send-confirmation'] },
+  // Front desk agent subagent node
+  'rev-6-fd': { selectedAgent: 'frontdesk-north', name: 'Front desk agent - North region', description: 'Transfer to the front desk agent for assisted patient handling on payment call.', intent: 'Revenue' },
+  // ── Email task nodeDetails ──
+  'rev-r-email': { taskName: 'Send payment due email', description: 'Follow-up payment reminder email with click-to-pay link', selectedTools: ['send-confirmation'] },
+  'rev-m-email': { taskName: 'Send payment due email', description: 'Follow-up payment reminder email with click-to-pay link', selectedTools: ['send-confirmation'] },
+  'rev-v-email': { taskName: 'Send payment due email', description: 'Follow-up payment reminder email with click-to-pay link', selectedTools: ['send-confirmation'] },
+}
+
+// ─── Dental: Treatment Plan Agent ────────────────────────────────────────────
+// Sketch: trigger → send TP email → send TP SMS → delay 2 days
+//   → branch (TP not scheduled / scheduled)
+//     → "Treatment plan not scheduled": initiate voice call → start procedure: TP coordinator
+//         → call rejected:  repeat-after-branch (same check)
+//         → call missed:    delay 1 day → send TP SMS → repeat-after-branch
+//     → fallback (scheduled): (empty)
+
+const TREATMENT_PLAN_NODES = [
+  {
+    id: 'tpa-1',
+    flowType: 'trigger' as const,
+    data: { title: 'Contact is added to segment — Treatment plan due', subtype: 'Trigger', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' },
+  },
+  {
+    id: 'tpa-2',
+    flowType: 'task' as const,
+    data: { title: 'Send treatment plan unscheduled email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Personalized treatment plan email with scheduling link' },
+  },
+  {
+    id: 'tpa-3',
+    flowType: 'task' as const,
+    data: { title: 'Send treatment plan unscheduled SMS', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Short SMS with treatment plan scheduling link' },
+  },
+  {
+    id: 'tpa-4',
+    flowType: 'delay' as const,
+    data: { title: 'Delay for 2 days', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for specific time or event.' },
+  },
+  {
+    id: 'tpa-5',
+    flowType: 'branch' as const,
+    data: { title: 'Based on conditions', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Treatment plan scheduled or not?' },
+  },
+]
+
+const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Treatment plan agent',
+    goals: 'Convert unscheduled treatment plans into booked appointments by following up via email, SMS, and voice, connecting engaged patients with the treatment plan coordinator.',
+    outcomes:
+      '1. Patient schedules via self-schedule link in email or SMS\n' +
+      '2. Appointment booked over the phone during the voice call\n' +
+      '3. Patient connected to treatment plan coordinator for complex questions\n' +
+      '4. Patient does not respond — sequence completes after retry',
+    locations: ['Atlanta, GA', 'Dallas, TX', 'Chicago, IL', 'Miami, FL'],
+  },
+  'tpa-1': {
+    triggerName: 'Contact is added to segment — Treatment plan due',
+    description: 'Fires when a contact is added to the Treatment plan due segment — treatment plan has been presented but no appointment is scheduled.',
+    conditions: [
+      { id: 1, fieldValue: 'segment', operatorValue: 'equals', valueValue: 'treatment_plan_due' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'segment',              label: 'Segment' },
+        { value: 'treatment_plan_status',label: 'Treatment plan status' },
+        { value: 'days_since_presented', label: 'Days since presented' },
+        { value: 'tp_value',             label: 'Treatment plan value' },
+      ],
+      operator: [
+        { value: 'equals',       label: 'Equals' },
+        { value: 'not_equals',   label: 'Does not equal' },
+        { value: 'greater_than', label: 'Greater than' },
+      ],
+      value: [
+        { value: 'treatment_plan_due',  label: 'Treatment plan due' },
+        { value: 'presented',           label: 'Presented' },
+        { value: 'accepted',            label: 'Accepted' },
+        { value: 'declined',            label: 'Declined' },
+      ],
+    },
+  },
+  'tpa-2': {
+    taskName: 'Send treatment plan unscheduled email',
+    description: 'Personalized treatment plan email with scheduling link',
+    selectedTools: ['send-confirmation', 'dms-integration'],
+  },
+  'tpa-3': {
+    taskName: 'Send treatment plan unscheduled SMS',
+    description: 'Short SMS with treatment plan scheduling link',
+    selectedTools: ['send-confirmation'],
+  },
+  'tpa-4': { name: 'Delay for 2 days', duration: '2', unit: 'days' },
+  'tpa-5': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'tpa-5-path-1', name: 'Treatment plan not scheduled' },
+      { id: 'tpa-5-path-2', name: 'Treatment plan scheduled', isFallback: true },
+    ],
+  },
+  'tpa-5-path-1': {
+    branchName: 'Treatment plan not scheduled',
+    description: 'Patient has not scheduled after email and SMS — escalate to voice call.',
+    conditions: [
+      { id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'false' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' },
+        { value: 'treatment_plan_status',    label: 'Treatment plan status' },
+        { value: 'future_appointment',       label: 'Future appointment' },
+      ],
+      operator: [{ value: 'equals', label: 'Equals' }, { value: 'not_equals', label: 'Does not equal' }],
+      value: [{ value: 'true', label: 'True' }, { value: 'false', label: 'False' }],
+    },
+    parentId: 'tpa-5',
+    isBranchPath: true,
+    nodes: [
+      {
+        id: 'tpa-6',
+        flowType: 'voiceCall',
+        data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter name', descriptionPlaceholder: 'Call the patient to discuss and schedule their treatment plan', branches: [{ id: 'tpa-6-vc-completed', name: 'Call answered', isVoiceCallBranch: true }, { id: 'tpa-6-vc-rejected', name: 'Call rejected', isVoiceCallBranch: true }, { id: 'tpa-6-vc-missed', name: 'Call missed', isVoiceCallBranch: true }, { id: 'tpa-6-vc-voicemail', name: 'Voice mail', isVoiceCallBranch: true, isFallback: true }] },
+      },
+    ],
+  },
+  'tpa-5-path-2': {
+    branchName: 'Treatment plan scheduled',
+    description: 'Patient already scheduled — no further outreach needed.',
+    conditions: [
+      { id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'true' },
+    ],
+    conditionOptions: {
+      field: [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+      operator: [{ value: 'equals', label: 'Equals' }],
+      value: [{ value: 'true', label: 'True' }, { value: 'false', label: 'False' }],
+    },
+    parentId: 'tpa-5',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'tpa-6': {
+    taskName: 'Initiate voice call',
+    description: 'Call the patient to discuss the treatment plan and schedule their appointment.',
+    toolId: 'initiate-voice-call',
+    phoneNumber: 'Contact.PhoneNumber',
+    callFrom: '',
+    startingProcedure: 'Treatment plan coordinator procedure',
+    routeToFrontdesk: true,
+    contextItems: [
+      { id: '1', label: 'Patient ID',         variable: 'Contact.PatientId'        },
+      { id: '2', label: 'Patient name',       variable: 'Contact.FullName'         },
+      { id: '3', label: 'Treatment plan ID',  variable: 'Contact.TreatmentPlanId'  },
+      { id: '4', label: 'Provider ID',        variable: 'Contact.ProviderId'       },
+      { id: '5', label: 'Plan value',         variable: 'Contact.TreatmentPlanValue'},
+    ],
+    retrySettings: { noAnswer: true, callRejected: false, voiceMail: true },
+    voicemailMessage: 'Hi {{Contact.FirstName}}, this is {{Practice.Name}} calling to discuss your treatment plan and help you schedule your next appointment. Please call us back at {{Practice.PhoneNumber}} at your earliest convenience.',
+    maxAttempts: 2,
+    retryInterval: 24,
+    retryIntervalUnit: 'Hours',
+    branches: [
+      { id: 'tpa-6-vc-completed', name: 'Call answered', isVoiceCallBranch: true, isFallback: false },
+      { id: 'tpa-6-vc-rejected',  name: 'Call rejected', isVoiceCallBranch: true, isFallback: false },
+      { id: 'tpa-6-vc-missed',    name: 'Call missed',   isVoiceCallBranch: true, isFallback: false },
+      { id: 'tpa-6-vc-voicemail', name: 'Voice mail',    isVoiceCallBranch: true, isFallback: true  },
+    ],
+  },
+  'tpa-6-vc-completed': {
+    branchName: 'Call answered',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'answered' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tpa-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tpa-6-fd', flowType: 'subagent', data: { title: 'Front desk agent - North region', subtype: 'Sub-agent', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Call subagent', descriptionPlaceholder: 'Call subagent workflow.' } },
+    ],
+  },
+  'tpa-6-vc-rejected': {
+    branchName: 'Call rejected',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'rejected' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tpa-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tpa-r1', flowType: 'delay', data: { title: 'Delay for 1 day',                      subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'tpa-r-email', flowType: 'task', data: { title: 'Send treatment plan email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up treatment plan email with scheduling link' } },
+      { id: 'tpa-r2', flowType: 'task',  data: { title: 'Send treatment plan unscheduled SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up treatment plan SMS with scheduling link' } },
+    ],
+  },
+  'tpa-6-vc-missed': {
+    branchName: 'Call missed',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'missed' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tpa-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tpa-m1', flowType: 'delay', data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'tpa-m-email', flowType: 'task', data: { title: 'Send treatment plan email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up treatment plan email with scheduling link' } },
+      { id: 'tpa-m2', flowType: 'task', data: { title: 'Send treatment plan unscheduled SMS', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up treatment plan SMS with scheduling link' } },
+    ],
+  },
+  'tpa-6-vc-voicemail': {
+    branchName: 'Voice mail',
+    isVoiceCallBranch: true,
+    isFallback: true,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'voicemail' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tpa-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tpa-v1', flowType: 'delay', data: { title: 'Delay for 1 day',                      subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'tpa-v-email', flowType: 'task', data: { title: 'Send treatment plan email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up treatment plan email with scheduling link' } },
+      { id: 'tpa-v2', flowType: 'task',  data: { title: 'Send treatment plan unscheduled SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Follow-up treatment plan SMS with scheduling link' } },
+    ],
+  },
+  // ── Rejected/Missed/Voicemail path sub-nodes ──
+  'tpa-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tpa-r2': { taskName: 'Send treatment plan unscheduled SMS', description: 'Follow-up treatment plan SMS with scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-m1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tpa-m2': { taskName: 'Send treatment plan unscheduled SMS', description: 'Follow-up treatment plan SMS with scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tpa-v2': { taskName: 'Send treatment plan unscheduled SMS', description: 'Follow-up treatment plan SMS with scheduling link', selectedTools: ['send-confirmation'] },
+  // Front desk agent subagent node
+  'tpa-6-fd': { selectedAgent: 'frontdesk-north', name: 'Front desk agent - North region', description: 'Transfer to the front desk agent for assisted patient handling on treatment plan call.', intent: 'Treatment plan' },
+  // ── Email task nodeDetails ──
+  'tpa-r-email': { taskName: 'Send treatment plan email', description: 'Follow-up treatment plan email with scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-m-email': { taskName: 'Send treatment plan email', description: 'Follow-up treatment plan email with scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-v-email': { taskName: 'Send treatment plan email', description: 'Follow-up treatment plan email with scheduling link', selectedTools: ['send-confirmation'] },
+}
+
+// Dental extends healthcare with three additional agent workflows
+export const DENTAL_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
+  ...HEALTHCARE_AGENT_WORKFLOWS,
+  'Recall agent':         { nodes: RECALL_NODES,         nodeDetails: RECALL_NODE_DETAILS         },
+  'Revenue agent':        { nodes: REVENUE_NODES,         nodeDetails: REVENUE_NODE_DETAILS         },
+  'Treatment plan agent': { nodes: TREATMENT_PLAN_NODES,  nodeDetails: TREATMENT_PLAN_NODE_DETAILS  },
+}
 
 // Default export kept for backward compat
 export const AGENT_WORKFLOWS = AUTOMOTIVE_AGENT_WORKFLOWS
 
 export function getAgentWorkflows(product?: string) {
-  if (product === 'healthcare' || product === 'dental') return HEALTHCARE_AGENT_WORKFLOWS
+  if (product === 'dental') return DENTAL_AGENT_WORKFLOWS
+  if (product === 'healthcare') return HEALTHCARE_AGENT_WORKFLOWS
   return AUTOMOTIVE_AGENT_WORKFLOWS
 }

@@ -1502,6 +1502,9 @@ const HC_CONTEXT: ContextItem[] = [
 
 /** Display order for healthcare Procedures library and workflow procedure nodes */
 export const HC_PROCEDURE_ORDER = [
+  'Recall — reactivate and book recare',
+  'Revenue — resolve outstanding balance',
+  'Treatment plan — schedule recommended treatment',
   'Handle general inquiry',
   'Talk to human',
   'Book new appointment',
@@ -2045,6 +2048,223 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     context: HC_CONTEXT,
   },
 ]
+
+// ── Outbound agent procedures (Birdeye Dental) ─────────────────
+
+const DENTAL_RECALL_CONTEXT: ContextItem[] = [
+  { kind: 'context', label: 'location_name' },
+  { kind: 'context', label: 'patient_first_name' },
+  { kind: 'context', label: 'patient_is_minor' },
+  { kind: 'context', label: 'contact_dob' },
+  { kind: 'context', label: 'recare_type' },
+  { kind: 'context', label: 'provider_name' },
+  { kind: 'context', label: 'callback_number' },
+]
+
+const DENTAL_REVENUE_CONTEXT: ContextItem[] = [
+  { kind: 'context', label: 'location_name' },
+  { kind: 'context', label: 'patient_first_name' },
+  { kind: 'context', label: 'patient_is_minor' },
+  { kind: 'context', label: 'contact_dob' },
+  { kind: 'context', label: 'outstanding_balance' },
+  { kind: 'context', label: 'statement_date' },
+  { kind: 'context', label: 'payment_link' },
+  { kind: 'context', label: 'callback_number' },
+]
+
+const DENTAL_TP_CONTEXT: ContextItem[] = [
+  { kind: 'context', label: 'location_name' },
+  { kind: 'context', label: 'patient_first_name' },
+  { kind: 'context', label: 'patient_is_minor' },
+  { kind: 'context', label: 'contact_dob' },
+  { kind: 'context', label: 'recommending_provider' },
+  { kind: 'context', label: 'callback_number' },
+]
+
+HC_PROCEDURES_UNSORTED.push(
+  {
+    id: 'dental-ob-01',
+    name: 'Recall — reactivate and book recare',
+    category: 'Healthcare Frontdesk',
+    description: 'Outbound call to reactivate a patient due or overdue for routine or preventive care (cleaning, exam, recare) and book the appointment.',
+    lastEdited: 'Jun 16',
+    whenToUse: 'Outbound call to a patient who is due or overdue for routine or preventive care (cleaning, periodic exam, recare, or unscheduled hygiene). Myna places the call to help them get back on the schedule.',
+    steps: [
+      {
+        title: 'Reach the right person',
+        bullets: [
+          { tokens: ['Greet and identify: "Hello, this is Myna calling from ', ref('context', 'location_name'), '. May I please speak with ', ref('context', 'patient_first_name'), '?"'] },
+          { tokens: ['If the person is unavailable → ask for a good callback time, share no details, go to step 7.'] },
+          { tokens: ['If wrong number / not the patient → apologize, disclose nothing, honor any do-not-contact request. ', ref('tool', 'update_state')] },
+          { tokens: ['If voicemail → leave a HIPAA-safe message (name, office, ', ref('context', 'callback_number'), ', no health details).'] },
+        ],
+      },
+      {
+        title: 'Verify identity (before any specifics)',
+        bullets: [
+          { tokens: ['If ', ref('context', 'patient_is_minor'), ' is false → ask the patient\'s date of birth and match it. ', ref('tool', 'lookup_patient')] },
+          { tokens: ['If ', ref('context', 'patient_is_minor'), ' is true → confirm you\'re speaking with the patient\'s parent/legal guardian, verify the guardian\'s DOB. ', ref('tool', 'lookup_patient'), ' Then confirm which child by first name + DOB (one child at a time; never reference siblings).'] },
+          { tokens: ['Never read stored details aloud. On mismatch/unauthorized → ask once more; if it still fails, disclose nothing, suggest calling ', ref('context', 'callback_number'), ', then ', ref('subagent', 'Router'), '.'] },
+        ],
+      },
+      {
+        title: 'State the reason for the call',
+        bullets: [
+          { tokens: ['Let them know they\'re due for their ', ref('context', 'recare_type'), '; keep it brief. ', ref('tool', 'get_recall_status')] },
+        ],
+      },
+      {
+        title: 'Gauge interest',
+        bullets: [
+          { tokens: ['Interested → go to step 5.'] },
+          { tokens: ['Not now → offer a self-schedule text. ', ref('tool', 'send_text_confirmation'), ' Note the preference. ', ref('tool', 'update_state'), ' Go to step 7.'] },
+          { tokens: ['Asks to stop → acknowledge. ', ref('tool', 'opt_out_processor'), ' ', ref('tool', 'update_state'), ' Go to step 7.'] },
+        ],
+      },
+      {
+        title: 'Book the recare appointment',
+        bullets: [
+          { tokens: ['"Let me check what\'s available." Get the preferred date, then ', ref('tool', 'get_available_slots')] },
+          { tokens: ['Offer 2–3 slots; confirm the slot and provider together.'] },
+          { tokens: ['Book ', ref('tool', 'create_appointment'), ' with ', ref('context', 'contact_dob'), ' (and dependent DOB for a child).'] },
+        ],
+      },
+      {
+        title: 'Anything out of scope',
+        bullets: [
+          { tokens: ['If the patient raises something outside recare scheduling → "Sure, give me just a moment." ', ref('tool', 'update_state'), ' Then ', ref('subagent', 'Router'), ' (don\'t explain the transfer).'] },
+        ],
+      },
+      {
+        title: 'Close',
+        bullets: [
+          { tokens: ['Confirm what was done; offer a text confirmation. ', ref('tool', 'send_text_confirmation')] },
+          { tokens: ['"Is there anything else I can help you with today?" If no → "On a scale of 1 to 5, how was your experience today?"'] },
+          { tokens: ['"Thank you so much — have a great day."'] },
+        ],
+      },
+    ],
+    tools: ['lookup_patient', 'get_recall_status', 'get_available_slots', 'create_appointment', 'send_text_confirmation', 'update_state', 'opt_out_processor'],
+    context: DENTAL_RECALL_CONTEXT,
+  },
+  {
+    id: 'dental-ob-02',
+    name: 'Revenue — resolve outstanding balance',
+    category: 'Healthcare Frontdesk',
+    description: 'Outbound call to help a patient or guarantor pay securely, set up a payment plan, or route a dispute — respectfully, never like collections.',
+    lastEdited: 'Jun 16',
+    whenToUse: 'Outbound call to a patient or guarantor with an outstanding balance. Myna calls to help them pay securely, set up a payment plan, or route a dispute — respectfully, never like collections.',
+    steps: [
+      {
+        title: 'Reach the right person',
+        bullets: [
+          { tokens: ['Greet and identify; ask for ', ref('context', 'patient_first_name'), '.'] },
+          { tokens: ['Unavailable → ask for a callback time, no account details, go to step 6.'] },
+          { tokens: ['Wrong number / not the account holder → apologize, disclose nothing, honor do-not-contact. ', ref('tool', 'update_state')] },
+          { tokens: ['Voicemail → leave a message with NO balance or account details (name, office, ', ref('context', 'callback_number'), ').'] },
+        ],
+      },
+      {
+        title: 'Verify identity (before any account specifics)',
+        bullets: [
+          { tokens: ['Confirm you\'re speaking with the account holder / parent or legal guardian; verify their date of birth. ', ref('tool', 'lookup_patient'), ' Never read stored details aloud.'] },
+          { tokens: ['On mismatch/unauthorized → disclose nothing, suggest calling ', ref('context', 'callback_number'), ', then ', ref('subagent', 'Router'), '.'] },
+        ],
+      },
+      {
+        title: 'State the reason for the call',
+        bullets: [
+          { tokens: ['Let them know there\'s a balance you\'d like to help resolve. ', ref('tool', 'get_account_balance'), ' State only the amount and statement date — for a minor the balance sits on the guarantor account; don\'t itemize per-child clinical detail.'] },
+        ],
+      },
+      {
+        title: 'Resolve the balance',
+        bullets: [
+          { tokens: ['Pay now → "I\'ll text you a secure link to take care of it." ', ref('tool', 'send_payment_link'), ' Never take card or bank numbers by voice; if offered, stop and use the link.'] },
+          { tokens: ['Payment plan → confirm a workable arrangement at a high level, then ', ref('tool', 'create_payment_plan')] },
+          { tokens: ['Dispute / itemized question → don\'t speculate. ', ref('tool', 'update_state'), ' Then ', ref('subagent', 'Router'), ' (billing).'] },
+          { tokens: ['Asks to stop → ', ref('tool', 'opt_out_processor'), ' ', ref('tool', 'update_state')] },
+        ],
+      },
+      {
+        title: 'Anything out of scope',
+        bullets: [
+          { tokens: ['"Sure, give me just a moment." ', ref('tool', 'update_state'), ' Then ', ref('subagent', 'Router'), '.'] },
+        ],
+      },
+      {
+        title: 'Close',
+        bullets: [
+          { tokens: ['Confirm what was done; offer a text confirmation/receipt. ', ref('tool', 'send_text_confirmation')] },
+          { tokens: ['"Anything else I can help with today?" If no → CSAT "On a scale of 1 to 5…"'] },
+          { tokens: ['"Thank you so much — have a great day."'] },
+        ],
+      },
+    ],
+    tools: ['lookup_patient', 'get_account_balance', 'send_payment_link', 'create_payment_plan', 'send_text_confirmation', 'update_state', 'opt_out_processor'],
+    context: DENTAL_REVENUE_CONTEXT,
+  },
+  {
+    id: 'dental-ob-03',
+    name: 'Treatment plan — schedule recommended treatment',
+    category: 'Healthcare Frontdesk',
+    description: 'Outbound call to help a patient book provider-recommended treatment that hasn\'t been scheduled yet. No clinical advice — cost questions routed to financial coordinator.',
+    lastEdited: 'Jun 16',
+    whenToUse: 'Outbound call to a patient with treatment their provider recommended but that hasn\'t been scheduled. Myna calls to help book it — no clinical advice, and cost questions are routed to the financial coordinator.',
+    steps: [
+      {
+        title: 'Reach the right person',
+        bullets: [
+          { tokens: ['Greet and identify; ask for ', ref('context', 'patient_first_name'), '.'] },
+          { tokens: ['Unavailable → ask for a callback time, no treatment details, go to step 6.'] },
+          { tokens: ['Wrong number / not the patient → apologize, disclose nothing, honor do-not-contact. ', ref('tool', 'update_state')] },
+          { tokens: ['Voicemail → leave a message with NO treatment or health details (name, office, ', ref('context', 'callback_number'), ').'] },
+        ],
+      },
+      {
+        title: 'Verify identity (before any specifics)',
+        bullets: [
+          { tokens: ['If ', ref('context', 'patient_is_minor'), ' is false → verify the patient\'s DOB. ', ref('tool', 'lookup_patient')] },
+          { tokens: ['If ', ref('context', 'patient_is_minor'), ' is true → verify the guardian\'s DOB, then confirm which child by first name + DOB (one child at a time; never reference siblings).'] },
+          { tokens: ['Never read stored details aloud. On mismatch/unauthorized → disclose nothing, suggest calling ', ref('context', 'callback_number'), ', then ', ref('subagent', 'Router'), '.'] },
+        ],
+      },
+      {
+        title: 'State the reason for the call (high-level)',
+        bullets: [
+          { tokens: ['"Your dentist recommended some follow-up care, and I\'d like to help you schedule it." Keep clinical detail off the call. ', ref('tool', 'get_treatment_plan')] },
+        ],
+      },
+      {
+        title: 'Handle the response',
+        bullets: [
+          { tokens: ['Interested → go to step 5.'] },
+          { tokens: ['Clinical question (do I need it? is it urgent?) → do not advise; "I can have the provider follow up with you." ', ref('tool', 'update_state'), ' Then ', ref('subagent', 'Router'), '.'] },
+          { tokens: ['Cost / insurance / financing → keep high-level, don\'t quote detailed costs. ', ref('tool', 'update_state'), ' Then ', ref('subagent', 'Router'), ' (financial coordinator).'] },
+          { tokens: ['Not now → send an info text. ', ref('tool', 'send_text_confirmation'), ' Asks to stop → ', ref('tool', 'opt_out_processor'), ' ', ref('tool', 'update_state'), ' Go to step 6.'] },
+        ],
+      },
+      {
+        title: 'Book the treatment appointment',
+        bullets: [
+          { tokens: ['Confirm the recommended procedure and provider. ', ref('tool', 'get_services_and_specialists')] },
+          { tokens: ['Get the preferred date, then ', ref('tool', 'get_available_slots'), '; offer 2–3 slots and confirm.'] },
+          { tokens: ['Book ', ref('tool', 'create_appointment'), ' with ', ref('context', 'contact_dob'), ' (and dependent DOB for a child).'] },
+        ],
+      },
+      {
+        title: 'Close',
+        bullets: [
+          { tokens: ['Confirm what was done; offer a text confirmation. ', ref('tool', 'send_text_confirmation')] },
+          { tokens: ['"Anything else I can help with today?" If no → CSAT "On a scale of 1 to 5…"'] },
+          { tokens: ['"Thank you so much — have a great day."'] },
+        ],
+      },
+    ],
+    tools: ['lookup_patient', 'get_treatment_plan', 'get_services_and_specialists', 'get_available_slots', 'create_appointment', 'send_text_confirmation', 'update_state', 'opt_out_processor'],
+    context: DENTAL_TP_CONTEXT,
+  },
+)
 
 export const HC_PROCEDURES = sortProceduresByOrder(HC_PROCEDURES_UNSORTED, HC_PROCEDURE_ORDER)
 

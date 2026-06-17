@@ -1898,7 +1898,7 @@ export default function AgentBuilder({
       <ReminderToolDrawer isOpen={reminderToolOpen} onClose={() => setReminderToolOpen(false)} />
 
       {/* ─── Voice call tool drawer ─── */}
-      <VoiceCallToolDrawer isOpen={voiceCallToolOpen} onClose={() => setVoiceCallToolOpen(false)} />
+      <VoiceCallToolDrawer isOpen={voiceCallToolOpen} onClose={() => setVoiceCallToolOpen(false)} initialValues={currentDetails} product={product} />
 
       {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (

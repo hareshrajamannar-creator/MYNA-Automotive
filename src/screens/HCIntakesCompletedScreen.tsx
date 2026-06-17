@@ -136,7 +136,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'avgTime',    label: 'Avg completion time', width: 180, sortable: true },
 ]
 
-export function HCIntakesCompletedScreen(_props: { isDental?: boolean }) {
+export function HCIntakesCompletedScreen({ isDental = false }: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 

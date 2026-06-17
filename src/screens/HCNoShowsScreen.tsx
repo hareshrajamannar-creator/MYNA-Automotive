@@ -131,7 +131,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   },
 ]
 
-export function HCNoShowsScreen(_props: { isDental?: boolean }) {
+export function HCNoShowsScreen({ isDental = false }: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 
