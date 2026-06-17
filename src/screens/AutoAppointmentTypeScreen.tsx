@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CustomizeColumnsDrawer, DataTable, Icon, SelectMenu, Tabs, Toast, TopNav, type Column, type SelectOption } from '../components'
+import { CustomizeColumnsDrawer, DataTable, FilterPanel, Icon, SelectMenu, Toast, TopNav, type Column, type FilterField, type SelectOption } from '../components'
 
 // ── Toggle ────────────────────────────────────────────────────────────────────
 interface ToggleProps { value: boolean; onChange: (v: boolean) => void }
@@ -53,16 +53,6 @@ const SERVICE_TYPES: ServiceTypeRow[] = [
 ]
 
 // Extra advisors shown in tooltip on hover
-const ADVISOR_EXTRAS: Record<string, string[]> = {
-  'Tire rotation':             ['Alex Kim'],
-  'Diagnostic / check engine': ['Carlos Reyes'],
-  'Recall service':            ['Sarah Rodriguez', 'Alex Kim'],
-  'Scheduled maintenance':     ['Mike Johnson'],
-  'Test drive':                ['Sarah Rodriguez'],
-  'Sales consultation':        ['Brian Torres'],
-  'Trade-in appraisal':        ['Sarah Rodriguez'],
-}
-
 // Extra recognition hints shown in tooltip on hover
 const HINT_EXTRAS: Record<string, string[]> = {
   'Oil change (conventional)': ['lube service', 'lof'],
@@ -360,19 +350,6 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
   )
 }
 
-// ── Department tabs ───────────────────────────────────────────────────────────
-const deptMap: Record<string, Department> = {
-  service: 'Service', sales: 'Sales', parts: 'Parts', bodyshop: 'Body shop',
-}
-
-const DEPT_TABS = [
-  { id: 'service',  label: 'Service',   count: SERVICE_TYPES.filter(r => r.department === 'Service').length   },
-  { id: 'sales',    label: 'Sales',     count: SERVICE_TYPES.filter(r => r.department === 'Sales').length     },
-  { id: 'parts',    label: 'Parts',     count: SERVICE_TYPES.filter(r => r.department === 'Parts').length     },
-  { id: 'bodyshop', label: 'Body shop', count: SERVICE_TYPES.filter(r => r.department === 'Body shop').length },
-  { id: 'all',      label: 'All',       count: SERVICE_TYPES.length },
-]
-
 // ── Column definitions ────────────────────────────────────────────────────────
 interface STColumnDef extends Column<ServiceTypeRow> { locked?: boolean }
 
@@ -380,10 +357,30 @@ const ST_COLUMN_DEFS: STColumnDef[] = [
   { key: 'name',             label: 'Name',              width: 220, sortable: true, locked: true },
   { key: 'department',       label: 'Department',        width: 110, sortable: true },
   { key: 'duration',         label: 'Duration',          width: 90,  sortable: true },
-  { key: 'advisors',         label: 'Advisors',          width: 170, sortable: true },
   { key: 'dmsMapping',       label: 'DMS mapping',       width: 110, sortable: true },
   { key: 'recognitionHints', label: 'Recognition hints', width: 190, sortable: true },
   { key: 'active',           label: 'Active',            width: 80,  sortable: true, locked: true },
+]
+
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'department', label: 'Department', options: [
+    { value: 'Service',   label: 'Service'   },
+    { value: 'Sales',     label: 'Sales'     },
+    { value: 'Parts',     label: 'Parts'     },
+    { value: 'Body shop', label: 'Body shop' },
+  ], multi: true },
+  { id: 'duration', label: 'Duration', options: [
+    { value: '15 min',  label: '15 min'  },
+    { value: '30 min',  label: '30 min'  },
+    { value: '45 min',  label: '45 min'  },
+    { value: '60 min',  label: '60 min'  },
+    { value: '90 min',  label: '90 min'  },
+    { value: '120 min', label: '120 min' },
+  ], multi: true },
+  { id: 'active', label: 'Active status', options: [
+    { value: 'true',  label: 'Active'   },
+    { value: 'false', label: 'Inactive' },
+  ] },
 ]
 
 const ST_DEFAULT_ORDER   = ST_COLUMN_DEFS.map(c => String(c.key))
@@ -398,18 +395,24 @@ export function AutoAppointmentTypeScreen() {
   const [toastVisible,     setToastVisible]     = useState(false)
   const [locationFilter,   setLocationFilter]   = useState<string[]>([])
   const [locationOpen,     setLocationOpen]     = useState(false)
-  const [deptTab,          setDeptTab]          = useState('service')
   const [colOrder,   setColOrder]   = useState<string[]>(ST_DEFAULT_ORDER)
   const [colVisible, setColVisible] = useState<string[]>(ST_DEFAULT_VISIBLE)
+  const [filterOpen,     setFilterOpen]     = useState(false)
   const [hintTooltip,    setHintTooltip]    = useState<{ hints: string[]; x: number; y: number } | null>(null)
-  const [advisorTooltip, setAdvisorTooltip] = useState<{ names: string[]; x: number; y: number } | null>(null)
   const [activeMap, setActiveMap] = useState<Record<number, boolean>>(
     Object.fromEntries(SERVICE_TYPES.map((r, i) => [i, r.active]))
   )
 
-  const filtered = deptTab === 'all'
-    ? SERVICE_TYPES
-    : SERVICE_TYPES.filter(r => r.department === deptMap[deptTab])
+  const [filterValues, setFilterValues] = useState<Record<string, string[]>>({})
+  // setFilterValues is called via FilterPanel's onSelectionChange
+
+  const filtered = useMemo(() => {
+    let rows = SERVICE_TYPES
+    if (filterValues['department']?.length) rows = rows.filter(r => filterValues['department'].includes(r.department))
+    if (filterValues['duration']?.length)   rows = rows.filter(r => filterValues['duration'].includes(r.duration))
+    if (filterValues['active']?.length)     rows = rows.filter(r => filterValues['active'].includes(String(r.active)))
+    return rows
+  }, [filterValues])
 
   const columnOptions = useMemo(
     () => colOrder.map(k => ({ key: k, label: ST_DEF_BY_KEY.get(k)!.label, locked: ST_DEF_BY_KEY.get(k)!.locked })),
@@ -418,7 +421,7 @@ export function AutoAppointmentTypeScreen() {
 
   const COLUMNS = useMemo<Column<ServiceTypeRow>[]>(() =>
     colOrder
-      .filter(k => colVisible.includes(k) && (deptTab === 'all' || k !== 'department'))
+      .filter(k => colVisible.includes(k))
       .map(k => {
         const def = ST_DEF_BY_KEY.get(k)!
         if (k === 'name') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => (
@@ -430,23 +433,6 @@ export function AutoAppointmentTypeScreen() {
         if (k === 'department') return { ...def, render: (_v: unknown, row: ServiceTypeRow) =>
           <span className="text-body text-text-primary">{row.department as string}</span>
         }
-        if (k === 'advisors') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => {
-          const raw = row.advisors as string
-          const extras = ADVISOR_EXTRAS[row.name as string] ?? []
-          const primary = raw.replace(/,?\s*\+\d+ more/, '')
-          return (
-            <span className="flex items-center gap-xs">
-              <span>{primary}</span>
-              {extras.length > 0 && (
-                <span
-                  className="cursor-default text-text-tertiary hover:text-primary"
-                  onMouseEnter={e => { const r = (e.target as HTMLElement).getBoundingClientRect(); setAdvisorTooltip({ names: extras, x: r.left, y: r.bottom + 6 }) }}
-                  onMouseLeave={() => setAdvisorTooltip(null)}
-                >+{extras.length} more</span>
-              )}
-            </span>
-          )
-        }}
         if (k === 'recognitionHints') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => {
           const extras = HINT_EXTRAS[row.name as string] ?? []
           return (
@@ -468,7 +454,7 @@ export function AutoAppointmentTypeScreen() {
         }}
         return def as Column<ServiceTypeRow>
       }),
-    [colOrder, colVisible, activeMap, deptTab],
+    [colOrder, colVisible, activeMap],
   )
 
   const rowMenuItems = [
@@ -481,7 +467,8 @@ export function AutoAppointmentTypeScreen() {
       <Toast message="Syncing from DMS — your data will be updated in a few minutes." visible={toastVisible} onClose={() => setToastVisible(false)} />
       <TopNav initials="S" />
 
-      <div className="flex flex-1 flex-col overflow-auto bg-surface">
+      <div className="flex flex-1 overflow-hidden bg-surface">
+      <div className="flex flex-1 flex-col overflow-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
           <div className="flex flex-col gap-xs">
             <span className="text-h3 text-text-primary">{SERVICE_TYPES.length} Appointment types</span>
@@ -489,9 +476,6 @@ export function AutoAppointmentTypeScreen() {
           <div className="flex items-center gap-sm">
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="search" size={20} />
-            </button>
-            <button type="button" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="view_column" size={20} />
             </button>
             <div className="relative w-[200px]">
               <button
@@ -520,12 +504,13 @@ export function AutoAppointmentTypeScreen() {
             <button type="button" onClick={() => setCreateDrawerOpen(true)} className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
               Create new
             </button>
+            <button type="button" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="view_column" size={20} />
+            </button>
+            <button type="button" onClick={() => setFilterOpen(o => !o)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="filter_list" size={20} />
+            </button>
           </div>
-        </div>
-
-        {/* Department filter tabs */}
-        <div className="px-2xl">
-          <Tabs tabs={DEPT_TABS} activeTab={deptTab} onChange={setDeptTab} />
         </div>
 
         <div className="px-2xl pb-2xl pt-lg">
@@ -533,17 +518,14 @@ export function AutoAppointmentTypeScreen() {
         </div>
       </div>
 
-      {/* Advisor extras tooltip */}
-      {advisorTooltip && (
-        <div
-          className="pointer-events-none fixed z-[120] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
-          style={{ left: advisorTooltip.x, top: advisorTooltip.y }}
-        >
-          {advisorTooltip.names.map((name, i) => (
-            <div key={i} className="px-md py-xs text-body text-text-primary">{name}</div>
-          ))}
-        </div>
-      )}
+        <FilterPanel
+          open={filterOpen}
+          fields={FILTER_FIELDS}
+          onClose={() => setFilterOpen(false)}
+          onSaveView={() => setFilterOpen(false)}
+          onSelectionChange={setFilterValues}
+        />
+      </div>
 
       {/* Hint extras tooltip — fixed to escape overflow container */}
       {hintTooltip && (

@@ -5,7 +5,7 @@ import { SelectMenuProps } from './SelectMenu.types'
 function CheckBox({ checked }: { checked: boolean }) {
   return (
     <span
-      className={`flex size-[18px] shrink-0 items-center justify-center rounded-[2px] border ${
+      className={`flex size-[18px] shrink-0 items-center justify-center rounded-[2px] border transition-colors ${
         checked ? 'border-primary bg-primary' : 'border-control-border bg-surface'
       }`}
     >
@@ -17,6 +17,7 @@ function CheckBox({ checked }: { checked: boolean }) {
 export function SelectMenu({
   options,
   value,
+  title,
   multi = false,
   searchable = true,
   onChange,
@@ -44,9 +45,18 @@ export function SelectMenu({
   }
 
   return (
-    <div className="flex max-h-[360px] flex-col overflow-hidden rounded-sm bg-surface shadow-dropdown">
-      <div className="flex flex-1 flex-col gap-xs overflow-hidden pt-md">
-        <div className="flex flex-1 flex-col gap-xs overflow-y-auto px-lg pb-xs">
+    <div
+      className={`flex max-h-[360px] flex-col overflow-hidden rounded-sm bg-surface shadow-dropdown ${
+        title ? 'border border-border' : ''
+      }`}
+    >
+      {title && (
+        <div className="px-lg pb-sm pt-md">
+          <span className="text-small text-text-tertiary">{title}</span>
+        </div>
+      )}
+      <div className={`flex flex-1 flex-col gap-xs overflow-hidden ${title ? '' : 'pt-md'}`}>
+        <div className={`flex flex-1 flex-col gap-xs overflow-y-auto px-lg ${multi && !onApply ? 'pb-md' : 'pb-xs'}`}>
           {searchable && (
             <div className="flex h-9 shrink-0 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
               <Icon name="search" size={20} className="text-text-icon" />
@@ -59,14 +69,14 @@ export function SelectMenu({
             </div>
           )}
 
-          {multi && query.trim() === '' && (
+          {multi && (
             <button
               type="button"
               onClick={toggleAll}
               className="flex w-full items-center gap-sm rounded-sm py-sm pr-sm text-left hover:bg-surface-hover"
             >
               <CheckBox checked={allSelected} />
-              <span className="min-w-0 flex-1 truncate text-body text-text-primary">Select all</span>
+              <span className="min-w-0 flex-1 truncate text-body text-text-primary">All</span>
             </button>
           )}
 
@@ -108,7 +118,7 @@ export function SelectMenu({
         </div>
       </div>
 
-      {multi && (
+      {multi && onApply && (
         <>
           <span className="h-px w-full bg-border" />
           <div className="flex justify-end p-xl">

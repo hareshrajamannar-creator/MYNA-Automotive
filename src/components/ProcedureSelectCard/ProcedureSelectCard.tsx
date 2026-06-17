@@ -50,7 +50,7 @@ export function ProcedureSelectCard({
             e.stopPropagation()
             onView()
           }}
-          className="absolute right-xl top-xl text-body"
+          className="absolute right-xl top-xl text-body text-text-action hover:text-primary-hover"
         >
           View
         </Link>

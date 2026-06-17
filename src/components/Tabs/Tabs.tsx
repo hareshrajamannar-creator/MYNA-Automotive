@@ -1,3 +1,4 @@
+import { TabCountPill } from './TabCountPill'
 import { TabsProps } from './Tabs.types'
 
 export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
@@ -19,15 +20,7 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
             >
               {tab.icon}
               {tab.label}
-              {tab.count !== undefined && (
-                <span
-                  className={`rounded-full px-[6px] py-px text-small font-medium leading-[18px] ${
-                    active ? 'bg-primary text-white' : 'bg-surface-selected text-text-secondary'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              )}
+              {tab.count !== undefined && <TabCountPill count={tab.count} />}
             </span>
             <span className={`h-[2px] w-full ${active ? 'bg-primary' : 'bg-transparent'}`} />
           </button>

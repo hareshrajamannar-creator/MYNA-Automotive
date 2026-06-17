@@ -3,7 +3,6 @@ import {
   // Chip,
   CustomizeColumnsDrawer,
   DataTable,
-  DateChange,
   FilterPanel,
   FormDrawer,
   Icon,
@@ -24,10 +23,10 @@ interface ServiceRequest {
   serviceType: string
   advisor: string
   status: string
-  promisedBy: string
+  dateTime: string
   priority: string
   insuranceStatus: string
-  time: string
+  opCode: string
   phone: string
   email: string
   [key: string]: string
@@ -42,9 +41,9 @@ interface ServiceRequest {
 // ]
 
 const TABS = [
-  { id: 'confirmed',     label: 'Confirmed',     count: 13 },
+  { id: 'confirmed',     label: 'Confirmed',     count: 12 },
   { id: 'cancellations', label: 'Cancellations', count: 5  },
-  { id: 'no-shows',      label: 'No-shows',      count: 1  },
+  { id: 'no-shows',      label: 'No-shows',      count: 3  },
 ]
 
 const TAB_STATUS_MAP: Record<string, string> = {
@@ -62,23 +61,29 @@ const TAB_STATUS_MAP: Record<string, string> = {
 // }
 
 const REQUESTS: ServiceRequest[] = [
-  { customer: 'John Carter',    vehicle: 'Toyota RAV4 2021',      serviceType: 'Service',          advisor: 'Smith',    status: 'Confirmed',     promisedBy: 'Jun 06, 2026', priority: 'Medium', insuranceStatus: 'Verified',    time: '08:00 AM', phone: '(415) 555-0132', email: 'j.carter@email.com' },
-  { customer: 'Maria Lopez',    vehicle: 'Honda CR-V 2020',       serviceType: 'Sale - Test drive', advisor: 'Johnson',  status: 'Confirmed',     promisedBy: 'Jun 06, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '08:30 AM', phone: '(415) 555-0190', email: 'm.lopez@email.com' },
-  { customer: 'Grace Kim',      vehicle: 'Chevrolet Malibu 2020', serviceType: 'Service',          advisor: 'Edwards',  status: 'No-shows',      promisedBy: 'Jun 06, 2026', priority: 'Low',    insuranceStatus: 'Verified',    time: '08:45 AM', phone: '(408) 555-0166', email: 'g.kim@email.com' },
-  { customer: 'David Brown',    vehicle: 'Ford F-150 2019',       serviceType: 'Sale - Prospect',  advisor: 'Williams', status: 'Confirmed',     promisedBy: 'Jun 07, 2026', priority: 'Low',    insuranceStatus: 'NA',          time: '09:00 AM', phone: '(408) 555-0117', email: 'd.brown@email.com' },
-  { customer: 'Robert King',    vehicle: 'Jeep Wrangler 2022',    serviceType: 'Sale - Prospect',  advisor: 'Davis',    status: 'Cancellations', promisedBy: 'Jun 06, 2026', priority: 'Low',    insuranceStatus: 'NA',          time: '09:15 AM', phone: '(408) 555-0166', email: 'r.king@email.com' },
-  { customer: 'Emily Davis',    vehicle: 'Chevrolet Equinox 2022',serviceType: 'Service',          advisor: 'Brown',    status: 'Confirmed',     promisedBy: 'Jun 07, 2026', priority: 'Medium', insuranceStatus: 'In Progress', time: '09:30 AM', phone: '(650) 555-0144', email: 'e.davis@email.com' },
-  { customer: 'Michael Wilson', vehicle: 'Toyota Camry 2018',     serviceType: 'Sale - Parts',     advisor: 'Jones',    status: 'Confirmed',     promisedBy: 'Jun 08, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '10:00 AM', phone: '(408) 555-0188', email: 'm.wilson@email.com' },
-  { customer: 'Linda White',    vehicle: 'Subaru Outback 2021',   serviceType: 'Service',          advisor: 'Martinez', status: 'Cancellations', promisedBy: 'Jun 06, 2026', priority: 'Medium', insuranceStatus: 'In Progress', time: '10:15 AM', phone: '(415) 555-0199', email: 'l.white@email.com' },
-  { customer: 'Jessica Taylor', vehicle: 'Honda Civic 2021',      serviceType: 'Service',          advisor: 'Garcia',   status: 'Confirmed',     promisedBy: 'Jun 08, 2026', priority: 'Low',    insuranceStatus: 'Unverified',  time: '10:30 AM', phone: '(415) 555-0155', email: 'j.taylor@email.com' },
-  { customer: 'Chris Evans',    vehicle: 'Toyota Corolla 2022',   serviceType: 'Sale - Parts',     advisor: 'Wilson',   status: 'No-shows',      promisedBy: 'Jun 07, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '10:45 AM', phone: '(415) 555-0132', email: 'c.evans@email.com' },
-  { customer: 'James Rodriguez',vehicle: 'Ford Explorer 2020',    serviceType: 'Sale - Test drive', advisor: 'Rodriguez',status: 'Confirmed',     promisedBy: 'Jun 09, 2026', priority: 'Medium', insuranceStatus: 'NA',          time: '11:00 AM', phone: '(669) 555-0123', email: 'j.rodriguez@email.com' },
-  { customer: 'Patricia Clark', vehicle: 'Honda Pilot 2021',      serviceType: 'Sale - Prospect',  advisor: 'Thompson', status: 'No-shows',      promisedBy: 'Jun 08, 2026', priority: 'Medium', insuranceStatus: 'NA',          time: '11:15 AM', phone: '(415) 555-0199', email: 'p.clark@email.com' },
-  { customer: 'Sarah Anderson', vehicle: 'Nissan Altima 2019',    serviceType: 'Service',          advisor: 'Miller',   status: 'Confirmed',     promisedBy: 'Jun 09, 2026', priority: 'High',   insuranceStatus: 'Verified',    time: '11:30 AM', phone: '(650) 555-0177', email: 's.anderson@email.com' },
-  { customer: 'Nathan Lee',     vehicle: 'Toyota RAV4 2020',      serviceType: 'Sale - Parts',     advisor: 'Adams',    status: 'Cancellations', promisedBy: 'Jun 07, 2026', priority: 'High',   insuranceStatus: 'NA',          time: '12:00 PM', phone: '(408) 555-0117', email: 'n.lee@email.com' },
-  { customer: 'Kevin Moore',    vehicle: 'Nissan Sentra 2019',    serviceType: 'Service',          advisor: 'Harris',   status: 'No-shows',      promisedBy: 'Jun 09, 2026', priority: 'Low',    insuranceStatus: 'In Progress', time: '01:00 PM', phone: '(408) 555-0188', email: 'k.moore@email.com' },
-  { customer: 'Amy Chen',       vehicle: 'Honda CR-V 2019',       serviceType: 'Service',          advisor: 'Baker',    status: 'Cancellations', promisedBy: 'Jun 07, 2026', priority: 'Low',    insuranceStatus: 'Unverified',  time: '01:30 PM', phone: '(415) 555-0190', email: 'a.chen@email.com' },
-  { customer: 'Tom Wilson',     vehicle: 'Ford Mustang 2021',     serviceType: 'Sale - Test drive', advisor: 'Carter',   status: 'Cancellations', promisedBy: 'Jun 08, 2026', priority: 'Medium', insuranceStatus: 'NA',          time: '02:00 PM', phone: '(669) 555-0101', email: 't.wilson@email.com' },
+  // Confirmed — 12 (sorted Jun 11 → future)
+  { customer: 'John Carter',     vehicle: 'Toyota RAV4 2021',        serviceType: 'Oil change',           advisor: 'Smith',     status: 'Confirmed',     dateTime: 'Jun 11, 2026 08:00 AM', priority: 'Medium', insuranceStatus: 'Verified',    opCode: 'OILCHG',  phone: '(415) 555-0132', email: 'j.carter@email.com'    },
+  { customer: 'Brandon Lee',     vehicle: 'Ford Escape 2021',        serviceType: 'Engine diagnostics',   advisor: 'Edwards',   status: 'Confirmed',     dateTime: 'Jun 11, 2026 08:15 AM', priority: 'High',   insuranceStatus: 'Verified',    opCode: 'ENGDIAG', phone: '(408) 555-0111', email: 'b.lee@email.com'       },
+  { customer: 'Diana Park',      vehicle: 'Subaru Forester 2022',    serviceType: 'Battery replacement',  advisor: 'Harris',    status: 'Confirmed',     dateTime: 'Jun 11, 2026 09:00 AM', priority: 'Low',    insuranceStatus: 'Verified',    opCode: 'BATTREP', phone: '(415) 555-0188', email: 'd.park@email.com'      },
+  { customer: 'Emily Davis',     vehicle: 'Chevrolet Equinox 2022',  serviceType: 'Tire rotation',        advisor: 'Brown',     status: 'Confirmed',     dateTime: 'Jun 11, 2026 09:30 AM', priority: 'Medium', insuranceStatus: 'In Progress', opCode: 'TIRRTN',  phone: '(650) 555-0144', email: 'e.davis@email.com'     },
+  { customer: 'Marcus Reid',     vehicle: 'Toyota Camry 2020',       serviceType: 'AC repair',            advisor: 'Martinez',  status: 'Confirmed',     dateTime: 'Jun 11, 2026 10:00 AM', priority: 'Medium', insuranceStatus: 'In Progress', opCode: 'ACREPR',  phone: '(408) 555-0155', email: 'm.reid@email.com'      },
+  { customer: 'Jessica Taylor',  vehicle: 'Honda Civic 2021',        serviceType: 'Diagnostics',          advisor: 'Garcia',    status: 'Confirmed',     dateTime: 'Jun 11, 2026 10:30 AM', priority: 'Low',    insuranceStatus: 'Unverified',  opCode: 'DIAG',    phone: '(415) 555-0155', email: 'j.taylor@email.com'    },
+  { customer: 'Sarah Anderson',  vehicle: 'Nissan Altima 2019',      serviceType: 'Recall service',       advisor: 'Miller',    status: 'Confirmed',     dateTime: 'Jun 11, 2026 11:30 AM', priority: 'High',   insuranceStatus: 'Verified',    opCode: 'RCLLSRV', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
+  { customer: 'Linda White',     vehicle: 'Honda Pilot 2020',        serviceType: 'Transmission service', advisor: 'Jones',     status: 'Confirmed',     dateTime: 'Jun 12, 2026 11:00 AM', priority: 'High',   insuranceStatus: 'Verified',    opCode: 'TRNSMSN', phone: '(415) 555-0199', email: 'l.white@email.com'     },
+  { customer: 'Ryan Chen',       vehicle: 'Chevrolet Malibu 2019',   serviceType: 'Inspection prep',      advisor: 'Thompson',  status: 'Confirmed',     dateTime: 'Jun 12, 2026 12:00 PM', priority: 'Low',    insuranceStatus: 'Unverified',  opCode: 'INSPREP', phone: '(408) 555-0177', email: 'r.chen@email.com'      },
+  { customer: 'Patricia Clark',  vehicle: 'Jeep Grand Cherokee 2021',serviceType: 'Brake repair',         advisor: 'Baker',     status: 'Confirmed',     dateTime: 'Jun 12, 2026 01:00 PM', priority: 'High',   insuranceStatus: 'Verified',    opCode: 'BRKREP',  phone: '(415) 555-0199', email: 'p.clark@email.com'     },
+  { customer: 'Alex Turner',     vehicle: 'Ford F-150 2022',         serviceType: 'Oil change',           advisor: 'Smith',     status: 'Confirmed',     dateTime: 'Jun 12, 2026 01:30 PM', priority: 'Low',    insuranceStatus: 'Verified',    opCode: 'OILCHG',  phone: '(415) 555-0144', email: 'a.turner@email.com'    },
+  { customer: 'Olivia Scott',    vehicle: 'Nissan Rogue 2020',       serviceType: 'Wheel alignment',      advisor: 'Williams',  status: 'Confirmed',     dateTime: 'Jun 13, 2026 02:30 PM', priority: 'Medium', insuranceStatus: 'In Progress', opCode: 'WHLALGN', phone: '(650) 555-0133', email: 'o.scott@email.com'     },
+  // Cancellations — 5
+  { customer: 'Grace Kim',       vehicle: 'Subaru Outback 2021',     serviceType: 'AC repair',            advisor: 'Martinez',  status: 'Cancellations', dateTime: 'Jun 11, 2026 10:15 AM', priority: 'Medium', insuranceStatus: 'In Progress', opCode: 'ACREPR',  phone: '(415) 555-0199', email: 'g.kim@email.com'       },
+  { customer: 'Kevin Moore',     vehicle: 'Nissan Sentra 2019',      serviceType: 'Battery replacement',  advisor: 'Harris',    status: 'Cancellations', dateTime: 'Jun 12, 2026 01:00 PM', priority: 'Low',    insuranceStatus: 'In Progress', opCode: 'BATTREP', phone: '(408) 555-0188', email: 'k.moore@email.com'     },
+  { customer: 'Amy Chen',        vehicle: 'Honda CR-V 2019',         serviceType: 'Transmission service', advisor: 'Baker',     status: 'Cancellations', dateTime: 'Jun 12, 2026 01:30 PM', priority: 'Low',    insuranceStatus: 'Unverified',  opCode: 'TRNSMSN', phone: '(415) 555-0190', email: 'a.chen@email.com'      },
+  { customer: 'Tom Wilson',      vehicle: 'Ford Mustang 2021',       serviceType: 'Diagnostics',          advisor: 'Carter',    status: 'Cancellations', dateTime: 'Jun 12, 2026 02:00 PM', priority: 'Medium', insuranceStatus: 'Verified',    opCode: 'DIAG',    phone: '(669) 555-0101', email: 't.wilson@email.com'    },
+  { customer: 'Nathan Lee',      vehicle: 'Toyota RAV4 2020',        serviceType: 'Tire rotation',        advisor: 'Adams',     status: 'Cancellations', dateTime: 'Jun 13, 2026 12:00 PM', priority: 'High',   insuranceStatus: 'Verified',    opCode: 'TIRRTN',  phone: '(408) 555-0117', email: 'n.lee@email.com'       },
+  // No-shows — 3
+  { customer: 'Michael Wilson',  vehicle: 'Chevrolet Malibu 2020',   serviceType: 'Brake repair',         advisor: 'Edwards',   status: 'No-shows',      dateTime: 'Jun 11, 2026 08:45 AM', priority: 'Low',    insuranceStatus: 'Verified',    opCode: 'BRKREP',  phone: '(408) 555-0166', email: 'm.wilson@email.com'    },
+  { customer: 'James Rodriguez', vehicle: 'Toyota Corolla 2022',     serviceType: 'Engine diagnostics',   advisor: 'Wilson',    status: 'No-shows',      dateTime: 'Jun 12, 2026 10:45 AM', priority: 'High',   insuranceStatus: 'Unverified',  opCode: 'ENGDIAG', phone: '(408) 555-0188', email: 'j.rodriguez@email.com' },
+  { customer: 'Nathan Lee',      vehicle: 'Ford Explorer 2020',      serviceType: 'Recall service',       advisor: 'Rodriguez', status: 'No-shows',      dateTime: 'Jun 13, 2026 11:00 AM', priority: 'Medium', insuranceStatus: 'Verified',    opCode: 'RCLLSRV', phone: '(669) 555-0123', email: 'n.lee2@email.com'      },
 ]
 
 interface ColumnDef extends Column<ServiceRequest> {
@@ -88,18 +93,18 @@ interface ColumnDef extends Column<ServiceRequest> {
 const COLUMN_DEFS: ColumnDef[] = [
   { key: 'customer',        label: 'Customer',         width: 220, sortable: true, locked: true },
   { key: 'serviceType',     label: 'Appointment type', width: 160, sortable: true },
+  { key: 'opCode',          label: 'Operation code',   width: 140, sortable: true },
   { key: 'vehicle',         label: 'Vehicle',          width: 190, sortable: true },
-  { key: 'advisor',         label: 'Service advisor',  width: 160, sortable: true },
+  { key: 'advisor',         label: 'Staff',            width: 160, sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', width: 160, sortable: true },
-  { key: 'time',            label: 'Time',             width: 110, sortable: true },
-  { key: 'promisedBy',      label: 'Promised by',      width: 150, sortable: true },
+  { key: 'dateTime',        label: 'Appointment time', width: 200, sortable: true },
   { key: 'priority',        label: 'Priority',         width: 110, sortable: true },
   { key: 'phone',           label: 'Phone',            width: 160, sortable: true },
   { key: 'email',           label: 'Email',            width: 210, sortable: true },
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['customer', 'vehicle', 'serviceType', 'advisor', 'insuranceStatus', 'time']
+const DEFAULT_VISIBLE = ['customer', 'vehicle', 'serviceType', 'opCode', 'advisor', 'insuranceStatus', 'dateTime']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
@@ -139,16 +144,9 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'vehicle-make', label: 'Vehicle make', options: opts('Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Jeep', 'Subaru') },
 ]
 
-const BASE_DATE = new Date(2026, 4, 25)
-
 export function ServiceRequestsScreen() {
-  const [date, setDate] = useState(new Date(BASE_DATE))
   const [activeTab, setActiveTab] = useState('confirmed')
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER)
-
-  const isToday = date.toDateString() === BASE_DATE.toDateString()
-  function prevDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n }) }
-  function nextDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n }) }
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -180,9 +178,9 @@ export function ServiceRequestsScreen() {
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
-          {/* Header: date nav + actions */}
+          {/* Header */}
           <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
-            <DateChange date={date} isToday={isToday} onPrev={prevDay} onNext={nextDay} />
+            <h1 className="text-h3 text-text-primary">Service requests</h1>
             <div className="flex items-center gap-sm">
               <button
                 type="button"

@@ -1,11 +1,11 @@
 import { useState, useRef, type MouseEvent } from 'react'
 import { Icon, IntegrationsPickerDrawer, RefChip } from '../components'
 import {
-  DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
-  DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
-  getHealthcareIntegration,
-  HEALTHCARE_INTEGRATION_CATALOG,
-} from '../data/healthcareIntegrations'
+  DEFAULT_AUTO_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+  DEFAULT_AUTO_AGENT_SELECTED_INTEGRATION_ID,
+  getAutomotiveIntegration,
+  AUTOMOTIVE_INTEGRATION_CATALOG,
+} from '../data/automotiveIntegrations'
 
 interface AgentSettingsTabProps {
   product?: string
@@ -320,7 +320,7 @@ function WebChatSettings() {
       <div className="flex flex-col gap-sm">
         <CheckboxRow
           label="Resolve button"
-          description="A quick reply button patients can tap when their question is answered"
+          description="A quick reply button customers can tap when their question is answered"
           checked={resolvedEnabled}
           onChange={setResolvedEnabled}
         />
@@ -341,7 +341,7 @@ function WebChatSettings() {
       <div className="flex flex-col gap-sm">
         <CheckboxRow
           label="Escalation button"
-          description="A quick reply button patients can tap to reach a team member"
+          description="A quick reply button customers can tap to reach a team member"
           checked={escalationEnabled}
           onChange={setEscalationEnabled}
         />
@@ -655,17 +655,17 @@ type RecordingMode = 'off' | 'announced'
 export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTabProps) {
   const [voice, setVoice] = useState('Andrea (warm, clear, reassuring)')
   const [greeting, setGreeting] = useState(
-    'Thank you for calling Rock Dental Brands — my name is Myna, your virtual assistant. How can I help you today?'
+    'Thank you for calling — my name is Myna, your virtual assistant. How can I help you today?'
   )
   const [recording, setRecording] = useState<RecordingMode>('announced')
   const [consent, setConsent] = useState(
     'This call may be recorded for quality and training purposes.'
   )
   const [accountConnectedIntegrationIds, setAccountConnectedIntegrationIds] = useState<string[]>(
-    DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+    DEFAULT_AUTO_ACCOUNT_CONNECTED_INTEGRATION_IDS,
   )
   const [agentSelectedIntegrationId, setAgentSelectedIntegrationId] = useState<string | null>(
-    DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
+    DEFAULT_AUTO_AGENT_SELECTED_INTEGRATION_ID,
   )
   const [voiceCallEnabled, setVoiceCallEnabled] = useState(true)
   const [webChatEnabled, setWebChatEnabled] = useState(true)
@@ -673,7 +673,7 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
   const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
 
   const agentIntegration = agentSelectedIntegrationId
-    ? getHealthcareIntegration(agentSelectedIntegrationId)
+    ? getAutomotiveIntegration(agentSelectedIntegrationId)
     : undefined
 
   const removeAgentIntegration = () => {
@@ -825,7 +825,7 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
           )}
           <IntegrationsPickerDrawer
             open={integrationDrawerOpen}
-            integrations={HEALTHCARE_INTEGRATION_CATALOG}
+            integrations={AUTOMOTIVE_INTEGRATION_CATALOG}
             connectedIds={accountConnectedIntegrationIds}
             selectedId={agentSelectedIntegrationId}
             onClose={() => setIntegrationDrawerOpen(false)}

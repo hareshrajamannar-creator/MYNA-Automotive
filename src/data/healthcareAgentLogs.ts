@@ -26,7 +26,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     contact: 'Dana Whitfield',
     channel: 'Voice',
     duration: '0:53',
-    topic: 'Appointment confirmation',
+    topic: 'Service appointment',
   },
   {
     timestamp: 'Feb 09, 2024, 5:30 pm',
@@ -34,7 +34,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     contact: 'Robert Cho',
     channel: 'Voice',
     duration: '1:36',
-    topic: 'New patient',
+    topic: 'New vehicle inquiry',
   },
   {
     timestamp: 'Feb 05, 2024, 5:30 pm',
@@ -42,7 +42,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     contact: '+1 (628) 555-0110',
     channel: 'Chat',
     duration: '1:11',
-    topic: 'Reschedule',
+    topic: 'Appointment reschedule',
   },
   {
     timestamp: 'Jan 25, 2024, 5:30 pm',
@@ -50,7 +50,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     contact: '+1 (310) 555-0190',
     channel: 'Chat',
     duration: '1:04',
-    topic: 'Urgent symptom',
+    topic: 'Vehicle breakdown',
   },
   {
     timestamp: 'Jan 18, 2024, 5:30 pm',

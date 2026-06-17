@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Chip, Icon, RefChip } from '../components'
+import { Chip, FilterPanel, Icon, RefChip, type FilterField } from '../components'
+import PreviewPanel from '../workflow/Molecules/PreviewPanel/PreviewPanel'
+import '../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -100,18 +102,12 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Priya Patel',     message: 'Can I split the payment across two cards?',        channel: 'Chat',  date: 'Jun 6', location: 'Mountain View' },
     ],
     sim: {
-      before: [
-        { role: 'user' as const,  text: 'Hi, I just picked up my car and I got an invoice. How do I make a payment?', time: '10:12 AM' },
-        { role: 'agent' as const, text: "I'm sorry, I don't have information about payment options available. You may want to call the dealership directly.", time: '10:12 AM' },
-        { role: 'user' as const,  text: "Really? There's no way to pay online? That's frustrating.", time: '10:13 AM' },
-        { role: 'agent' as const, text: "I completely understand. Unfortunately I can't help with this right now. Please contact our billing team.", time: '10:13 AM' },
-      ],
+      before: [],
       after: [
         { role: 'user' as const,  text: 'Hi, I just picked up my car and I got an invoice. How do I make a payment?', time: '10:12 AM' },
-        { role: 'agent' as const, text: "Of course! I can help with that. Would you prefer to pay online, by phone, or in person?", time: '10:12 AM' },
-        { role: 'user' as const,  text: 'Online would be easiest.', time: '10:13 AM' },
-        { role: 'agent' as const, text: "I'll send you a secure link to our payment portal right now. Shall I send it to the email on file?", time: '10:13 AM' },
-        { role: 'user' as const,  text: 'Yes please, that works great. Thank you!', time: '10:14 AM' },
+        { role: 'agent' as const, text: "Hi! Thanks for reaching out. I'd be happy to help. Could you tell me if you'd prefer to pay by phone, online, or in person?", time: '10:12 AM' },
+        { role: 'user' as const,  text: 'Online would be easiest for me. Do you have a payment portal?', time: '10:13 AM' },
+        { role: 'agent' as const, text: "Yes! You can pay securely at payments.dealership.com — it accepts Visa, Mastercard, Amex, and most debit cards. You'll need the invoice number from the top of your receipt. I can also send the link to the email on file if that's easier. Would you like me to do that?", time: '10:13 AM' },
       ],
     },
   },
@@ -162,18 +158,12 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Rachel Gomez',    message: 'The agent told me same-day changes aren\'t allowed.',         channel: 'Text',  date: 'Jun 7', location: 'Mountain View' },
     ],
     sim: {
-      before: [
-        { role: 'user' as const,  text: "My car is making a noise — can I move my appointment to today?", time: '09:05 AM' },
-        { role: 'agent' as const, text: "I understand, but same-day rescheduling isn't something I'm set up to handle. You'd need to call the service desk.", time: '09:05 AM' },
-        { role: 'user' as const,  text: "The noise sounds serious. I'm worried it's not safe.", time: '09:06 AM' },
-        { role: 'agent' as const, text: "I'm sorry I can't do more — please call us directly as soon as possible.", time: '09:06 AM' },
-      ],
+      before: [],
       after: [
-        { role: 'user' as const,  text: "My car is making a noise — can I move my appointment to today?", time: '09:05 AM' },
-        { role: 'agent' as const, text: "Absolutely, let me check today's availability right now.", time: '09:05 AM' },
-        { role: 'user' as const,  text: "The noise sounds serious. I'm worried it's not safe.", time: '09:06 AM' },
-        { role: 'agent' as const, text: "I've found an opening at 11:30 AM today. I've moved your appointment and added a note about the noise so the technician can prioritize. You'll receive a confirmation shortly.", time: '09:06 AM' },
-        { role: 'user' as const,  text: "That's a relief. Thank you so much!", time: '09:07 AM' },
+        { role: 'user' as const,  text: "Hi, I have an appointment for Thursday but my car is making a strange noise. Can I move it to today?", time: '09:05 AM' },
+        { role: 'agent' as const, text: "I understand the urgency. Let me check availability for today.", time: '09:05 AM' },
+        { role: 'user' as const,  text: "Sure, I can be flexible on timing.", time: '09:06 AM' },
+        { role: 'agent' as const, text: "I've got a 2:15 PM slot available today. I've moved your Thursday appointment and flagged the noise concern so your technician is ready. You'll receive a confirmation text shortly — is there anything else you need?", time: '09:06 AM' },
       ],
     },
     diff: {
@@ -221,17 +211,10 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Carlos Rivera',  message: 'This is an emergency, my car won\'t stop.',         channel: 'Chat',  date: 'Jun 6', location: 'Palo Alto' },
     ],
     sim: {
-      before: [
-        { role: 'user' as const,  text: "My brakes feel completely wrong — grinding noise, soft pedal. I need help now!", time: '08:55 AM' },
-        { role: 'agent' as const, text: "I'm sorry to hear that. Can you describe the issue further so I can help?", time: '08:55 AM' },
-        { role: 'user' as const,  text: "This is a safety emergency. I'm not safe to drive.", time: '08:57 AM' },
-        { role: 'agent' as const, text: "I understand. Let me try to find an available advisor for you. Please stay on the line.", time: '08:58 AM' },
-      ],
+      before: [],
       after: [
-        { role: 'user' as const,  text: "My brakes feel completely wrong — grinding noise, soft pedal. I need help now!", time: '08:55 AM' },
-        { role: 'agent' as const, text: "This is a safety concern — I'm connecting you to our on-call service advisor right now. Please stay on the line.", time: '08:55 AM' },
-        { role: 'user' as const,  text: "This is a safety emergency. I'm not safe to drive.", time: '08:57 AM' },
-        { role: 'agent' as const, text: "I've alerted the team with your name and concern. They will call you back within 30 seconds. If you feel unsafe, please pull over immediately.", time: '08:57 AM' },
+        { role: 'user' as const,  text: "My brakes feel really wrong — there's a grinding noise and the pedal feels soft. I need help now.", time: '08:55 AM' },
+        { role: 'agent' as const, text: "I'm flagging this as a safety concern right now and escalating to our on-call service advisor. Please pull over if you're driving. They will call you back within 30 seconds — your name and situation have been passed on.", time: '08:55 AM' },
       ],
     },
     diff: {
@@ -271,17 +254,12 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Omar Farouk',     message: 'What are your weekend service hours?',               channel: 'Chat',  date: 'Jun 7', location: 'Palo Alto' },
     ],
     sim: {
-      before: [
-        { role: 'user' as const,  text: "Hi, are you open on Saturdays? I can only come in on weekends.", time: '06:45 PM' },
-        { role: 'agent' as const, text: "I'm sorry, I don't have our current business hours available. I'd suggest checking the website or calling directly.", time: '06:45 PM' },
-        { role: 'user' as const,  text: "The website doesn't list it. Can't you just tell me yes or no?", time: '06:46 PM' },
-        { role: 'agent' as const, text: "I understand your frustration. Unfortunately I don't have that information right now.", time: '06:46 PM' },
-      ],
+      before: [],
       after: [
-        { role: 'user' as const,  text: "Hi, are you open on Saturdays? I can only come in on weekends.", time: '06:45 PM' },
-        { role: 'agent' as const, text: "Yes! Our service department is open on Saturdays from 8 AM to 5 PM. Would you like to schedule a Saturday appointment?", time: '06:45 PM' },
-        { role: 'user' as const,  text: "That works perfectly. Can I book for this Saturday?", time: '06:46 PM' },
-        { role: 'agent' as const, text: "Absolutely. I have openings at 9 AM and 11 AM this Saturday — which would you prefer?", time: '06:46 PM' },
+        { role: 'user' as const,  text: "Hi, are you open on Saturdays? I work during the week and can only come in on weekends.", time: '06:45 PM' },
+        { role: 'agent' as const, text: "Hi! Great question. Let me look that up for you.", time: '06:45 PM' },
+        { role: 'user' as const,  text: "Thanks.", time: '06:46 PM' },
+        { role: 'agent' as const, text: "We're open Saturday 8 AM – 5 PM and Sunday 10 AM – 3 PM. Parts & accessories are available both days. Holiday hours may vary — I'll flag if your visit falls on one. Would you like to book a weekend slot?", time: '06:46 PM' },
       ],
     },
   },
@@ -316,17 +294,12 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Yuki Tanaka',    message: 'Can I book without the vehicle number?',              channel: 'Chat',  date: 'Jun 7', location: 'San Jose' },
     ],
     sim: {
-      before: [
-        { role: 'user' as const,  text: "I need to book a service but I don't have my VIN handy.", time: '11:00 AM' },
-        { role: 'agent' as const, text: "I need the VIN to create a booking. I'm not able to proceed without it.", time: '11:00 AM' },
-        { role: 'user' as const,  text: "Can I give you my name and license plate instead?", time: '11:01 AM' },
-        { role: 'agent' as const, text: "I'm sorry, I'm only able to search by VIN in this system. Please call the service desk.", time: '11:01 AM' },
-      ],
+      before: [],
       after: [
-        { role: 'user' as const,  text: "I need to book a service but I don't have my VIN handy.", time: '11:00 AM' },
-        { role: 'agent' as const, text: "No problem! You can find the VIN on your dashboard near the windshield, or on your registration. Could you check either of those?", time: '11:00 AM' },
-        { role: 'user' as const,  text: "Found it on the dashboard — it's 1HGCM82633A004352.", time: '11:01 AM' },
-        { role: 'agent' as const, text: "Got it — that's a 2003 Honda Accord EX. I've pre-filled your service record. What service do you need today?", time: '11:01 AM' },
+        { role: 'user' as const,  text: "I need to schedule a service but I don't have my VIN on hand. Can I still book?", time: '11:00 AM' },
+        { role: 'agent' as const, text: "You can try to book, but I'll need the VIN to look up your vehicle record. Do you have your registration handy?", time: '11:00 AM' },
+        { role: 'user' as const,  text: "I don't have it with me right now. Can I give you the make and model instead?", time: '11:01 AM' },
+        { role: 'agent' as const, text: "No problem — your VIN is printed on a small metal plate at the base of the windshield on the driver's side, and also on your insurance card. Takes about 10 seconds to find. I can wait while you check — or if you share your license plate I can look it up in our DMS.", time: '11:01 AM' },
       ],
     },
   },
@@ -353,12 +326,6 @@ const GAP_LABEL: Record<GapType, string> = {
   action: 'Action gap',
 }
 
-const GAP_LEGEND_LABEL: Record<GapType, string> = {
-  procedure: 'Procedure',
-  knowledge: 'Knowledge',
-  action: 'Action',
-}
-
 const GAP_ICON: Record<GapType, string> = {
   procedure: 'description',
   knowledge: 'menu_book',
@@ -371,65 +338,80 @@ const PRIORITY_VARIANT: Record<Priority, 'danger' | 'warning' | 'neutral'> = {
   Low: 'neutral',
 }
 
-type SortOption = 'impact' | 'newest'
+type StatusFilter = 'all' | 'open' | 'accepted' | 'rejected'
+type RecStatus = 'open' | 'accepted' | 'rejected'
 
-const SORT_OPTIONS: { id: SortOption; label: string }[] = [
-  { id: 'impact', label: 'Impact' },
-  { id: 'newest', label: 'Newest' },
+const STATUS_FILTER_OPTIONS: { id: StatusFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'open', label: 'Open' },
+  { id: 'accepted', label: 'Accepted' },
+  { id: 'rejected', label: 'Rejected' },
 ]
 
-const FILTER_OPTIONS: { id: GapType; label: string }[] = [
-  { id: 'procedure', label: 'Procedure gap' },
-  { id: 'knowledge', label: 'Knowledge gap' },
-  { id: 'action', label: 'Action gap' },
+const FILTER_FIELDS: FilterField[] = [
+  {
+    id: 'gap-type',
+    label: 'Type',
+    multi: true,
+    options: [
+      { value: 'procedure', label: 'Procedure gap' },
+      { value: 'knowledge', label: 'Knowledge gap' },
+      { value: 'action', label: 'Action gap' },
+    ],
+  },
+  {
+    id: 'impact',
+    label: 'Impact',
+    multi: true,
+    options: [
+      { value: 'high', label: 'High' },
+      { value: 'medium', label: 'Medium' },
+      { value: 'low', label: 'Low' },
+    ],
+  },
 ]
-
 
 const PRIORITY_ORDER: Record<Priority, number> = { High: 0, Medium: 1, Low: 2 }
 
-function parseHoursAgo(timeAgo: string): number {
-  const match = timeAgo.match(/(\d+)h/)
-  return match ? parseInt(match[1], 10) : 999
-}
-
-function sortRecommendations(recs: Recommendation[], sort: SortOption): Recommendation[] {
-  const copy = [...recs]
-  if (sort === 'newest') {
-    return copy.sort((a, b) => parseHoursAgo(a.timeAgo) - parseHoursAgo(b.timeAgo))
-  }
-  return copy.sort((a, b) => {
+function sortRecommendations(recs: Recommendation[]): Recommendation[] {
+  return [...recs].sort((a, b) => {
     const priorityDiff = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
     if (priorityDiff !== 0) return priorityDiff
     return b.conversationCount - a.conversationCount
   })
 }
 
+function getRecStatus(id: string, rejected: Set<string>, accepted: Set<string>): RecStatus {
+  if (rejected.has(id)) return 'rejected'
+  if (accepted.has(id)) return 'accepted'
+  return 'open'
+}
 
-function SortDropdown({
+function StatusDropdown({
   value,
   onChange,
 }: {
-  value: SortOption
-  onChange: (value: SortOption) => void
+  value: StatusFilter
+  onChange: (value: StatusFilter) => void
 }) {
   const [open, setOpen] = useState(false)
-  const selectedLabel = SORT_OPTIONS.find((option) => option.id === value)!.label
+  const selectedLabel = STATUS_FILTER_OPTIONS.find((option) => option.id === value)!.label
 
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-xs rounded-sm px-sm py-xs text-small text-text-secondary hover:bg-surface-hover"
+        className="flex items-center gap-xs rounded-sm text-body text-text-primary hover:bg-surface-hover"
       >
         {selectedLabel}
-        <Icon name="expand_more" size={13} className="text-text-icon" />
+        <Icon name="expand_more" size={16} className="text-text-icon" />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute right-0 top-full z-[110] mt-xs min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-            {SORT_OPTIONS.map((option) => (
+          <div className="absolute left-0 top-full z-[110] mt-xs min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+            {STATUS_FILTER_OPTIONS.map((option) => (
               <button
                 key={option.id}
                 type="button"
@@ -451,63 +433,17 @@ function SortDropdown({
   )
 }
 
-function FilterDropdown({
-  value,
-  onChange,
-}: {
-  value: GapType | 'all'
-  onChange: (value: GapType | 'all') => void
-}) {
-  const [open, setOpen] = useState(false)
-  const selectedLabel = value === 'all' ? 'Filter' : FILTER_OPTIONS.find((o) => o.id === value)?.label ?? 'Filter'
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-xs rounded-sm px-sm py-xs text-small text-text-secondary hover:bg-surface-hover"
-      >
-        <Icon name="filter_list" size={13} className="text-text-icon" />
-        {selectedLabel}
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-[105]" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute right-0 top-full z-[110] mt-xs min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-            <button
-              type="button"
-              onClick={() => { onChange('all'); setOpen(false) }}
-              className={`block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover ${value === 'all' ? 'bg-surface-hover' : ''}`}
-            >
-              All
-            </button>
-            {FILTER_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => { onChange(option.id); setOpen(false) }}
-                className={`block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover ${value === option.id ? 'bg-surface-hover' : ''}`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
 // ── Left card ─────────────────────────────────────────────────────────────────
 
 function RecCard({
   rec,
   selected,
+  recStatus,
   onClick,
 }: {
   rec: Recommendation
   selected: boolean
+  recStatus: RecStatus
   onClick: () => void
 }) {
   return (
@@ -525,7 +461,11 @@ function RecCard({
           <Icon name={GAP_ICON[rec.gapType]} size={14} className="shrink-0 text-text-icon" />
           <span className="truncate text-small text-text-tertiary">{GAP_LABEL[rec.gapType]}</span>
         </div>
-        <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />
+        <div className="flex items-center gap-xs">
+          <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />
+          {recStatus === 'accepted' && <Chip label="Accepted" variant="success" />}
+          {recStatus === 'rejected' && <Chip label="Rejected" variant="danger" />}
+        </div>
       </div>
 
       <p className="text-body text-text-primary">
@@ -562,9 +502,7 @@ function GapLegend() {
 
   return (
     <div className="flex flex-col gap-md">
-      <p className="text-small text-text-tertiary">
-        Most impactful ways to improve your agent&apos;s response quality
-      </p>
+      <h2 className="text-h2 text-text-primary">Recommended changes</h2>
       <div className="flex h-2 w-full overflow-hidden rounded-full">
         {types.map((t) => (
           <div
@@ -581,7 +519,7 @@ function GapLegend() {
               className="size-2 shrink-0 rounded-full"
               style={{ backgroundColor: GAP_COLOR[t] }}
             />
-            <span className="text-small text-text-tertiary">{GAP_LEGEND_LABEL[t]}</span>
+            <span className="text-small text-text-tertiary">{GAP_LABEL[t]} ({counts[t]})</span>
           </div>
         ))}
       </div>
@@ -724,21 +662,130 @@ const CONV_THREADS: Record<string, Turn[]> = {
   ],
 }
 
+// ── Typing dots ───────────────────────────────────────────────────────────────
+
+function TypingDots() {
+  return (
+    <div className="flex items-center gap-[5px]">
+      {[0, 1, 2].map(i => (
+        <span
+          key={i}
+          className="size-[7px] rounded-full bg-[#6b9fd4]"
+          style={{ animation: 'sim-bounce 1.2s ease-in-out infinite', animationDelay: `${i * 0.2}s` }}
+        />
+      ))}
+    </div>
+  )
+}
+
 // ── Conversation thread view ───────────────────────────────────────────────────
+
+type DivPhase = 'hidden' | 'original' | 'typing' | 'improved'
 
 function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim?: { before: Turn[]; after: Turn[] }; onBack: () => void }) {
   const [simActive, setSimActive] = useState(false)
-  const turns = CONV_THREADS[conv.message] ?? [
+  const [visibleCount, setVisibleCount] = useState(9999)
+  const [divPhase, setDivPhase] = useState<DivPhase>('hidden')
+
+  const allTurns = CONV_THREADS[conv.message] ?? [
     { role: 'user' as const,  text: conv.message, time: '10:12 AM' },
-    { role: 'agent' as const, text: "Thank you for reaching out. Let me look into that for you.", time: '10:12 AM' },
+    { role: 'agent' as const, text: 'Thank you for reaching out. Let me look into that for you.', time: '10:12 AM' },
   ]
-  const improvedAgentReplies = (sim?.after ?? []).filter(t => t.role === 'agent')
-  const startTime    = turns[0]?.time ?? '10:12 AM'
-  const endTime      = turns[turns.length - 1]?.time ?? '10:15 AM'
+
+  const improvedAgentTexts = (sim?.after ?? []).filter(t => t.role === 'agent').map(t => t.text)
+
+  // Find first agent turn where improved text differs
+  let aIdx = 0
+  let divergeTurnIdx = -1
+  let divergeAgentIdx = -1
+  for (let i = 0; i < allTurns.length; i++) {
+    if (allTurns[i].role === 'agent') {
+      if (improvedAgentTexts[aIdx] && improvedAgentTexts[aIdx] !== allTurns[i].text) {
+        divergeTurnIdx = i
+        divergeAgentIdx = aIdx
+        break
+      }
+      aIdx++
+    }
+  }
+
+  const displayTurns = simActive && divergeTurnIdx >= 0
+    ? allTurns.slice(0, divergeTurnIdx + 1)
+    : allTurns
+
+  const startTime    = allTurns[0]?.time ?? '10:12 AM'
+  const endTime      = allTurns[allTurns.length - 1]?.time ?? '10:15 AM'
   const channelLabel = conv.channel === 'Voice' ? 'Voice call' : conv.channel === 'Chat' ? 'Chatbot AI' : 'Text message'
+  const improvedText = divergeAgentIdx >= 0 ? (improvedAgentTexts[divergeAgentIdx] ?? '') : ''
+
+  // Animation sequence on simulate toggle
+  React.useEffect(() => {
+    if (!simActive || divergeTurnIdx < 0) {
+      setVisibleCount(9999)
+      setDivPhase('hidden')
+      return
+    }
+
+    setVisibleCount(0)
+    setDivPhase('hidden')
+
+    const preTurns = divergeTurnIdx // number of turns before the divergence
+    let count = 0
+    let t1: ReturnType<typeof setTimeout>
+    let t2: ReturnType<typeof setTimeout>
+    let t3: ReturnType<typeof setTimeout>
+
+    const schedulePhases = () => {
+      // Step 2: show original bubble (no tags, normal look)
+      t1 = setTimeout(() => {
+        setDivPhase('original')
+        // Step 3: replace with typing indicator
+        t2 = setTimeout(() => {
+          setDivPhase('typing')
+          // Step 4: push original down, slide in improved
+          t3 = setTimeout(() => {
+            setDivPhase('improved')
+          }, 1600)
+        }, 1000)
+      }, 400)
+    }
+
+    if (preTurns === 0) {
+      schedulePhases()
+    } else {
+      // Reveal pre-divergence turns one by one first
+      const reveal = () => {
+        count++
+        setVisibleCount(count)
+        if (count < preTurns) {
+          setTimeout(reveal, 500)
+        } else {
+          schedulePhases()
+        }
+      }
+      setTimeout(reveal, 300)
+    }
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [simActive, divergeTurnIdx])
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      <style>{`
+        @keyframes sim-bounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+          40% { transform: translateY(-5px); opacity: 1; }
+        }
+        @keyframes sim-slide-in {
+          from { opacity: 0; transform: translateY(-12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .sim-slide-in { animation: sim-slide-in 0.4s ease-out forwards; }
+      `}</style>
 
       {/* Header */}
       <div className="flex shrink-0 items-center border-b border-border px-lg" style={{ minHeight: 56 }}>
@@ -750,24 +797,16 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
         >
           <Icon name="arrow_back" size={18} />
         </button>
-
         <div className="flex min-w-0 flex-1 items-center gap-sm">
           <span className="truncate text-[15px] text-text-primary">{conv.name}</span>
           <Icon name={channelIcon(conv.channel)} size={15} className="shrink-0 text-text-tertiary" />
         </div>
-
-        <button
-          type="button"
-          className="flex size-7 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-        >
-          <Icon name="more_vert" size={18} />
-        </button>
       </div>
 
       {/* Thread body */}
       <div className="flex flex-1 flex-col overflow-y-auto bg-white px-[28px] py-lg">
 
-        {/* Warning banner — top */}
+        {/* Warning banner */}
         <div className="mb-[20px] flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
           <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
           <div className="flex min-w-0 flex-1 flex-col gap-[4px]">
@@ -777,7 +816,7 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
             <button
               type="button"
               onClick={() => setSimActive(v => !v)}
-              className="flex w-fit items-center gap-[4px] text-[12px] text-text-action "
+              className="flex w-fit items-center gap-[4px] text-[12px] text-text-action"
             >
               <Icon name={simActive ? 'visibility_off' : 'auto_awesome'} size={13} />
               {simActive ? 'Hide simulation' : 'Simulate with the new procedure'}
@@ -790,62 +829,99 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
           {channelLabel} conversation started · {startTime}
         </p>
 
-        {(() => {
-          let agentIdx = 0
-          return turns.map((turn, i) => {
-            if (turn.role === 'user') {
-              return (
-                <div key={i} className="mb-[16px] flex max-w-[72%] flex-col gap-[6px] self-start">
-                  <div className="rounded-[18px] rounded-tl-[4px] bg-[#f1f3f4] px-[16px] py-[10px]">
-                    <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
-                  </div>
-                  <div className="flex items-center gap-[6px]">
-                    <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
-                    <Icon name="link" size={12} className="text-[#9aa0a6]" />
-                  </div>
+        {displayTurns.map((turn, i) => {
+          const isDivergence = simActive && i === divergeTurnIdx
+
+          // Pre-divergence fade-in during reveal phase
+          const preVisible = !simActive || i < visibleCount
+          const fadeClass = simActive && !isDivergence
+            ? preVisible
+              ? 'opacity-100 translate-y-0 transition-all duration-300'
+              : 'opacity-0 translate-y-2 pointer-events-none'
+            : ''
+
+          if (turn.role === 'user') {
+            return (
+              <div key={i} className={`mb-[16px] flex max-w-[72%] flex-col gap-[6px] self-start ${fadeClass}`}>
+                <div className="rounded-[18px] rounded-tl-[4px] bg-[#f1f3f4] px-[16px] py-[10px]">
+                  <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
                 </div>
-              )
-            }
-            const improved = improvedAgentReplies[agentIdx] ?? turn
-            agentIdx++
+                <div className="flex items-center gap-[6px]">
+                  <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
+                  <Icon name="link" size={12} className="text-[#9aa0a6]" />
+                </div>
+              </div>
+            )
+          }
+
+          // ── Divergence agent turn ──────────────────────────────────────────
+          if (isDivergence) {
             return (
               <div key={i} className="mb-[16px] flex max-w-[72%] flex-col items-end gap-[10px] self-end">
-                {simActive ? (
-                  <>
-                    {/* Improved — green */}
-                    <div className="flex flex-col items-end gap-[4px]">
-                      <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
-                        <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{improved.text}</p>
-                      </div>
-                      <span className="flex items-center gap-[3px] text-[11px] text-text-action">
-                        <Icon name="auto_awesome" size={11} />
-                        With new procedure
+
+                {/* Slot above original: typing → improved */}
+                {divPhase === 'typing' && (
+                  <div className="sim-slide-in flex flex-col items-end gap-[6px]">
+                    <span className="text-[11px] text-[#9aa0a6]">Agent working…</span>
+                    <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[12px]">
+                      <TypingDots />
+                    </div>
+                  </div>
+                )}
+
+                {divPhase === 'improved' && (
+                  <div className="sim-slide-in flex flex-col items-end gap-[6px]">
+                    <span className="rounded-full bg-[#e6f4ea] px-[10px] py-[2px] text-[11px] text-[#188038]">
+                      Recommendation applied
+                    </span>
+                    <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
+                      <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{improvedText}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Original — always shown once divPhase >= 'original'; fades when improved arrives */}
+                {(divPhase === 'original' || divPhase === 'typing' || divPhase === 'improved') && (
+                  <div
+                    className="flex flex-col items-end gap-[6px] transition-opacity duration-500"
+                    style={{ opacity: divPhase === 'improved' ? 0.38 : 1 }}
+                  >
+                    {divPhase === 'improved' && (
+                      <span className="rounded-full bg-[#f1f3f4] px-[10px] py-[2px] text-[11px] text-[#5f6368]">
+                        Original response
                       </span>
-                    </div>
-                    {/* Original — pink */}
-                    <div className="flex flex-col items-end gap-[4px]">
-                      <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px] opacity-40">
-                        <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
-                      </div>
-                      <span className="text-[11px] text-[#9aa0a6]">Original · {turn.time}</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
+                    )}
                     <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
                       <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
                     </div>
-                    <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
-                  </>
+                    <span className="text-[11px] text-[#9aa0a6]">
+                      {divPhase === 'improved' ? `Original · ${turn.time}` : turn.time}
+                    </span>
+                  </div>
                 )}
               </div>
             )
-          })
-        })()}
+          }
 
-        <p className="mb-[20px] mt-[8px] text-center text-[13px] text-text-tertiary">
-          {conv.name} is inactive on {channelLabel.toLowerCase()} · {endTime}
-        </p>
+          // Normal agent turn
+          return (
+            <div key={i} className={`mb-[16px] flex max-w-[72%] flex-col items-end gap-[6px] self-end ${fadeClass}`}>
+              <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
+                <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+              </div>
+              <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
+            </div>
+          )
+        })}
+
+        {/* End label */}
+        {(!simActive || divPhase === 'improved') && (
+          <p className="mb-[20px] mt-[8px] text-center text-[13px] text-text-tertiary">
+            {simActive
+              ? 'With the new procedure, the conversation continues smoothly.'
+              : `${conv.name} is inactive on ${channelLabel.toLowerCase()} · ${endTime}`}
+          </p>
+        )}
 
       </div>
     </div>
@@ -978,28 +1054,42 @@ function Toast({ data, onDismiss }: { data: ToastData; onDismiss: () => void }) 
 
 function DetailPanel({
   rec,
+  recStatus,
   onReject,
+  onAccept,
   onToast,
 }: {
   rec: Recommendation
+  recStatus: RecStatus
   onReject: (id: string) => void
+  onAccept: (id: string) => void
   onToast: (data: ToastData) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [applyOpen, setApplyOpen] = useState(false)
   const [convsOpen, setConvsOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  useEffect(() => {
+    setPreviewOpen(false)
+  }, [rec.id])
 
   return (
     <>
       <ConversationsDrawer rec={rec} open={convsOpen} onClose={() => setConvsOpen(false)} />
       <DetailPanelInner
         rec={rec}
+        recStatus={recStatus}
         expanded={expanded}
         setExpanded={setExpanded}
         applyOpen={applyOpen}
         setApplyOpen={setApplyOpen}
         setConvsOpen={setConvsOpen}
+        previewOpen={previewOpen}
+        onPreviewOpen={() => setPreviewOpen(true)}
+        onPreviewClose={() => setPreviewOpen(false)}
         onReject={onReject}
+        onAccept={onAccept}
         onToast={onToast}
       />
     </>
@@ -1008,58 +1098,79 @@ function DetailPanel({
 
 function DetailPanelInner({
   rec,
+  recStatus,
   expanded,
   setExpanded,
   applyOpen,
   setApplyOpen,
   setConvsOpen,
+  previewOpen,
+  onPreviewOpen,
+  onPreviewClose,
   onReject,
+  onAccept,
   onToast,
 }: {
   rec: Recommendation
+  recStatus: RecStatus
   expanded: boolean
   setExpanded: (v: boolean) => void
   applyOpen: boolean
   setApplyOpen: (v: boolean | ((prev: boolean) => boolean)) => void
   setConvsOpen: (v: boolean) => void
+  previewOpen: boolean
+  onPreviewOpen: () => void
+  onPreviewClose: () => void
   onReject: (id: string) => void
+  onAccept: (id: string) => void
   onToast: (data: ToastData) => void
 })
 
 {
   return (
-    <div className="flex flex-1 flex-col">
-      {/* Procedure content */}
+    <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="min-w-0 flex-1 overflow-y-auto">
       <div className="flex flex-col gap-xl px-2xl py-xl">
         {/* Title + CTAs */}
         <div>
           <div className="flex items-start justify-between gap-md">
-            <div className="flex items-center gap-sm">
+            <div className="flex min-w-0 flex-wrap items-center gap-sm">
               <Icon name={GAP_ICON[rec.gapType]} size={20} className="mt-0.5 shrink-0 text-text-icon" />
-              <h2 className="text-h2 text-text-primary">{rec.title}</h2>
-              <span className={`inline-flex items-center rounded-sm px-sm py-[2px] text-small ${
-                rec.isNew
-                  ? 'bg-chip-success-bg text-chip-success-text'
-                  : 'bg-chip-neutral-bg text-chip-neutral-text'
-              }`}>
-                {rec.isNew ? 'New' : 'Modified'}
-              </span>
+              <h2 className="text-h2 text-text-primary">
+                {rec.title}
+                <span className="text-text-tertiary"> · {rec.isNew ? 'New' : 'Modified'}</span>
+              </h2>
+              <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />
             </div>
             <div className="flex shrink-0 items-center gap-sm">
-              <button className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
+              <button
+                type="button"
+                onClick={onPreviewOpen}
+                className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+              >
                 <Icon name="play_arrow" size={16} className="text-text-icon" />
                 Test
               </button>
+              {recStatus === 'accepted' ? (
+                <button
+                  type="button"
+                  onClick={() => onToast({ message: `"${rec.title}" has been added to the procedure library.` })}
+                  className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+                >
+                  Add to library
+                </button>
+              ) : (
               <div className="relative">
                 <div className="flex h-9 overflow-hidden rounded-sm">
                   <button
                     className="flex h-9 items-center bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
                     onClick={() => {
                       setApplyOpen(false)
+                      onAccept(rec.id)
                       onToast({ message: `"${rec.title}" has been applied to this agent and is now active.` })
                     }}
                   >
-                    Apply changes
+                    Accept
                   </button>
                   <div className="w-px bg-white/30" />
                   <button
@@ -1078,6 +1189,7 @@ function DetailPanelInner({
                         type="button"
                         onClick={() => {
                           setApplyOpen(false)
+                          onAccept(rec.id)
                           onToast({ message: `"${rec.title}" has been applied to this agent and is now active.` })
                         }}
                         className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
@@ -1088,6 +1200,7 @@ function DetailPanelInner({
                         type="button"
                         onClick={() => {
                           setApplyOpen(false)
+                          onAccept(rec.id)
                           onToast({ message: `"${rec.title}" has been applied to this agent and saved to the procedure library.` })
                         }}
                         className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
@@ -1109,6 +1222,7 @@ function DetailPanelInner({
                   </>
                 )}
               </div>
+              )}
             </div>
           </div>
 
@@ -1192,7 +1306,17 @@ function DetailPanelInner({
           </div>
         )}
       </div>
+      </div>
 
+      {previewOpen && (
+        <div className="preview-panel-float-wrap">
+          <PreviewPanel
+            onClose={onPreviewClose}
+            onPreviewActiveChange={() => {}}
+            agentName={rec.title}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -1201,8 +1325,10 @@ function DetailPanelInner({
 
 export function RecommendationsTab() {
   const [selected, setSelected] = useState(RECOMMENDATIONS[0].id)
-  const [sortBy, setSortBy] = useState<SortOption>('impact')
-  const [gapFilter, setGapFilter] = useState<GapType | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterSelections, setFilterSelections] = useState<Record<string, string[]>>({})
+  const [accepted, setAccepted] = useState<Set<string>>(new Set())
   const [rejected, setRejected] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<ToastData | null>(null)
   const rejectTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1212,8 +1338,16 @@ export function RecommendationsTab() {
     setTimeout(() => setToast(null), 5000)
   }
 
+  const handleAccept = (id: string) => {
+    setAccepted((prev) => new Set(prev).add(id))
+    setRejected((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
+
   const handleReject = (id: string) => {
-    // Show toast immediately — actual removal happens after delay
     showToast({
       message: `Recommendation removed. This won't show up again.`,
       onUndo: () => {
@@ -1221,24 +1355,39 @@ export function RecommendationsTab() {
         rejectTimerRef.current = null
       },
     })
-    // Remove from list after 5s unless undo is clicked
     rejectTimerRef.current = setTimeout(() => {
-      setRejected(prev => new Set(prev).add(id))
-      setSelected(s => s === id ? '' : s)
+      setRejected((prev) => new Set(prev).add(id))
+      setAccepted((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      if (statusFilter === 'open') {
+        setSelected((s) => (s === id ? '' : s))
+      }
       rejectTimerRef.current = null
     }, 5000)
   }
 
+  const gapTypes = filterSelections['gap-type'] ?? []
+  const impacts = filterSelections.impact ?? []
+
   const visibleRecommendations = sortRecommendations(
-    RECOMMENDATIONS.filter((rec) => (gapFilter === 'all' || rec.gapType === gapFilter) && !rejected.has(rec.id)),
-    sortBy,
+    RECOMMENDATIONS.filter((rec) => {
+      const status = getRecStatus(rec.id, rejected, accepted)
+      if (statusFilter !== 'all' && status !== statusFilter) return false
+      if (gapTypes.length > 0 && !gapTypes.includes(rec.gapType)) return false
+      if (impacts.length > 0 && !impacts.includes(rec.priority.toLowerCase())) return false
+      return true
+    }),
   )
   const rec = visibleRecommendations.find((r) => r.id === selected) ?? visibleRecommendations[0]
 
   return (
-    <div className="flex min-h-full">
+    <div className="flex h-full min-h-0 w-full">
+      <div className="flex h-full min-h-0 flex-1 overflow-hidden">
       {/* Left panel */}
-      <div className="flex w-[384px] shrink-0 flex-col border-r border-border">
+      <div className="flex h-full min-h-0 w-[384px] shrink-0 flex-col border-r border-border">
         {/* List header */}
         <div className="flex flex-col border-b border-border px-lg py-lg">
           <GapLegend />
@@ -1247,20 +1396,22 @@ export function RecommendationsTab() {
         {/* Cards */}
         <div className="flex flex-1 flex-col gap-md overflow-y-auto px-lg py-lg">
           <div className="flex items-center justify-between gap-sm">
-            <span className="text-small text-text-tertiary">
-              {visibleRecommendations.length} recommended{' '}
-              {visibleRecommendations.length === 1 ? 'change' : 'changes'}
-            </span>
-            <div className="flex shrink-0 items-center gap-xs">
-              <SortDropdown value={sortBy} onChange={setSortBy} />
-              <FilterDropdown value={gapFilter} onChange={setGapFilter} />
-            </div>
+            <StatusDropdown value={statusFilter} onChange={setStatusFilter} />
+            <button
+              type="button"
+              onClick={() => setFilterOpen((open) => !open)}
+              className="flex items-center gap-xs rounded-sm px-sm py-xs text-small text-text-secondary hover:bg-surface-hover"
+            >
+              <Icon name="filter_list" size={13} className="text-text-icon" />
+              Filter
+            </button>
           </div>
           {visibleRecommendations.map((r) => (
             <RecCard
               key={r.id}
               rec={r}
               selected={r.id === selected}
+              recStatus={getRecStatus(r.id, rejected, accepted)}
               onClick={() => setSelected(r.id)}
             />
           ))}
@@ -1269,7 +1420,7 @@ export function RecommendationsTab() {
 
       {/* Right panel */}
       {rec ? (
-        <DetailPanel key={rec.id} rec={rec} onReject={handleReject} onToast={showToast} />
+        <DetailPanel key={rec.id} rec={rec} recStatus={getRecStatus(rec.id, rejected, accepted)} onReject={handleReject} onAccept={handleAccept} onToast={showToast} />
       ) : (
         <div className="flex flex-1 items-center justify-center text-small text-text-tertiary">
           No recommendations match these filters.
@@ -1277,6 +1428,15 @@ export function RecommendationsTab() {
       )}
 
       {toast && <Toast data={toast} onDismiss={() => setToast(null)} />}
+      </div>
+
+      <FilterPanel
+        open={filterOpen}
+        fields={FILTER_FIELDS}
+        selections={filterSelections}
+        onSelectionsChange={setFilterSelections}
+        onClose={() => setFilterOpen(false)}
+      />
     </div>
   )
 }

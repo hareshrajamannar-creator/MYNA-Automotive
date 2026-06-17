@@ -12,7 +12,10 @@ export interface FilterField {
 export interface FilterPanelProps {
   open: boolean
   fields: FilterField[]
+  selections?: Record<string, string[]>
+  onSelectionsChange?: (selections: Record<string, string[]>) => void
   onClose?: () => void
   onSaveView?: () => void
   onAdvancedFilters?: () => void
+  onSelectionChange?: (selections: Record<string, string[]>) => void
 }

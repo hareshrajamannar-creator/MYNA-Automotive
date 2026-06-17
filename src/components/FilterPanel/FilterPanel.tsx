@@ -7,11 +7,22 @@ import { FilterField, FilterPanelProps } from './FilterPanel.types'
 export function FilterPanel({
   open,
   fields,
+  selections: controlledSelections,
+  onSelectionsChange,
+  onClose,
   onAdvancedFilters,
+  onSelectionChange,
 }: FilterPanelProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
-  const [selections, setSelections] = useState<Record<string, string[]>>({})
+  const [internalSelections, setInternalSelections] = useState<Record<string, string[]>>({})
+  const selections = controlledSelections ?? internalSelections
+
+  function updateSelections(next: Record<string, string[]>) {
+    if (onSelectionsChange) onSelectionsChange(next)
+    else setInternalSelections(next)
+    onSelectionChange?.(next)
+  }
 
   function openField(field: FilterField, e: React.MouseEvent<HTMLButtonElement>) {
     if (openId === field.id) {
@@ -27,19 +38,29 @@ export function FilterPanel({
 
   return (
     <div
-      className={`h-full shrink-0 overflow-hidden border-l border-border bg-surface transition-[width] duration-200 ${
+      className={`flex h-full min-h-0 shrink-0 flex-col self-stretch overflow-hidden border-l border-border bg-surface transition-[width] duration-200 ${
         open ? 'w-[280px]' : 'w-0 border-l-0'
       }`}
       aria-hidden={!open}
     >
       <div className="flex h-full w-[280px] flex-col">
         {/* Header */}
-        <div className="flex h-[68px] shrink-0 items-center px-xl py-lg">
+        <div className="flex h-[68px] shrink-0 items-center justify-between px-xl py-lg">
           <h2 className="text-h3 text-text-primary">Filter</h2>
+          {onClose && (
+            <button
+              type="button"
+              aria-label="Close filter"
+              onClick={onClose}
+              className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            >
+              <Icon name="close" size={20} />
+            </button>
+          )}
         </div>
 
         {/* Fields — scrollable, padded bottom so content clears the sticky footer */}
-        <div className="flex flex-1 flex-col gap-sm overflow-y-auto px-xl pb-[56px]">
+        <div className={`flex flex-1 flex-col gap-sm overflow-y-auto px-xl ${onAdvancedFilters ? 'pb-[56px]' : 'pb-xl'}`}>
           <div className="flex flex-col gap-sm">
             {fields.map((field) => {
               const count = selections[field.id]?.length ?? 0
@@ -67,16 +88,17 @@ export function FilterPanel({
           </div>
         </div>
 
-        {/* Advanced filters — sticky at bottom */}
-        <div className="sticky bottom-0 w-[280px] bg-surface px-xl py-md">
-          <Link
-            as="button"
-            onClick={onAdvancedFilters}
-            className="rounded-sm py-xs text-body font-normal text-primary"
-          >
-            Advanced filters
-          </Link>
-        </div>
+        {onAdvancedFilters && (
+          <div className="sticky bottom-0 w-[280px] bg-surface px-xl py-md">
+            <Link
+              as="button"
+              onClick={onAdvancedFilters}
+              className="rounded-sm py-xs text-body font-normal text-primary"
+            >
+              Advanced filters
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Select menu popover */}
@@ -84,15 +106,17 @@ export function FilterPanel({
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setOpenId(null)} />
           <div
-            className="fixed z-[110]"
-            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+            className="fixed z-[110] w-[232px]"
+            style={{ top: anchor.top, left: anchor.left }}
           >
             <SelectMenu
+              key={activeField.id}
+              title={activeField.label}
               options={activeField.options ?? []}
               value={selections[activeField.id] ?? []}
               multi={activeField.multi ?? true}
-              onChange={(val) => setSelections((s) => ({ ...s, [activeField.id]: val }))}
-              onApply={() => setOpenId(null)}
+              searchable={false}
+              onChange={(val) => updateSelections({ ...selections, [activeField.id]: val })}
             />
           </div>
         </>

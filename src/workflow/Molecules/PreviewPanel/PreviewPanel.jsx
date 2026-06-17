@@ -49,7 +49,7 @@ function fmtTime(secs) {
 }
 
 /* ── Call / chat details view ───────────────────────────────── */
-function CallDetailsView({ messages, onBack, mode = 'voice' }) {
+export function CallDetailsView({ messages, onBack, mode = 'voice' }) {
   const isChat = mode === 'chat';
   const [playing, setPlaying]       = useState(false);
   const [elapsed, setElapsed]       = useState(0);

@@ -104,7 +104,7 @@ export default function GraphControls({
         </GraphControlTooltip>
       )}
 
-      <GraphControlTooltip text="Run">
+      <GraphControlTooltip text="Preview">
         <button className="graph-controls__run" onClick={onRun} type="button">
           <span className="material-symbols-outlined">play_arrow</span>
         </button>

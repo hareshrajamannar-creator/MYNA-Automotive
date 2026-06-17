@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Chip, DataTable, FilterPanel, FormDrawer, Icon, PatientCell, QuickSendModal, QuickViewDrawer, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField, type QuickViewWaitlist } from '../components'
+import { Chip, DataTable, FilterPanel, FormDrawer, Icon, PatientCell, QuickSendModal, QuickViewDrawer, Tabs, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField, type QuickViewWaitlist } from '../components'
 
 type WaitlistStatus = 'Waitlisted' | 'Slot offered' | 'Slot filled'
 type OutreachChannel = 'chat' | 'call' | 'text'
@@ -278,27 +278,7 @@ export function ReviewWaitlistScreen() {
 
         {/* Tabs */}
         <div className="px-2xl">
-          <div className="flex">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-xs border-b-2 px-md py-sm text-body transition-colors -mb-px ${
-                  activeTab === tab.id
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                {tab.label}
-                <span className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-xs text-small ${
-                  activeTab === tab.id ? 'bg-primary text-white' : 'bg-surface-selected text-text-secondary'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
+          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
         </div>
 
         {/* Table */}

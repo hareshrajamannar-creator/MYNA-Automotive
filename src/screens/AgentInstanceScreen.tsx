@@ -265,7 +265,7 @@ export function AgentInstanceScreen({
   const isWorkflowTab = activeTab === 'workflow'
   const isRecommendationTab = activeTab === 'recommendation'
   const showHealthcareLogs =
-    activeTab === 'logs' && product === 'healthcare' && agentName === 'Front desk agent'
+    activeTab === 'logs' && agentName === 'Front desk agent'
 
   return (
     <div className="flex h-full flex-col">
@@ -369,7 +369,7 @@ export function AgentInstanceScreen({
           onTestCall={() => setTestCallOpen(true)}
         />
       ) : isRecommendationTab ? (
-        <div className="flex-1 overflow-auto">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           <RecommendationsTab />
         </div>
       ) : (
