@@ -28,14 +28,13 @@ import {
 } from '../components'
 
 interface Appointment {
-  name: string
+  patient: string
   location: string
   status: string
-  staff: string
+  provider: string
   apptType: string
   insuranceStatus: string
   dateTime: string
-  opCode: string
   phone: string
   email: string
   [key: string]: string
@@ -127,7 +126,7 @@ const FILTER_FIELDS: FilterField[] = [
 
 const BASE_DATE = new Date(2026, 4, 25)
 
-export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?: string }) {
+export function ManageAppointmentsScreen() {
   const [date, setDate] = useState(new Date(BASE_DATE))
   const [view, setView] = useState<AppointmentView>('table')
   const [timescale, setTimescale] = useState<AppointmentTimescale>('day')

@@ -455,7 +455,7 @@ export function App() {
             product={activeProduct}
           />
         ) : (
-          <ManageAppointmentsScreen product={activeProduct} />
+          <ManageAppointmentsScreen />
         )}
       </main>
     </div>
