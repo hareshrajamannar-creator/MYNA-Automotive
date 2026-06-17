@@ -51,6 +51,17 @@ const DAY_LABELS: { key: DayKey; label: string }[] = [
 ]
 
 // ── Dropdown data ──────────────────────────────────────────────────────────────
+const LOCATION_OPTIONS: SelectOption[] = [
+  { value: 'atlanta',   label: 'Atlanta, GA'   },
+  { value: 'dallas',    label: 'Dallas, TX'    },
+  { value: 'chicago',   label: 'Chicago, IL'   },
+  { value: 'miami',     label: 'Miami, FL'     },
+  { value: 'houston',   label: 'Houston, TX'   },
+  { value: 'phoenix',   label: 'Phoenix, AZ'   },
+  { value: 'charlotte', label: 'Charlotte, NC' },
+  { value: 'denver',    label: 'Denver, CO'    },
+]
+
 const PROVIDER_OPTIONS: SelectOption[] = [
   { value: 'chen',   label: 'Dr. Sarah Chen' },
   { value: 'rivera', label: 'Dr. Marcus Rivera' },
@@ -177,6 +188,48 @@ function DropdownField({ label, required, options, value, multi, searchable, pla
             searchable={searchable}
             onChange={v => { onChange(v); if (!multi) setOpen(false) }}
             onApply={() => setOpen(false)}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Location single-select dropdown (header bar) ──────────────────────────────
+function LocationDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const selectedLabel = LOCATION_OPTIONS.find(o => o.value === value)?.label ?? 'Select location'
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2 focus:outline-none"
+      >
+        <Icon name="location_on" size={16} className="shrink-0 text-text-icon" />
+        <span>{selectedLabel}</span>
+        <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-[60] mt-xs w-[220px]">
+          <SelectMenu
+            options={LOCATION_OPTIONS}
+            value={[value]}
+            multi={false}
+            searchable
+            onChange={vals => { if (vals[0]) { onChange(vals[0]); setOpen(false) } }}
           />
         </div>
       )}
@@ -487,6 +540,7 @@ function AddTimeOffDrawer({ open, onClose, onSave }: AddTimeOffDrawerProps) {
 
 // ── Main Screen ────────────────────────────────────────────────────────────────
 export function AvailabilityScreen() {
+  const [location, setLocation] = useState('atlanta')
   const [provider, setProvider] = useState(['chen'])
   const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(INITIAL_SCHEDULE)
   const [timeOffs, setTimeOffs] = useState<TimeOffEntry[]>(INITIAL_TIME_OFFS)
@@ -570,12 +624,15 @@ export function AvailabilityScreen() {
         {/* Page header */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-lg">
           <span className="text-h3 text-text-primary">Availability</span>
-          <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
-            Save
-          </button>
+          <div className="flex items-center gap-sm">
+            <LocationDropdown value={location} onChange={setLocation} />
+            <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+              Save
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-lg p-2xl">
+        <div className="flex flex-col gap-2xl p-2xl">
           {/* Availability source row */}
           <div className="grid grid-cols-2 gap-lg rounded-sm border border-border p-lg">
             <div className="flex flex-col gap-xs">
@@ -623,38 +680,39 @@ export function AvailabilityScreen() {
                     <div key={key} className="flex items-center gap-lg px-lg py-md">
                       <span className="w-8 shrink-0 text-body text-text-primary">{label}</span>
 
-                      {!day.enabled && <span className="w-14 shrink-0 text-body text-text-tertiary">Day off</span>}
-                      {day.enabled && <span className="w-14 shrink-0" />}
-
-                      <div className="flex flex-1 flex-wrap items-start gap-sm">
-                        {day.windows.map(win => (
-                          <div
-                            key={win.id}
-                            className="group relative flex min-w-[160px] flex-col gap-xs rounded-sm border-l-[3px] border-primary bg-primary/5 px-sm py-xs"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => requestDeleteWindow(key, win.id)}
-                              className="absolute right-1 top-1 hidden size-5 items-center justify-center rounded text-text-tertiary hover:text-danger group-hover:flex"
+                      {day.enabled ? (
+                        <div className="flex flex-1 flex-wrap items-start gap-sm">
+                          {day.windows.map(win => (
+                            <div
+                              key={win.id}
+                              className="group relative flex min-w-[160px] flex-col gap-xs rounded-sm border-l-[3px] border-primary bg-primary/5 px-sm py-xs"
                             >
-                              <Icon name="close" size={14} />
-                            </button>
-                            <span className="text-small text-primary">{win.startTime} - {win.endTime}</span>
-                            <span className="text-xs text-text-secondary">{win.operatory}</span>
-                            <span className="inline-flex w-fit items-center rounded-sm border border-border bg-surface px-sm py-0.5 text-xs text-text-secondary">
-                              {win.appointmentType}
-                            </span>
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => setAddWindowDay(key)}
-                          className="flex h-8 items-center gap-xs rounded-sm border border-dashed border-border px-sm text-body text-text-secondary hover:border-primary hover:text-primary"
-                        >
-                          <Icon name="add" size={16} />
-                          Add window
-                        </button>
-                      </div>
+                              <button
+                                type="button"
+                                onClick={() => requestDeleteWindow(key, win.id)}
+                                className="absolute right-1 top-1 hidden size-5 items-center justify-center rounded text-text-tertiary hover:text-danger group-hover:flex"
+                              >
+                                <Icon name="close" size={14} />
+                              </button>
+                              <span className="text-small text-primary">{win.startTime} - {win.endTime}</span>
+                              <span className="text-xs text-text-secondary">{win.operatory}</span>
+                              <span className="inline-flex w-fit items-center rounded-sm border border-border bg-surface px-sm py-0.5 text-xs text-text-secondary">
+                                {win.appointmentType}
+                              </span>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setAddWindowDay(key)}
+                            className="flex h-8 items-center gap-xs rounded-sm border border-dashed border-border px-sm text-body text-text-secondary hover:border-primary hover:text-primary"
+                          >
+                            <Icon name="add" size={16} />
+                            Add window
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="flex-1 text-body text-text-tertiary">Day off</span>
+                      )}
 
                       <div className="shrink-0">
                         <Toggle value={day.enabled} onChange={val => handleToggleDay(key, val)} />

@@ -397,7 +397,7 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
           </div>
 
           <HCCard title="Appointments by location">
-            <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+            <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} scrollOnHover={isDental} />
           </HCCard>
 
         </div>

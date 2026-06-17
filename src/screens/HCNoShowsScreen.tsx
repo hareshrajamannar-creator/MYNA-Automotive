@@ -131,7 +131,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   },
 ]
 
-export function HCNoShowsScreen(_props: { isDental?: boolean }) {
+export function HCNoShowsScreen({ isDental = false }: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 
@@ -204,7 +204,7 @@ export function HCNoShowsScreen(_props: { isDental?: boolean }) {
           </div>
 
           <HCCard title="Appointment confirmation by location">
-            <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+            <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} scrollOnHover={isDental} />
           </HCCard>
 
         </div>

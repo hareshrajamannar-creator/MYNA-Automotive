@@ -161,7 +161,7 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
   { key: 'avgFillTime', label: 'Avg fill time', width: 160, sortable: true },
 ]
 
-export function HCWaitlistFilledScreen(_props: { isDental?: boolean }) {
+export function HCWaitlistFilledScreen({ isDental = false }: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 
@@ -236,11 +236,11 @@ export function HCWaitlistFilledScreen(_props: { isDental?: boolean }) {
           </div>
 
           <HCCard title="Outreach channel performance" tooltip="Shows performance metrics per outreach channel, using the most recent channel for each unique appointment.">
-            <DataTable columns={CHANNEL_COLUMNS} data={CHANNEL_DATA} />
+            <DataTable columns={CHANNEL_COLUMNS} data={CHANNEL_DATA} scrollOnHover={isDental} />
           </HCCard>
 
           <HCCard title="Waitlist by location">
-            <DataTable columns={WAITLIST_LOCATION_COLUMNS} data={WAITLIST_LOCATION_DATA} />
+            <DataTable columns={WAITLIST_LOCATION_COLUMNS} data={WAITLIST_LOCATION_DATA} scrollOnHover={isDental} />
           </HCCard>
 
         </div>

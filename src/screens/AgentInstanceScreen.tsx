@@ -14,6 +14,8 @@ import {
 } from '../components'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { AgentLogsTab } from './AgentLogsTab'
+import { OutboundAgentLogsTab } from './OutboundAgentLogsTab'
+import { DENTAL_OUTBOUND_LOGS } from '../data/dentalOutboundLogs'
 import { AgentSettingsTab } from './AgentSettingsTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 import { RecommendationsTab } from './RecommendationsTab'
@@ -41,6 +43,7 @@ interface LocationRow {
   patientsContacted?: string
   recallConversionRate?: string
   avgTouchesToBook?: string
+  staffHoursSaved?: string
   revenueRecovered?: string
   balancesContacted?: string
   amountCollected?: string
@@ -50,6 +53,8 @@ interface LocationRow {
   acceptanceRate?: string
   revenueUnlocked?: string
   avgTouchesToAccept?: string
+  callToBookingConversion?: string
+  warmTransferRate?: string
   [key: string]: string | undefined
 }
 
@@ -74,6 +79,18 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'avgTime', value: '2m', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
     { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
   ],
+  'Waitlist agent': [
+    { id: 'outreachSent', value: '1.4K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent at this location to fill open slots.' },
+    { id: 'slotsFilled', value: '1.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach at this location.' },
+    { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
+    { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
+  ],
+  'Pre-visit agent': [
+    { id: 'intakesCompleted', value: '1,710', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance at this location.' },
+    { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
+    { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
+    { id: 'staffHoursSaved', value: '78h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+  ],
   'Outreach agent': [
     { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true, tooltip: 'Total leads the agent reached out to at this location in the selected period.' },
     { id: 'response', value: '38%', label: 'Response rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Percentage of contacted leads that replied to the outreach.' },
@@ -83,20 +100,20 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
   'Recall agent': [
     { id: 'patientsContacted', value: '852', label: 'Patients contacted', delta: '4.2%', trend: 'up', info: true, tooltip: 'Distinct patients who received at least one successfully delivered agent touch in the period. Base population = patients flagged recall-due (hygiene, dormant, or unscheduled treatment).' },
     { id: 'recallConversion', value: '68%', label: 'Recall conversion rate', delta: '2.1%', trend: 'up', info: true, tooltip: 'Share of contacted patients who booked a recare/recall appointment attributable to the agent within the attribution window.' },
-    { id: 'avgTouchesToBook', value: '2.4', label: 'Avg touches to book', delta: '0.3', trend: 'down', positiveDown: true, info: true, tooltip: 'Average number of agent touches sent before the booking, across converted patients. Lower is better.' },
+    { id: 'staffHoursSaved', value: '94h', label: 'Staff hours saved', delta: '8.2%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating recall outreach — based on average time-per-manual-contact across converted patients.' },
     { id: 'revenueRecovered', value: '$31K', label: 'Revenue recovered', delta: '5.8%', trend: 'up', info: true, tooltip: 'Production value of attributed recare appointments, recognized on completion.' },
   ],
   'Revenue agent': [
-    { id: 'balancesContacted', value: '455', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct patient accounts with outstanding balances that received at least one agent touch in the period.' },
-    { id: 'amountCollected', value: '$35.5K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments received from patients contacted by the agent, attributed within the collection window.' },
-    { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', info: true, tooltip: 'Reduction in average days outstanding for agent-contacted accounts vs. the prior period baseline.' },
-    { id: 'clickToPayRate', value: '74%', label: 'Click-to-pay rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Share of patients who clicked the payment link and completed payment within the attribution window.' },
+    { id: 'balancesContacted', value: '455', label: 'Balances contacted', delta: '3.1%', trend: 'up', info: true, tooltip: 'Distinct A/R accounts that received ≥1 delivered agent touch about a balance. Base = balance ≥ threshold and aging ≥ threshold days, excluded (active plan / in collections / disputed).' },
+    { id: 'amountCollected', value: '$35.5K', label: 'Amount collected', delta: '5.4%', trend: 'up', info: true, tooltip: 'Total payments completed that are attributable to the agent within the window (via agent-sent link or call).' },
+    { id: 'arDaysReduced', value: '-28%', label: 'A/R days reduced', delta: '2.3%', trend: 'up', positiveDown: true, info: true, tooltip: 'Reduction in the balance-weighted average age of outstanding A/R versus baseline. Lower is better.' },
+    { id: 'staffHoursSaved', value: '62h', label: 'Staff hours saved', delta: '6.4%', trend: 'up', info: true, tooltip: 'Staff time avoided by automating outreach touches.' },
   ],
   'Treatment plan agent': [
-    { id: 'plansFollowedUp', value: '535', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans with an unscheduled case that received at least one agent touch in the period.' },
-    { id: 'acceptanceRate', value: '61%', label: 'Acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans where the patient scheduled at least one procedure within the attribution window.' },
-    { id: 'revenueUnlocked', value: '$223K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Production value of treatment plan procedures booked through agent follow-up, recognized on scheduling.' },
-    { id: 'avgTouchesToAccept', value: '2.1', label: 'Avg touches to accept', delta: '0.2', trend: 'down', positiveDown: true, info: true, tooltip: 'Average agent touches before the patient scheduled, across accepted plans. Lower is better.' },
+    { id: 'plansFollowedUp', value: '535', label: 'Plans followed up', delta: '6.0%', trend: 'up', info: true, tooltip: 'Distinct treatment plans that received ≥1 delivered agent touch. Base = presented, unscheduled plans aged ≥ T+3 days, not opted out / suppressed.' },
+    { id: 'acceptanceRate', value: '61%', label: 'Acceptance rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Share of followed-up plans accepted (agreed + booked, or marked accepted) attributable to the agent within the window.' },
+    { id: 'revenueUnlocked', value: '$223K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Estimated value of accepted + booked plans attributable to the agent.' },
+    { id: 'staffHoursSaved', value: '88h', label: 'Staff hours saved', delta: '7.8%', trend: 'up', info: true, tooltip: 'Staff follow-up time avoided by automating outreach.' },
   ],
 }
 
@@ -127,28 +144,34 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', interactions: '165', fcr: '38%', aht: '3m 05s', escalation: '10%', count: '60'  },
   ],
   'Waitlist agent': [
-    { location: 'Atlanta, GA',      interactions: '280', fcr: '91%', aht: '18m', escalation: '6%', count: '180' },
-    { location: 'Chicago, IL',      interactions: '210', fcr: '90%', aht: '20m', escalation: '7%', count: '140' },
-    { location: 'Boston, MA',       interactions: '160', fcr: '89%', aht: '22m', escalation: '8%', count: '110' },
-    { location: 'Philadelphia, PA', interactions: '150', fcr: '88%', aht: '24m', escalation: '8%', count: '70'  },
+    { location: 'Atlanta, GA',      count: '180', outreachSent: '390', slotsFilled: '380', fillRate: '34%', timeSaved: '1.8 hrs' },
+    { location: 'Chicago, IL',      count: '140', outreachSent: '310', slotsFilled: '298', fillRate: '30%', timeSaved: '2.1 hrs' },
+    { location: 'Boston, MA',       count: '110', outreachSent: '260', slotsFilled: '248', fillRate: '27%', timeSaved: '2.6 hrs' },
+    { location: 'Philadelphia, PA', count: '70',  outreachSent: '190', slotsFilled: '178', fillRate: '24%', timeSaved: '3.0 hrs' },
+  ],
+  'Pre-visit agent': [
+    { location: 'Atlanta, GA',      count: '124', interactions: '480', fcr: '94%', aht: '6.0 min', escalation: '22h' },
+    { location: 'Chicago, IL',      count: '98',  interactions: '362', fcr: '93%', aht: '6.2 min', escalation: '16h' },
+    { location: 'Boston, MA',       count: '76',  interactions: '480', fcr: '95%', aht: '5.9 min', escalation: '20h' },
+    { location: 'Philadelphia, PA', count: '60',  interactions: '388', fcr: '92%', aht: '6.5 min', escalation: '20h' },
   ],
   'Recall agent': [
-    { location: 'Atlanta, GA',      count: '124', patientsContacted: '234', recallConversionRate: '71%', avgTouchesToBook: '2.2', revenueRecovered: '$8.6K' },
-    { location: 'Chicago, IL',      count: '98',  patientsContacted: '198', recallConversionRate: '69%', avgTouchesToBook: '2.4', revenueRecovered: '$7.2K' },
-    { location: 'Boston, MA',       count: '76',  patientsContacted: '232', recallConversionRate: '67%', avgTouchesToBook: '2.5', revenueRecovered: '$8.4K' },
-    { location: 'Philadelphia, PA', count: '60',  patientsContacted: '188', recallConversionRate: '65%', avgTouchesToBook: '2.7', revenueRecovered: '$6.8K' },
+    { location: 'Atlanta, GA',      count: '124', patientsContacted: '234', recallConversionRate: '71%', staffHoursSaved: '24h', revenueRecovered: '$8.6K' },
+    { location: 'Chicago, IL',      count: '98',  patientsContacted: '198', recallConversionRate: '69%', staffHoursSaved: '20h', revenueRecovered: '$7.2K' },
+    { location: 'Boston, MA',       count: '76',  patientsContacted: '232', recallConversionRate: '67%', staffHoursSaved: '28h', revenueRecovered: '$8.4K' },
+    { location: 'Philadelphia, PA', count: '60',  patientsContacted: '188', recallConversionRate: '65%', staffHoursSaved: '22h', revenueRecovered: '$6.8K' },
   ],
   'Revenue agent': [
-    { location: 'Atlanta, GA',      count: '124', balancesContacted: '128', amountCollected: '$10.2K', arDaysReduced: '-30%', clickToPayRate: '76%' },
-    { location: 'Chicago, IL',      count: '98',  balancesContacted: '107', amountCollected: '$8.8K',  arDaysReduced: '-27%', clickToPayRate: '74%' },
-    { location: 'Boston, MA',       count: '76',  balancesContacted: '118', amountCollected: '$9.6K',  arDaysReduced: '-29%', clickToPayRate: '73%' },
-    { location: 'Philadelphia, PA', count: '60',  balancesContacted: '102', amountCollected: '$6.9K',  arDaysReduced: '-25%', clickToPayRate: '71%' },
+    { location: 'Atlanta, GA',      count: '124', balancesContacted: '128', amountCollected: '$10.2K', arDaysReduced: '-30%', clickToPayRate: '76%', staffHoursSaved: '18h' },
+    { location: 'Chicago, IL',      count: '98',  balancesContacted: '107', amountCollected: '$8.8K',  arDaysReduced: '-27%', clickToPayRate: '74%', staffHoursSaved: '14h' },
+    { location: 'Boston, MA',       count: '76',  balancesContacted: '118', amountCollected: '$9.6K',  arDaysReduced: '-29%', clickToPayRate: '73%', staffHoursSaved: '16h' },
+    { location: 'Philadelphia, PA', count: '60',  balancesContacted: '102', amountCollected: '$6.9K',  arDaysReduced: '-25%', clickToPayRate: '71%', staffHoursSaved: '14h' },
   ],
   'Treatment plan agent': [
-    { location: 'Atlanta, GA',      count: '124', plansFollowedUp: '148', acceptanceRate: '63%', revenueUnlocked: '$62K',  avgTouchesToAccept: '2.0' },
-    { location: 'Chicago, IL',      count: '98',  plansFollowedUp: '132', acceptanceRate: '61%', revenueUnlocked: '$54K',  avgTouchesToAccept: '2.1' },
-    { location: 'Boston, MA',       count: '76',  plansFollowedUp: '141', acceptanceRate: '59%', revenueUnlocked: '$58K',  avgTouchesToAccept: '2.2' },
-    { location: 'Philadelphia, PA', count: '60',  plansFollowedUp: '114', acceptanceRate: '58%', revenueUnlocked: '$49K',  avgTouchesToAccept: '2.3' },
+    { location: 'Atlanta, GA',      count: '124', plansFollowedUp: '148', acceptanceRate: '63%', revenueUnlocked: '$62K',  callToBookingConversion: '48%', warmTransferRate: '9%',  avgTouchesToAccept: '2.0', staffHoursSaved: '24h' },
+    { location: 'Chicago, IL',      count: '98',  plansFollowedUp: '132', acceptanceRate: '61%', revenueUnlocked: '$54K',  callToBookingConversion: '44%', warmTransferRate: '11%', avgTouchesToAccept: '2.1', staffHoursSaved: '20h' },
+    { location: 'Boston, MA',       count: '76',  plansFollowedUp: '141', acceptanceRate: '59%', revenueUnlocked: '$58K',  callToBookingConversion: '41%', warmTransferRate: '12%', avgTouchesToAccept: '2.2', staffHoursSaved: '22h' },
+    { location: 'Philadelphia, PA', count: '60',  plansFollowedUp: '114', acceptanceRate: '58%', revenueUnlocked: '$49K',  callToBookingConversion: '38%', warmTransferRate: '14%', avgTouchesToAccept: '2.3', staffHoursSaved: '18h' },
   ],
 }
 
@@ -206,28 +229,47 @@ const REMINDER_COLUMNS: Column<LocationRow>[] = [
   { key: 'noshowRate',       label: 'No-show rate',           width: 160, sortable: true },
 ]
 
+const WAITLIST_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',    label: 'Location',           width: 220, sortable: true },
+  { key: 'outreachSent',label: 'Outreach sent slots', width: 180, sortable: true },
+  { key: 'slotsFilled', label: 'Slots filled',        width: 150, sortable: true },
+  { key: 'fillRate',    label: 'Fill rate',            width: 130, sortable: true },
+  { key: 'timeSaved',   label: 'Avg fill time',        width: 150, sortable: true },
+]
+
+const PRE_VISIT_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',    label: 'Location',            width: 220, sortable: true },
+  { key: 'interactions',label: 'Intakes completed',   width: 180, sortable: true },
+  { key: 'fcr',         label: 'Completion rate',     width: 160, sortable: true },
+  { key: 'aht',         label: 'Avg completion time', width: 180, sortable: true },
+  { key: 'escalation',  label: 'Staff hours saved',   width: 170, sortable: true },
+]
+
 const RECALL_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',             label: 'Location',              width: 220, sortable: true },
   { key: 'patientsContacted',    label: 'Patients contacted',    width: 180, sortable: true },
   { key: 'recallConversionRate', label: 'Recall conversion rate',width: 200, sortable: true },
-  { key: 'avgTouchesToBook',     label: 'Avg touches to book',   width: 180, sortable: true },
+  { key: 'staffHoursSaved',      label: 'Staff hours saved',      width: 170, sortable: true },
   { key: 'revenueRecovered',     label: 'Revenue recovered',     width: 170, sortable: true },
 ]
 
 const REVENUE_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',          label: 'Location',         width: 220, sortable: true },
-  { key: 'balancesContacted', label: 'Balances contacted',width: 190, sortable: true },
-  { key: 'amountCollected',   label: 'Amount collected', width: 180, sortable: true },
-  { key: 'arDaysReduced',     label: 'A/R days reduced', width: 170, sortable: true },
-  { key: 'clickToPayRate',    label: 'Click-to-pay rate',width: 170, sortable: true },
+  { key: 'location',          label: 'Location',          width: 200, sortable: true },
+  { key: 'balancesContacted', label: 'Balances contacted', width: 180, sortable: true },
+  { key: 'amountCollected',   label: 'Amount collected',  width: 170, sortable: true },
+  { key: 'arDaysReduced',     label: 'A/R days reduced',  width: 160, sortable: true },
+  { key: 'clickToPayRate',    label: 'Click-to-pay rate', width: 160, sortable: true },
+  { key: 'staffHoursSaved',   label: 'Staff hours saved', width: 160, sortable: true },
 ]
 
 const TREATMENT_PLAN_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',          label: 'Location',           width: 220, sortable: true },
-  { key: 'plansFollowedUp',   label: 'Plans followed up',  width: 180, sortable: true },
-  { key: 'acceptanceRate',    label: 'Acceptance rate',    width: 170, sortable: true },
-  { key: 'revenueUnlocked',   label: 'Revenue unlocked',   width: 170, sortable: true },
-  { key: 'avgTouchesToAccept',label: 'Avg touches to accept',width: 190, sortable: true },
+  { key: 'location',               label: 'Location',                  width: 190, sortable: true },
+  { key: 'plansFollowedUp',        label: 'Plans followed up',         width: 160, sortable: true },
+  { key: 'acceptanceRate',         label: 'Acceptance rate',           width: 150, sortable: true },
+  { key: 'revenueUnlocked',        label: 'Revenue unlocked',          width: 155, sortable: true },
+  { key: 'callToBookingConversion',label: 'Call-to-booking conversion', width: 200, sortable: true },
+  { key: 'avgTouchesToAccept',     label: 'Avg touches to accept',     width: 180, sortable: true },
+  { key: 'staffHoursSaved',        label: 'Staff hours saved',         width: 155, sortable: true },
 ]
 
 export function AgentInstanceScreen({
@@ -247,8 +289,10 @@ export function AgentInstanceScreen({
   const agentName = instanceName.replace(/ - .+$/, '')
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
   const COLUMNS =
-    agentName === 'Reminder agent'       ? REMINDER_COLUMNS
-    : agentName === 'Front desk agent'   ? FRONTDESK_COLUMNS
+    agentName === 'Reminder agent'        ? REMINDER_COLUMNS
+    : agentName === 'Front desk agent'    ? FRONTDESK_COLUMNS
+    : agentName === 'Waitlist agent'      ? WAITLIST_COLUMNS
+    : agentName === 'Pre-visit agent'     ? PRE_VISIT_COLUMNS
     : agentName === 'Recall agent'        ? RECALL_COLUMNS
     : agentName === 'Revenue agent'       ? REVENUE_COLUMNS
     : agentName === 'Treatment plan agent'? TREATMENT_PLAN_COLUMNS
@@ -258,7 +302,10 @@ export function AgentInstanceScreen({
   const isWorkflowTab = activeTab === 'workflow'
   const isRecommendationTab = activeTab === 'recommendation'
   const showHealthcareLogs =
-    activeTab === 'logs' && agentName === 'Front desk agent'
+    activeTab === 'logs' && product === 'healthcare' && agentName === 'Front desk agent'
+  const dentalOutboundLogRows = DENTAL_OUTBOUND_LOGS[agentName]
+  const showDentalOutboundLogs =
+    activeTab === 'logs' && product === 'dental' && Boolean(dentalOutboundLogRows)
 
   return (
     <div className="flex h-full flex-col">
@@ -373,11 +420,13 @@ export function AgentInstanceScreen({
                 <MetricTiles metrics={metrics} />
               </div>
               <div className="px-lg py-lg">
-                <DataTable columns={COLUMNS} data={locations} />
+                <DataTable columns={COLUMNS} data={locations} scrollOnHover />
               </div>
             </>
           ) : showHealthcareLogs ? (
             <AgentLogsTab />
+          ) : showDentalOutboundLogs ? (
+            <OutboundAgentLogsTab rows={dentalOutboundLogRows!} />
           ) : activeTab === 'settings' ? (
             <AgentSettingsTab
               product={product}

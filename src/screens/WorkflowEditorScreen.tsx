@@ -79,6 +79,52 @@ export function WorkflowEditorScreen({
                                AUTOMOTIVE_AGENT_WORKFLOWS
   const baseWorkflow = workflowMap[agentBaseName] ?? EMPTY_WORKFLOW
 
+  // Extract region suffix from instance name (e.g. "Recall agent - North region" → "North region")
+  const regionSuffix = agentName.includes(' - ') ? agentName.replace(/^.+ - /, '') : null
+
+  // Map region label → frontdesk agent value and label
+  const FRONTDESK_BY_REGION: Record<string, { value: string; label: string }> = {
+    'North region': { value: 'frontdesk-north', label: 'Front desk agent - North region' },
+    'East region':  { value: 'frontdesk-east',  label: 'Front desk agent - East region'  },
+    'West region':  { value: 'frontdesk-west',  label: 'Front desk agent - West region'  },
+  }
+  const frontdeskForRegion = regionSuffix ? (FRONTDESK_BY_REGION[regionSuffix] ?? FRONTDESK_BY_REGION['North region']) : FRONTDESK_BY_REGION['North region']
+
+  // Patch nodeDetails: set __start__.agentName to the full instance name, and remap
+  // any frontdesk subagent nodes to the region-specific agent.
+  function patchNodeDetails(details: Record<string, unknown>): Record<string, unknown> {
+    const patched: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(details)) {
+      if (key === '__start__') {
+        patched[key] = { ...(val as Record<string, unknown>), agentName }
+      } else if (val && typeof val === 'object' && 'selectedAgent' in (val as Record<string, unknown>)) {
+        const v = val as Record<string, unknown>
+        if (typeof v.selectedAgent === 'string' && v.selectedAgent.startsWith('frontdesk-')) {
+          patched[key] = { ...v, selectedAgent: frontdeskForRegion.value, name: frontdeskForRegion.label }
+        } else {
+          patched[key] = val
+        }
+      } else {
+        patched[key] = val
+      }
+    }
+    return patched
+  }
+
+  // Also patch node data.title for frontdesk subagent canvas nodes
+  function patchNodes(nodes: unknown[]): unknown[] {
+    return nodes.map((n: unknown) => {
+      const node = n as Record<string, unknown>
+      if (node.flowType === 'subagent') {
+        const data = node.data as Record<string, unknown>
+        if (typeof data?.title === 'string' && data.title.startsWith('Front desk agent')) {
+          return { ...node, data: { ...data, title: frontdeskForRegion.label } }
+        }
+      }
+      return node
+    })
+  }
+
   const HC_FRONTDESK_FD2 = {
     procedureIds: [
       'Handle general inquiry',
@@ -107,7 +153,10 @@ export function WorkflowEditorScreen({
             'fd-2': HC_FRONTDESK_FD2,
           },
         }
-      : baseWorkflow
+      : {
+          nodes: patchNodes(baseWorkflow.nodes as unknown[]) as typeof baseWorkflow.nodes,
+          nodeDetails: patchNodeDetails(baseWorkflow.nodeDetails as unknown as Record<string, unknown>) as typeof baseWorkflow.nodeDetails,
+        }
 
   const resolvedStatus = wizardDraft ? 'Draft' : agentStatus
   const publishDisabled = Boolean(wizardDraft)
