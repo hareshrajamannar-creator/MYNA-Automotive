@@ -168,22 +168,22 @@ const LIBRARY_TEMPLATES = [
   {
     id: 'routing',
     title: 'Routing and triage',
-    description: 'Answers every inbound call, triages patient needs, and routes to the right person with full context.',
+    description: 'Handles inbound calls, identifies intent, routes urgent symptoms, and transfers to the right team with context',
   },
   {
     id: 'new-patient',
-    title: 'Collect new patient details',
+    title: 'New patient intake',
     description: 'Guides new patients through intake, verifies their insurance, and books the right appointment',
   },
   {
     id: 'established',
     title: 'Established patient scheduling',
-    description: 'Finds returning patient records, confirms coverage, and books or reschedules visits',
+    description: 'Validates existing records, checks coverage, and books or reschedules follow-up visits with preferred providers',
   },
   {
     id: 'urgent',
     title: 'Urgent escalations',
-    description: 'Identifies urgent situations and escalates to clinical staff immediately with full call context',
+    description: 'Detects high-risk symptoms, follows escalation policy, and hands off immediately to clinical staff or emergency guidance',
   },
 ]
 
@@ -339,19 +339,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total appointment reminders sent by the agent via voice and chat in the selected period.' },
       { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of reminders that received a confirmed response from the customer.' },
       { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
-      { id: 'noshow', value: '11%', label: 'Missed appointment rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
-    ],
-    'Waitlist agent': [
-      { id: 'outreachSent', value: '5.5K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
-      { id: 'slotsFilled', value: '7.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach.' },
-      { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
-      { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
-    ],
-    'Pre-visit agent': [
-      { id: 'intakesCompleted', value: '6,840', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance in the selected period.' },
-      { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
-      { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
-      { id: 'staffHoursSaved', value: '312h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
     ],
     'Waitlist agent': [
       { id: 'outreachSent', value: '5.5K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
