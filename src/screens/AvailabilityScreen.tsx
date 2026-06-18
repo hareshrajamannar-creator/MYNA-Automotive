@@ -99,29 +99,29 @@ const INITIAL_SCHEDULE: Record<DayKey, DaySchedule> = {
   tue: {
     enabled: true,
     windows: [
-      { id: 'w1', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
-      { id: 'w2', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w1', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w2', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   wed: {
     enabled: true,
     windows: [
-      { id: 'w3', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
-      { id: 'w4', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w3', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w4', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   thu: {
     enabled: true,
     windows: [
-      { id: 'w5', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
-      { id: 'w6', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w5', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w6', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   fri: {
     enabled: true,
     windows: [
-      { id: 'w7', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
-      { id: 'w8', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
+      { id: 'w7', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w8', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New patient exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   sat: { enabled: false, windows: [] },

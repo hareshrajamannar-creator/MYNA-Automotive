@@ -114,15 +114,15 @@ const SUMMARY_STATS = [
   { id: 'bookings',   value: '1.5K', label: 'Total bookings',      delta: '16.6%', trend: 'up'   as const },
   { id: 'reschedule', value: '450',  label: 'Rescheduled',         delta: '30%',   trend: 'down' as const },
   { id: 'cancelled',  value: '25',   label: 'Cancelled',           delta: '20%',   trend: 'up'   as const },
-  { id: 'verified',   value: '1.5K', label: 'Insurances verified', delta: '10%',   trend: 'down' as const },
+  { id: 'verified',   value: '1.5K', label: 'Insurance verified', delta: '10%',   trend: 'down' as const },
 ]
 
 // Funnel: Webchat/Voice/Text → AI agents/Human agents → Answered/Bookings/Rescheduled/Cancellations/Pending
 // 0-2: channels, 3-4: handled by, 5-9: outcomes
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Webchat 44%' }, { name: 'Voice 28%' }, { name: 'Text 28%' },
-  { name: 'AI agents 72%' }, { name: 'Human agents 28%' },
-  { name: 'Answered 48%' }, { name: 'Bookings 18%' }, { name: 'Rescheduled 10%' }, { name: 'Cancellations 4%' }, { name: 'Pending 20%' },
+  { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'Text 23%' }, { name: 'Email 19%' },
+  { name: 'Agent-driven 72%' }, { name: 'Human-driven 28%' },
+  { name: 'Confirmed 60%' }, { name: 'Booked 18%' }, { name: 'Rescheduled 10%' }, { name: 'Canceled 4%' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   { source: 0, target: 3, value: 32 }, { source: 0, target: 4, value: 12 },
@@ -209,7 +209,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'totalBookings',      label: 'Total bookings',      width: 160, sortable: true },
   { key: 'rescheduled',        label: 'Rescheduled',         width: 160, sortable: true },
   { key: 'cancelled',          label: 'Cancelled',           width: 140, sortable: true },
-  { key: 'insurancesVerified', label: 'Insurances verified', width: 180, sortable: true },
+  { key: 'insurancesVerified', label: 'Insurance verified', width: 180, sortable: true },
 ]
 
 // ─── Chat messages per conversation id ───────────────────────────────────────
@@ -302,7 +302,7 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
       <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
-          title="Frontdesk overview"
+          title="Front desk overview"
           subtitle="All human and agent-driven appointment outcomes across all channels and locations."
           rightSlot={
             <div className="flex items-center gap-sm">

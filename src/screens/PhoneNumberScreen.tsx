@@ -673,28 +673,26 @@ export function PhoneNumber2Screen() {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-2xl py-xl">
-          <h1 className="text-h3 text-text-primary">Phone number</h1>
-          {rows.length > 0 && (
-            <div className="flex items-center gap-sm">
-              <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-                <Icon name="search" size={20} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setCallForwardingOpen(true)}
-                className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
-              >
-                Call forwarding
-              </button>
-              <button
-                type="button"
-                onClick={() => setImportOpen(true)}
-                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-              >
-                Add number
-              </button>
-            </div>
-          )}
+          <h1 className="text-h3 text-text-primary">Phone numbers</h1>
+          <div className="flex items-center gap-sm">
+            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="search" size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCallForwardingOpen(true)}
+              className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+            >
+              Call forwarding
+            </button>
+            <button
+              type="button"
+              onClick={() => setImportOpen(true)}
+              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+            >
+              Import number
+            </button>
+          </div>
         </div>
 
         {/* Scrollable content */}

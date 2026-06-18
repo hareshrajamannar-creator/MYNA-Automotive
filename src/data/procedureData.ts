@@ -1513,8 +1513,8 @@ export const HC_PROCEDURE_ORDER = [
   'Handle slot conflict',
   'Handle booking failure',
   'Verify insurance',
-  'Appointment confirmation',
-  'Waitlist slot confirmation',
+  'Confirm appointment',
+  'Confirm waitlist slot',
   'Handle emergency or urgent concern',
   'Handle unclear message',
 ] as const
@@ -1616,7 +1616,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-04',
     name: 'Handle unclear message',
     category: 'Healthcare Frontdesk',
-    description: 'Recovers unclear or ambiguous patient messages through two guided clarification attempts before escalating.',
+    description: 'Asks follow-up questions when a patient\'s request isn\'t clear, then escalates if needed.',
     lastEdited: 'Jun 5',
     whenToUse: "Patient's message is too vague, ambiguous, or out-of-scope to match any other procedure's trigger with confidence.",
     steps: [
@@ -1649,7 +1649,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-05',
     name: 'Talk to human',
     category: 'Healthcare Frontdesk',
-    description: 'Immediately connects the patient to a live team member when requested, or captures a callback request if outside business hours.',
+    description: 'Connects the patient to a team member when requested, or captures a callback request if outside business hours.',
     lastEdited: 'Jun 3',
     whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
     steps: [
@@ -1786,7 +1786,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-08',
     name: 'Cancel appointment',
     category: 'Healthcare Frontdesk',
-    description: 'Locates the patient\'s appointment, confirms the cancellation intent, and releases the slot — with an optional offer to rebook.',
+    description: 'Locates the patient\'s appointment, confirms the cancellation, releases the slot, and offers to rebook.',
     lastEdited: 'May 27',
     whenToUse: 'Patient wants to cancel an existing appointment without immediately rebooking — "I need to cancel," "I can\'t make it," "please remove my appointment."',
     steps: [
@@ -1834,7 +1834,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-09',
     name: 'Handle slot conflict',
     category: 'Healthcare Frontdesk',
-    description: 'Re-offers availability when the chosen slot was taken between selection and write, with up to 2 automatic retries.',
+    description: 'Finds alternative slots when the patient\'s chosen time is no longer available, with up to 2 retries.',
     lastEdited: 'May 24',
     whenToUse: 'The create_appointment or reschedule_appointment tool returned a slot_taken error — the selected slot was booked by someone else between selection and write.',
     steps: [
@@ -1873,7 +1873,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-10',
     name: 'Handle booking failure',
     category: 'Healthcare Frontdesk',
-    description: 'Recovers gracefully from tool failures (connectivity errors, timeouts, patient creation failures) by logging a high-priority staff task and confirming callback details.',
+    description: 'Handles errors during booking by notifying staff and keeping the patient informed.',
     lastEdited: 'May 21',
     whenToUse: 'A tool call (create_appointment, reschedule_appointment, cancel_appointment, lookup_patient) failed for a non-slot reason — connectivity error, API timeout, or patient creation failed.',
     steps: [
@@ -1912,7 +1912,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-11',
     name: 'Verify insurance',
     category: 'Healthcare Frontdesk',
-    description: 'Runs a real-time eligibility check so the patient knows their copay and coverage status before picking a slot. Handles PA requirements, COB, self-pay, and pending verification paths.',
+    description: 'Checks the patient\'s insurance coverage before booking. Handles prior auth requirements and flags any coverage issues.',
     lastEdited: 'May 18',
     whenToUse: 'Runs eligibility check against the patient\'s insurance on file or newly collected, so the patient knows their copay and coverage status before they pick a time.',
     steps: [
@@ -1969,9 +1969,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
   },
   {
     id: 'hc-fd-12',
-    name: 'Appointment confirmation',
+    name: 'Confirm appointment',
     category: 'Healthcare Frontdesk',
-    description: 'Outbound flow that confirms a scheduled appointment via text then voice call, branching on patient response.',
+    description: 'Confirms scheduled appointments by text and voice call, and responds based on what the patient says.',
     lastEdited: 'May 15',
     whenToUse: 'Triggered outbound when an appointment is scheduled and the confirmation journey begins.',
     steps: [
@@ -2009,9 +2009,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
   },
   {
     id: 'hc-fd-13',
-    name: 'Waitlist slot confirmation',
+    name: 'Confirm waitlist slot',
     category: 'Healthcare Frontdesk',
-    description: 'Contacts waitlisted patients when a slot opens, confirms via text then outbound call, and loops back to the waitlist if unconfirmed.',
+    description: 'Reaches out to waitlisted patients when a slot opens, confirms by text and call, and keeps them on the waitlist if they don\'t respond.',
     lastEdited: 'May 11',
     whenToUse: 'A slot opens on the waitlist and the system needs to offer it to the next eligible patient.',
     steps: [

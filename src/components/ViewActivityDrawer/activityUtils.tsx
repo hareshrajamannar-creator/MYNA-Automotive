@@ -79,7 +79,7 @@ export function buildActivities(props: ViewActivityDrawerProps): Activity[] {
       activities.push({
         id: '6',
         type: 'reminder',
-        title: 'Follow-up reminder sent',
+        title: 'Follow up reminder sent',
         subtitle: `Reminder sent via SMS on ${fmt(t2)}`,
         date: fmt(t2),
       })

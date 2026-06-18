@@ -12,22 +12,22 @@ const TEMPLATES = [
   {
     title: 'Routing and triage',
     description:
-      'Handles inbound calls, identifies intent, routes urgent symptoms, and transfers to the right team with context',
+      'Answers every inbound call, triages patient needs, and routes to the right person with full context.',
   },
   {
-    title: 'New patient intake',
+    title: 'Collect new patient details',
     description:
       'Guides new patients through intake, verifies their insurance, and books the right appointment',
   },
   {
     title: 'Established patient scheduling',
     description:
-      'Validates existing records, checks coverage, and books or reschedules follow-up visits with preferred providers',
+      'Finds returning patient records, confirms coverage, and books or reschedules visits',
   },
   {
     title: 'Urgent escalations',
     description:
-      'Detects high-risk symptoms, follows escalation policy, and hands off immediately to clinical staff or emergency guidance',
+      'Identifies urgent situations and escalates to clinical staff immediately with full call context',
   },
 ]
 

@@ -20,19 +20,19 @@ const ALL_ROWS: WaitlistRow[] = [
   // Waitlisted — 13
   { patient: 'Michael Smith',      location: 'Main Campus',  outreach: 'chat', waitingSince: '4 days',       priority: 'High',   apptType: 'Procedure',       status: 'Waitlisted'   },
   { patient: 'Jessica Williams',   location: 'North Clinic', outreach: 'call', waitingSince: '5 days',       priority: 'Medium', apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'David Brown',        location: 'South Clinic', outreach: 'chat', waitingSince: '6 days',       priority: 'Low',    apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'David Brown',        location: 'South Clinic', outreach: 'chat', waitingSince: '6 days',       priority: 'Low',    apptType: 'Follow up',       status: 'Waitlisted'   },
   { patient: 'Emily Davis',        location: 'East Branch',  outreach: 'call', waitingSince: '7 days',       priority: 'High',   apptType: 'Annual physical', status: 'Waitlisted'   },
   { patient: 'Christopher Garcia', location: 'Main Campus',  outreach: 'chat', waitingSince: '8 days',       priority: 'Medium', apptType: 'Urgent care',     status: 'Waitlisted'   },
   { patient: 'Sarah Martinez',     location: 'North Clinic', outreach: 'call', waitingSince: '9 days',       priority: 'Low',    apptType: 'Procedure',       status: 'Waitlisted'   },
   { patient: 'James Rodriguez',    location: 'South Clinic', outreach: 'call', waitingSince: '10 days',      priority: 'High',   apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'Linda White',        location: 'East Branch',  outreach: 'call', waitingSince: '11 days',      priority: 'Medium', apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'Linda White',        location: 'East Branch',  outreach: 'call', waitingSince: '11 days',      priority: 'Medium', apptType: 'Follow up',       status: 'Waitlisted'   },
   { patient: 'William Harris',     location: 'Main Campus',  outreach: 'call', waitingSince: '12 days',      priority: 'Low',    apptType: 'Annual physical', status: 'Waitlisted'   },
   { patient: 'Patricia Clark',     location: 'North Clinic', outreach: 'chat', waitingSince: '13 days',      priority: 'High',   apptType: 'Urgent care',     status: 'Waitlisted'   },
   { patient: 'Daniel Lewis',       location: 'South Clinic', outreach: 'chat', waitingSince: '14 days ago',  priority: 'Medium', apptType: 'Procedure',       status: 'Waitlisted'   },
   { patient: 'Sophia Walker',      location: 'East Branch',  outreach: 'chat', waitingSince: '15 days ago',  priority: 'Low',    apptType: 'New consult',     status: 'Waitlisted'   },
-  { patient: 'Marcus Reed',        location: 'Main Campus',  outreach: 'call', waitingSince: '16 days ago',  priority: 'High',   apptType: 'Follow-up',       status: 'Waitlisted'   },
+  { patient: 'Marcus Reed',        location: 'Main Campus',  outreach: 'call', waitingSince: '16 days ago',  priority: 'High',   apptType: 'Follow up',       status: 'Waitlisted'   },
   // Slot offered — 6
-  { patient: 'Ethan Hall',         location: 'North Clinic', outreach: 'text', waitingSince: '3 days',       priority: 'High',   apptType: 'Follow-up',       status: 'Slot offered' },
+  { patient: 'Ethan Hall',         location: 'North Clinic', outreach: 'text', waitingSince: '3 days',       priority: 'High',   apptType: 'Follow up',       status: 'Slot offered' },
   { patient: 'Olivia Allen',       location: 'South Clinic', outreach: 'call', waitingSince: '5 days',       priority: 'Medium', apptType: 'Procedure',       status: 'Slot offered' },
   { patient: 'Noah Young',         location: 'East Branch',  outreach: 'chat', waitingSince: '7 days',       priority: 'Low',    apptType: 'Annual physical', status: 'Slot offered' },
   { patient: 'Ava King',           location: 'Main Campus',  outreach: 'text', waitingSince: '2 days',       priority: 'High',   apptType: 'Urgent care',     status: 'Slot offered' },
@@ -40,7 +40,7 @@ const ALL_ROWS: WaitlistRow[] = [
   { patient: 'Chloe Turner',       location: 'South Clinic', outreach: 'chat', waitingSince: '4 days',       priority: 'Low',    apptType: 'Procedure',       status: 'Slot offered' },
   // Slot filled — 4
   { patient: 'Emma Green',         location: 'East Branch',  outreach: 'chat', waitingSince: '10 days ago',  priority: 'Low',    apptType: 'Procedure',       status: 'Slot filled'  },
-  { patient: 'Mason Baker',        location: 'Main Campus',  outreach: 'text', waitingSince: '12 days ago',  priority: 'High',   apptType: 'Follow-up',       status: 'Slot filled'  },
+  { patient: 'Mason Baker',        location: 'Main Campus',  outreach: 'text', waitingSince: '12 days ago',  priority: 'High',   apptType: 'Follow up',       status: 'Slot filled'  },
   { patient: 'Isabella Adams',     location: 'North Clinic', outreach: 'chat', waitingSince: '16 days ago',  priority: 'Medium', apptType: 'Annual physical', status: 'Slot filled'  },
   { patient: 'Lucas Mitchell',     location: 'South Clinic', outreach: 'call', waitingSince: '18 days ago',  priority: 'Low',    apptType: 'New consult',     status: 'Slot filled'  },
 ]
@@ -81,7 +81,7 @@ const BASE_COLUMNS: Column<WaitlistRow>[] = [
   },
   { key: 'waitingSince', label: 'Waiting since',    sortable: true },
   { key: 'priority',     label: 'Priority',         sortable: true },
-  { key: 'apptType',     label: 'Appt type',        sortable: true },
+  { key: 'apptType',     label: 'Appointment type', sortable: true },
 ]
 
 function AddToWaitlistButton({ onSelect }: { onSelect: (mode: 'existing' | 'new') => void }) {
@@ -126,7 +126,7 @@ function AddToWaitlistButton({ onSelect }: { onSelect: (mode: 'existing' | 'new'
 
 const OFFER_SLOT_FIELDS = [
   { key: 'provider',  label: 'Provider',         type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'] },
-  { key: 'apptType', label: 'Appointment type',  type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select appointment type' },
+  { key: 'apptType', label: 'Appointment type',  type: 'select' as const, options: ['Procedure', 'New consult', 'Follow up', 'Annual physical', 'Urgent care'], placeholder: 'Select appointment type' },
   { key: 'date',     label: 'Date',              type: 'select' as const, options: ['Today', 'Tomorrow', 'This week', 'Next week'], placeholder: 'Pick a date' },
   { key: 'time',     label: 'Time',              type: 'select' as const, options: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM'], placeholder: 'Pick a time' },
   {
@@ -143,7 +143,7 @@ const OFFER_SLOT_FIELDS = [
         body: 'Hi [Contact first name], this is a reminder of your upcoming appointment at [Business Name]. Please reply CONFIRM to confirm or call us to reschedule.',
       },
       {
-        label: 'Follow-up SMS',
+        label: 'Follow up SMS',
         body: 'Hi [Contact first name], thanks for visiting [Business Name]. We wanted to follow up and see how you are doing. Please let us know if you need anything.',
         hasAttachment: true,
       },
@@ -157,7 +157,7 @@ const OFFER_SLOT_FIELDS = [
 
 const ADD_EXISTING_FIELDS = [
   { key: 'patient',  label: 'Patient',          type: 'select' as const, options: ['Michael Smith', 'Jessica Williams', 'David Brown', 'Emily Davis'], placeholder: 'Select' },
-  { key: 'apptType', label: 'Appointment type', type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
+  { key: 'apptType', label: 'Appointment type', type: 'select' as const, options: ['Procedure', 'New consult', 'Follow up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
   { key: 'provider', label: 'Provider',         type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'], placeholder: 'Select' },
   { key: 'slotPref', label: 'Slot preference',  type: 'select' as const, options: ['Morning', 'Afternoon', 'Evening', 'Any'], placeholder: 'Select' },
   { key: 'priority', label: 'Priority',         type: 'select' as const, options: ['High', 'Medium', 'Low'], placeholder: 'Select' },
@@ -167,7 +167,7 @@ const ADD_NEW_FIELDS = [
   { key: 'name',     label: 'Patient name',     type: 'text'   as const, placeholder: 'Enter name' },
   { key: 'phone',    label: 'Phone number',     type: 'text'   as const, placeholder: 'Enter phone' },
   { key: 'dob',      label: 'Date of birth',    type: 'text'   as const, placeholder: 'MM/DD/YYYY' },
-  { key: 'apptType', label: 'Appointment type', type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
+  { key: 'apptType', label: 'Appointment type', type: 'select' as const, options: ['Procedure', 'New consult', 'Follow up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
   { key: 'provider', label: 'Provider',         type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'], placeholder: 'Select' },
   { key: 'location', label: 'Location',         type: 'select' as const, options: ['Main clinic', 'North branch', 'South branch'], placeholder: 'Select' },
   { key: 'slotPref', label: 'Slot preference',  type: 'select' as const, options: ['Morning', 'Afternoon', 'Evening', 'Any'], placeholder: 'Select' },
@@ -186,7 +186,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'content-manager',     label: 'Content manager',     options: opts('Manager A', 'Manager B', 'Manager C') },
   { id: 'conversation-status', label: 'Conversation status', options: opts('Open', 'Closed', 'Pending', 'Resolved') },
   { id: 'provider',            label: 'Provider',            options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
-  { id: 'appointment-type',    label: 'Appointment type',    options: opts('Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care') },
+  { id: 'appointment-type',    label: 'Appointment type',    options: opts('Procedure', 'New consult', 'Follow up', 'Annual physical', 'Urgent care') },
   { id: 'priority',            label: 'Priority',            options: opts('High', 'Medium', 'Low') },
   { id: 'outreach-channel',    label: 'Outreach channel',    options: opts('Chat', 'Call', 'Text') },
 ]
@@ -257,7 +257,7 @@ export function ReviewWaitlistScreen() {
         <div className="flex flex-1 flex-col overflow-auto">
         {/* Page header */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
-          <h1 className="text-h3 text-text-primary">Review waitlist</h1>
+          <h1 className="text-h3 text-text-primary">Waitlist</h1>
           <div className="flex items-center gap-sm">
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="search" size={20} />

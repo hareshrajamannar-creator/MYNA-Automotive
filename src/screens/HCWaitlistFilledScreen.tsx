@@ -51,16 +51,25 @@ const SUMMARY_STATS = [
   { id: 'outreach', value: '5.5K',  label: 'Outreach sent slots', delta: '40%',  trend: 'down' as const },
   { id: 'filled',   value: '7.9K',  label: 'Slots filled',  delta: '36.6%',trend: 'up'   as const },
   { id: 'fillRate', value: '23.7%', label: 'Fill rate',     delta: '20%',  trend: 'up'   as const },
-  { id: 'avgTime',  value: '2.5 hrs',label: 'Avg fill time', delta: '20%', trend: 'down' as const },
+  { id: 'avgTime',  value: '2.5 hrs',label: 'Average fill time', delta: '20%', trend: 'down' as const },
 ]
 
 // 0=Voice, 1=Webchat, 2=Text             (channel)
 // 3=Confirmed, 4=Pending               (outcome)
 // 5=1-4hrs, 6=<1hr, 7=>24hr, 8=4-24hr (time to confirm)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Voice (50.0%)' }, { name: 'Webchat (31.0%)' }, { name: 'Text (19.0%)' },
-  { name: 'Confirmed (62.8%)' }, { name: 'Pending (37.2%)' },
-  { name: '1-4hrs (31.3%)' }, { name: '<1hr (41.7%)' }, { name: '>24hr (9.9%)' }, { name: '4-24hr (17.2%)' },
+  {
+    name: 'Agent communications',
+    breakdown: [
+      { label: 'Waitlist agent – North region', pct: '45%', value: 3555 },
+      { label: 'Waitlist agent – South region', pct: '33%', value: 2607 },
+      { label: 'Waitlist agent – West region',  pct: '22%', value: 1738 },
+    ],
+  },
+  { name: 'Human-driven (23.5%)' },
+  { name: 'Text (50.5%)' }, { name: 'Email (37.5%)' }, { name: 'Voice (12%)' },
+  { name: '<1hr (41.7%)' }, { name: '1-4hrs (31.3%)' }, { name: '4-24hrs (17.2%)' }, { name: '>24hrs (9.9%)' },
+  { name: 'Filled (23.7%)' }, { name: 'Pending (17.2%)' }, { name: 'No response (38.3%)' }, { name: 'Declined (20.8%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → outcome
@@ -158,7 +167,7 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
       <span>{row.fillRate} {deltaSpan(row.fillDelta as string)}</span>
     ),
   },
-  { key: 'avgFillTime', label: 'Avg fill time', width: 160, sortable: true },
+  { key: 'avgFillTime', label: 'Average fill time', width: 160, sortable: true },
 ]
 
 export function HCWaitlistFilledScreen({ isDental = false }: { isDental?: boolean }) {
