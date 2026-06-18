@@ -353,6 +353,18 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
       { id: 'staffHoursSaved', value: '312h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
     ],
+    'Waitlist agent': [
+      { id: 'outreachSent', value: '5.5K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
+      { id: 'slotsFilled', value: '7.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach.' },
+      { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
+      { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
+    ],
+    'Pre-visit agent': [
+      { id: 'intakesCompleted', value: '6,840', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance in the selected period.' },
+      { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
+      { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
+      { id: 'staffHoursSaved', value: '312h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+    ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted', info: true, tooltip: 'Total leads the agent reached out to via call or message in the selected period.' },
       { id: 'response', value: '38%', label: 'Response rate', info: true, tooltip: 'Percentage of contacted leads that replied to the outreach.' },

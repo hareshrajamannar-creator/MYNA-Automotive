@@ -91,6 +91,18 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
     { id: 'staffHoursSaved', value: '78h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
   ],
+  'Waitlist agent': [
+    { id: 'outreachSent', value: '1.4K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent at this location to fill open slots.' },
+    { id: 'slotsFilled', value: '1.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach at this location.' },
+    { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
+    { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
+  ],
+  'Pre-visit agent': [
+    { id: 'intakesCompleted', value: '1,710', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance at this location.' },
+    { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
+    { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
+    { id: 'staffHoursSaved', value: '78h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+  ],
   'Outreach agent': [
     { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true, tooltip: 'Total leads the agent reached out to at this location in the selected period.' },
     { id: 'response', value: '38%', label: 'Response rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Percentage of contacted leads that replied to the outreach.' },
@@ -227,6 +239,22 @@ const REMINDER_COLUMNS: Column<LocationRow>[] = [
   { key: 'responseRate',     label: 'Reminder response rate', width: 210, sortable: true },
   { key: 'avgResponseTime',  label: 'Average response time',  width: 200, sortable: true },
   { key: 'noshowRate',       label: 'Missed appointment rate', width: 160, sortable: true },
+]
+
+const WAITLIST_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',    label: 'Location',           width: 220, sortable: true },
+  { key: 'outreachSent',label: 'Outreach sent slots', width: 180, sortable: true },
+  { key: 'slotsFilled', label: 'Slots filled',        width: 150, sortable: true },
+  { key: 'fillRate',    label: 'Fill rate',            width: 130, sortable: true },
+  { key: 'timeSaved',   label: 'Avg fill time',        width: 150, sortable: true },
+]
+
+const PRE_VISIT_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',    label: 'Location',            width: 220, sortable: true },
+  { key: 'interactions',label: 'Intakes completed',   width: 180, sortable: true },
+  { key: 'fcr',         label: 'Completion rate',     width: 160, sortable: true },
+  { key: 'aht',         label: 'Avg completion time', width: 180, sortable: true },
+  { key: 'escalation',  label: 'Staff hours saved',   width: 170, sortable: true },
 ]
 
 const WAITLIST_COLUMNS: Column<LocationRow>[] = [
