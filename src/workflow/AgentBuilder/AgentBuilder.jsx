@@ -9,6 +9,7 @@ import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
 import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
+import { BookTestAppointmentModal } from '../../components/BookTestAppointmentModal/BookTestAppointmentModal';
 import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
 import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
@@ -546,7 +547,6 @@ export default function AgentBuilder({
   onAddProcedure,
   publishDisabled = false,
   defaultOpenSection = 'Tasks',
-  onTestCall,
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -572,6 +572,8 @@ export default function AgentBuilder({
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [bookTestModalOpen, setBookTestModalOpen] = useState(false);
+  const [testAppointment, setTestAppointment] = useState(null);
   const [previewActive, setPreviewActive] = useState(false);
   // Tool viewer state
   const [viewingTool, setViewingTool] = useState(null); // full tool object
@@ -712,6 +714,7 @@ export default function AgentBuilder({
   }, [headerMenuOpen]);
   /* ─── Agent name is derived from nodeDetails (single source of truth) ─── */
   const agentName = nodeDetails[START_NODE_ID]?.agentName || (typeof pageTitle === 'string' ? pageTitle : '') || '';
+  const isReminderAgent = /reminder/i.test(agentName);
   const [agentDesc] = useState(initialDescription || '');
   // isTemplateMode uses state so it correctly activates after applyAgent loads templateId from Firestore
   const isTemplateMode = !!agentTemplateId && agentStatus !== 'Running';
@@ -1859,7 +1862,14 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               onEdit={viewOnly ? onEdit : undefined}
-              onRun={() => setPreviewOpen(true)}
+              onRun={() => {
+                if (isReminderAgent) {
+                  setBookTestModalOpen(true);
+                } else {
+                  setTestAppointment(null);
+                  setPreviewOpen(true);
+                }
+              }}
             />
           </div>
 
@@ -1874,15 +1884,33 @@ export default function AgentBuilder({
           {previewOpen && (
             <div className="agent-builder__preview">
               <PreviewPanel
-                onClose={() => { setPreviewOpen(false); setPreviewActive(false); }}
+                onClose={() => {
+                  setPreviewOpen(false);
+                  setPreviewActive(false);
+                  setTestAppointment(null);
+                }}
                 onPreviewActiveChange={setPreviewActive}
                 agentName={agentName}
-                onTestCall={onTestCall}
+                testAppointment={testAppointment}
+                onEditAppointment={() => setBookTestModalOpen(true)}
               />
             </div>
           )}
         </div>
       </div>
+
+      {isReminderAgent && (
+        <BookTestAppointmentModal
+          open={bookTestModalOpen}
+          initialValues={testAppointment}
+          onClose={() => setBookTestModalOpen(false)}
+          onBookAndRun={(values) => {
+            setBookTestModalOpen(false);
+            setTestAppointment(values);
+            setPreviewOpen(true);
+          }}
+        />
+      )}
 
       {/* ─── Share modal ─── */}
       {shareModalOpen && (

@@ -22,6 +22,7 @@ const DENTAL_PROCEDURE_OPTIONS = [
   'Front desk intake procedure',
 ];
 
+
 function NativeDrawer({ isOpen, onClose, children }) {
   if (!isOpen) return null;
   return (
@@ -247,7 +248,21 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
             <FieldLabel showInfo>Context</FieldLabel>
             <div className="vctd__context-box">
               {contextVariables.length === 0 ? (
-                <p className="vctd__context-empty">No context added</p>
+                <div className="vctd__context-footer">
+                  <button
+                    type="button"
+                    className="vctd__context-add-btn"
+                    onClick={() => setFieldPickerOpen(true)}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 16, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}
+                    >
+                      add_circle
+                    </span>
+                    Add
+                  </button>
+                </div>
               ) : (
                 <div className="vctd__context-chips">
                   {contextVariables.map((item, i) => (
@@ -325,6 +340,7 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
               </div>
             </div>
           </div>
+
 
         </div>
       </div>

@@ -3,8 +3,13 @@ import { createPortal } from 'react-dom';
 import {
   PREVIEW_DEMO_SCRIPT as DEMO_SCRIPT,
   PREVIEW_GREETING as GREETING,
+  OUTBOUND_REMINDER_DEMO_SCRIPT,
   PreviewLogsView,
   PreviewSidePanelHeader,
+  OutboundPreviewLogsPanel,
+  buildReminderPreviewLogSteps,
+  buildVoiceCallLogOutput,
+  buildEndLogStep,
 } from './PreviewPanelViews';
 import './PreviewPanel.css';
 
@@ -248,200 +253,300 @@ function TranscriptMessages({ messages, interim }) {
 }
 
 /* ── Outbound (Reminder Agent) preview panel ────────────────── */
-function OutboundPreviewPanel({ onClose, onToggleLogs, logsView, onTestCall }) {
-  const [callState, setCallState] = useState('idle'); // idle | calling | done
-  const [outcome, setOutcome] = useState(null); // answered | rejected | missed | voicemail
-  const [skipDelays, setSkipDelays] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [toast, setToast] = useState(false);
+function OutboundPreviewPanel({ onClose, testAppointment, onPreviewActiveChange, onEditAppointment }) {
+  const previewData = buildReminderPreviewLogSteps(testAppointment);
+  const { patientName, phone, appointmentLine } = previewData;
+  const [logSteps, setLogSteps] = useState(() => previewData.steps);
+  const [panelView, setPanelView] = useState('preview');
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [callPhase, setCallPhase] = useState('idle');
+  const [messages, setMessages] = useState([]);
+  const [agentTalking, setAgentTalking] = useState(false);
+  const timersRef = useRef([]);
+  const streamRef = useRef(null);
+  const demoScriptRef = useRef(false);
+  const bottomRef = useRef(null);
 
-  const handleCall = () => {
-    setCallState('calling');
+  const showLogs = panelView === 'logs';
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    onPreviewActiveChange?.(callPhase === 'active');
+    return () => onPreviewActiveChange?.(false);
+  }, [callPhase, onPreviewActiveChange]);
+
+  useEffect(() => {
+    setPanelView('preview');
+    setVisibleCount(0);
+    setCompletedCount(0);
+    setCallPhase('idle');
+    setMessages([]);
+    setAgentTalking(false);
+    demoScriptRef.current = false;
+    clearInterval(streamRef.current);
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+
+    if (!testAppointment) return undefined;
+
+    setLogSteps(buildReminderPreviewLogSteps(testAppointment).steps);
+
+    const schedule = (fn, delay) => {
+      timersRef.current.push(setTimeout(fn, delay));
+    };
+
+    schedule(() => {
+      setVisibleCount(1);
+      setCompletedCount(1);
+    }, 400);
+    schedule(() => setVisibleCount(2), 1500);
+    schedule(() => setCompletedCount(2), 4500);
+    schedule(() => {
+      setVisibleCount(3);
+      setCompletedCount(3);
+    }, 5100);
+    schedule(() => {
+      setVisibleCount(4);
+      setCompletedCount(4);
+    }, 5700);
+    schedule(() => {
+      setVisibleCount(5);
+      setCompletedCount(4);
+    }, 6300);
+    schedule(() => {
+      setCompletedCount(5);
+      setCallPhase('calling');
+    }, 6900);
+
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+      clearInterval(streamRef.current);
+    };
+  }, [testAppointment]);
+
+  const agentSay = useCallback((text, onDone) => {
+    setAgentTalking(true);
+    const id = uid();
+    setMessages((prev) => [...prev, { id, role: 'agent', text: '' }]);
+
+    const words = text.split(' ');
+    let i = 0;
+    clearInterval(streamRef.current);
+
+    streamRef.current = setInterval(() => {
+      i += 1;
+      const partial = words.slice(0, i).join(' ');
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, text: partial } : m)));
+      if (i >= words.length) {
+        clearInterval(streamRef.current);
+        setAgentTalking(false);
+        setTimeout(onDone, 300);
+      }
+    }, 42);
+  }, []);
+
+  const playDemoScript = useCallback((turns) => {
+    demoScriptRef.current = true;
+    let i = 0;
+
+    function next() {
+      if (!demoScriptRef.current || i >= turns.length) return;
+      const turn = turns[i];
+      i += 1;
+
+      if (turn.role === 'user') {
+        setTimeout(() => {
+          setMessages((prev) => [...prev, { id: uid(), role: 'user', text: turn.text }]);
+          setTimeout(next, 600);
+        }, 900);
+      } else {
+        setTimeout(() => {
+          agentSay(turn.text, () => {
+            setTimeout(next, 700);
+          });
+        }, 400);
+      }
+    }
+
+    next();
+  }, [agentSay]);
+
+  const handleAnswerCall = useCallback(() => {
+    demoScriptRef.current = false;
+    clearInterval(streamRef.current);
+    setAgentTalking(false);
+    setCallPhase('active');
+    setPanelView('preview');
+    setVisibleCount(5);
+    setCompletedCount(4);
+    setLogSteps((prev) =>
+      prev.map((step) =>
+        step.id === 'voice-call'
+          ? { ...step, outputSections: [buildVoiceCallLogOutput(phone, false)] }
+          : step,
+      ),
+    );
+
+    setMessages([{ id: uid(), role: 'system', text: 'Outbound call started' }]);
     setTimeout(() => {
-      setCallState('done');
-      setToast(true);
-      setTimeout(() => setToast(false), 3000);
-    }, 2000);
-  };
+      agentSay(GREETING, () => playDemoScript(OUTBOUND_REMINDER_DEMO_SCRIPT));
+    }, 400);
+  }, [agentSay, phone, playDemoScript]);
 
-  const handleReset = () => {
-    setCallState('idle');
-    setOutcome(null);
-  };
+  const handleEndCall = useCallback(() => {
+    demoScriptRef.current = false;
+    clearInterval(streamRef.current);
+    setAgentTalking(false);
+    setCallPhase('ended');
+    setMessages((prev) => [...prev, { id: uid(), role: 'system', text: 'You ended the call' }]);
+    setPanelView('logs');
 
-  const OUTCOMES = [
-    { id: 'answered',  label: 'Answered',  icon: 'call' },
-    { id: 'rejected',  label: 'Rejected',  icon: 'call_end' },
-    { id: 'missed',    label: 'Missed',    icon: 'phone_missed' },
-    { id: 'voicemail', label: 'Voicemail', icon: 'voicemail' },
-  ];
+    setLogSteps((prev) => {
+      const withVoiceComplete = prev
+        .filter((step) => step.id !== 'end')
+        .map((step) =>
+          step.id === 'voice-call'
+            ? { ...step, outputSections: [buildVoiceCallLogOutput(phone, true)] }
+            : step,
+        );
+      return [...withVoiceComplete, buildEndLogStep()];
+    });
+
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    const schedule = (fn, delay) => {
+      timersRef.current.push(setTimeout(fn, delay));
+    };
+    schedule(() => setCompletedCount(5), 400);
+    schedule(() => setVisibleCount(6), 1200);
+    schedule(() => setCompletedCount(6), 2000);
+  }, [phone]);
+
+  const handleRestartCall = useCallback(() => {
+    demoScriptRef.current = false;
+    clearInterval(streamRef.current);
+    setAgentTalking(false);
+    setMessages([]);
+    setCallPhase('calling');
+    setPanelView('preview');
+    setVisibleCount(5);
+    setCompletedCount(4);
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    setLogSteps((prev) =>
+      prev
+        .filter((step) => step.id !== 'end')
+        .map((step) =>
+          step.id === 'voice-call'
+            ? { ...step, outputSections: [] }
+            : step,
+        ),
+    );
+  }, []);
+
+  const handleToggleView = useCallback(() => {
+    setPanelView((v) => (v === 'logs' ? 'preview' : 'logs'));
+  }, []);
+
+  const showProgressiveLogs =
+    Boolean(testAppointment) &&
+    (showLogs || callPhase === 'idle' || callPhase === 'calling');
+  const showCallPrompt = !showLogs && callPhase === 'calling';
+  const showConversation = !showLogs && (callPhase === 'active' || callPhase === 'ended');
+  const showViewLogsToggle = callPhase === 'active' || callPhase === 'ended';
 
   return (
-    <div className="preview-panel" style={{ position: 'relative' }}>
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
-          background: '#16a34a', color: '#fff', borderRadius: 8, padding: '8px 16px',
-          fontSize: 13, zIndex: 99, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-        }}>
-          Outbound call initiated
-        </div>
-      )}
-
-      {/* Header */}
+    <div className="preview-panel">
       <PreviewSidePanelHeader
-        panel={logsView ? 'logs' : 'preview'}
-        onToggle={onToggleLogs}
+        panel={showLogs ? 'logs' : 'preview'}
+        onToggle={handleToggleView}
         showClose={true}
         onClose={onClose}
-        showViewLogs={true}
-        logsLinkDisabled={false}
+        showViewLogs={showViewLogsToggle}
+        logsLinkDisabled={!testAppointment}
       />
 
-      <div className="preview-panel__body" style={{ overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div
+        className={`preview-panel__body preview-panel__body--outbound${
+          showConversation ? ' preview-panel__body--outbound-call' : ''
+        }`}
+      >
+        {showProgressiveLogs && (
+          <OutboundPreviewLogsPanel
+            patientName={patientName}
+            appointmentLine={appointmentLine}
+            phone={phone}
+            sections={logSteps}
+            visibleCount={visibleCount}
+            completedCount={completedCount}
+            onEditAppointment={onEditAppointment}
+          />
+        )}
 
-        {/* Appointment details card */}
-        <div style={{ position: 'relative', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: '8px 12px' }}>
-          {/* Card header row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: '#9ca3af' }}>Appointment details</span>
-            <button
-              type="button"
-              onClick={() => setSettingsOpen(v => !v)}
-              aria-label="Edit settings"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 4, border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
-            </button>
-          </div>
-
-          {/* Name + status chip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontSize: 14, color: '#111827', lineHeight: '20px' }}>Sarah Lawson</span>
-            <span style={{ fontSize: 11, color: '#166534', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 20, padding: '1px 8px', lineHeight: '18px' }}>Confirmed</span>
-          </div>
-
-          {/* Detail rows */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#9ca3af' }}>calendar_today</span>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>Teeth cleaning · Jun 15 at 10:00 AM</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#9ca3af' }}>call</span>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>+1(404)555-1092</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#9ca3af' }}>notifications</span>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>24-hour reminder · Voice call</span>
-            </div>
-          </div>
-
-          {/* Inline settings panel — shown when pencil is clicked */}
-          {settingsOpen && (
-            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #f3f4f6' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: 12, color: '#374151' }}>Skip delays</div>
-                  <div style={{ fontSize: 11, color: '#9ca3af' }}>Run workflow without wait steps</div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={skipDelays}
-                  onClick={() => setSkipDelays(v => !v)}
-                  style={{
-                    width: 30, height: 16, borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: skipDelays ? '#2563eb' : '#d1d5db', padding: 2,
-                    display: 'flex', alignItems: 'center', transition: 'background 0.2s', flexShrink: 0,
-                  }}
-                >
-                  <div style={{
-                    width: 12, height: 12, borderRadius: '50%', background: '#fff',
-                    transform: skipDelays ? 'translateX(14px)' : 'translateX(0)',
-                    transition: 'transform 0.2s',
-                  }} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Outbound call CTA */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '20px 14px' }}>
+        {showCallPrompt && (
           <button
             type="button"
-            onClick={callState === 'done' ? handleReset : handleState => handleCall()}
-            aria-label="Initiate outbound call"
-            style={{
-              width: 64, height: 64, borderRadius: '50%', border: 'none', cursor: 'pointer',
-              background: callState === 'calling' ? '#d1fae5' : callState === 'done' ? '#16a34a' : '#2563eb',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s',
-              boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
-            }}
+            className="preview-panel__call-prompt preview-panel__call-prompt--interactive preview-panel__call-prompt--inline"
+            onClick={handleAnswerCall}
           >
-            {callState === 'calling' ? (
-              <div style={{
-                width: 22, height: 22, borderRadius: '50%',
-                border: '3px solid #16a34a', borderTopColor: 'transparent',
-                animation: 'spin 0.7s linear infinite',
-              }} />
-            ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: 26, color: '#fff' }}>
-                {callState === 'done' ? 'replay' : 'phone_forwarded'}
-              </span>
-            )}
-          </button>
-          <span style={{ fontSize: 13, color: '#374151' }}>
-            {callState === 'calling' ? 'Calling...' : callState === 'done' ? 'Call complete — try again' : 'Initiate outbound call'}
-          </span>
-        </div>
-
-        {/* Section 4: Simulate call outcome */}
-        {callState === 'done' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>Simulate call outcome</span>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {OUTCOMES.map(o => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => setOutcome(o.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
-                    border: `2px solid ${outcome === o.id ? '#2563eb' : '#e5e7eb'}`,
-                    borderRadius: 8, background: outcome === o.id ? '#eff6ff' : '#fff',
-                    cursor: 'pointer', fontSize: 13, color: '#111827',
-                    boxShadow: outcome === o.id ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: outcome === o.id ? '#2563eb' : '#6b7280' }}>{o.icon}</span>
-                  {o.label}
-                </button>
-              ))}
+            <div className="preview-panel__call-prompt-icon">
+              <span className="material-symbols-outlined">call</span>
             </div>
-            {outcome && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 12, color: '#166534' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>
-                Outcome set to <strong style={{ marginLeft: 3 }}>{OUTCOMES.find(o2 => o2.id === outcome)?.label}</strong>
+            <span className="preview-panel__call-prompt-title">Agent calling...</span>
+            <span className="preview-panel__call-prompt-subtitle">
+              Incoming call to {phone}
+            </span>
+            <span className="preview-panel__call-prompt-subtitle">
+              Answer the call to complete the test
+            </span>
+          </button>
+        )}
+
+        {showConversation && (
+          <div className="preview-panel__active preview-panel__active--outbound">
+            <div className="preview-panel__transcript">
+              <TranscriptMessages messages={messages} />
+              <div ref={bottomRef} />
+            </div>
+
+            {callPhase === 'active' && (
+              <div className="preview-panel__call-controls">
+                <button className="preview-panel__ctrl-btn" type="button" disabled aria-label="Mute">
+                  <span className="material-symbols-outlined">mic</span>
+                </button>
+                <button
+                  className="preview-panel__end-call-btn"
+                  type="button"
+                  onClick={handleEndCall}
+                  aria-label="End call"
+                >
+                  <span className="material-symbols-outlined">call_end</span>
+                </button>
+                <button className="preview-panel__ctrl-btn" type="button" disabled aria-label="Speaker">
+                  <span className="material-symbols-outlined">volume_up</span>
+                </button>
+              </div>
+            )}
+
+            {callPhase === 'ended' && (
+              <div className="preview-panel__ended-actions">
+                <button
+                  className="preview-panel__restart-btn"
+                  type="button"
+                  onClick={handleRestartCall}
+                >
+                  Preview again
+                </button>
               </div>
             )}
           </div>
         )}
-
-        {/* Info tip */}
-        <div style={{ display: 'flex', gap: 8, padding: '10px 12px', background: '#fafafa', border: '1px solid #f3f4f6', borderRadius: 8 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#9ca3af', marginTop: 1, flexShrink: 0 }}>info</span>
-          <span style={{ fontSize: 12, color: '#6b7280', lineHeight: '18px' }}>
-            This preview simulates a real outbound reminder call. No actual call is placed and no messages are sent to the patient.
-          </span>
-        </div>
-
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -453,7 +558,8 @@ export default function PreviewPanel({
   showViewDetails = true,
   showViewLogs = true,
   agentName = '',
-  onTestCall = null,
+  testAppointment = null,
+  onEditAppointment = null,
 }) {
   const [panelView, setPanelView]   = useState('preview'); // preview | logs | details
   const [phase, setPhase]         = useState('idle');   // idle | dialing | active | ended
@@ -675,9 +781,9 @@ export default function PreviewPanel({
     return (
       <OutboundPreviewPanel
         onClose={() => { handleReset(); onClose?.(); }}
-        onToggleLogs={handleToggleView}
-        logsView={showLogs}
-        onTestCall={onTestCall}
+        testAppointment={testAppointment}
+        onPreviewActiveChange={onPreviewActiveChange}
+        onEditAppointment={onEditAppointment}
       />
     );
   }
