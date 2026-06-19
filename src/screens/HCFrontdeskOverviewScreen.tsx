@@ -120,9 +120,9 @@ const SUMMARY_STATS = [
 // Funnel: Webchat/Voice/Text → AI agents/Human agents → Answered/Bookings/Rescheduled/Cancellations/Pending
 // 0-2: channels, 3-4: handled by, 5-9: outcomes
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'Text 23%' }, { name: 'Email 19%' },
-  { name: 'Agent-driven 72%' }, { name: 'Human-driven 28%' },
-  { name: 'Confirmed 60%' }, { name: 'Booked 18%' }, { name: 'Rescheduled 10%' }, { name: 'Canceled 4%' },
+  { name: 'Webchat 44%' }, { name: 'Voice 28%' }, { name: 'Text 28%' },
+  { name: 'AI agents 72%' }, { name: 'Human agents 28%' },
+  { name: 'Answered 48%' }, { name: 'Bookings 18%' }, { name: 'Rescheduled 10%' }, { name: 'Cancellations 4%' }, { name: 'Pending 20%' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   { source: 0, target: 3, value: 32 }, { source: 0, target: 4, value: 12 },
