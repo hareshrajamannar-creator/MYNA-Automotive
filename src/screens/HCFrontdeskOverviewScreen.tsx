@@ -114,7 +114,7 @@ const SUMMARY_STATS = [
   { id: 'bookings',   value: '1.5K', label: 'Total bookings',      delta: '16.6%', trend: 'up'   as const },
   { id: 'reschedule', value: '450',  label: 'Rescheduled',         delta: '30%',   trend: 'down' as const },
   { id: 'cancelled',  value: '25',   label: 'Cancelled',           delta: '20%',   trend: 'up'   as const },
-  { id: 'verified',   value: '1.5K', label: 'Insurances verified', delta: '10%',   trend: 'down' as const },
+  { id: 'verified',   value: '1.5K', label: 'Insurance verified', delta: '10%',   trend: 'down' as const },
 ]
 
 // Funnel: Webchat/Voice/Text → AI agents/Human agents → Answered/Bookings/Rescheduled/Cancellations/Pending
@@ -209,7 +209,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'totalBookings',      label: 'Total bookings',      width: 160, sortable: true },
   { key: 'rescheduled',        label: 'Rescheduled',         width: 160, sortable: true },
   { key: 'cancelled',          label: 'Cancelled',           width: 140, sortable: true },
-  { key: 'insurancesVerified', label: 'Insurances verified', width: 180, sortable: true },
+  { key: 'insurancesVerified', label: 'Insurance verified', width: 180, sortable: true },
 ]
 
 // ─── Chat messages per conversation id ───────────────────────────────────────
@@ -390,7 +390,7 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
               <DonutChart data={CHANNEL_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>
 
-            <HCCard title="Insurances verified" tooltip="Monthly view of unique conversations where the patient's insurance was successfully verified by the agent.">
+            <HCCard title="Insurance verified" tooltip="Monthly view of unique conversations where the patient's insurance was successfully verified by the agent.">
               <ChartStatRow stats={[
                 { value: '1.2K',  label: 'Total verified'    },
                 { value: '94.2%', label: 'Verification rate' },
