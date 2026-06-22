@@ -25,7 +25,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'division',        label: 'Division',            options: opts('Division A', 'Division B', 'Division C', 'Division D', 'Division E') },
   { id: 'city',            label: 'City',                options: opts('Austin', 'San Francisco', 'Phoenix', 'Denver', 'Seattle', 'Dallas', 'Houston', 'Chicago') },
   { id: 'zip',             label: 'Zip',                 options: opts('78701', '78702', '94102', '85001', '80201', '98101', '75201', '60601') },
-  { id: 'outcome',         label: 'Outcome',             options: opts('Resolved', 'Human transfer', 'Pending') },
+  { id: 'outcome',         label: 'Outcome',             options: opts('Answered', 'Bookings', 'Rescheduling', 'Cancellation') },
   { id: 'content-manager', label: 'Content manager',     options: opts('Kelsy Hiltz', 'Marcus Webb', 'Priya Nair', 'Sofia Mendez', 'Derek Okafor') },
   { id: 'social-manager',  label: 'Social manager',      options: opts('Tasha Winters', 'Omar Farouk', 'Brianna Cole', 'Nathan Cruz', 'Linda Hargrove') },
   { id: 'area-code',       label: 'Area code',           options: opts('512', '415', '602', '303', '206', '214', '713', '312') },
@@ -37,7 +37,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
   { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
   { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
-  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Chat') },
 ]
 
 // Healthcare chart card — uses the tune icon for the left action button
@@ -54,24 +54,23 @@ const SUMMARY_STATS = [
   { id: 'avgTime',  value: '2.5 hrs',label: 'Avg fill time', delta: '20%', trend: 'down' as const },
 ]
 
-// 0=Voice, 1=Webchat, 2=Text             (channel)
-// 3=Confirmed, 4=Pending               (outcome)
-// 5=1-4hrs, 6=<1hr, 7=>24hr, 8=4-24hr (time to confirm)
+// 0=Voice, 1=Text                        (channel)
+// 2=Confirmed, 3=Pending               (outcome)
+// 4=1-4hrs, 5=<1hr, 6=>24hr, 7=4-24hr (time to confirm)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Voice (50.0%)' }, { name: 'Webchat (31.0%)' }, { name: 'Text (19.0%)' },
+  { name: 'Voice (72.5%)' }, { name: 'Text (27.5%)' },
   { name: 'Confirmed (62.8%)' }, { name: 'Pending (37.2%)' },
   { name: '1-4hrs (31.3%)' }, { name: '<1hr (41.7%)' }, { name: '>24hr (9.9%)' }, { name: '4-24hr (17.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → outcome
-  { source: 0, target: 3, value: 32 }, { source: 0, target: 4, value: 19 },
-  { source: 1, target: 3, value: 20 }, { source: 1, target: 4, value: 12 },
-  { source: 2, target: 3, value: 11 }, { source: 2, target: 4, value: 6  },
+  { source: 0, target: 2, value: 45 }, { source: 0, target: 3, value: 26 },
+  { source: 1, target: 2, value: 18 }, { source: 1, target: 3, value: 11 },
   // outcome → time to confirm
-  { source: 3, target: 5, value: 20 }, { source: 3, target: 6, value: 26 }, { source: 3, target: 7, value: 6  }, { source: 3, target: 8, value: 11 },
+  { source: 2, target: 4, value: 20 }, { source: 2, target: 5, value: 26 }, { source: 2, target: 6, value: 6  }, { source: 2, target: 7, value: 11 },
 ]
 // outcome overrides — channels inherit categorical defaults
-const FUNNEL_NODE_COLORS: Record<number, string> = { 4: '#4cae3d', 5: '#f59e0b' }
+const FUNNEL_NODE_COLORS: Record<number, string> = { 0: '#1976d2', 1: '#7c3aed', 2: '#4cae3d', 3: '#f59e0b' }
 
 const FILL_TIME_DATA = [
   { bucket: '<1 hr',   slotsFilled: 494 },
@@ -106,9 +105,8 @@ interface ChannelRow {
   [key: string]: string | number
 }
 const CHANNEL_DATA: ChannelRow[] = [
-  { channel: 'Voice',   outreachSent: 986, responded: 562, responseRate: '57.0%', responseDelta: '+4%', slotsFilled: 312, fillRate: '31.6%', fillDelta: '+4%' },
-  { channel: 'Webchat', outreachSent: 748, responded: 390, responseRate: '52.1%', responseDelta: '+2%', slotsFilled: 218, fillRate: '29.1%', fillDelta: '+2%' },
-  { channel: 'Text',     outreachSent: 612, responded: 298, responseRate: '48.7%', responseDelta: '-2%', slotsFilled: 164, fillRate: '26.8%', fillDelta: '-2%' },
+  { channel: 'Voice', outreachSent: 986, responded: 562, responseRate: '57.0%', responseDelta: '+4%', slotsFilled: 312, fillRate: '31.6%', fillDelta: '+4%' },
+  { channel: 'Text',  outreachSent: 612, responded: 298, responseRate: '48.7%', responseDelta: '-2%', slotsFilled: 164, fillRate: '26.8%', fillDelta: '-2%' },
 ]
 const CHANNEL_COLUMNS: Column<ChannelRow>[] = [
   { key: 'channel',      label: 'Channel',       width: 140, sortable: true },
@@ -203,7 +201,7 @@ export function HCWaitlistFilledScreen({ isDental = false }: { isDental?: boolea
               links={FUNNEL_LINKS}
               height={400}
               nodeColors={FUNNEL_NODE_COLORS}
-              terminalNodes={[4]}
+              terminalNodes={[3]}
               columnHeaders={['Waitlist reminders sent by channel', 'Outcome', 'Time to confirm']}
             />
           </HCCard>

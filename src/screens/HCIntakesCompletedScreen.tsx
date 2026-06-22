@@ -25,7 +25,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'division',        label: 'Division',            options: opts('Division A', 'Division B', 'Division C', 'Division D', 'Division E') },
   { id: 'city',            label: 'City',                options: opts('Austin', 'San Francisco', 'Phoenix', 'Denver', 'Seattle', 'Dallas', 'Houston', 'Chicago') },
   { id: 'zip',             label: 'Zip',                 options: opts('78701', '78702', '94102', '85001', '80201', '98101', '75201', '60601') },
-  { id: 'outcome',         label: 'Outcome',             options: opts('Resolved', 'Human transfer', 'Pending') },
+  { id: 'outcome',         label: 'Outcome',             options: opts('Answered', 'Bookings', 'Rescheduling', 'Cancellation') },
   { id: 'content-manager', label: 'Content manager',     options: opts('Kelsy Hiltz', 'Marcus Webb', 'Priya Nair', 'Sofia Mendez', 'Derek Okafor') },
   { id: 'social-manager',  label: 'Social manager',      options: opts('Tasha Winters', 'Omar Farouk', 'Brianna Cole', 'Nathan Cruz', 'Linda Hargrove') },
   { id: 'area-code',       label: 'Area code',           options: opts('512', '415', '602', '303', '206', '214', '713', '312') },
@@ -37,7 +37,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
   { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
   { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
-  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Chat') },
 ]
 
 // Healthcare chart card — uses the tune icon for the left action button
@@ -54,25 +54,24 @@ const SUMMARY_STATS = [
   { id: 'avgTime',     value: '8.5 m', label: 'Avg completion time',  delta: '20%',   trend: 'down' as const },
 ]
 
-// 0=Webchat, 1=Voice, 2=Text             (channel)
-// 3=New patient, 4=Returning patient   (patient type)
-// 5=Completed, 6=In-progress, 7=Pending (outcome)
+// 0=Voice, 1=Text                        (channel)
+// 2=New patient, 3=Returning patient   (patient type)
+// 4=Completed, 5=In-progress, 6=Pending (outcome)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Webchat (33.0%)' }, { name: 'Voice (41.0%)' }, { name: 'Text (26.0%)' },
+  { name: 'Voice (55.0%)' }, { name: 'Text (45.0%)' },
   { name: 'New patient (57.4%)' }, { name: 'Returning patient (42.6%)' },
   { name: 'Completed (52.4%)' }, { name: 'In-progress (13.4%)' }, { name: 'Pending (34.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → patient type
-  { source: 0, target: 3, value: 19 }, { source: 0, target: 4, value: 14 },
-  { source: 1, target: 3, value: 24 }, { source: 1, target: 4, value: 17 },
-  { source: 2, target: 3, value: 14 }, { source: 2, target: 4, value: 10 },
+  { source: 0, target: 2, value: 33 }, { source: 0, target: 3, value: 24 },
+  { source: 1, target: 2, value: 24 }, { source: 1, target: 3, value: 17 },
   // patient type → outcome
-  { source: 3, target: 5, value: 30 }, { source: 3, target: 6, value: 8  }, { source: 3, target: 7, value: 18 },
-  { source: 4, target: 5, value: 21 }, { source: 4, target: 6, value: 6  }, { source: 4, target: 7, value: 15 },
+  { source: 2, target: 4, value: 30 }, { source: 2, target: 5, value: 8  }, { source: 2, target: 6, value: 18 },
+  { source: 3, target: 4, value: 21 }, { source: 3, target: 5, value: 6  }, { source: 3, target: 6, value: 15 },
 ]
 // outcome overrides only — channels and patient type inherit categorical defaults
-const FUNNEL_NODE_COLORS: Record<number, string> = { 7: '#f5a623', 8: '#de1b0c' }
+const FUNNEL_NODE_COLORS: Record<number, string> = { 5: '#f5a623', 6: '#de1b0c' }
 
 const INTAKE_OVERTIME_DATA = [
   { month: 'Dec 2023', completed: 280, attempted: 80, notAttempted: 74 },
@@ -94,9 +93,8 @@ const PATIENT_TYPE_DONUT = [
 ]
 
 const CHANNEL_DONUT = [
-  { name: 'Voice',   value: 41.0, color: '#3f51b5' },
-  { name: 'Webchat', value: 33.0, color: '#e91e63' },
-  { name: 'Text',    value: 26.0, color: '#f59e0b' },
+  { name: 'Voice', value: 55.0, color: '#3f51b5' },
+  { name: 'Text',  value: 45.0, color: '#f59e0b' },
 ]
 
 function deltaSpan(delta: string) {
@@ -203,8 +201,7 @@ export function HCIntakesCompletedScreen({ isDental = false }: { isDental?: bool
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Forms sent' },
                 { value: '2.4K', label: 'Voice'      },
-                { value: '1.8K', label: 'Webchat'    },
-                { value: '1.4K', label: 'Text'       },
+                { value: '2.0K', label: 'Text'       },
               ]} />
               <DonutChart
                 data={CHANNEL_DONUT}
