@@ -1647,7 +1647,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
   },
   {
     id: 'hc-fd-05',
-    name: 'Transfer to staff',
+    name: 'Talk to human',
     category: 'Healthcare Frontdesk',
     description: 'Patient asks to speak with a team member or shows frustration',
     lastEdited: 'Jun 3',
