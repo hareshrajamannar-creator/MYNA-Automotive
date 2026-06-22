@@ -60,9 +60,9 @@ const RICH_PROCEDURES: Procedure[] = [
   // ── p-001 ──────────────────────────────────────────────────────
   {
     id: 'p-001',
-    name: 'Greet and start the conversation',
+    name: 'Greet and open conversation',
     category: 'Inbound General',
-    description: 'Patient calls, chats, or texts for the first time with no prior context',
+    description: 'Identifies the caller, screens for urgency, and routes them to the right procedure.',
     lastEdited: 'May 18',
     whenToUse: 'Every inbound call, chat, or text session begins.',
     steps: [
@@ -107,7 +107,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-002',
     name: 'Handle general inquiry',
     category: 'Inbound General',
-    description: 'Patient asks about clinic hours, location, parking, services, or accepted insurance',
+    description: 'Answers informational questions like hours, location, financing, and services.',
     lastEdited: 'May 12',
     whenToUse: 'Caller has a question that does not match a specific procedure.',
     steps: [
@@ -196,7 +196,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-004',
     name: 'Handle unclear message',
     category: 'Inbound General',
-    description: "Patient's request is too vague to route to a procedure",
+    description: "Clarifies vague or out-of-scope messages to recover the caller's intent.",
     lastEdited: 'Apr 29',
     whenToUse: 'Speech-to-text confidence is low or caller intent is ambiguous.',
     steps: [
@@ -232,9 +232,9 @@ const RICH_PROCEDURES: Procedure[] = [
   // ── p-006 ──────────────────────────────────────────────────────
   {
     id: 'p-006',
-    name: 'Transfer to staff',
+    name: 'Talk to human',
     category: 'Inbound General',
-    description: 'Patient asks to speak with a team member or shows frustration',
+    description: 'Hands off to a live agent when the caller asks for a person or shows frustration.',
     lastEdited: 'Apr 22',
     whenToUse: 'Caller explicitly requests a human agent.',
     steps: [
@@ -370,7 +370,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-012',
     name: 'Reschedule appointment',
     category: 'Service',
-    description: 'Patient wants to move an existing appointment',
+    description: 'Moves an existing upcoming appointment to a new time.',
     lastEdited: 'Apr 2',
     whenToUse: 'Caller wants to change an existing appointment.',
     steps: [
@@ -414,7 +414,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-012b',
     name: 'Cancel appointment',
     category: 'Service',
-    description: 'Patient wants to cancel an existing appointment',
+    description: 'Cancels an existing appointment and releases the slot.',
     lastEdited: 'Mar 28',
     whenToUse: 'Caller wants to cancel an existing appointment.',
     steps: [
@@ -458,7 +458,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-008b',
     name: 'Book new appointment',
     category: 'Service',
-    description: 'Patient wants to book a new appointment',
+    description: 'Finds availability and schedules a new visit for the customer.',
     lastEdited: 'Mar 20',
     whenToUse: 'Caller has no existing appointment and wants to book a visit.',
     steps: [
@@ -502,7 +502,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-013b',
     name: 'Handle slot conflict',
     category: 'Service',
-    description: "Patient's chosen appointment slot is no longer available",
+    description: 'Re-offers availability when the chosen slot was already taken.',
     lastEdited: 'Mar 14',
     whenToUse: 'The slot the caller picked is no longer available.',
     steps: [
@@ -1173,7 +1173,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-025',
     name: 'Appointment confirmation',
     category: 'Outbound',
-    description: 'Patient has a scheduled appointment that needs to be confirmed',
+    description: 'Runs the reminder journey that confirms a scheduled appointment.',
     lastEdited: 'Nov 17',
     whenToUse: 'An appointment is scheduled and the confirmation journey begins.',
     steps: [
@@ -1399,7 +1399,7 @@ const EMERGENCY: Procedure = {
   id: 'p-005',
   name: 'Handle emergency or urgent concern',
   category: 'Inbound General',
-  description: 'Patient describes a time-sensitive concern that is not life-threatening',
+  description: 'Detects urgent symptoms or safety issues and routes the caller fast, for caller safety.',
   lastEdited: 'Oct 8',
   whenToUse:
     "Caller describes a worsening problem, a safety issue, a breakdown they feel can't wait, anxiety about a vehicle fault, or any time-sensitive issue (but not life-threatening).",
@@ -2084,9 +2084,9 @@ const DENTAL_TP_CONTEXT: ContextItem[] = [
 HC_PROCEDURES_UNSORTED.push(
   {
     id: 'dental-ob-01',
-    name: 'Recall — reactivate and book recare',
+    name: 'Reactivate and book recare',
     category: 'Healthcare Frontdesk',
-    description: 'Outbound call to reactivate a patient due or overdue for routine or preventive care (cleaning, exam, recare) and book the appointment.',
+    description: 'Patient is overdue for a routine or preventive care visit',
     lastEdited: 'Jun 16',
     whenToUse: 'Outbound call to a patient who is due or overdue for routine or preventive care (cleaning, periodic exam, recare, or unscheduled hygiene). Myna places the call to help them get back on the schedule.',
     steps: [
@@ -2149,9 +2149,9 @@ HC_PROCEDURES_UNSORTED.push(
   },
   {
     id: 'dental-ob-02',
-    name: 'Revenue — resolve outstanding balance',
+    name: 'Resolve outstanding balance',
     category: 'Healthcare Frontdesk',
-    description: 'Outbound call to help a patient or guarantor pay securely, set up a payment plan, or route a dispute — respectfully, never like collections.',
+    description: 'Patient has an outstanding balance that needs to be resolved',
     lastEdited: 'Jun 16',
     whenToUse: 'Outbound call to a patient or guarantor with an outstanding balance. Myna calls to help them pay securely, set up a payment plan, or route a dispute — respectfully, never like collections.',
     steps: [
@@ -2206,9 +2206,9 @@ HC_PROCEDURES_UNSORTED.push(
   },
   {
     id: 'dental-ob-03',
-    name: 'Treatment plan — schedule recommended treatment',
+    name: 'Schedule recommended treatment',
     category: 'Healthcare Frontdesk',
-    description: 'Outbound call to help a patient book provider-recommended treatment that hasn\'t been scheduled yet. No clinical advice — cost questions routed to financial coordinator.',
+    description: 'Patient has a recommended treatment that has not been scheduled',
     lastEdited: 'Jun 16',
     whenToUse: 'Outbound call to a patient with treatment their provider recommended but that hasn\'t been scheduled. Myna calls to help book it — no clinical advice, and cost questions are routed to the financial coordinator.',
     steps: [
