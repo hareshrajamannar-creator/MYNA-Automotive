@@ -289,7 +289,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?:
                 type="button"
                 className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
-                Book an appointment
+                Book appointment
               </button>
 
               <button
