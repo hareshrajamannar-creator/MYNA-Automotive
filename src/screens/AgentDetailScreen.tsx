@@ -168,7 +168,7 @@ const LIBRARY_TEMPLATES = [
   {
     id: 'routing',
     title: 'Routing and triage',
-    description: 'Handles inbound calls, identifies intent, routes urgent symptoms, and transfers to the right team with context',
+    description: 'Answers every inbound call, triages patient needs, and routes to the right person with full context',
   },
   {
     id: 'new-patient',
@@ -178,12 +178,12 @@ const LIBRARY_TEMPLATES = [
   {
     id: 'established',
     title: 'Established patient scheduling',
-    description: 'Validates existing records, checks coverage, and books or reschedules follow-up visits with preferred providers',
+    description: 'Finds returning patient records, confirms coverage, and books or reschedules visits',
   },
   {
     id: 'urgent',
     title: 'Urgent escalations',
-    description: 'Detects high-risk symptoms, follows escalation policy, and hands off immediately to clinical staff or emergency guidance',
+    description: 'Identifies urgent situations and escalates to clinical staff immediately with full context',
   },
 ]
 

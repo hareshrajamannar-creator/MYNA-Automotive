@@ -1873,7 +1873,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-10',
     name: 'Handle booking failure',
     category: 'Healthcare Frontdesk',
-    description: 'Recovers gracefully from tool failures (connectivity errors, timeouts, patient creation failures) by logging a high-priority staff task and confirming callback details.',
+    description: "Patient's booking could not be completed due to a system or connectivity error",
     lastEdited: 'May 21',
     whenToUse: 'A tool call (create_appointment, reschedule_appointment, cancel_appointment, lookup_patient) failed for a non-slot reason — connectivity error, API timeout, or patient creation failed.',
     steps: [

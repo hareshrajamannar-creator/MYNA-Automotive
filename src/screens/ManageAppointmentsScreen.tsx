@@ -112,9 +112,9 @@ const AUTO_DEFAULT_VISIBLE = ['name', 'staff', 'apptType', 'opCode', 'insuranceS
 const HC_COLUMN_DEFS: ColumnDef[] = [
   { key: 'name',            label: 'Patient',          sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
   { key: 'staff',           label: 'Provider',         sortable: true },
-  { key: 'apptType',        label: 'Appt type',        sortable: true },
+  { key: 'apptType',        label: 'Appointment type',        sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
-  { key: 'dateTime',        label: 'Appt time',        sortable: true },
+  { key: 'dateTime',        label: 'Appointment time',        sortable: true },
   { key: 'phone',           label: 'Phone',            sortable: true },
   { key: 'email',           label: 'Email',            sortable: true },
 ]
