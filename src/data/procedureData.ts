@@ -60,9 +60,9 @@ const RICH_PROCEDURES: Procedure[] = [
   // ── p-001 ──────────────────────────────────────────────────────
   {
     id: 'p-001',
-    name: 'Greet and open conversation',
+    name: 'Greet and start the conversation',
     category: 'Inbound General',
-    description: 'Identifies the caller, screens for urgency, and routes them to the right procedure.',
+    description: 'Patient calls, chats, or texts for the first time with no prior context',
     lastEdited: 'May 18',
     whenToUse: 'Every inbound call, chat, or text session begins.',
     steps: [
@@ -107,7 +107,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-002',
     name: 'Handle general inquiry',
     category: 'Inbound General',
-    description: 'Answers informational questions like hours, location, financing, and services.',
+    description: 'Patient asks about clinic hours, location, parking, services, or accepted insurance',
     lastEdited: 'May 12',
     whenToUse: 'Caller has a question that does not match a specific procedure.',
     steps: [
@@ -196,7 +196,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-004',
     name: 'Handle unclear message',
     category: 'Inbound General',
-    description: "Clarifies vague or out-of-scope messages to recover the caller's intent.",
+    description: "Patient's request is too vague to route to a procedure",
     lastEdited: 'Apr 29',
     whenToUse: 'Speech-to-text confidence is low or caller intent is ambiguous.',
     steps: [
@@ -232,9 +232,9 @@ const RICH_PROCEDURES: Procedure[] = [
   // ── p-006 ──────────────────────────────────────────────────────
   {
     id: 'p-006',
-    name: 'Talk to human',
+    name: 'Transfer to staff',
     category: 'Inbound General',
-    description: 'Hands off to a live agent when the caller asks for a person or shows frustration.',
+    description: 'Patient asks to speak with a team member or shows frustration',
     lastEdited: 'Apr 22',
     whenToUse: 'Caller explicitly requests a human agent.',
     steps: [
@@ -370,7 +370,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-012',
     name: 'Reschedule appointment',
     category: 'Service',
-    description: 'Moves an existing upcoming appointment to a new time.',
+    description: 'Patient wants to move an existing appointment',
     lastEdited: 'Apr 2',
     whenToUse: 'Caller wants to change an existing appointment.',
     steps: [
@@ -414,7 +414,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-012b',
     name: 'Cancel appointment',
     category: 'Service',
-    description: 'Cancels an existing appointment and releases the slot.',
+    description: 'Patient wants to cancel an existing appointment',
     lastEdited: 'Mar 28',
     whenToUse: 'Caller wants to cancel an existing appointment.',
     steps: [
@@ -458,7 +458,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-008b',
     name: 'Book new appointment',
     category: 'Service',
-    description: 'Finds availability and schedules a new visit for the customer.',
+    description: 'Patient wants to book a new appointment',
     lastEdited: 'Mar 20',
     whenToUse: 'Caller has no existing appointment and wants to book a visit.',
     steps: [
@@ -502,7 +502,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-013b',
     name: 'Handle slot conflict',
     category: 'Service',
-    description: 'Re-offers availability when the chosen slot was already taken.',
+    description: "Patient's chosen appointment slot is no longer available",
     lastEdited: 'Mar 14',
     whenToUse: 'The slot the caller picked is no longer available.',
     steps: [
@@ -1173,7 +1173,7 @@ const RICH_PROCEDURES: Procedure[] = [
     id: 'p-025',
     name: 'Appointment confirmation',
     category: 'Outbound',
-    description: 'Runs the reminder journey that confirms a scheduled appointment.',
+    description: 'Patient has a scheduled appointment that needs to be confirmed',
     lastEdited: 'Nov 17',
     whenToUse: 'An appointment is scheduled and the confirmation journey begins.',
     steps: [
@@ -1399,7 +1399,7 @@ const EMERGENCY: Procedure = {
   id: 'p-005',
   name: 'Handle emergency or urgent concern',
   category: 'Inbound General',
-  description: 'Detects urgent symptoms or safety issues and routes the caller fast, for caller safety.',
+  description: 'Patient describes a time-sensitive concern that is not life-threatening',
   lastEdited: 'Oct 8',
   whenToUse:
     "Caller describes a worsening problem, a safety issue, a breakdown they feel can't wait, anxiety about a vehicle fault, or any time-sensitive issue (but not life-threatening).",
@@ -1533,7 +1533,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-02',
     name: 'Handle general inquiry',
     category: 'Healthcare Frontdesk',
-    description: 'Answers informational questions about hours, location, insurance, services, and directions. Includes emergency triage when patient mentions an urgent concern.',
+    description: 'Patient asks about clinic hours, location, parking, services, or accepted insurance',
     lastEdited: 'Jun 9',
     whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted, services offered, directions, telehealth availability, wait times.',
     steps: [
@@ -1578,7 +1578,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-03',
     name: 'Handle emergency or urgent concern',
     category: 'Healthcare Frontdesk',
-    description: 'Triages urgent (non-life-threatening) patient concerns and routes to same-day care or nurse line.',
+    description: 'Patient describes a time-sensitive concern that is not life-threatening',
     lastEdited: 'Jun 7',
     whenToUse: "Patient describes worsening symptoms, medication reaction, post-visit concern they feel can't wait, anxiety about results, or any time-sensitive medical issue (but not life-threatening).",
     steps: [
@@ -1616,7 +1616,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-04',
     name: 'Handle unclear message',
     category: 'Healthcare Frontdesk',
-    description: 'Recovers unclear or ambiguous patient messages through two guided clarification attempts before escalating.',
+    description: "Patient's request is too vague to route to a procedure",
     lastEdited: 'Jun 5',
     whenToUse: "Patient's message is too vague, ambiguous, or out-of-scope to match any other procedure's trigger with confidence.",
     steps: [
@@ -1647,9 +1647,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
   },
   {
     id: 'hc-fd-05',
-    name: 'Talk to human',
+    name: 'Transfer to staff',
     category: 'Healthcare Frontdesk',
-    description: 'Immediately connects the patient to a live team member when requested, or captures a callback request if outside business hours.',
+    description: 'Patient asks to speak with a team member or shows frustration',
     lastEdited: 'Jun 3',
     whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
     steps: [
@@ -1675,7 +1675,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-06',
     name: 'Book new appointment',
     category: 'Healthcare Frontdesk',
-    description: 'Identifies the patient, captures details for new patients, verifies insurance, offers available slots, and confirms the appointment.',
+    description: 'Patient wants to book a new appointment',
     lastEdited: 'Jun 2',
     whenToUse: 'Patient wants to schedule a new appointment and mentions it explicitly ("I want to book an appointment").',
     steps: [
@@ -1737,7 +1737,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-07',
     name: 'Reschedule appointment',
     category: 'Healthcare Frontdesk',
-    description: 'Looks up the patient\'s existing appointments, finds a new slot, and moves the appointment without re-triggering insurance verification.',
+    description: 'Patient wants to move an existing appointment',
     lastEdited: 'May 30',
     whenToUse: 'Patient has an existing appointment and wants to move it to a different date or time — "change my appointment," "can we move it," "something came up."',
     steps: [
@@ -1786,7 +1786,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-08',
     name: 'Cancel appointment',
     category: 'Healthcare Frontdesk',
-    description: 'Locates the patient\'s appointment, confirms the cancellation intent, and releases the slot — with an optional offer to rebook.',
+    description: 'Patient wants to cancel an existing appointment',
     lastEdited: 'May 27',
     whenToUse: 'Patient wants to cancel an existing appointment without immediately rebooking — "I need to cancel," "I can\'t make it," "please remove my appointment."',
     steps: [
@@ -1834,7 +1834,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-09',
     name: 'Handle slot conflict',
     category: 'Healthcare Frontdesk',
-    description: 'Re-offers availability when the chosen slot was taken between selection and write, with up to 2 automatic retries.',
+    description: "Patient's chosen appointment slot is no longer available",
     lastEdited: 'May 24',
     whenToUse: 'The create_appointment or reschedule_appointment tool returned a slot_taken error — the selected slot was booked by someone else between selection and write.',
     steps: [
@@ -1912,7 +1912,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-11',
     name: 'Verify insurance',
     category: 'Healthcare Frontdesk',
-    description: 'Runs a real-time eligibility check so the patient knows their copay and coverage status before picking a slot. Handles PA requirements, COB, self-pay, and pending verification paths.',
+    description: "Patient's insurance needs checking before the appointment",
     lastEdited: 'May 18',
     whenToUse: 'Runs eligibility check against the patient\'s insurance on file or newly collected, so the patient knows their copay and coverage status before they pick a time.',
     steps: [
@@ -1971,7 +1971,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-12',
     name: 'Appointment confirmation',
     category: 'Healthcare Frontdesk',
-    description: 'Outbound flow that confirms a scheduled appointment via text then voice call, branching on patient response.',
+    description: 'Patient has a scheduled appointment that needs to be confirmed',
     lastEdited: 'May 15',
     whenToUse: 'Triggered outbound when an appointment is scheduled and the confirmation journey begins.',
     steps: [
@@ -2011,7 +2011,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     id: 'hc-fd-13',
     name: 'Waitlist slot confirmation',
     category: 'Healthcare Frontdesk',
-    description: 'Contacts waitlisted patients when a slot opens, confirms via text then outbound call, and loops back to the waitlist if unconfirmed.',
+    description: 'Patient is on the waitlist and a slot has opened',
     lastEdited: 'May 11',
     whenToUse: 'A slot opens on the waitlist and the system needs to offer it to the next eligible patient.',
     steps: [
