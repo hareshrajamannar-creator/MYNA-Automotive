@@ -211,7 +211,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               </EmptyHintField>
             </Field>
 
-            <Field label="When should this procedure be used?">
+            <Field label="When to use this procedure?">
               <EmptyHintField
                 hint={WHEN_PLACEHOLDER}
                 isEmpty={!whenToUse.trim()}

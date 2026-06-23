@@ -643,7 +643,7 @@ export default function ProcedureDetailBody({
       <div className={styles.section}>
         <div className={etStyles.sectionLabelWrapper}>
           <span className={etStyles.sectionLabelText}>
-            When should this procedure be used?<span className={styles.required}> *</span>
+            When to use this procedure?<span className={styles.required}> *</span>
           </span>
         </div>
         {viewOnly ? (
@@ -716,7 +716,12 @@ export default function ProcedureDetailBody({
       <div className={styles.section}>
         <div className={etStyles.sectionLabelWrapper}>
           <span className={etStyles.sectionLabelText}>Steps</span>
-          <span className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}>info</span>
+          <span
+            className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}
+            title="Write one step at a time. Start each step with a verb. Use / to add tools, context, or other agents."
+          >
+            info
+          </span>
         </div>
         {viewOnly ? (
           <StepsRenderer text={stepsText} />
