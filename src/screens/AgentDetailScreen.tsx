@@ -193,19 +193,19 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
     {
       id: 'recall-hygiene-outreach',
       title: 'Hygiene recall outreach',
-      description: 'Pre-built outbound flow that identifies overdue patients, reaches out across voice and SMS, and books them into hygiene appointments — with HIPAA-safe voicemail fallback.',
+      description: 'Identifies overdue patients, reaches out across voice, text, and email, and books them into hygiene appointments with HIPAA-safe voicemail handling.',
     },
     {
       id: 'recall-reactivation-campaign',
       title: 'Lapsed patient reactivation',
-      description: 'Multi-touch sequence combining email, SMS nudge, and a live voice call to re-engage patients who have gone 12+ months without a visit and get them back on the schedule.',
+      description: 'Multi-touch sequence combining email, text, and voice to re-engage patients who have gone 12+ months without a visit.',
     },
   ],
   'Revenue agent': [
     {
       id: 'revenue-balance-collection',
       title: 'Balance collection call flow',
-      description: 'Structured outbound voice flow that verifies identity, presents the outstanding balance, offers a secure pay-by-link or payment plan, and routes disputes to the billing team.',
+      description: 'Verifies patient identity, presents the outstanding balance, offers a secure payment link or payment plan, and routes disputes to the billing team.',
     },
     {
       id: 'revenue-payment-plan',
@@ -461,7 +461,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     ] : isRecall ? [
       { key: 'patientsContacted' as keyof AgentInstance, label: 'Patients contacted', width: 180, sortable: true },
       { key: 'recallConversionRate' as keyof AgentInstance, label: 'Recall conversion rate', width: 200, sortable: true },
-      { key: 'avgTouchesToBook' as keyof AgentInstance, label: 'Avg touches to book', width: 180, sortable: true },
+      { key: 'avgTouchesToBook' as keyof AgentInstance, label: 'Average touches to book', width: 180, sortable: true },
       { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
       { key: 'revenueRecovered' as keyof AgentInstance, label: 'Revenue recovered', width: 170, sortable: true },
     ] : isRevenue ? [
@@ -475,7 +475,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'acceptanceRate' as keyof AgentInstance, label: 'Acceptance rate', width: 160, sortable: true },
       { key: 'revenueUnlocked' as keyof AgentInstance, label: 'Revenue unlocked', width: 160, sortable: true },
       { key: 'callToBookingConversion' as keyof AgentInstance, label: 'Call-to-booking conversion', width: 210, sortable: true },
-      { key: 'avgTouchesToAccept' as keyof AgentInstance, label: 'Avg touches to accept', width: 185, sortable: true },
+      { key: 'avgTouchesToAccept' as keyof AgentInstance, label: 'Average touches to accept', width: 185, sortable: true },
       { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 160, sortable: true },
     ] : [
       { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 200, sortable: true },

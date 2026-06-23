@@ -788,7 +788,7 @@ const REVENUE_NODES = [
   {
     id: 'rev-1',
     flowType: 'trigger' as const,
-    data: { title: 'Contact added to segment — Overdue 30 days', subtype: 'Trigger', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' },
+    data: { title: 'Contact added to segment: Overdue 30 days', subtype: 'Trigger', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' },
   },
   {
     id: 'rev-2',
@@ -815,16 +815,16 @@ const REVENUE_NODES = [
 const REVENUE_NODE_DETAILS: Record<string, any> = {
   '__start__': {
     agentName: 'Revenue agent',
-    goals: 'Collect outstanding patient balances by delivering timely, personalized payment reminders via email, SMS, and voice, reducing A/R days and minimizing staff effort.',
+    goals: 'Collect outstanding patient balances by delivering timely, personalized payment reminders via email, text, and voice, and reducing A/R days.',
     outcomes:
-      '1. Patient pays via click-to-pay link in email or SMS\n' +
+      '1. Patient pays via click-to-pay link in email or text\n' +
       '2. Payment collected or payment plan set up over the phone\n' +
       '3. Dispute escalated to billing team for resolution\n' +
       '4. Patient does not respond. Sequence completes after retry',
     locations: ['Atlanta, GA', 'Dallas, TX', 'Chicago, IL', 'Miami, FL'],
   },
   'rev-1': {
-    triggerName: 'Contact added to segment — Overdue 30 days',
+    triggerName: 'Contact added to segment: Overdue 30 days',
     description: 'Starts when a patient is added to the Overdue 30 days segment, indicating an outstanding balance older than 30 days.',
     conditions: [
       { id: 1, fieldValue: 'segment',     operatorValue: 'equals',       valueValue: 'overdue_30_days' },
@@ -857,7 +857,7 @@ const REVENUE_NODE_DETAILS: Record<string, any> = {
     selectedTools: ['send-confirmation', 'dms-integration'],
   },
   'rev-3': {
-    taskName: 'Send payment due SMS',
+    taskName: 'Send payment due text',
     description: 'Sends a short text with a secure payment link',
     selectedTools: ['send-confirmation'],
   },
@@ -993,11 +993,11 @@ const REVENUE_NODE_DETAILS: Record<string, any> = {
   },
   // ── Rejected/Missed/Voicemail path sub-nodes ──
   'rev-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
-  'rev-r2': { taskName: 'Send payment due SMS', description: 'Sends a follow-up payment reminder text', selectedTools: ['send-confirmation'] },
+  'rev-r2': { taskName: 'Send payment due text', description: 'Sends a follow-up payment reminder text', selectedTools: ['send-confirmation'] },
   'rev-m1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
-  'rev-m2': { taskName: 'Send payment due SMS', description: 'Sends a follow-up payment reminder text', selectedTools: ['send-confirmation'] },
+  'rev-m2': { taskName: 'Send payment due text', description: 'Sends a follow-up payment reminder text', selectedTools: ['send-confirmation'] },
   'rev-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
-  'rev-v2': { taskName: 'Send payment due SMS', description: 'Sends a follow-up payment reminder text', selectedTools: ['send-confirmation'] },
+  'rev-v2': { taskName: 'Send payment due text', description: 'Sends a follow-up payment reminder text', selectedTools: ['send-confirmation'] },
   // Front desk agent subagent node
   'rev-6-fd': { selectedAgent: 'frontdesk-north', name: 'Front desk agent - North region', description: 'Transfers to the front desk agent for assisted patient handling on payment calls', intent: 'Revenue' },
   // ── Email task nodeDetails ──
