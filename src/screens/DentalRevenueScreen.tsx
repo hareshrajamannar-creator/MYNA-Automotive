@@ -27,7 +27,7 @@ const DENTAL_FILTER_FIELDS: FilterField[] = [
   { id: 'location', label: 'Location', options: ['Atlanta, GA','Chicago, IL','Dallas, TX','Denver, CO','Los Angeles, CA','Miami, FL','Phoenix, AZ','Seattle, WA','Austin, TX'].map(v=>({value:v,label:v})) },
   { id: 'provider', label: 'Provider', options: ['Dr. Adams','Dr. Chen','Dr. Patel','Dr. Rivera','Dr. Thompson'].map(v=>({value:v,label:v})) },
   { id: 'agent',    label: 'Agent',    options: ['Front desk agent','Waitlist agent','Pre-visit agent','Reminder agent','Recall agent','Revenue agent','Treatment plan agent'].map(v=>({value:v,label:v})) },
-  { id: 'channel',  label: 'Channel',  options: ['SMS','Email','Voice'].map(v=>({value:v,label:v})) },
+  { id: 'channel',  label: 'Channel',  options: [{ value: 'SMS', label: 'Text' }, { value: 'Email', label: 'Email' }, { value: 'Voice', label: 'Voice' }] },
   { id: 'outcome',  label: 'Outcome',  options: ['Confirmed','Pending','No response','Declined','Paid','Escalated'].map(v=>({value:v,label:v})) },
 ]
 
@@ -39,7 +39,7 @@ const SUMMARY_STATS = [
   { id: 'disputeEscalationRate', value: '8%',    label: 'Dispute/escalation rate',delta: '0.6%', trend: 'down' as const },
 ]
 
-// Nodes: 0=Revenue agent, 1=SMS, 2=Email, 3=Voice,
+// Nodes: 0=Revenue agent, 1=Text, 2=Email, 3=Voice,
 // 4=<1hr, 5=1-4hrs, 6=4-24hrs, 7=>24hrs,
 // 8=Paid, 9=Partial, 10=No response, 11=Escalated
 const FUNNEL_NODES: SankeyNode[] = [
@@ -51,7 +51,7 @@ const FUNNEL_NODES: SankeyNode[] = [
       { label: 'Revenue agent – West region',  pct: '23%', value: 419 },
     ],
   },
-  { name: 'SMS (48%)' }, { name: 'Email (34%)' }, { name: 'Voice (18%)' },
+  { name: 'Text (48%)' }, { name: 'Email (34%)' }, { name: 'Voice (18%)' },
   { name: '<1hr (35%)' }, { name: '1–4hrs (30%)' }, { name: '4–24hrs (22%)' }, { name: '>24hrs (13%)' },
   { name: 'Paid (74%)' }, { name: 'Partial (12%)' }, { name: 'No response (10%)' }, { name: 'Escalated (4%)' },
 ]
@@ -75,7 +75,7 @@ const FUNNEL_NODE_COLORS: Record<number, string> = {
 const CHANNEL_DONUT = [
   { name: 'Voice', value: 45, color: '#3f51b5' },
   { name: 'Email', value: 34, color: '#e91e63' },
-  { name: 'SMS',   value: 21, color: '#f59e0b' },
+  { name: 'Text',   value: 21, color: '#f59e0b' },
 ]
 
 const MONTHLY_DATA = [

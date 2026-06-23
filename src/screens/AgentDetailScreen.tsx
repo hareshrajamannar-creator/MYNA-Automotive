@@ -217,7 +217,7 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
     {
       id: 'tp-followup-call',
       title: 'Treatment plan follow-up',
-      description: 'Outbound call flow for patients with unscheduled recommended treatment — introduces the care need at a high level, handles objections, and books the next appointment without clinical advising.',
+      description: 'Reaches out to patients with unscheduled recommended treatment, introduces the care need at a high level, handles objections, and books the next appointment without clinical advising.',
     },
     {
       id: 'tp-case-acceptance',

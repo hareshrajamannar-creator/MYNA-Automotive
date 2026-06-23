@@ -301,7 +301,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
             ...item.data,
             stepNumber: topLevelStep,
             title: 'Based on conditions',
-            subtitle: 'Build condition-specific flows',
+            subtitle: 'Builds condition-specific flows',
           }
         : item.data?.subtype === 'Schedule-based'
           ? {

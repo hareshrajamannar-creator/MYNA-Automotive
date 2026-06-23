@@ -1028,7 +1028,7 @@ const TREATMENT_PLAN_NODES = [
   {
     id: 'tpa-3',
     flowType: 'task' as const,
-    data: { title: 'Send treatment plan unscheduled SMS', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a short text with a treatment plan scheduling link' },
+    data: { title: 'Send treatment plan unscheduled text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a short text with a treatment plan scheduling link' },
   },
   {
     id: 'tpa-4',
@@ -1045,9 +1045,9 @@ const TREATMENT_PLAN_NODES = [
 const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
   '__start__': {
     agentName: 'Treatment plan agent',
-    goals: 'Convert unscheduled treatment plans into booked appointments by following up via email, SMS, and voice, connecting engaged patients with the treatment plan coordinator.',
+    goals: 'Convert unscheduled treatment plans into booked appointments by following up via email, text, and voice, connecting engaged patients with the treatment plan coordinator.',
     outcomes:
-      '1. Patient schedules via self-schedule link in email or SMS\n' +
+      '1. Patient schedules via self-schedule link in email or text\n' +
       '2. Appointment booked over the phone during the voice call\n' +
       '3. Patient connected to treatment plan coordinator for complex questions\n' +
       '4. Patient does not respond. Sequence completes after retry',
@@ -1085,7 +1085,7 @@ const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
     selectedTools: ['send-confirmation', 'dms-integration'],
   },
   'tpa-3': {
-    taskName: 'Send treatment plan unscheduled SMS',
+    taskName: 'Send treatment plan unscheduled text',
     description: 'Sends a short text with a treatment plan scheduling link',
     selectedTools: ['send-confirmation'],
   },
@@ -1188,7 +1188,7 @@ const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
     nodes: [
       { id: 'tpa-r1', flowType: 'delay', data: { title: 'Delay for 1 day',                      subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Waits before retrying' } },
       { id: 'tpa-r-email', flowType: 'task', data: { title: 'Send treatment plan email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a follow-up treatment plan email with a scheduling link' } },
-      { id: 'tpa-r2', flowType: 'task',  data: { title: 'Send treatment plan unscheduled SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Sends a follow-up treatment plan text with a scheduling link' } },
+      { id: 'tpa-r2', flowType: 'task',  data: { title: 'Send treatment plan unscheduled text',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Sends a follow-up treatment plan text with a scheduling link' } },
     ],
   },
   'tpa-6-vc-missed': {
@@ -1202,7 +1202,7 @@ const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
     nodes: [
       { id: 'tpa-m1', flowType: 'delay', data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Waits before retrying' } },
       { id: 'tpa-m-email', flowType: 'task', data: { title: 'Send treatment plan email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a follow-up treatment plan email with a scheduling link' } },
-      { id: 'tpa-m2', flowType: 'task', data: { title: 'Send treatment plan unscheduled SMS', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a follow-up treatment plan text with a scheduling link' } },
+      { id: 'tpa-m2', flowType: 'task', data: { title: 'Send treatment plan unscheduled text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a follow-up treatment plan text with a scheduling link' } },
     ],
   },
   'tpa-6-vc-voicemail': {
@@ -1216,16 +1216,16 @@ const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
     nodes: [
       { id: 'tpa-v1', flowType: 'delay', data: { title: 'Delay for 1 day',                      subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Waits before retrying' } },
       { id: 'tpa-v-email', flowType: 'task', data: { title: 'Send treatment plan email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Sends a follow-up treatment plan email with a scheduling link' } },
-      { id: 'tpa-v2', flowType: 'task',  data: { title: 'Send treatment plan unscheduled SMS',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Sends a follow-up treatment plan text with a scheduling link' } },
+      { id: 'tpa-v2', flowType: 'task',  data: { title: 'Send treatment plan unscheduled text',   subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Sends a follow-up treatment plan text with a scheduling link' } },
     ],
   },
   // ── Rejected/Missed/Voicemail path sub-nodes ──
   'tpa-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
-  'tpa-r2': { taskName: 'Send treatment plan unscheduled SMS', description: 'Sends a follow-up treatment plan text with a scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-r2': { taskName: 'Send treatment plan unscheduled text', description: 'Sends a follow-up treatment plan text with a scheduling link', selectedTools: ['send-confirmation'] },
   'tpa-m1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
-  'tpa-m2': { taskName: 'Send treatment plan unscheduled SMS', description: 'Sends a follow-up treatment plan text with a scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-m2': { taskName: 'Send treatment plan unscheduled text', description: 'Sends a follow-up treatment plan text with a scheduling link', selectedTools: ['send-confirmation'] },
   'tpa-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
-  'tpa-v2': { taskName: 'Send treatment plan unscheduled SMS', description: 'Sends a follow-up treatment plan text with a scheduling link', selectedTools: ['send-confirmation'] },
+  'tpa-v2': { taskName: 'Send treatment plan unscheduled text', description: 'Sends a follow-up treatment plan text with a scheduling link', selectedTools: ['send-confirmation'] },
   // Front desk agent subagent node
   'tpa-6-fd': { selectedAgent: 'frontdesk-north', name: 'Front desk agent - North region', description: 'Transfers to the front desk agent for assisted patient handling on treatment plan calls', intent: 'Treatment plan' },
   // ── Email task nodeDetails ──

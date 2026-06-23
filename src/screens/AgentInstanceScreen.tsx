@@ -268,7 +268,7 @@ const TREATMENT_PLAN_COLUMNS: Column<LocationRow>[] = [
   { key: 'acceptanceRate',         label: 'Acceptance rate',           width: 150, sortable: true },
   { key: 'revenueUnlocked',        label: 'Revenue unlocked',          width: 155, sortable: true },
   { key: 'callToBookingConversion',label: 'Call-to-booking conversion', width: 200, sortable: true },
-  { key: 'avgTouchesToAccept',     label: 'Avg touches to accept',     width: 180, sortable: true },
+  { key: 'avgTouchesToAccept',     label: 'Average touches to accept',     width: 180, sortable: true },
   { key: 'staffHoursSaved',        label: 'Staff hours saved',         width: 155, sortable: true },
 ]
 
