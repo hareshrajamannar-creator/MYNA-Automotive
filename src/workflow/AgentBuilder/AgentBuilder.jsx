@@ -636,6 +636,7 @@ export default function AgentBuilder({
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
+  const [lhsPreviewProcedureId, setLhsPreviewProcedureId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewActive, setPreviewActive] = useState(false);
   // Tool viewer state
@@ -1399,6 +1400,7 @@ export default function AgentBuilder({
     setDrawerOpen(false);
     setSelectedNodeId(null);
     setActiveProcedureId(null);
+    setLhsPreviewProcedureId(null);
   }, []);
 
   const currentDetails = selectedNodeId ? (nodeDetails[selectedNodeId] || {}) : {};
@@ -1487,6 +1489,26 @@ export default function AgentBuilder({
   }, [selectedNodeId, nodeDetails, onAddProcedure, product]);
 
   const renderRHSPanel = () => {
+    if (lhsPreviewProcedureId) {
+      const mergedProc = getProcedureDetailContent(lhsPreviewProcedureId, {}, product);
+      return (
+        <RHS
+          key={`lhs-preview-${lhsPreviewProcedureId}`}
+          variant="procedureDetail"
+          title={mergedProc.name}
+          viewOnly={viewOnly}
+          product={product}
+          onBack={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+          bodyProps={{
+            initialValues: mergedProc,
+            onFieldChange: () => {},
+          }}
+          onClose={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+          onSave={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+        />
+      );
+    }
+
     if (!selectedNodeId) return null;
 
     if (selectedNodeId === START_NODE_ID) {
@@ -1910,6 +1932,12 @@ export default function AgentBuilder({
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}
+              onProcedureClick={viewOnly ? undefined : (procedureId) => {
+                setLhsPreviewProcedureId(procedureId);
+                setSelectedNodeId(null);
+                setActiveProcedureId(null);
+                setDrawerOpen(true);
+              }}
             />
           </div>
 

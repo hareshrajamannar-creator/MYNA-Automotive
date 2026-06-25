@@ -3,7 +3,6 @@ import { Chip, DataTable, MetricTiles, type ChipVariant, type Column } from '../
 import {
   HEALTHCARE_LOGS_METRICS,
   HEALTHCARE_LOGS_ROWS,
-  PREVISIT_LOGS_METRICS,
   PREVISIT_LOGS_ROWS,
   type HealthcareLogRow,
   type PrevisitLogRow,
@@ -49,7 +48,6 @@ const PREVISIT_COLUMNS: Column<PrevisitLogRow>[] = [
   { key: 'contact',  label: 'Contact',  width: 200, sortable: true },
   { key: 'channel',  label: 'Channel',  width: 120, sortable: true },
   { key: 'duration', label: 'Duration', width: 110, sortable: true },
-  { key: 'topic',    label: 'Topic',    width: 260, sortable: true },
 ]
 
 interface AgentLogsTabProps {
@@ -65,18 +63,13 @@ export function AgentLogsTab({ agentName }: AgentLogsTabProps) {
 
   if (agentName === 'Pre-visit agent') {
     return (
-      <>
-        <div className="px-2xl pt-lg">
-          <MetricTiles metrics={PREVISIT_LOGS_METRICS} />
-        </div>
-        <div className="px-lg py-lg">
-          <DataTable
-            columns={PREVISIT_COLUMNS}
-            data={PREVISIT_LOGS_ROWS}
-            rowAction={{ icon: 'visibility', label: 'View run', onClick: () => {} }}
-          />
-        </div>
-      </>
+      <div className="px-lg py-lg">
+        <DataTable
+          columns={PREVISIT_COLUMNS}
+          data={PREVISIT_LOGS_ROWS}
+          rowAction={{ icon: 'visibility', label: 'View run', onClick: () => {} }}
+        />
+      </div>
     )
   }
 

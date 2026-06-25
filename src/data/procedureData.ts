@@ -6,6 +6,7 @@ export type ProcedureCategory =
   | 'After-Hours'
   | 'Outbound'
   | 'Healthcare Frontdesk'
+  | 'Healthcare Pre-visit'
 
 // ── Rich step model ─────────────────────────────────────────────
 // A step has a title and a list of bullets. Each bullet is a sequence
@@ -2086,7 +2087,7 @@ HC_PROCEDURES_UNSORTED.push(
   {
     id: 'hc-pv-01',
     name: 'Form not filled',
-    category: 'Healthcare Frontdesk',
+    category: 'Healthcare Pre-visit',
     description: 'Patient has not completed their pre-visit intake form before the appointment date.',
     lastEdited: 'Jun 24',
     whenToUse: 'Patient has not completed their pre-visit intake form before the appointment date.',

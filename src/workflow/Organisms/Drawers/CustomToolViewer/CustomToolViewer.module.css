@@ -504,3 +504,117 @@
 .variableBtnX {
   font-size: 13px;
 }
+
+/* ─── A/B section card ─── */
+
+.abCard {
+  background: transparent;
+  border-radius: 0;
+  padding: 0 14px 0 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.abCheckboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.abCheckboxLabel {
+  font-size: 14px;
+  font-weight: 400;
+  color: #212121;
+  font-family: 'Roboto', sans-serif;
+  line-height: 20px;
+}
+
+.abCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* ─── Distribution field ─── */
+
+.distributionRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.variantRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.variantInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.variantName {
+  font-size: 14px;
+  color: #212121;
+  font-family: 'Roboto', sans-serif;
+  line-height: 20px;
+}
+
+.variantSublabel {
+  font-size: 12px;
+  color: #8f8f8f;
+  font-family: 'Roboto', sans-serif;
+  line-height: 16px;
+}
+
+.variantInputRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.variantInput {
+  width: 56px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #c5cad3;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+  color: #212121;
+  background: #fff;
+  box-sizing: border-box;
+  outline: none;
+  text-align: center;
+}
+
+.variantInput:focus {
+  border-color: #1976d2;
+}
+
+/* ─── Date select field ─── */
+
+.dateSelectRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.dateSelectPrefix {
+  font-size: 14px;
+  color: #212121;
+  font-family: 'Roboto', sans-serif;
+  line-height: 20px;
+  flex-shrink: 0;
+}

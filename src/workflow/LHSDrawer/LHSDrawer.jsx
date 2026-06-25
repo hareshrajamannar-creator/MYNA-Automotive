@@ -510,6 +510,7 @@ export default function LHSDrawer({
   viewOnly = false,
   product = 'automotive',
   procedures = null,
+  onProcedureClick = null,
 }) {
   const isHC = product === 'healthcare' || product === 'dental';
 
@@ -581,6 +582,10 @@ export default function LHSDrawer({
   };
 
   const handleCardClick = (card, section, subKey) => {
+    if (card.action === 'drag' && card.nodeType === 'procedures' && card.procedureId && onProcedureClick) {
+      onProcedureClick(card.procedureId);
+      return;
+    }
     if (card.action !== 'chevron') return;
     const key = subKey || card.label;
     if (expandedCard === key && expandedSection === section) {

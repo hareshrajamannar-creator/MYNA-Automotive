@@ -81,6 +81,35 @@
   align-items: center;
   gap: 4px;
   padding: 2px 0;
+  border-radius: 6px;
+}
+
+/* Action buttons (edit + swap) — always visible */
+.toolRowActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.toolActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  color: #757575;
+  padding: 0;
+  transition: background 0.12s, color 0.12s;
+}
+
+.toolActionBtn:hover {
+  background: #f0f0f0;
+  color: #212121;
 }
 
 .toolRowMain {
