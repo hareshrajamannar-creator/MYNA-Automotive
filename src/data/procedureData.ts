@@ -1517,6 +1517,7 @@ export const HC_PROCEDURE_ORDER = [
   'Waitlist slot confirmation',
   'Handle emergency or urgent concern',
   'Handle unclear message',
+  'Form not filled',
 ] as const
 
 function sortProceduresByOrder(procedures: Procedure[], order: readonly string[]): Procedure[] {
@@ -2082,6 +2083,49 @@ const DENTAL_TP_CONTEXT: ContextItem[] = [
 ]
 
 HC_PROCEDURES_UNSORTED.push(
+  {
+    id: 'hc-pv-01',
+    name: 'Form not filled',
+    category: 'Healthcare Frontdesk',
+    description: 'Patient has not completed their pre-visit intake form before the appointment date.',
+    lastEdited: 'Jun 24',
+    whenToUse: 'Patient has not completed their pre-visit intake form before the appointment date.',
+    steps: [
+      {
+        title: 'Greet and confirm appointment',
+        bullets: [
+          { tokens: ['Greet the patient and confirm their upcoming appointment details.'] },
+        ],
+      },
+      {
+        title: 'Notify about incomplete form',
+        bullets: [
+          { tokens: ['Inform them their intake form has not been completed yet.'] },
+        ],
+      },
+      {
+        title: 'Provide form link',
+        bullets: [
+          { tokens: ['Provide the intake form link and explain the importance of completing it before the visit.'] },
+          { tokens: ['Offer to resend the form link via email or SMS.'] },
+        ],
+      },
+      {
+        title: 'Handle inability to complete digitally',
+        bullets: [
+          { tokens: ['If the patient is unable to complete the form digitally, offer to assist or escalate to front desk staff.'] },
+        ],
+      },
+      {
+        title: 'Confirm next steps',
+        bullets: [
+          { tokens: ['Confirm next steps and close the interaction.'] },
+        ],
+      },
+    ],
+    tools: ['send-communication', 'initiate-voice-call-hc'],
+    context: [],
+  },
   {
     id: 'dental-ob-01',
     name: 'Recall — reactivate and book recare',
