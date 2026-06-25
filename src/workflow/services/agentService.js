@@ -225,6 +225,24 @@ const _SEED_TOOLS = [
     inputs: [{ name: 'appointmentId', type: 'string' }],
     outputs: [{ name: 'sent', type: 'boolean' }],
   },
+  {
+    id: 'send-communication',
+    name: 'Send communication',
+    icon: 'send',
+    description: 'Sends a templated message to the patient via email, SMS, or both based on configuration.',
+    category: 'Healthcare',
+    inputs: [{ name: 'patientId', type: 'string' }, { name: 'channel', type: 'string' }],
+    outputs: [{ name: 'sent', type: 'boolean' }],
+  },
+  {
+    id: 'initiate-voice-call-hc',
+    name: 'Initiate voice call',
+    icon: 'call',
+    description: 'Places an outbound voice call to the patient to complete pre-visit outreach.',
+    category: 'Healthcare',
+    inputs: [{ name: 'patientId', type: 'string' }, { name: 'phoneNumber', type: 'string' }],
+    outputs: [{ name: 'callStatus', type: 'string' }],
+  },
 ];
 
 const _customTools = new Map(_SEED_TOOLS.map(t => [t.id, t]));
