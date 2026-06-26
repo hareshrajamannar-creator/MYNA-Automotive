@@ -75,6 +75,12 @@ export const HEALTHCARE_PROCEDURE_CATALOG: HealthcareProcedureCatalogItem[] = [
     description: 'Re-offers availability when the chosen slot was already taken.',
     lastEdited: '1 week ago',
   },
+  {
+    id: 'slot-confirmation',
+    title: 'Slot confirmation',
+    description: 'When agent is calling outbound for slot confirmation.',
+    lastEdited: '1 week ago',
+  },
 ]
 
 /** Default selections for the new-agent setup wizard (step 2). */

@@ -7,6 +7,7 @@ export type ProcedureCategory =
   | 'Outbound'
   | 'Healthcare Frontdesk'
   | 'Healthcare Pre-visit'
+  | 'Healthcare Waitlist'
 
 // ── Rich step model ─────────────────────────────────────────────
 // A step has a title and a list of bullets. Each bullet is a sequence
@@ -2309,6 +2310,45 @@ HC_PROCEDURES_UNSORTED.push(
     tools: ['lookup_patient', 'get_treatment_plan', 'get_services_and_specialists', 'get_available_slots', 'create_appointment', 'send_text_confirmation', 'update_state', 'opt_out_processor'],
     context: DENTAL_TP_CONTEXT,
   },
+)
+
+HC_PROCEDURES_UNSORTED.push(
+  {
+    id: 'hc-wl-01',
+    name: 'Waitlist slot confirmation',
+    category: 'Healthcare Waitlist',
+    description: 'When agent is calling outbound to confirm a newly opened slot with a patient on the waitlist.',
+    lastEdited: 'Jun 26',
+    whenToUse: 'A cancelled appointment slot has opened and a waitlisted patient needs to be contacted.',
+    steps: [
+      {
+        title: 'Greet and identify the open slot',
+        bullets: [
+          { tokens: ['Greet the patient and reference the open appointment slot.'] },
+        ],
+      },
+      {
+        title: 'Confirm interest and availability',
+        bullets: [
+          { tokens: ['Ask if the patient is still interested and available for the slot date and time.'] },
+        ],
+      },
+      {
+        title: 'Book the appointment',
+        bullets: [
+          { tokens: ['If patient accepts, confirm the appointment and update the scheduling system.'] },
+        ],
+      },
+      {
+        title: 'Send confirmation',
+        bullets: [
+          { tokens: ['Send a confirmation message to the patient with appointment details.'] },
+        ],
+      },
+    ],
+    tools: ['initiate-voice-call-hc', 'fetch-waitlist-hc'],
+    context: [],
+  }
 )
 
 export const HC_PROCEDURES = sortProceduresByOrder(HC_PROCEDURES_UNSORTED, HC_PROCEDURE_ORDER)

@@ -298,7 +298,7 @@ const _SEED_TOOLS = [
     fields: [
       { id: 'ivc-hc-phone', label: 'Phone number', type: 'variable', defaultValue: 'Contact.PhoneNumber' },
       { id: 'ivc-hc-call-from', label: 'Call from', type: 'select', placeholder: 'Select a caller ID', showInfoIcon: true, options: ['Main clinic line', 'Scheduling department', 'Provider direct line', 'Billing department'] },
-      { id: 'ivc-hc-procedure', label: 'Starting procedure', type: 'select', showInfoIcon: true, defaultValue: 'Form not filled', options: ['Form not filled'] },
+      { id: 'ivc-hc-procedure', label: 'Starting procedure', type: 'select', showInfoIcon: true, defaultValue: 'Slot confirmation', options: ['Slot confirmation', 'Form not filled'] },
       { id: 'ivc-hc-route', label: 'Route to front desk agent', type: 'toggle', showInfoIcon: true, defaultValue: true, helpText: 'Anything outside the selected procedures is handed off to the Front desk agent of respective locations' },
       { id: 'ivc-hc-context', label: 'Context', type: 'tags', showInfoIcon: true, placeholder: 'Add context variable...', defaultValue: ['Appointment ID', 'Patient ID', 'Provider ID', 'Diagnosis Code', 'Appointment_Type'] },
       { id: 'ivc-hc-retry-header', label: 'Retry settings', type: 'sectionLabel', helpText: "Automatically retry if the customer doesn't connect on the first attempt." },
@@ -309,6 +309,49 @@ const _SEED_TOOLS = [
     ],
     inputs: [{ name: 'phoneNumber', type: 'string' }],
     outputs: [{ name: 'outcome', type: 'string', description: 'completed | rejected | missed' }],
+  },
+  {
+    id: 'fetch-waitlist-hc',
+    name: 'Fetch waitlist',
+    icon: 'list_alt',
+    description: 'Retrieves patients currently on the waitlist, including relevant details such as requested service, preferred time, and current status.',
+    category: 'Data',
+    fields: [
+      { id: 'fwl-provider', type: 'radio', label: 'AI consideration', showInfoIcon: true, options: ['Scheduled provider', 'Any provider'], defaultValue: 'Any provider' },
+      { id: 'fwl-batch', type: 'number', label: 'Waitlist outbound batch', placeholder: 'No. of patients' },
+      { id: 'fwl-ai', type: 'checkbox', label: 'AI consideration', showInfoIcon: true, options: ['Best day to send', 'Best time to send'], defaultValue: [] },
+      { id: 'fwl-additional', type: 'checkbox', label: 'Additional config', showInfoIcon: true, options: ['Do not carry over unfilled slots to the next working day.'], defaultValue: [] },
+    ],
+    inputs: [],
+    outputs: [{ name: 'waitlistCount', type: 'number' }, { name: 'patients', type: 'array' }],
+  },
+  {
+    id: 'send-text-hc',
+    name: 'Send text',
+    icon: 'sms',
+    isBirdeye: true,
+    description: 'Send a text message to the customer with a predefined message, personalized content, or automated updates.',
+    category: 'Communication',
+    fields: [
+      {
+        id: 'st-hc-ab-text',
+        type: 'abSection',
+        checkboxLabel: 'Run A/B Test for text',
+        defaultChecked: false,
+        alwaysFields: [
+          { id: 'st-hc-text-template', type: 'templateSelect', label: 'Text template', placeholder: 'Select' },
+        ],
+        cardFields: [
+          { id: 'st-hc-distribution', type: 'distribution', label: 'Distribution', required: true, variants: [{ id: 'a', name: 'Variant A', sublabel: 'Text A', defaultValue: 50 }, { id: 'b', name: 'Variant B', sublabel: 'Text B', defaultValue: 50 }] },
+          { id: 'st-hc-test-ends', type: 'dateSelect', label: 'Test ends', prefix: 'On', options: ['1 day', '2 days', '3 days', '5 days', '7 days', '14 days', '30 days'], defaultValue: '7 days' },
+          { id: 'st-hc-winning', type: 'radio', label: 'Winning metric', options: ['Open rate', 'Click rate', 'Review written'], defaultValue: 'Open rate' },
+        ],
+      },
+      { id: 'st-hc-ai', type: 'checkbox', label: 'AI consideration', showInfoIcon: true, options: ['Best day to send', 'Best time to send'], defaultValue: [] },
+      { id: 'st-hc-override', type: 'checkbox', hideLabel: true, options: ['Override communication restrictions'], defaultValue: ['Override communication restrictions'] },
+    ],
+    inputs: [{ name: 'patientId', type: 'string' }, { name: 'message', type: 'string' }],
+    outputs: [{ name: 'status', type: 'string' }],
   },
 ];
 

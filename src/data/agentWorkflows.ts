@@ -509,6 +509,172 @@ export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Outreach agent':  { nodes: OUTREACH_NODES,             nodeDetails: OUTREACH_NODE_DETAILS            },
 }
 
+// ─── Waitlist Agent ──────────────────────────────────────────────────────────
+
+const WAITLIST_NODES = [
+  { id: 'wl-1', flowType: 'trigger' as const, data: { title: 'Appointment is cancelled', subtype: 'Appointment', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name',       descriptionPlaceholder: 'Enter description' } },
+  { id: 'wl-2', flowType: 'delay'   as const, data: { title: 'Delay for 30 mins',        subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for a specific time or event' } },
+  { id: 'wl-3', flowType: 'loop'    as const, data: { title: 'For slot',                  subtype: 'Loop',        hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter loop name',          descriptionPlaceholder: 'Repeat the following tasks for each slot' } },
+]
+
+const WAITLIST_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Waitlist agent - North region',
+    goals:
+      'Automatically fill cancelled appointment slots by reaching out to waitlisted patients via text and voice, reducing revenue loss from unfilled chair time and eliminating manual waitlist management.',
+    outcomes:
+      '1. Open slot is filled within hours via automated text outreach\n' +
+      '2. Patient confirms the slot by replying to the SMS\n' +
+      '3. Unresponsive patients receive a follow-up voice call\n' +
+      '4. Slot remains open if no waitlisted patients are available or confirm\n' +
+      '5. Staff spend zero time manually calling through the waitlist',
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1013 - Atlanta, GA',
+    ],
+  },
+  'wl-1': {
+    triggerName: 'When an appointment is cancelled',
+    description: 'Agent triggers when an appointment is cancelled.',
+    conditions: [
+      { id: 1, fieldValue: 'appointment_status', operatorValue: 'equals', valueValue: 'cancelled' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'appointment_status', label: 'Appointment status' },
+        { value: 'appointment_type',   label: 'Appointment type' },
+        { value: 'provider',           label: 'Provider' },
+        { value: 'location',           label: 'Location' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Equals' },
+        { value: 'not_equals', label: 'Does not equal' },
+      ],
+      value: [
+        { value: 'cancelled',  label: 'Cancelled' },
+        { value: 'updated',    label: 'Updated' },
+      ],
+    },
+  },
+  'wl-2': { name: 'Delay for 30 mins', duration: '30', unit: 'minutes' },
+  'wl-3': {
+    loopName: 'For slot',
+    name: 'For slot',
+    description: 'Repeat the following tasks for each slot.',
+    loopOver: 'Waitlist slot',
+    loopMode: 'variable',
+    nodes: [
+      { id: 'wl-4', flowType: 'task' as const, data: { title: 'Fetch waitlist', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Retrieves patients currently on the waitlist.' } },
+      { id: 'wl-5', flowType: 'branch' as const, data: { title: 'Based on conditions', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Build condition-specific flows' } },
+    ],
+  },
+  'wl-4': {
+    taskName: 'Fetch waitlist',
+    description: 'Retrieves patients currently on the waitlist, including relevant details such as requested service, preferred time, and current status.',
+    selectedTools: ['fetch-waitlist-hc'],
+  },
+  'wl-5': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'wl-5-path-1', name: 'Slot open' },
+      { id: 'wl-5-path-2', name: 'No conditions met', isFallback: true },
+    ],
+  },
+  'wl-5-path-1': {
+    branchName: 'Slot open',
+    description: 'Slot is available.',
+    conditions: [
+      { id: 1, fieldValue: 'slot', operatorValue: 'is', valueValue: 'available' },
+    ],
+    conditionOptions: {
+      field:    [{ value: 'slot', label: 'Slot' }],
+      operator: [{ value: 'is', label: 'Is' }, { value: 'is_not', label: 'Is not' }],
+      value:    [{ value: 'available', label: 'Available' }, { value: 'unavailable', label: 'Unavailable' }],
+    },
+    parentId: 'wl-5',
+    isBranchPath: true,
+    nodes: [
+      { id: 'wl-6', flowType: 'task'   as const, data: { title: 'Send text',           subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: 'Send a text message to the customer with a predefined message, personalized content, or automated updates.' } },
+      { id: 'wl-7', flowType: 'delay'  as const, data: { title: 'Delay for 10 mins',   subtype: 'Delay',       hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for a specific time or event' } },
+      { id: 'wl-8',  flowType: 'task'       as const, data: { title: 'Fetch waitlist',       subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',    descriptionPlaceholder: 'Retrieves patients currently on the waitlist, including relevant details such as requested service, preferred time, and current status.' } },
+      { id: 'wl-9',  flowType: 'branch'     as const, data: { title: 'Based on conditions', subtype: 'Branch',      hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name',  descriptionPlaceholder: 'Build condition-specific flows' } },
+    ],
+  },
+  'wl-5-path-2': {
+    branchName: 'No conditions met',
+    description: 'No slot available — end loop iteration.',
+    conditions: [],
+    parentId: 'wl-5',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'wl-6': {
+    taskName: 'Send text',
+    description: 'Send a text message to the customer with a predefined message, personalized content, or automated updates.',
+    selectedTools: ['send-text-hc'],
+  },
+  'wl-7': { name: 'Delay for 10 mins', duration: '10', unit: 'minutes' },
+  'wl-8': {
+    taskName: 'Fetch waitlist',
+    description: 'Retrieves patients currently on the waitlist, including relevant details such as requested service, preferred time, and current status.',
+    selectedTools: ['fetch-waitlist-hc'],
+  },
+  'wl-9': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'wl-9-path-1', name: 'Slot open' },
+      { id: 'wl-9-path-2', name: 'No conditions met', isFallback: true },
+    ],
+  },
+  'wl-9-path-1': {
+    branchName: 'Slot open',
+    description: 'Slot is still available — initiate voice call to confirm with patient.',
+    conditions: [
+      { id: 1, fieldValue: 'slot', operatorValue: 'is', valueValue: 'open' },
+    ],
+    conditionOptions: {
+      field:    [{ value: 'slot', label: 'Slot' }],
+      operator: [{ value: 'is', label: 'Is' }, { value: 'is_not', label: 'Is not' }],
+      value:    [{ value: 'open', label: 'Open' }, { value: 'filled', label: 'Filled' }],
+    },
+    parentId: 'wl-9',
+    isBranchPath: true,
+    nodes: [
+      { id: 'wl-10', flowType: 'voiceCall' as const, data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Call the customer' } },
+    ],
+  },
+  'wl-9-path-2': {
+    branchName: 'No conditions met',
+    description: 'Slot no longer available — end loop iteration.',
+    conditions: [],
+    parentId: 'wl-9',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'wl-10': {
+    taskName: 'Initiate voice call',
+    description: 'Call the customer.',
+    selectedTools: ['initiate-voice-call-hc'],
+    isVoiceCall: true,
+    branches: [
+      { id: 'wl-10-completed',  name: 'Call completed' },
+      { id: 'wl-10-rejected',   name: 'Call rejected' },
+      { id: 'wl-10-missed',     name: 'Call missed' },
+      { id: 'wl-10-voicemail',  name: 'Voice mail', isFallback: true },
+    ],
+  },
+  'wl-10-completed': { branchName: 'Call completed', conditions: [], parentId: 'wl-10', isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+  'wl-10-rejected':  { branchName: 'Call rejected',  conditions: [], parentId: 'wl-10', isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+  'wl-10-missed':    { branchName: 'Call missed',     conditions: [], parentId: 'wl-10', isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+  'wl-10-voicemail': { branchName: 'Voice mail',      conditions: [], parentId: 'wl-10', isBranchPath: true, isVoiceCallBranch: true, isFallback: true, nodes: [] },
+}
+
 // ─── Pre-visit Agent ─────────────────────────────────────────────────────────
 
 const PREVISIT_NODES = [
@@ -685,6 +851,7 @@ export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Reminder agent':  { nodes: HEALTHCARE_REMINDER_NODES,   nodeDetails: HEALTHCARE_REMINDER_NODE_DETAILS   },
   'Outreach agent':  { nodes: OUTREACH_NODES,              nodeDetails: OUTREACH_NODE_DETAILS              },
   'Pre-visit agent':  { nodes: PREVISIT_NODES,             nodeDetails: PREVISIT_NODE_DETAILS              },
+  'Waitlist agent':   { nodes: WAITLIST_NODES,             nodeDetails: WAITLIST_NODE_DETAILS              },
 }
 
 // ─── Shared voice-call conditionOptions (reused across all three dental agents) ─

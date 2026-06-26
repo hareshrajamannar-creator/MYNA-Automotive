@@ -80,10 +80,10 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'timeSaved', value: '8 min', label: 'Time saved', delta: '5.3%', trend: 'up', info: true, tooltip: 'Estimated staff time saved per confirmed appointment by automating reminder outreach and follow-up.' },
   ],
   'Waitlist agent': [
-    { id: 'outreachSent', value: '1.4K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent at this location to fill open slots.' },
+    { id: 'outreachSent', value: '1.4K', label: 'Outreach sent', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent at this location to fill open slots.' },
     { id: 'slotsFilled', value: '1.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach at this location.' },
     { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
-    { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
+    { id: 'timeSaved', value: '2.5 hrs', label: 'Time saved', delta: '20%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating waitlist outreach instead of manually calling through the list.' },
   ],
   'Pre-visit agent': [
     { id: 'outreach',   value: '1,000', label: 'Outreach sent',     delta: '+1.3%', trend: 'up', info: true },
@@ -231,10 +231,10 @@ const REMINDER_COLUMNS: Column<LocationRow>[] = [
 
 const WAITLIST_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',    label: 'Location',           width: 220, sortable: true },
-  { key: 'outreachSent',label: 'Outreach sent slots', width: 180, sortable: true },
+  { key: 'outreachSent',label: 'Outreach sent', width: 180, sortable: true },
   { key: 'slotsFilled', label: 'Slots filled',        width: 150, sortable: true },
   { key: 'fillRate',    label: 'Fill rate',            width: 130, sortable: true },
-  { key: 'timeSaved',   label: 'Avg fill time',        width: 150, sortable: true },
+  { key: 'timeSaved',   label: 'Time saved',           width: 150, sortable: true },
 ]
 
 const PRE_VISIT_COLUMNS: Column<LocationRow>[] = [
@@ -302,7 +302,7 @@ export function AgentInstanceScreen({
   const isWorkflowTab = activeTab === 'workflow'
   const isRecommendationTab = activeTab === 'recommendation'
   const showHealthcareLogs =
-    activeTab === 'logs' && product === 'healthcare' && (agentName === 'Front desk agent' || agentName === 'Pre-visit agent')
+    activeTab === 'logs' && product === 'healthcare' && (agentName === 'Front desk agent' || agentName === 'Pre-visit agent' || agentName === 'Waitlist agent')
   const dentalOutboundLogRows = DENTAL_OUTBOUND_LOGS[agentName]
   const showDentalOutboundLogs =
     activeTab === 'logs' && product === 'dental' && Boolean(dentalOutboundLogRows)

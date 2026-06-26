@@ -14,6 +14,7 @@ import StartNode from '../Molecules/Canvas/StartNode/StartNode';
 import EndNode from '../Molecules/Canvas/EndNode/EndNode';
 import CanvasNode from '../Molecules/Canvas/CanvasNode/CanvasNode';
 import ProceduresNode from '../Molecules/Canvas/ProceduresNode/ProceduresNode';
+import LoopNode, { computeLoopBodyHeight } from '../Molecules/Canvas/LoopNode/LoopNode';
 import './FlowCanvas.css';
 import branchStyles from './BranchPath.module.css';
 import { FLOW_CONNECTOR_GAP } from '../flowLayoutConstants';
@@ -142,8 +143,46 @@ function ParallelNodeWrapper(props) {
   return <ControlNodeWrapper {...props} nodeType="parallel" label="Parallel tasks" />;
 }
 
-function LoopNodeWrapper(props) {
-  return <ControlNodeWrapper {...props} nodeType="loop" label="Loop" />;
+function LoopNodeWrapper({ id, data }) {
+  const isSelected = id === data.selectedNodeId;
+  const loopChildren = data.loopChildren || [];
+  const loopFlow = data.loopFlow || [];
+  const loopNodeDetails = data.loopNodeDetails || {};
+  const loopContainerWidth = data.loopContainerWidth;
+  return (
+    <div className="flow-canvas__node-center">
+      <Handle type="target" position={Position.Top} />
+      <LoopNode
+        loopNodeId={id}
+        stepNumber={data.stepNumber}
+        title={data.title}
+        description={data.subtitle}
+        titlePlaceholder={data.titlePlaceholder}
+        descriptionPlaceholder={data.descriptionPlaceholder}
+        hasToggle={data.hasToggle}
+        toggleEnabled={data.toggleEnabled}
+        toggleDisabled={data.viewOnly}
+        viewOnly={data.viewOnly}
+        loopChildren={loopChildren}
+        loopFlow={loopFlow}
+        loopNodeDetails={loopNodeDetails}
+        loopBodyHeight={data.loopBodyHeight || computeLoopBodyHeight(Math.max(loopChildren.length, 1))}
+        loopContainerWidth={loopContainerWidth}
+        selectedNodeId={data.selectedNodeId}
+        state={isSelected ? 'selected' : 'default'}
+        onDelete={data.onDelete}
+        onMoveUp={data.onMoveUp}
+        onMoveDown={data.onMoveDown}
+        canMoveUp={data.canMoveUp}
+        canMoveDown={data.canMoveDown}
+        onToggleChange={data.onToggleChange}
+        onChildClick={data.onChildClick}
+        onChildDelete={data.onChildDelete}
+        onChildToggleChange={data.onChildToggleChange}
+      />
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+    </div>
+  );
 }
 
 function SubAgentNodeWrapper(props) {
@@ -368,6 +407,10 @@ function FlowCanvasInner({
         selectedNodeId,
         viewOnly,
         isDraggingFromLHS,
+        // Inject click handler for inline nodes rendered inside loop containers.
+        ...(n.type === 'loop' ? {
+          onChildClick: (childId) => onNodeClick?.({ id: childId, type: 'task', data: {} }),
+        } : {}),
         ...(n.id === '__end__' && !viewOnly && !n.data?.hideAddBeforeEnd
           ? {
               onDropBeforeEnd: (type, label, description) => {
@@ -383,7 +426,7 @@ function FlowCanvasInner({
         ...(n.id === '__end__' ? { hideAdd: !!n.data?.hideAddBeforeEnd } : {}),
       },
     })),
-    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId]
+    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, onNodeClick]
   );
 
   // Pin start node 24px below the controls bar, horizontally centered, at zoom=1.

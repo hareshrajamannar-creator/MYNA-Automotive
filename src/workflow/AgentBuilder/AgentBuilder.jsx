@@ -29,6 +29,7 @@ import {
   FLOW_CONNECTOR_GAP,
   FLOW_START_NODE_HEIGHT,
 } from '../flowLayoutConstants';
+import { computeLoopCanvasHeight, computeLoopBodyHeight } from '../Molecules/Canvas/LoopNode/LoopNode';
 import './AgentBuilder.css';
 
 const START_NODE_ID = '__start__';
@@ -239,10 +240,40 @@ function estimateProceduresNodeHeight(procedureIds = [], nodeDetails, nodeId, pr
   return PROCEDURE_SHELL_HEIGHT + chipBlock;
 }
 
+const LOOP_INLINE_CARD_W = 400;
+const LOOP_INLINE_ARM_GAP = 80;
+
+function computeLoopFlowWidth(nodes, nodeDetails) {
+  if (!nodes || nodes.length === 0) return LOOP_INLINE_CARD_W;
+  let maxWidth = LOOP_INLINE_CARD_W;
+  for (const node of nodes) {
+    if (node.flowType === 'branch' || node.flowType === 'voiceCall') {
+      const branches = nodeDetails[node.id]?.branches || [];
+      if (branches.length === 0) continue;
+      const EMPTY_ARM_W = 160; // arms with no nodes only show a small chip
+      const armWidths = branches.map(b => {
+        const bNodes = nodeDetails[b.id]?.nodes || [];
+        if (bNodes.length === 0) return EMPTY_ARM_W;
+        return Math.max(LOOP_INLINE_CARD_W, computeLoopFlowWidth(bNodes, nodeDetails));
+      });
+      const totalW = armWidths.reduce((s, w) => s + w, 0) + (branches.length - 1) * LOOP_INLINE_ARM_GAP;
+      maxWidth = Math.max(maxWidth, totalW);
+    }
+  }
+  return maxWidth;
+}
+
 function getNodeBlockHeight(item, nodeId, nodeDetails, product = 'automotive') {
   if (item?.flowType === 'procedures') {
     const ids = nodeDetails?.[nodeId]?.procedureIds ?? [];
     return estimateProceduresNodeHeight(ids, nodeDetails, nodeId, product);
+  }
+  if (item?.flowType === 'loop') {
+    const loopNodes = nodeDetails?.[nodeId]?.nodes || [];
+    const hasBranch = loopNodes.some(n => n.flowType === 'branch' || n.flowType === 'voiceCall');
+    if (hasBranch) return 2800;
+    const childCount = loopNodes.length;
+    return computeLoopCanvasHeight(Math.max(childCount, 1));
   }
   return FLOW_STANDARD_NODE_HEIGHT;
 }
@@ -322,27 +353,55 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
                   product,
                 ),
               }
-            : {
-                ...item.data,
-                stepNumber: topLevelStep,
-                ...(item.flowType === 'delay'
-                  ? {
-                      titlePlaceholder: 'Configure delay settings',
-                      descriptionPlaceholder: 'Wait for specific time or event.',
-                    }
-                  : item.flowType === 'subagent'
+            : item.flowType === 'loop'
+              ? (() => {
+                  const loopNodes = nodeDetails[nodeId]?.nodes || [];
+                  const hasBranch = loopNodes.some(n => n.flowType === 'branch' || n.flowType === 'voiceCall');
+                  const loopBodyH = hasBranch ? 1800 : computeLoopBodyHeight(Math.max(loopNodes.length, 1));
+                  const contentW = computeLoopFlowWidth(loopNodes, nodeDetails);
+                  const loopContainerWidth = Math.max(contentW + 80, 860); // 40px padding each side
+                  return {
+                    ...item.data,
+                    stepNumber: topLevelStep,
+                    title: nodeDetails[nodeId]?.loopName ?? item.data.title,
+                    subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
+                    loopBodyHeight: loopBodyH,
+                    loopContainerWidth,
+                    loopChildren: loopNodes.map((child) => ({
+                      ...child.data,
+                      id: child.id,
+                      stepNumber: ++stepCounter,
+                      title: nodeDetails[child.id]?.taskName ?? nodeDetails[child.id]?.triggerName ?? child.data.title,
+                      subtitle: nodeDetails[child.id]?.description ?? child.data.subtitle,
+                    })),
+                    loopFlow: loopNodes.map((child) => ({
+                      ...child,
+                      data: { ...child.data, stepNumber: ++stepCounter },
+                    })),
+                    loopNodeDetails: nodeDetails,
+                  };
+                })()
+              : {
+                  ...item.data,
+                  stepNumber: topLevelStep,
+                  ...(item.flowType === 'delay'
                     ? {
-                        titlePlaceholder: 'Call subagent',
-                        descriptionPlaceholder: 'Call subagent workflow.',
+                        titlePlaceholder: 'Configure delay settings',
+                        descriptionPlaceholder: 'Wait for specific time or event.',
                       }
-                    : {}),
-                // Pull title and subtitle from saved nodeDetails so canvas nodes
-                // show real content instead of placeholder text
-                title: nodeDetails[nodeId]?.taskName
-                  ?? nodeDetails[nodeId]?.triggerName
-                  ?? item.data.title,
-                subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
-              },
+                    : item.flowType === 'subagent'
+                      ? {
+                          titlePlaceholder: 'Call subagent',
+                          descriptionPlaceholder: 'Call subagent workflow.',
+                        }
+                      : {}),
+                  // Pull title and subtitle from saved nodeDetails so canvas nodes
+                  // show real content instead of placeholder text
+                  title: nodeDetails[nodeId]?.taskName
+                    ?? nodeDetails[nodeId]?.triggerName
+                    ?? item.data.title,
+                  subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
+                },
     });
     const prevIsProcedures = i > 0 && nodeList[i - 1].flowType === 'procedures';
     edges.push({
@@ -1229,8 +1288,17 @@ export default function AgentBuilder({
   });
 
   const branchChildNodes = Object.values(nodeDetails).flatMap((details) => details?.nodes || []);
+
+  // Branch path entries (e.g. wl-5-path-1) are not in nodeList or branchChildNodes,
+  // so synthesise lightweight node objects from nodeDetails so clicking a branch chip
+  // can resolve selectedNode and open the correct RHS panel.
+  const branchPathNodes = Object.entries(nodeDetails)
+    .filter(([, d]) => d?.isBranchPath)
+    .map(([id, d]) => ({ id, flowType: 'branch', data: { title: d.branchName ?? id } }));
+
   const selectedNode = nodeList.find((n) => n.id === selectedNodeId) ||
-    branchChildNodes.find((n) => n.id === selectedNodeId);
+    branchChildNodes.find((n) => n.id === selectedNodeId) ||
+    branchPathNodes.find((n) => n.id === selectedNodeId);
 
   const handleNodesReorder = useCallback((newIdOrder) => {
     setNodeList((prev) => {
