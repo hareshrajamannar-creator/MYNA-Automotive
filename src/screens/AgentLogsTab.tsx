@@ -61,7 +61,7 @@ export function AgentLogsTab({ agentName }: AgentLogsTabProps) {
     return <RunDetailView row={selectedRun} onBack={() => setSelectedRun(null)} />
   }
 
-  if (agentName === 'Pre-visit agent') {
+  if (agentName === 'Pre-visit agent' || agentName === 'Waitlist agent') {
     return (
       <div className="px-lg py-lg">
         <DataTable

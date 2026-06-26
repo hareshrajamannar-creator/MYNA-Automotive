@@ -225,6 +225,20 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
       description: 'Multi-channel sequence that pairs a personalized email with a follow-up voice call to move patients from "thinking about it" to a confirmed appointment, with warm transfer to the financial coordinator for cost questions.',
     },
   ],
+  'Waitlist agent': [
+    {
+      id: 'waitlist-agent',
+      title: 'Waitlist agent',
+      description: 'Manages waitlist requests by reviewing availability, offering open slots, and confirming appointments with patients.',
+    },
+  ],
+  'Pre-visit agent': [
+    {
+      id: 'previsit-checkin-outreach',
+      title: 'Pre-visit agent',
+      description: 'The Pre-Visit Agent automates pre-appointment check-in form outreach.',
+    },
+  ],
 }
 
 // ── Illustration for the create-agent empty state ──────────────────────────
@@ -342,10 +356,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'timeSaved', value: '8 min', label: 'Time saved', delta: '5.3%', trend: 'up', info: true, tooltip: 'Estimated staff time saved per confirmed appointment by automating reminder outreach and follow-up.' },
     ],
     'Waitlist agent': [
-      { id: 'outreachSent', value: '5.5K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
+      { id: 'outreachSent', value: '5.5K', label: 'Outreach sent', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
       { id: 'slotsFilled', value: '7.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach.' },
       { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
-      { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
+      { id: 'timeSaved', value: '2.5 hrs', label: 'Time saved', delta: '20%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating waitlist outreach instead of manually calling through the list.' },
     ],
     'Pre-visit agent': [
       { id: 'outreach',   value: '463',   label: 'Outreach sent',    delta: '+1.3%', trend: 'up' as const, info: true },
@@ -444,10 +458,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
       { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
     ] : isWaitlist ? [
-      { key: 'outreachSent' as keyof AgentInstance, label: 'Outreach sent slots', width: 180, sortable: true },
+      { key: 'outreachSent' as keyof AgentInstance, label: 'Outreach sent', width: 180, sortable: true },
       { key: 'slotsFilled' as keyof AgentInstance, label: 'Slots filled', width: 150, sortable: true },
       { key: 'fillRate' as keyof AgentInstance, label: 'Fill rate', width: 130, sortable: true },
-      { key: 'timeSaved' as keyof AgentInstance, label: 'Avg fill time', width: 150, sortable: true },
+      { key: 'timeSaved' as keyof AgentInstance, label: 'Time saved', width: 150, sortable: true },
     ] : isPreVisit ? [
       { key: 'interactions' as keyof AgentInstance, label: 'Outreach sent',     width: 160, sortable: true },
       { key: 'fcr' as keyof AgentInstance,          label: 'Intakes completed',  width: 180, sortable: true },

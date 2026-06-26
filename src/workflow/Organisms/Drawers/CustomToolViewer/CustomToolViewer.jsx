@@ -10,7 +10,7 @@ function NativeDrawer({ isOpen, onClose, children, width = 960 }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', justifyContent: 'flex-end' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }} />
-      <div style={{ position: 'relative', width, maxWidth: '95vw', height: '100%', background: '#fff', boxShadow: '-4px 0 24px rgba(0,0,0,0.14)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ position: 'relative', width, maxWidth: '95vw', height: '100%', background: '#fff', boxShadow: '-4px 0 24px rgba(0,0,0,0.14)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
@@ -27,12 +27,15 @@ import styles from './CustomToolViewer.module.css';
 
 // ─── Template picker data ─────────────────────────────────────────────────────
 const TEMPLATE_CATEGORIES = [
+  { id: 'slotconfirmation', label: 'Slot confirmation', count: 2 },
   { id: 'previsit',    label: 'Pre-visit',            count: 4 },
   { id: 'appointment', label: 'Appointment reminder',  count: 3 },
   { id: 'followup',   label: 'Follow-up',              count: 2 },
   { id: 'custom',     label: 'Custom',                 count: 0 },
 ];
 const TEMPLATE_LIST = [
+  { id: 'tpl-sc-1', category: 'slotconfirmation', title: 'Slot available — patient outreach',  preview: 'Hi [Patient Name], a slot has opened up on [Date] at [Time] with [Provider]. Would you like us to book this for you? Reply YES to confirm.' },
+  { id: 'tpl-sc-2', category: 'slotconfirmation', title: 'Waitlist confirmation follow-up',     preview: 'Hi [Patient Name], following up on the open slot we mentioned. The appointment is still available. Reply YES to confirm or call us at [Phone].' },
   { id: 'tpl-1', category: 'previsit',    title: 'Pre-visit intake form',           preview: 'Hi [Patient Name], Your appointment is on [Date]. Please complete your intake form before your visit to help us serve you better.' },
   { id: 'tpl-2', category: 'previsit',    title: 'Health history questionnaire',    preview: 'Hi [Patient Name], To prepare for your upcoming appointment, please take a few minutes to complete your health history questionnaire.' },
   { id: 'tpl-3', category: 'previsit',    title: 'Forms completion reminder',       preview: 'Hi [Patient Name], You still have outstanding intake forms to complete before your appointment on [Date].' },
@@ -316,7 +319,7 @@ function InteractiveField({ field, onValueChange }) {
     if (field.type === 'dateSelect') {
       setDateSelectVal(field.defaultValue || (field.options?.[0] ?? ''));
     }
-  }, [field.id, field.defaultValue, field.type, field.options]);
+  }, [field.id, field.defaultValue, field.type, field.options, field.defaultChecked]);
 
   useEffect(() => {
     if (field.type === 'checkbox') {
