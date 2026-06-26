@@ -6,8 +6,6 @@
 .outer {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
   font-family: 'Roboto', sans-serif;
 }
 
@@ -20,6 +18,9 @@
   padding: 16px 24px;
   flex-shrink: 0;
   background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .headerLeft {
@@ -153,8 +154,6 @@
 /* ─── Body: free-flowing fields, 20px between each ─── */
 
 .body {
-  flex: 1;
-  overflow-y: auto;
   padding: 24px;
   display: flex;
   flex-direction: column;

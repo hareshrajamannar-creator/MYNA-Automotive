@@ -771,7 +771,7 @@ const PREVISIT_NODE_DETAILS: Record<string, any> = {
     isBranchPath: true,
     nodes: [
       { id: 'pv-5', flowType: 'task',   data: { title: 'Send communication', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',   descriptionPlaceholder: '2 days before appointment · Email or Email + text' } },
-      { id: 'pv-6', flowType: 'branch', data: { title: 'Based on conditions', subtype: 'Branch',    hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Slot open or not?' } },
+      { id: 'pv-6', flowType: 'branch', data: { title: 'Based on conditions', subtype: 'Branch',    hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Form not filled?' } },
     ],
   },
   'pv-4-path-2': {
@@ -791,28 +791,28 @@ const PREVISIT_NODE_DETAILS: Record<string, any> = {
   'pv-6': {
     basedOn: 'conditions',
     branches: [
-      { id: 'pv-6-path-1', name: 'Slot open' },
+      { id: 'pv-6-path-1', name: 'Form not filled' },
       { id: 'pv-6-path-2', name: 'No conditions match', isFallback: true },
     ],
   },
   'pv-6-path-1': {
-    branchName: 'Slot open',
-    description: 'Appointment slot is still open.',
+    branchName: 'Form not filled',
+    description: 'Intake form has not been filled out.',
     conditions: [
-      { id: 1, fieldValue: 'slot_status', operatorValue: 'equals', valueValue: 'open' },
+      { id: 1, fieldValue: 'form_status', operatorValue: 'equals', valueValue: 'not_filled' },
     ],
     conditionOptions: {
       field: [
-        { value: 'slot_status',        label: 'Slot status' },
-        { value: 'appointment_status', label: 'Appointment status' },
+        { value: 'form_status',  label: 'Form status' },
+        { value: 'intake_form',  label: 'Intake form' },
       ],
       operator: [
         { value: 'equals',     label: 'Is' },
         { value: 'not_equals', label: 'Is not' },
       ],
       value: [
-        { value: 'open',   label: 'Open' },
-        { value: 'filled', label: 'Filled' },
+        { value: 'not_filled', label: 'Not filled' },
+        { value: 'filled',     label: 'Filled' },
       ],
     },
     parentId: 'pv-6',
