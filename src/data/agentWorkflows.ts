@@ -509,10 +509,182 @@ export const AUTOMOTIVE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Outreach agent':  { nodes: OUTREACH_NODES,             nodeDetails: OUTREACH_NODE_DETAILS            },
 }
 
+// ─── Pre-visit Agent ─────────────────────────────────────────────────────────
+
+const PREVISIT_NODES = [
+  { id: 'pv-1', flowType: 'trigger',  data: { title: 'Appointment is booked',          subtype: 'Appointment booked', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name',       descriptionPlaceholder: 'Enter description' } },
+  { id: 'pv-2', flowType: 'delay',    data: { title: 'Until 4 days before appointment', subtype: 'Delay',              hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait for a specific time or event' } },
+  { id: 'pv-3', flowType: 'task',     data: { title: 'Send communication',              subtype: 'Integration',        hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',          descriptionPlaceholder: '4 days before appointment · Email or Email + text' } },
+  { id: 'pv-4', flowType: 'branch',   data: { title: 'Based on conditions',             subtype: 'Branch',             hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name',        descriptionPlaceholder: 'Appointment confirmed or not?' } },
+]
+
+const PREVISIT_NODE_DETAILS: Record<string, any> = {
+  '__start__': {
+    agentName: 'Pre-visit agent - North region',
+    goals: 'Automate pre-appointment check-in form outreach, ensuring patients complete intake forms before their visit and reducing administrative burden on front desk staff.',
+    outcomes:
+      '1. Patients receive timely outreach to complete pre-visit intake forms\n' +
+      '2. Form completion rate improves, reducing day-of delays\n' +
+      '3. Patients who have not filled the form receive follow-up communication automatically\n' +
+      '4. Voice call escalation is triggered for unresponsive patients close to the appointment\n' +
+      '5. Front desk staff spend less time on manual outreach',
+    locations: [
+      '1001 - Mountain View, CA',
+      '1002 - Seattle, WA',
+      '1004 - Chicago, IL',
+      '1006 - Las Vegas, NV',
+      '1007 - Dallas, TX',
+      '1013 - Atlanta, GA',
+    ],
+  },
+  'pv-1': {
+    triggerName: 'Appointment is booked',
+    description: 'Agent triggers when an appointment is booked',
+    conditions: [
+      { id: 1, fieldValue: 'appointment_status', operatorValue: 'equals', valueValue: 'booked' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'appointment_status', label: 'Appointment status' },
+        { value: 'appointment_type',   label: 'Appointment type' },
+        { value: 'location',           label: 'Location' },
+        { value: 'provider',           label: 'Provider' },
+        { value: 'insurance_verified', label: 'Insurance verified' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Equals' },
+        { value: 'not_equals', label: 'Does not equal' },
+        { value: 'contains',   label: 'Contains' },
+        { value: 'is_set',     label: 'Is set' },
+      ],
+      value: [
+        { value: 'booked',      label: 'Booked' },
+        { value: 'confirmed',   label: 'Confirmed' },
+        { value: 'pending',     label: 'Pending' },
+        { value: 'cancelled',   label: 'Cancelled' },
+        { value: 'rescheduled', label: 'Rescheduled' },
+      ],
+    },
+  },
+  'pv-2': { name: 'Until 4 days before appointment', duration: '4', unit: 'days' },
+  'pv-3': {
+    taskName: 'Send communication',
+    description: '4 days before appointment · Email or Email + text',
+    selectedTools: ['send-communication'],
+  },
+  'pv-4': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'pv-4-path-1', name: 'Form not filled' },
+      { id: 'pv-4-path-2', name: 'No conditions match', isFallback: true },
+    ],
+  },
+  'pv-4-path-1': {
+    branchName: 'Form not filled',
+    description: 'Form status is not filled',
+    conditions: [
+      { id: 1, fieldValue: 'form_status', operatorValue: 'equals', valueValue: 'not_filled' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'form_status',        label: 'Form' },
+        { value: 'appointment_status', label: 'Appointment status' },
+        { value: 'patient_response',   label: 'Patient response' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Is' },
+        { value: 'not_equals', label: 'Is not' },
+      ],
+      value: [
+        { value: 'not_filled', label: 'Not filled' },
+        { value: 'filled',     label: 'Filled' },
+        { value: 'partial',    label: 'Partial' },
+      ],
+    },
+    parentId: 'pv-4',
+    isBranchPath: true,
+    nodes: [
+      { id: 'pv-5', flowType: 'task',   data: { title: 'Send communication', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name',   descriptionPlaceholder: '2 days before appointment · Email or Email + text' } },
+      { id: 'pv-6', flowType: 'branch', data: { title: 'Based on conditions', subtype: 'Branch',    hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Slot open or not?' } },
+    ],
+  },
+  'pv-4-path-2': {
+    branchName: 'No conditions match',
+    description: 'No conditions matched — end workflow.',
+    conditions: [],
+    parentId: 'pv-4',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'pv-5': {
+    taskName: 'Send communication',
+    description: '2 days before appointment · Email or Email + text',
+    selectedTools: ['send-communication'],
+  },
+  'pv-6': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'pv-6-path-1', name: 'Slot open' },
+      { id: 'pv-6-path-2', name: 'No conditions match', isFallback: true },
+    ],
+  },
+  'pv-6-path-1': {
+    branchName: 'Slot open',
+    description: 'Appointment slot is still open.',
+    conditions: [
+      { id: 1, fieldValue: 'slot_status', operatorValue: 'equals', valueValue: 'open' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'slot_status',        label: 'Slot status' },
+        { value: 'appointment_status', label: 'Appointment status' },
+      ],
+      operator: [
+        { value: 'equals',     label: 'Is' },
+        { value: 'not_equals', label: 'Is not' },
+      ],
+      value: [
+        { value: 'open',   label: 'Open' },
+        { value: 'filled', label: 'Filled' },
+      ],
+    },
+    parentId: 'pv-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'pv-7', flowType: 'voiceCall', data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Call the customer' } },
+    ],
+  },
+  'pv-6-path-2': {
+    branchName: 'No conditions match',
+    description: 'No conditions matched — end workflow.',
+    conditions: [],
+    parentId: 'pv-6',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'pv-7': {
+    taskName: 'Initiate voice call',
+    description: 'Call the customer',
+    selectedTools: ['initiate-voice-call-hc'],
+    isVoiceCall: true,
+    branches: [
+      { id: 'pv-7-completed', name: 'Call completed' },
+      { id: 'pv-7-rejected',  name: 'Call rejected' },
+      { id: 'pv-7-missed',    name: 'Call missed' },
+    ],
+  },
+  'pv-7-completed': { branchName: 'Call completed', conditions: [], parentId: 'pv-7', isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+  'pv-7-rejected':  { branchName: 'Call rejected',  conditions: [], parentId: 'pv-7', isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+  'pv-7-missed':    { branchName: 'Call missed',    conditions: [], parentId: 'pv-7', isBranchPath: true, isVoiceCallBranch: true, isFallback: true, nodes: [] },
+}
+
 export const HEALTHCARE_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   'Front desk agent': { nodes: FRONTDESK_NODES,             nodeDetails: FRONTDESK_HC_NODE_DETAILS          },
   'Reminder agent':  { nodes: HEALTHCARE_REMINDER_NODES,   nodeDetails: HEALTHCARE_REMINDER_NODE_DETAILS   },
   'Outreach agent':  { nodes: OUTREACH_NODES,              nodeDetails: OUTREACH_NODE_DETAILS              },
+  'Pre-visit agent':  { nodes: PREVISIT_NODES,             nodeDetails: PREVISIT_NODE_DETAILS              },
 }
 
 // ─── Shared voice-call conditionOptions (reused across all three dental agents) ─

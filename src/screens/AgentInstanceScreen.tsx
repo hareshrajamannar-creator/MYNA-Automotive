@@ -86,10 +86,10 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
   ],
   'Pre-visit agent': [
-    { id: 'intakesCompleted', value: '1,710', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance at this location.' },
-    { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
-    { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
-    { id: 'staffHoursSaved', value: '78h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+    { id: 'outreach',   value: '1,000', label: 'Outreach sent',     delta: '+1.3%', trend: 'up', info: true },
+    { id: 'intakes',    value: '900',   label: 'Intakes completed',  delta: '+1.3%', trend: 'up', info: true },
+    { id: 'completion', value: '95%',   label: 'Completion rate',    delta: '+1.3%', trend: 'up', info: true },
+    { id: 'timeSaved',  value: '32m',   label: 'Time saved',         delta: '+1.3%', trend: 'up', info: true },
   ],
   'Outreach agent': [
     { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true, tooltip: 'Total leads the agent reached out to at this location in the selected period.' },
@@ -150,10 +150,10 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', count: '70',  outreachSent: '190', slotsFilled: '178', fillRate: '24%', timeSaved: '3.0 hrs' },
   ],
   'Pre-visit agent': [
-    { location: 'Atlanta, GA',      count: '124', interactions: '480', fcr: '94%', aht: '6.0 min', escalation: '22h' },
-    { location: 'Chicago, IL',      count: '98',  interactions: '362', fcr: '93%', aht: '6.2 min', escalation: '16h' },
-    { location: 'Boston, MA',       count: '76',  interactions: '480', fcr: '95%', aht: '5.9 min', escalation: '20h' },
-    { location: 'Philadelphia, PA', count: '60',  interactions: '388', fcr: '92%', aht: '6.5 min', escalation: '20h' },
+    { location: 'Atlanta, GA',      count: '124', interactions: '260', fcr: '238', aht: '95%', escalation: '9h' },
+    { location: 'Chicago, IL',      count: '98',  interactions: '220', fcr: '198', aht: '94%', escalation: '8h' },
+    { location: 'Boston, MA',       count: '76',  interactions: '280', fcr: '268', aht: '96%', escalation: '8h' },
+    { location: 'Philadelphia, PA', count: '60',  interactions: '240', fcr: '196', aht: '93%', escalation: '7h' },
   ],
   'Recall agent': [
     { location: 'Atlanta, GA',      count: '124', patientsContacted: '234', recallConversionRate: '71%', staffHoursSaved: '24h', revenueRecovered: '$8.6K' },
@@ -238,11 +238,11 @@ const WAITLIST_COLUMNS: Column<LocationRow>[] = [
 ]
 
 const PRE_VISIT_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',    label: 'Location',            width: 220, sortable: true },
-  { key: 'interactions',label: 'Intakes completed',   width: 180, sortable: true },
-  { key: 'fcr',         label: 'Completion rate',     width: 160, sortable: true },
-  { key: 'aht',         label: 'Avg completion time', width: 180, sortable: true },
-  { key: 'escalation',  label: 'Staff hours saved',   width: 170, sortable: true },
+  { key: 'location',     label: 'Location',         width: 220, sortable: true },
+  { key: 'interactions', label: 'Outreach sent',    width: 160, sortable: true },
+  { key: 'fcr',          label: 'Intakes completed', width: 180, sortable: true },
+  { key: 'aht',          label: 'Completion rate',   width: 160, sortable: true },
+  { key: 'escalation',   label: 'Time saved',        width: 140, sortable: true },
 ]
 
 const RECALL_COLUMNS: Column<LocationRow>[] = [
@@ -302,7 +302,7 @@ export function AgentInstanceScreen({
   const isWorkflowTab = activeTab === 'workflow'
   const isRecommendationTab = activeTab === 'recommendation'
   const showHealthcareLogs =
-    activeTab === 'logs' && product === 'healthcare' && agentName === 'Front desk agent'
+    activeTab === 'logs' && product === 'healthcare' && (agentName === 'Front desk agent' || agentName === 'Pre-visit agent')
   const dentalOutboundLogRows = DENTAL_OUTBOUND_LOGS[agentName]
   const showDentalOutboundLogs =
     activeTab === 'logs' && product === 'dental' && Boolean(dentalOutboundLogRows)
@@ -424,7 +424,7 @@ export function AgentInstanceScreen({
               </div>
             </>
           ) : showHealthcareLogs ? (
-            <AgentLogsTab />
+            <AgentLogsTab agentName={agentName} />
           ) : showDentalOutboundLogs ? (
             <OutboundAgentLogsTab rows={dentalOutboundLogRows!} />
           ) : activeTab === 'settings' ? (
