@@ -262,12 +262,24 @@ const DEFAULT_CHAT: ChatMsg[] = [
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
 
-const DENTAL_FILTER_FIELDS: FilterField[] = [
-  { id: 'location',  label: 'Location',  options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
-  { id: 'provider',  label: 'Provider',  options: opts('Dr. Smith', 'Dr. Patel', 'Dr. Nguyen', 'Dr. Carter', 'Dr. Rivera') },
-  { id: 'agent',     label: 'Agent',     options: opts('Front desk agent', 'Waitlist agent', 'Pre-visit agent', 'Reminder agent') },
-  { id: 'channel',   label: 'Channel',   options: opts('Voice', 'Text', 'Webchat') },
-  { id: 'outcome',   label: 'Outcome',   options: opts('Resolved', 'Human transfer', 'Pending') },
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'region',          label: 'Region',              options: opts('Northeast', 'Southeast', 'Midwest', 'Southwest', 'West Coast', 'Pacific Northwest') },
+  { id: 'division',        label: 'Division',            options: opts('Division A', 'Division B', 'Division C', 'Division D', 'Division E') },
+  { id: 'city',            label: 'City',                options: opts('Austin', 'San Francisco', 'Phoenix', 'Denver', 'Seattle', 'Dallas', 'Houston', 'Chicago') },
+  { id: 'zip',             label: 'Zip',                 options: opts('78701', '78702', '94102', '85001', '80201', '98101', '75201', '60601') },
+  { id: 'outcome',         label: 'Outcome',             options: opts('Answered', 'Bookings', 'Rescheduling', 'Cancellation') },
+  { id: 'content-manager', label: 'Content manager',     options: opts('Kelsy Hiltz', 'Marcus Webb', 'Priya Nair', 'Sofia Mendez', 'Derek Okafor') },
+  { id: 'social-manager',  label: 'Social manager',      options: opts('Tasha Winters', 'Omar Farouk', 'Brianna Cole', 'Nathan Cruz', 'Linda Hargrove') },
+  { id: 'area-code',       label: 'Area code',           options: opts('512', '415', '602', '303', '206', '214', '713', '312') },
+  { id: 'region-manager',  label: 'Region manager',      options: opts('James Whitfield', 'Ray Castellano', 'Ana Reyes', 'David Park', 'Michelle Torres') },
+  { id: 'room-custom',     label: 'Room custom',         options: opts('Exam Room 1', 'Exam Room 2', 'Consultation A', 'Consultation B', 'Waiting Bay') },
+  { id: 'new-alpha-beta',  label: 'New alpha beta test', options: opts('Alpha Group', 'Beta Group', 'Control Group', 'Pilot A', 'Pilot B') },
+  { id: 'custom-test',     label: 'Custom test',         options: opts('Test Group A', 'Test Group B', 'Cohort 1', 'Cohort 2', 'Cohort 3') },
+  { id: 'location',              label: 'Location',                        options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
+  { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
+  { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
+  { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
 ]
 
 interface HCFrontdeskOverviewScreenProps { isDental?: boolean }
@@ -311,16 +323,14 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
                 options={DATE_RANGE_OPTIONS}
                 onChange={setDateRange}
               />
-              {isDental && (
-                <button
-                  type="button"
-                  aria-label="Filters"
-                  onClick={() => setFilterOpen((o) => !o)}
-                  className={`flex size-9 items-center justify-center rounded-sm text-text-icon ${filterOpen ? 'bg-surface-selected' : 'border border-border-selected bg-surface hover:bg-surface-l2'}`}
-                >
-                  <Icon name="filter_list" size={20} />
-                </button>
-              )}
+              <button
+                type="button"
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className={`flex size-9 items-center justify-center rounded-sm text-text-icon ${filterOpen ? 'bg-surface-selected' : 'border border-border-selected bg-surface hover:bg-surface-l2'}`}
+              >
+                <Icon name="filter_list" size={20} />
+              </button>
             </div>
           }
         />
@@ -350,7 +360,7 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
-            <HCCard title="Response from source" tooltip="Shows the last source used to respond in each unique conversation, broken down by source type.">
+            <HCCard title="Answers from source" tooltip="Shows the last source used to respond in each unique conversation, broken down by source type.">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Link' },
                 { value: '2.4K', label: 'FAQ'  },
@@ -359,7 +369,7 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
               <DonutChart data={SOURCE_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>
 
-            <HCCard title="Conversations overtime" tooltip="Monthly breakdown of unique conversations handled by the AI agent, a human, or left unresolved.">
+            <HCCard title="Involvement overtime" tooltip="Monthly breakdown of unique conversations handled by the AI agent, a human, or left unresolved.">
               <StackedBarChart
                 data={CONV_OVERTIME_DATA}
                 series={CONV_OVERTIME_SERIES}
@@ -402,14 +412,12 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
 
         </div>
       </div>
-      {isDental && (
-        <FilterPanel
-          open={filterOpen}
-          fields={DENTAL_FILTER_FIELDS}
-          onClose={() => setFilterOpen(false)}
-          onAdvancedFilters={() => {}}
-        />
-      )}
+      <FilterPanel
+        open={filterOpen}
+        fields={FILTER_FIELDS}
+        onClose={() => setFilterOpen(false)}
+        onAdvancedFilters={() => {}}
+      />
       </div>
 
       {/* List drawer */}

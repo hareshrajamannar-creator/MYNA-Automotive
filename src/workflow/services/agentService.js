@@ -225,6 +225,91 @@ const _SEED_TOOLS = [
     inputs: [{ name: 'appointmentId', type: 'string' }],
     outputs: [{ name: 'sent', type: 'boolean' }],
   },
+  {
+    id: 'send-communication',
+    name: 'Send communication',
+    isBirdeye: true,
+    description: 'Send a multi-channel communication (email, SMS, or both) to a patient at a configured time before their appointment.',
+    category: 'Communication',
+    fields: [
+      {
+        id: 'sc-channel',
+        label: 'Channel to send',
+        type: 'select',
+        defaultValue: 'Best channel',
+        options: ['Best channel', 'Email only', 'Text only', 'Email and text'],
+      },
+      {
+        id: 'sc-emails',
+        type: 'section',
+        label: 'Emails',
+        defaultOpen: true,
+        sectionFields: [
+          {
+            id: 'sc-ab-email',
+            type: 'abSection',
+            checkboxLabel: 'Run A/B Test for emails',
+            defaultChecked: false,
+            alwaysFields: [
+              { id: 'sc-email-template', type: 'templateSelect', label: 'Email template', placeholder: 'Select' },
+            ],
+            cardFields: [
+              { id: 'sc-email-distribution', type: 'distribution', label: 'Distribution', variants: [{ id: 'a', name: 'Variant A', sublabel: 'Template 1', defaultValue: 50 }, { id: 'b', name: 'Variant B', sublabel: 'Template 2', defaultValue: 50 }] },
+              { id: 'sc-email-test-ends', type: 'dateSelect', label: 'Test ends', prefix: 'After', options: ['1 day', '2 days', '3 days', '5 days', '7 days', '14 days', '30 days'], defaultValue: '7 days' },
+              { id: 'sc-email-winning', type: 'radio', label: 'Winning metric', options: ['Open rate', 'Click rate', 'Conversion rate'], defaultValue: 'Open rate' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'sc-text',
+        type: 'section',
+        label: 'Text',
+        defaultOpen: true,
+        sectionFields: [
+          {
+            id: 'sc-ab-text',
+            type: 'abSection',
+            checkboxLabel: 'Run A/B Test for text',
+            defaultChecked: false,
+            alwaysFields: [
+              { id: 'sc-text-template', type: 'templateSelect', label: 'Text template', placeholder: 'Select' },
+            ],
+            cardFields: [
+              { id: 'sc-text-distribution', type: 'distribution', label: 'Distribution', variants: [{ id: 'a', name: 'Variant A', sublabel: 'Template 1', defaultValue: 50 }, { id: 'b', name: 'Variant B', sublabel: 'Template 2', defaultValue: 50 }] },
+              { id: 'sc-text-test-ends', type: 'dateSelect', label: 'Test ends', prefix: 'After', options: ['1 day', '2 days', '3 days', '5 days', '7 days', '14 days', '30 days'], defaultValue: '7 days' },
+              { id: 'sc-text-winning', type: 'radio', label: 'Winning metric', options: ['Open rate', 'Click rate', 'Conversion rate'], defaultValue: 'Open rate' },
+            ],
+          },
+        ],
+      },
+      { id: 'sc-override', type: 'checkbox', hideLabel: true, options: ['Override communication restrictions'], defaultValue: [] },
+      { id: 'sc-ai', type: 'checkbox', label: 'AI consideration', showInfoIcon: true, options: ['Best day to send', 'Best time to send'], defaultValue: [] },
+    ],
+    inputs: [{ name: 'channel', type: 'string', description: 'email | sms | both' }, { name: 'timing', type: 'string', description: 'Days before appointment' }],
+    outputs: [{ name: 'status', type: 'string', description: 'sent | failed' }],
+  },
+  {
+    id: 'initiate-voice-call-hc',
+    name: 'Initiate voice call',
+    icon: 'call',
+    description: 'Places an outbound voice call to the patient and routes the outcome to Call completed, Call rejected, or Call missed.',
+    category: 'Communication',
+    fields: [
+      { id: 'ivc-hc-phone', label: 'Phone number', type: 'variable', defaultValue: 'Contact.PhoneNumber' },
+      { id: 'ivc-hc-call-from', label: 'Call from', type: 'select', placeholder: 'Select a caller ID', showInfoIcon: true, options: ['Main clinic line', 'Scheduling department', 'Provider direct line', 'Billing department'] },
+      { id: 'ivc-hc-procedure', label: 'Starting procedure', type: 'select', showInfoIcon: true, defaultValue: 'Form not filled', options: ['Form not filled'] },
+      { id: 'ivc-hc-route', label: 'Route to front desk agent', type: 'toggle', showInfoIcon: true, defaultValue: true, helpText: 'Anything outside the selected procedures is handed off to the Front desk agent of respective locations' },
+      { id: 'ivc-hc-context', label: 'Context', type: 'tags', showInfoIcon: true, placeholder: 'Add context variable...', defaultValue: ['Appointment ID', 'Patient ID', 'Provider ID', 'Diagnosis Code', 'Appointment_Type'] },
+      { id: 'ivc-hc-retry-header', label: 'Retry settings', type: 'sectionLabel', helpText: "Automatically retry if the customer doesn't connect on the first attempt." },
+      { id: 'ivc-hc-retry', type: 'checkbox', hideLabel: true, layout: 'row', options: ['No answer', 'Call rejected', 'Voice mail'], defaultValue: ['No answer', 'Voice mail'], conditionalFields: [{ id: 'ivc-hc-voicemail-msg', showWhenIncludes: 'Voice mail', type: 'textarea', label: 'Leave a message if the call goes to voicemail.', showVariableToolbar: true, placeholder: 'Enter your message here', rows: 3 }] },
+      { id: 'ivc-hc-attempts-header', label: 'Retry attempts', type: 'sectionLabel' },
+      { id: 'ivc-hc-max-attempts', label: 'Max attempts', type: 'select', defaultValue: '2', options: ['1', '2', '3', '4', '5'], width: 'half' },
+      { id: 'ivc-hc-interval', label: 'Interval between retries', type: 'selectRow', selects: [{ options: ['6', '12', '24', '48'], defaultValue: '24' }, { options: ['Hours', 'Days'], defaultValue: 'Hours' }] },
+    ],
+    inputs: [{ name: 'phoneNumber', type: 'string' }],
+    outputs: [{ name: 'outcome', type: 'string', description: 'completed | rejected | missed' }],
+  },
 ];
 
 const _customTools = new Map(_SEED_TOOLS.map(t => [t.id, t]));

@@ -425,6 +425,71 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           previousId = childNode.id;
           previousChildFlowType = childNode.flowType;
 
+          // Recursively fan out nested branch nodes inside a branch path
+          if (childNode.flowType === 'branch') {
+            const nestedBranches = nodeDetails[childId]?.branches || [];
+            const nestedSpacing = 480;
+            const nestedStartX = branchX - ((nestedBranches.length - 1) * nestedSpacing) / 2;
+            const nestedChipY = branchNodeStartY + childIndex * 250 + 150;
+            const nestedNodeStartY = branchNodeStartY + childIndex * 250 + 260;
+            nestedBranches.forEach((nestedBranch, nbi) => {
+              const nestedBranchX = nestedStartX + nbi * nestedSpacing;
+              const nestedBranchNodes = nodeDetails[nestedBranch.id]?.nodes || [];
+              nodes.push({
+                id: nestedBranch.id,
+                type: 'branchPath',
+                position: { x: nestedBranchX, y: nestedChipY },
+                data: { label: nestedBranch.name, parentId: childId, isFallback: !!nestedBranch.isFallback, isVoiceCallBranch: false },
+              });
+              edges.push({ id: `e-${childId}-${nestedBranch.id}`, source: childId, target: nestedBranch.id, type: 'branchFan' });
+              let nestedPrevId = nestedBranch.id;
+              nestedBranchNodes.forEach((nestedChild, nci) => {
+                const nestedChildId = nestedChild.id;
+                const nestedChildDet = nodeDetails[nestedChildId] || {};
+                let nestedChildData = { ...nestedChild.data, stepNumber: ++stepCounter };
+                if (nestedChild.flowType === 'voiceCall') {
+                  // voiceCall inside nested branch — fan out its sub-branches
+                  const vcBranches2 = nodeDetails[nestedChildId]?.branches || [];
+                  const vcSpacing2 = 480;
+                  const vcStartX2 = nestedBranchX - ((vcBranches2.length - 1) * vcSpacing2) / 2;
+                  const vcChipY2 = nestedNodeStartY + nci * 250 + 150;
+                  const vcNodeStartY2 = nestedNodeStartY + nci * 250 + 260;
+                  nodes.push({ id: nestedChildId, type: nestedChild.flowType, position: { x: nestedBranchX, y: nestedNodeStartY + nci * 250 }, data: nestedChildData });
+                  edges.push({ id: `e-${nestedPrevId}-${nestedChildId}`, source: nestedPrevId, target: nestedChildId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
+                  vcBranches2.forEach((vcBranch2, vcBi2) => {
+                    const vcBranchX2 = vcStartX2 + vcBi2 * vcSpacing2;
+                    const vcBranchNodes2 = nodeDetails[vcBranch2.id]?.nodes || [];
+                    nodes.push({ id: vcBranch2.id, type: 'branchPath', position: { x: vcBranchX2, y: vcChipY2 }, data: { label: vcBranch2.name, parentId: nestedChildId, isFallback: !!vcBranch2.isFallback, isVoiceCallBranch: true } });
+                    edges.push({ id: `e-${nestedChildId}-${vcBranch2.id}`, source: nestedChildId, target: vcBranch2.id, type: 'branchFan' });
+                    let vcPrev2 = vcBranch2.id;
+                    vcBranchNodes2.forEach((vcChild2, vcIdx2) => {
+                      nodes.push({ id: vcChild2.id, type: vcChild2.flowType, position: { x: vcBranchX2, y: vcNodeStartY2 + vcIdx2 * 250 }, data: { ...vcChild2.data, stepNumber: ++stepCounter } });
+                      edges.push({ id: `e-${vcPrev2}-${vcChild2.id}`, source: vcPrev2, target: vcChild2.id, type: 'addButton', data: { branchPathId: vcBranch2.id, afterNodeId: vcPrev2 === vcBranch2.id ? null : vcPrev2 } });
+                      vcPrev2 = vcChild2.id;
+                    });
+                    const vcEnd2 = `${vcBranch2.id}-end`;
+                    nodes.push({ id: vcEnd2, type: 'branchEnd', position: { x: vcBranchX2, y: vcNodeStartY2 + vcBranchNodes2.length * 250 }, data: { parentId: vcBranch2.id } });
+                    edges.push({ id: `e-${vcPrev2}-${vcEnd2}`, source: vcPrev2, target: vcEnd2, type: 'addButton', data: { branchPathId: vcBranch2.id, afterNodeId: vcPrev2 === vcBranch2.id ? null : vcPrev2 } });
+                  });
+                  nestedPrevId = nestedChildId;
+                } else {
+                  if (nestedChild.flowType !== 'delay' && nestedChild.flowType !== 'branch') {
+                    nestedChildData = { ...nestedChildData, title: nestedChildDet.taskName ?? nestedChildDet.triggerName ?? nestedChildData.title, subtitle: nestedChildDet.description ?? nestedChildData.subtitle };
+                  }
+                  nodes.push({ id: nestedChildId, type: nestedChild.flowType, position: { x: nestedBranchX, y: nestedNodeStartY + nci * 250 }, data: nestedChildData });
+                  edges.push({ id: `e-${nestedPrevId}-${nestedChildId}`, source: nestedPrevId, target: nestedChildId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
+                  nestedPrevId = nestedChildId;
+                }
+              });
+              const lastNestedIsVoiceCall = nestedBranchNodes.length > 0 && nestedBranchNodes[nestedBranchNodes.length - 1].flowType === 'voiceCall';
+              if (!lastNestedIsVoiceCall) {
+                const nestedEndId = `${nestedBranch.id}-end`;
+                nodes.push({ id: nestedEndId, type: 'branchEnd', position: { x: nestedBranchX, y: nestedNodeStartY + nestedBranchNodes.length * 250 }, data: { parentId: nestedBranch.id } });
+                edges.push({ id: `e-${nestedPrevId}-${nestedEndId}`, source: nestedPrevId, target: nestedEndId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
+              }
+            });
+          }
+
           // Recursively fan out voiceCall sub-branches when voiceCall is nested inside a branch path
           if (childNode.flowType === 'voiceCall') {
             const vcBranches = nodeDetails[childId]?.branches || [];
@@ -571,6 +636,7 @@ export default function AgentBuilder({
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
+  const [lhsPreviewProcedureId, setLhsPreviewProcedureId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewActive, setPreviewActive] = useState(false);
   // Tool viewer state
@@ -1334,6 +1400,7 @@ export default function AgentBuilder({
     setDrawerOpen(false);
     setSelectedNodeId(null);
     setActiveProcedureId(null);
+    setLhsPreviewProcedureId(null);
   }, []);
 
   const currentDetails = selectedNodeId ? (nodeDetails[selectedNodeId] || {}) : {};
@@ -1422,6 +1489,26 @@ export default function AgentBuilder({
   }, [selectedNodeId, nodeDetails, onAddProcedure, product]);
 
   const renderRHSPanel = () => {
+    if (lhsPreviewProcedureId) {
+      const mergedProc = getProcedureDetailContent(lhsPreviewProcedureId, {}, product);
+      return (
+        <RHS
+          key={`lhs-preview-${lhsPreviewProcedureId}`}
+          variant="procedureDetail"
+          title={mergedProc.name}
+          viewOnly={viewOnly}
+          product={product}
+          onBack={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+          bodyProps={{
+            initialValues: mergedProc,
+            onFieldChange: () => {},
+          }}
+          onClose={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+          onSave={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+        />
+      );
+    }
+
     if (!selectedNodeId) return null;
 
     if (selectedNodeId === START_NODE_ID) {
@@ -1845,6 +1932,12 @@ export default function AgentBuilder({
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}
+              onProcedureClick={viewOnly ? undefined : (procedureId) => {
+                setLhsPreviewProcedureId(procedureId);
+                setSelectedNodeId(null);
+                setActiveProcedureId(null);
+                setDrawerOpen(true);
+              }}
             />
           </div>
 

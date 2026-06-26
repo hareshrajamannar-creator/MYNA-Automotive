@@ -132,10 +132,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '22%', timeSaved: '3.4 hrs', locations: '100' },
   ],
   'Pre-visit agent': [
-    { region: 'North region', status: 'Running', interactions: '4,120', fcr: '3,780', aht: '92%', escalation: '8%', locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '2,840', fcr: '2,590', aht: '91%', escalation: '9%', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '1,960', fcr: '1,760', aht: '90%', escalation: '10%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '1,320', fcr: '1,170', aht: '89%', escalation: '11%', locations: '140' },
+    { region: 'North region', status: 'Running', interactions: '1,040', fcr: '962',   aht: '93%', escalation: '37h', locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '880',   fcr: '810',   aht: '92%', escalation: '31h', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '760',   fcr: '694',   aht: '91%', escalation: '27h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '620',   fcr: '556',   aht: '90%', escalation: '22h', locations: '140' },
   ],
   'Recall agent': [
     { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
@@ -348,10 +348,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
     ],
     'Pre-visit agent': [
-      { id: 'intakesCompleted', value: '6,840', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance in the selected period.' },
-      { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
-      { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
-      { id: 'staffHoursSaved', value: '312h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+      { id: 'outreach',   value: '463',   label: 'Outreach sent',    delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'intakes',    value: '2,700', label: 'Intakes completed', delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'completion', value: '90%',   label: 'Completion rate',   delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'timeSaved',  value: '1h',    label: 'Time saved',        delta: '+1.3%', trend: 'up' as const, info: true },
     ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted', info: true, tooltip: 'Total leads the agent reached out to via call or message in the selected period.' },
@@ -449,10 +449,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'fillRate' as keyof AgentInstance, label: 'Fill rate', width: 130, sortable: true },
       { key: 'timeSaved' as keyof AgentInstance, label: 'Avg fill time', width: 150, sortable: true },
     ] : isPreVisit ? [
-      { key: 'interactions' as keyof AgentInstance, label: 'Intakes completed', width: 180, sortable: true },
-      { key: 'fcr' as keyof AgentInstance, label: 'Completion rate', width: 160, sortable: true },
-      { key: 'aht' as keyof AgentInstance, label: 'Avg completion time', width: 180, sortable: true },
-      { key: 'escalation' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
+      { key: 'interactions' as keyof AgentInstance, label: 'Outreach sent',     width: 160, sortable: true },
+      { key: 'fcr' as keyof AgentInstance,          label: 'Intakes completed',  width: 180, sortable: true },
+      { key: 'aht' as keyof AgentInstance,          label: 'Completion rate',    width: 160, sortable: true },
+      { key: 'escalation' as keyof AgentInstance,   label: 'Time saved',         width: 140, sortable: true },
     ] : isFrontdesk ? [
       { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },

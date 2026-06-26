@@ -166,7 +166,7 @@ export function ConversationsScreen() {
       <div className="flex flex-1 flex-col gap-lg overflow-auto bg-surface px-2xl pb-2xl pt-md">
         <SummaryStats stats={SUMMARY} />
 
-        <ChartCard title="Conversations overtime">
+        <ChartCard title="Involvement overtime">
           <StackedBarChart data={overTime} series={OUTCOME_SERIES} xKey="month" height={300} />
         </ChartCard>
 

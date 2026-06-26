@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FormInput, TextArea } from '../../../elemental-stubs';
 import { subscribeToCustomTools } from '../../../services/agentService';
+import birdeyeLogoUrl from '../../../../assets/birdeye-logo.svg';
 import styles from './EntityTaskBody.module.css';
 
-export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOpenTool }) {
+export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOpenTool, onSwapTool }) {
   const [taskName, setTaskName] = useState(initialValues.taskName ?? '');
   const [description, setDescription] = useState(initialValues.description ?? '');
   const [selectedTools, setSelectedTools] = useState(initialValues.selectedTools ?? []);
@@ -70,7 +71,9 @@ export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOp
             >
               <div className={styles.toolRowMain}>
                 <div className={styles.toolIconWrap}>
-                  {tool.icon ? (
+                  {tool.isBirdeye ? (
+                    <img src={birdeyeLogoUrl} alt="Birdeye" style={{ width: 16, height: 16 }} />
+                  ) : tool.icon ? (
                     <span
                       className="material-symbols-outlined"
                       style={{ fontSize: 16, color: '#555', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}
@@ -85,14 +88,28 @@ export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOp
                 </div>
                 <span className={styles.toolName}>{tool.name}</span>
               </div>
-              {onOpenTool && (
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 16, color: '#9e9e9e' }}
+              <div className={styles.toolRowActions}>
+                <button
+                  type="button"
+                  className={styles.toolActionBtn}
+                  onClick={(e) => { e.stopPropagation(); onOpenTool?.(tool.id); }}
+                  title="Edit tool configuration"
                 >
-                  chevron_right
-                </span>
-              )}
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                    edit
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.toolActionBtn}
+                  onClick={(e) => { e.stopPropagation(); onSwapTool?.(); }}
+                  title="Replace tool"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                    swap_horiz
+                  </span>
+                </button>
+              </div>
             </div>
           ))}
         </div>
