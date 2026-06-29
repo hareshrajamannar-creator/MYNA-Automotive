@@ -103,13 +103,29 @@ export function FormDrawer({
             const value = values[field.key] ?? ''
             return (
               <div key={field.key} className="flex flex-col gap-xs">
-                <label className="text-small text-text-primary">{field.label}</label>
+                {field.type === 'textarea' ? (
+                  <div className="flex items-center justify-between">
+                    <label className="text-small text-text-primary">{field.label}</label>
+                    <span className="text-small text-text-secondary">{value.length}/{field.charLimit ?? 300}</span>
+                  </div>
+                ) : (
+                  <label className="text-small text-text-primary">{field.label}</label>
+                )}
                 {field.type === 'text' ? (
                   <input
                     value={value}
                     onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
                     placeholder={field.placeholder ?? 'Enter input'}
                     className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
+                  />
+                ) : field.type === 'textarea' ? (
+                  <textarea
+                    value={value}
+                    maxLength={field.charLimit ?? 300}
+                    rows={5}
+                    placeholder={field.placeholder ?? 'Enter text'}
+                    onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
+                    className="w-full resize-none rounded-sm border border-border px-md py-sm text-body text-text-primary placeholder:text-text-tertiary outline-none focus:border-primary"
                   />
                 ) : (
                   <button

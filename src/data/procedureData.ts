@@ -6,6 +6,8 @@ export type ProcedureCategory =
   | 'After-Hours'
   | 'Outbound'
   | 'Healthcare Frontdesk'
+  | 'Healthcare Pre-visit'
+  | 'Healthcare Waitlist'
 
 // ── Rich step model ─────────────────────────────────────────────
 // A step has a title and a list of bullets. Each bullet is a sequence
@@ -1517,6 +1519,7 @@ export const HC_PROCEDURE_ORDER = [
   'Waitlist slot confirmation',
   'Handle emergency or urgent concern',
   'Handle unclear message',
+  'Form not filled',
 ] as const
 
 function sortProceduresByOrder(procedures: Procedure[], order: readonly string[]): Procedure[] {
@@ -2083,6 +2086,49 @@ const DENTAL_TP_CONTEXT: ContextItem[] = [
 
 HC_PROCEDURES_UNSORTED.push(
   {
+    id: 'hc-pv-01',
+    name: 'Form not filled',
+    category: 'Healthcare Pre-visit',
+    description: 'Patient has not completed their pre-visit intake form before the appointment date.',
+    lastEdited: 'Jun 24',
+    whenToUse: 'Patient has not completed their pre-visit intake form before the appointment date.',
+    steps: [
+      {
+        title: 'Greet and confirm appointment',
+        bullets: [
+          { tokens: ['Greet the patient and confirm their upcoming appointment details.'] },
+        ],
+      },
+      {
+        title: 'Notify about incomplete form',
+        bullets: [
+          { tokens: ['Inform them their intake form has not been completed yet.'] },
+        ],
+      },
+      {
+        title: 'Provide form link',
+        bullets: [
+          { tokens: ['Provide the intake form link and explain the importance of completing it before the visit.'] },
+          { tokens: ['Offer to resend the form link via email or SMS.'] },
+        ],
+      },
+      {
+        title: 'Handle inability to complete digitally',
+        bullets: [
+          { tokens: ['If the patient is unable to complete the form digitally, offer to assist or escalate to front desk staff.'] },
+        ],
+      },
+      {
+        title: 'Confirm next steps',
+        bullets: [
+          { tokens: ['Confirm next steps and close the interaction.'] },
+        ],
+      },
+    ],
+    tools: ['send-communication', 'initiate-voice-call-hc'],
+    context: [],
+  },
+  {
     id: 'dental-ob-01',
     name: 'Recall — reactivate and book recare',
     category: 'Healthcare Frontdesk',
@@ -2264,6 +2310,45 @@ HC_PROCEDURES_UNSORTED.push(
     tools: ['lookup_patient', 'get_treatment_plan', 'get_services_and_specialists', 'get_available_slots', 'create_appointment', 'send_text_confirmation', 'update_state', 'opt_out_processor'],
     context: DENTAL_TP_CONTEXT,
   },
+)
+
+HC_PROCEDURES_UNSORTED.push(
+  {
+    id: 'hc-wl-01',
+    name: 'Waitlist slot confirmation',
+    category: 'Healthcare Waitlist',
+    description: 'When agent is calling outbound to confirm a newly opened slot with a patient on the waitlist.',
+    lastEdited: 'Jun 26',
+    whenToUse: 'A cancelled appointment slot has opened and a waitlisted patient needs to be contacted.',
+    steps: [
+      {
+        title: 'Greet and identify the open slot',
+        bullets: [
+          { tokens: ['Greet the patient and reference the open appointment slot.'] },
+        ],
+      },
+      {
+        title: 'Confirm interest and availability',
+        bullets: [
+          { tokens: ['Ask if the patient is still interested and available for the slot date and time.'] },
+        ],
+      },
+      {
+        title: 'Book the appointment',
+        bullets: [
+          { tokens: ['If patient accepts, confirm the appointment and update the scheduling system.'] },
+        ],
+      },
+      {
+        title: 'Send confirmation',
+        bullets: [
+          { tokens: ['Send a confirmation message to the patient with appointment details.'] },
+        ],
+      },
+    ],
+    tools: ['initiate-voice-call-hc', 'fetch-waitlist-hc'],
+    context: [],
+  }
 )
 
 export const HC_PROCEDURES = sortProceduresByOrder(HC_PROCEDURES_UNSORTED, HC_PROCEDURE_ORDER)

@@ -132,10 +132,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '22%', timeSaved: '3.4 hrs', locations: '100' },
   ],
   'Pre-visit agent': [
-    { region: 'North region', status: 'Running', interactions: '4,120', fcr: '3,780', aht: '92%', escalation: '8%', locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '2,840', fcr: '2,590', aht: '91%', escalation: '9%', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '1,960', fcr: '1,760', aht: '90%', escalation: '10%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '1,320', fcr: '1,170', aht: '89%', escalation: '11%', locations: '140' },
+    { region: 'North region', status: 'Running', interactions: '1,040', fcr: '962',   aht: '93%', escalation: '37h', locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '880',   fcr: '810',   aht: '92%', escalation: '31h', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '760',   fcr: '694',   aht: '91%', escalation: '27h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '620',   fcr: '556',   aht: '90%', escalation: '22h', locations: '140' },
   ],
   'Recall agent': [
     { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
@@ -223,6 +223,20 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
       id: 'tp-case-acceptance',
       title: 'Case acceptance accelerator',
       description: 'Multi-channel sequence that pairs a personalized email with a follow-up voice call to move patients from "thinking about it" to a confirmed appointment, with warm transfer to the financial coordinator for cost questions.',
+    },
+  ],
+  'Waitlist agent': [
+    {
+      id: 'waitlist-agent',
+      title: 'Waitlist agent',
+      description: 'Manages waitlist requests by reviewing availability, offering open slots, and confirming appointments with patients.',
+    },
+  ],
+  'Pre-visit agent': [
+    {
+      id: 'previsit-checkin-outreach',
+      title: 'Pre-visit agent',
+      description: 'The Pre-Visit Agent automates pre-appointment check-in form outreach.',
     },
   ],
 }
@@ -336,22 +350,22 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'timeSaved', value: '40h', label: 'Time saved', delta: '12%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved based on average handle time for equivalent human-handled conversations.' },
     ],
     'Reminder agent': [
-      { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total appointment reminders sent by the agent via voice and chat in the selected period.' },
-      { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of reminders that received a confirmed response from the customer.' },
-      { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
-      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
+      { id: 'bookings', value: '450', label: 'Total bookings', delta: '20%', trend: 'up', info: true, tooltip: 'Total appointments booked across all locations in the selected period.' },
+      { id: 'confirmed', value: '100', label: 'Appointments confirmed', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of upcoming appointments confirmed by the patient via automated reminder outreach, reducing the likelihood of a no-show.' },
+      { id: 'confirmRate', value: '23.7%', label: 'Confirmation rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of total bookings where the patient confirmed attendance. Calculated as appointments confirmed ÷ total bookings.' },
+      { id: 'timeSaved', value: '8 min', label: 'Time saved', delta: '5.3%', trend: 'up', info: true, tooltip: 'Estimated staff time saved per confirmed appointment by automating reminder outreach and follow-up.' },
     ],
     'Waitlist agent': [
-      { id: 'outreachSent', value: '5.5K', label: 'Outreach sent slots', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
+      { id: 'outreachSent', value: '5.5K', label: 'Outreach sent', delta: '12%', trend: 'up', info: true, tooltip: 'Total waitlist outreach messages sent by the agent to fill cancelled or open slots.' },
       { id: 'slotsFilled', value: '7.9K', label: 'Slots filled', delta: '36.6%', trend: 'up', info: true, tooltip: 'Number of open or cancelled slots successfully filled via waitlist outreach.' },
       { id: 'fillRate', value: '23.7%', label: 'Fill rate', delta: '20%', trend: 'up', info: true, tooltip: 'Percentage of waitlisted patients who booked after receiving outreach. Calculated as slots filled ÷ outreach sent.' },
-      { id: 'avgFillTime', value: '2.5 hrs', label: 'Avg fill time', delta: '20%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time from outreach send to confirmed booking. Lower is better.' },
+      { id: 'timeSaved', value: '2.5 hrs', label: 'Time saved', delta: '20%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating waitlist outreach instead of manually calling through the list.' },
     ],
     'Pre-visit agent': [
-      { id: 'intakesCompleted', value: '6,840', label: 'Intakes completed', delta: '8.4%', trend: 'up', info: true, tooltip: 'Total pre-visit intake forms completed by patients with agent assistance in the selected period.' },
-      { id: 'completionRate', value: '94%', label: 'Completion rate', delta: '3.2%', trend: 'up', info: true, tooltip: 'Percentage of initiated intake sessions that were fully completed before the appointment.' },
-      { id: 'avgCompletionTime', value: '6.2 min', label: 'Avg completion time', delta: '11%', trend: 'down', positiveDown: true, info: true, tooltip: 'Average time for a patient to complete the pre-visit intake form with agent guidance. Lower is better.' },
-      { id: 'staffHoursSaved', value: '312h', label: 'Staff hours saved', delta: '14%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating pre-visit intake collection and form preparation.' },
+      { id: 'outreach',   value: '463',   label: 'Outreach sent',    delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'intakes',    value: '2,700', label: 'Intakes completed', delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'completion', value: '90%',   label: 'Completion rate',   delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'timeSaved',  value: '1h',    label: 'Time saved',        delta: '+1.3%', trend: 'up' as const, info: true },
     ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted', info: true, tooltip: 'Total leads the agent reached out to via call or message in the selected period.' },
@@ -444,15 +458,15 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
       { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
     ] : isWaitlist ? [
-      { key: 'outreachSent' as keyof AgentInstance, label: 'Outreach sent slots', width: 180, sortable: true },
+      { key: 'outreachSent' as keyof AgentInstance, label: 'Outreach sent', width: 180, sortable: true },
       { key: 'slotsFilled' as keyof AgentInstance, label: 'Slots filled', width: 150, sortable: true },
       { key: 'fillRate' as keyof AgentInstance, label: 'Fill rate', width: 130, sortable: true },
-      { key: 'timeSaved' as keyof AgentInstance, label: 'Avg fill time', width: 150, sortable: true },
+      { key: 'timeSaved' as keyof AgentInstance, label: 'Time saved', width: 150, sortable: true },
     ] : isPreVisit ? [
-      { key: 'interactions' as keyof AgentInstance, label: 'Intakes completed', width: 180, sortable: true },
-      { key: 'fcr' as keyof AgentInstance, label: 'Completion rate', width: 160, sortable: true },
-      { key: 'aht' as keyof AgentInstance, label: 'Avg completion time', width: 180, sortable: true },
-      { key: 'escalation' as keyof AgentInstance, label: 'Staff hours saved', width: 170, sortable: true },
+      { key: 'interactions' as keyof AgentInstance, label: 'Outreach sent',     width: 160, sortable: true },
+      { key: 'fcr' as keyof AgentInstance,          label: 'Intakes completed',  width: 180, sortable: true },
+      { key: 'aht' as keyof AgentInstance,          label: 'Completion rate',    width: 160, sortable: true },
+      { key: 'escalation' as keyof AgentInstance,   label: 'Time saved',         width: 140, sortable: true },
     ] : isFrontdesk ? [
       { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },

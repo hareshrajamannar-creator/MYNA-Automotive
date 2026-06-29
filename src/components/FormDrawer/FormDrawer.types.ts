@@ -1,4 +1,4 @@
-export type FormFieldType = 'text' | 'select' | 'template-picker'
+export type FormFieldType = 'text' | 'select' | 'template-picker' | 'textarea'
 
 export interface TemplateOption {
   label: string
@@ -15,6 +15,8 @@ export interface FormField {
   options?: string[]
   /** Options for template-picker fields. */
   templateOptions?: TemplateOption[]
+  /** Max character count for textarea fields. */
+  charLimit?: number
 }
 
 export interface FormDrawerProps {

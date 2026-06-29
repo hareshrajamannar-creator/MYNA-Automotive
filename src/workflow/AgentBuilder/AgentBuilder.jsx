@@ -30,6 +30,7 @@ import {
   FLOW_CONNECTOR_GAP,
   FLOW_START_NODE_HEIGHT,
 } from '../flowLayoutConstants';
+import { computeLoopCanvasHeight, computeLoopBodyHeight } from '../Molecules/Canvas/LoopNode/LoopNode';
 import './AgentBuilder.css';
 
 const START_NODE_ID = '__start__';
@@ -240,10 +241,40 @@ function estimateProceduresNodeHeight(procedureIds = [], nodeDetails, nodeId, pr
   return PROCEDURE_SHELL_HEIGHT + chipBlock;
 }
 
+const LOOP_INLINE_CARD_W = 400;
+const LOOP_INLINE_ARM_GAP = 80;
+
+function computeLoopFlowWidth(nodes, nodeDetails) {
+  if (!nodes || nodes.length === 0) return LOOP_INLINE_CARD_W;
+  let maxWidth = LOOP_INLINE_CARD_W;
+  for (const node of nodes) {
+    if (node.flowType === 'branch' || node.flowType === 'voiceCall') {
+      const branches = nodeDetails[node.id]?.branches || [];
+      if (branches.length === 0) continue;
+      const EMPTY_ARM_W = 160; // arms with no nodes only show a small chip
+      const armWidths = branches.map(b => {
+        const bNodes = nodeDetails[b.id]?.nodes || [];
+        if (bNodes.length === 0) return EMPTY_ARM_W;
+        return Math.max(LOOP_INLINE_CARD_W, computeLoopFlowWidth(bNodes, nodeDetails));
+      });
+      const totalW = armWidths.reduce((s, w) => s + w, 0) + (branches.length - 1) * LOOP_INLINE_ARM_GAP;
+      maxWidth = Math.max(maxWidth, totalW);
+    }
+  }
+  return maxWidth;
+}
+
 function getNodeBlockHeight(item, nodeId, nodeDetails, product = 'automotive') {
   if (item?.flowType === 'procedures') {
     const ids = nodeDetails?.[nodeId]?.procedureIds ?? [];
     return estimateProceduresNodeHeight(ids, nodeDetails, nodeId, product);
+  }
+  if (item?.flowType === 'loop') {
+    const loopNodes = nodeDetails?.[nodeId]?.nodes || [];
+    const hasBranch = loopNodes.some(n => n.flowType === 'branch' || n.flowType === 'voiceCall');
+    if (hasBranch) return 2800;
+    const childCount = loopNodes.length;
+    return computeLoopCanvasHeight(Math.max(childCount, 1));
   }
   return FLOW_STANDARD_NODE_HEIGHT;
 }
@@ -323,27 +354,55 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
                   product,
                 ),
               }
-            : {
-                ...item.data,
-                stepNumber: topLevelStep,
-                ...(item.flowType === 'delay'
-                  ? {
-                      titlePlaceholder: 'Configure delay settings',
-                      descriptionPlaceholder: 'Wait for specific time or event.',
-                    }
-                  : item.flowType === 'subagent'
+            : item.flowType === 'loop'
+              ? (() => {
+                  const loopNodes = nodeDetails[nodeId]?.nodes || [];
+                  const hasBranch = loopNodes.some(n => n.flowType === 'branch' || n.flowType === 'voiceCall');
+                  const loopBodyH = hasBranch ? 1800 : computeLoopBodyHeight(Math.max(loopNodes.length, 1));
+                  const contentW = computeLoopFlowWidth(loopNodes, nodeDetails);
+                  const loopContainerWidth = Math.max(contentW + 80, 860); // 40px padding each side
+                  return {
+                    ...item.data,
+                    stepNumber: topLevelStep,
+                    title: nodeDetails[nodeId]?.loopName ?? item.data.title,
+                    subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
+                    loopBodyHeight: loopBodyH,
+                    loopContainerWidth,
+                    loopChildren: loopNodes.map((child) => ({
+                      ...child.data,
+                      id: child.id,
+                      stepNumber: ++stepCounter,
+                      title: nodeDetails[child.id]?.taskName ?? nodeDetails[child.id]?.triggerName ?? child.data.title,
+                      subtitle: nodeDetails[child.id]?.description ?? child.data.subtitle,
+                    })),
+                    loopFlow: loopNodes.map((child) => ({
+                      ...child,
+                      data: { ...child.data, stepNumber: ++stepCounter },
+                    })),
+                    loopNodeDetails: nodeDetails,
+                  };
+                })()
+              : {
+                  ...item.data,
+                  stepNumber: topLevelStep,
+                  ...(item.flowType === 'delay'
                     ? {
-                        titlePlaceholder: 'Call subagent',
-                        descriptionPlaceholder: 'Call subagent workflow.',
+                        titlePlaceholder: 'Configure delay settings',
+                        descriptionPlaceholder: 'Wait for specific time or event.',
                       }
-                    : {}),
-                // Pull title and subtitle from saved nodeDetails so canvas nodes
-                // show real content instead of placeholder text
-                title: nodeDetails[nodeId]?.taskName
-                  ?? nodeDetails[nodeId]?.triggerName
-                  ?? item.data.title,
-                subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
-              },
+                    : item.flowType === 'subagent'
+                      ? {
+                          titlePlaceholder: 'Call subagent',
+                          descriptionPlaceholder: 'Call subagent workflow.',
+                        }
+                      : {}),
+                  // Pull title and subtitle from saved nodeDetails so canvas nodes
+                  // show real content instead of placeholder text
+                  title: nodeDetails[nodeId]?.taskName
+                    ?? nodeDetails[nodeId]?.triggerName
+                    ?? item.data.title,
+                  subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
+                },
     });
     const prevIsProcedures = i > 0 && nodeList[i - 1].flowType === 'procedures';
     edges.push({
@@ -425,6 +484,71 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           });
           previousId = childNode.id;
           previousChildFlowType = childNode.flowType;
+
+          // Recursively fan out nested branch nodes inside a branch path
+          if (childNode.flowType === 'branch') {
+            const nestedBranches = nodeDetails[childId]?.branches || [];
+            const nestedSpacing = 480;
+            const nestedStartX = branchX - ((nestedBranches.length - 1) * nestedSpacing) / 2;
+            const nestedChipY = branchNodeStartY + childIndex * 250 + 150;
+            const nestedNodeStartY = branchNodeStartY + childIndex * 250 + 260;
+            nestedBranches.forEach((nestedBranch, nbi) => {
+              const nestedBranchX = nestedStartX + nbi * nestedSpacing;
+              const nestedBranchNodes = nodeDetails[nestedBranch.id]?.nodes || [];
+              nodes.push({
+                id: nestedBranch.id,
+                type: 'branchPath',
+                position: { x: nestedBranchX, y: nestedChipY },
+                data: { label: nestedBranch.name, parentId: childId, isFallback: !!nestedBranch.isFallback, isVoiceCallBranch: false },
+              });
+              edges.push({ id: `e-${childId}-${nestedBranch.id}`, source: childId, target: nestedBranch.id, type: 'branchFan' });
+              let nestedPrevId = nestedBranch.id;
+              nestedBranchNodes.forEach((nestedChild, nci) => {
+                const nestedChildId = nestedChild.id;
+                const nestedChildDet = nodeDetails[nestedChildId] || {};
+                let nestedChildData = { ...nestedChild.data, stepNumber: ++stepCounter };
+                if (nestedChild.flowType === 'voiceCall') {
+                  // voiceCall inside nested branch — fan out its sub-branches
+                  const vcBranches2 = nodeDetails[nestedChildId]?.branches || [];
+                  const vcSpacing2 = 480;
+                  const vcStartX2 = nestedBranchX - ((vcBranches2.length - 1) * vcSpacing2) / 2;
+                  const vcChipY2 = nestedNodeStartY + nci * 250 + 150;
+                  const vcNodeStartY2 = nestedNodeStartY + nci * 250 + 260;
+                  nodes.push({ id: nestedChildId, type: nestedChild.flowType, position: { x: nestedBranchX, y: nestedNodeStartY + nci * 250 }, data: nestedChildData });
+                  edges.push({ id: `e-${nestedPrevId}-${nestedChildId}`, source: nestedPrevId, target: nestedChildId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
+                  vcBranches2.forEach((vcBranch2, vcBi2) => {
+                    const vcBranchX2 = vcStartX2 + vcBi2 * vcSpacing2;
+                    const vcBranchNodes2 = nodeDetails[vcBranch2.id]?.nodes || [];
+                    nodes.push({ id: vcBranch2.id, type: 'branchPath', position: { x: vcBranchX2, y: vcChipY2 }, data: { label: vcBranch2.name, parentId: nestedChildId, isFallback: !!vcBranch2.isFallback, isVoiceCallBranch: true } });
+                    edges.push({ id: `e-${nestedChildId}-${vcBranch2.id}`, source: nestedChildId, target: vcBranch2.id, type: 'branchFan' });
+                    let vcPrev2 = vcBranch2.id;
+                    vcBranchNodes2.forEach((vcChild2, vcIdx2) => {
+                      nodes.push({ id: vcChild2.id, type: vcChild2.flowType, position: { x: vcBranchX2, y: vcNodeStartY2 + vcIdx2 * 250 }, data: { ...vcChild2.data, stepNumber: ++stepCounter } });
+                      edges.push({ id: `e-${vcPrev2}-${vcChild2.id}`, source: vcPrev2, target: vcChild2.id, type: 'addButton', data: { branchPathId: vcBranch2.id, afterNodeId: vcPrev2 === vcBranch2.id ? null : vcPrev2 } });
+                      vcPrev2 = vcChild2.id;
+                    });
+                    const vcEnd2 = `${vcBranch2.id}-end`;
+                    nodes.push({ id: vcEnd2, type: 'branchEnd', position: { x: vcBranchX2, y: vcNodeStartY2 + vcBranchNodes2.length * 250 }, data: { parentId: vcBranch2.id } });
+                    edges.push({ id: `e-${vcPrev2}-${vcEnd2}`, source: vcPrev2, target: vcEnd2, type: 'addButton', data: { branchPathId: vcBranch2.id, afterNodeId: vcPrev2 === vcBranch2.id ? null : vcPrev2 } });
+                  });
+                  nestedPrevId = nestedChildId;
+                } else {
+                  if (nestedChild.flowType !== 'delay' && nestedChild.flowType !== 'branch') {
+                    nestedChildData = { ...nestedChildData, title: nestedChildDet.taskName ?? nestedChildDet.triggerName ?? nestedChildData.title, subtitle: nestedChildDet.description ?? nestedChildData.subtitle };
+                  }
+                  nodes.push({ id: nestedChildId, type: nestedChild.flowType, position: { x: nestedBranchX, y: nestedNodeStartY + nci * 250 }, data: nestedChildData });
+                  edges.push({ id: `e-${nestedPrevId}-${nestedChildId}`, source: nestedPrevId, target: nestedChildId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
+                  nestedPrevId = nestedChildId;
+                }
+              });
+              const lastNestedIsVoiceCall = nestedBranchNodes.length > 0 && nestedBranchNodes[nestedBranchNodes.length - 1].flowType === 'voiceCall';
+              if (!lastNestedIsVoiceCall) {
+                const nestedEndId = `${nestedBranch.id}-end`;
+                nodes.push({ id: nestedEndId, type: 'branchEnd', position: { x: nestedBranchX, y: nestedNodeStartY + nestedBranchNodes.length * 250 }, data: { parentId: nestedBranch.id } });
+                edges.push({ id: `e-${nestedPrevId}-${nestedEndId}`, source: nestedPrevId, target: nestedEndId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
+              }
+            });
+          }
 
           // Recursively fan out voiceCall sub-branches when voiceCall is nested inside a branch path
           if (childNode.flowType === 'voiceCall') {
@@ -571,6 +695,7 @@ export default function AgentBuilder({
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
+  const [lhsPreviewProcedureId, setLhsPreviewProcedureId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [bookTestModalOpen, setBookTestModalOpen] = useState(false);
   const [testAppointment, setTestAppointment] = useState(null);
@@ -1166,8 +1291,17 @@ export default function AgentBuilder({
   });
 
   const branchChildNodes = Object.values(nodeDetails).flatMap((details) => details?.nodes || []);
+
+  // Branch path entries (e.g. wl-5-path-1) are not in nodeList or branchChildNodes,
+  // so synthesise lightweight node objects from nodeDetails so clicking a branch chip
+  // can resolve selectedNode and open the correct RHS panel.
+  const branchPathNodes = Object.entries(nodeDetails)
+    .filter(([, d]) => d?.isBranchPath)
+    .map(([id, d]) => ({ id, flowType: 'branch', data: { title: d.branchName ?? id } }));
+
   const selectedNode = nodeList.find((n) => n.id === selectedNodeId) ||
-    branchChildNodes.find((n) => n.id === selectedNodeId);
+    branchChildNodes.find((n) => n.id === selectedNodeId) ||
+    branchPathNodes.find((n) => n.id === selectedNodeId);
 
   const handleNodesReorder = useCallback((newIdOrder) => {
     setNodeList((prev) => {
@@ -1337,6 +1471,7 @@ export default function AgentBuilder({
     setDrawerOpen(false);
     setSelectedNodeId(null);
     setActiveProcedureId(null);
+    setLhsPreviewProcedureId(null);
   }, []);
 
   const currentDetails = selectedNodeId ? (nodeDetails[selectedNodeId] || {}) : {};
@@ -1425,6 +1560,26 @@ export default function AgentBuilder({
   }, [selectedNodeId, nodeDetails, onAddProcedure, product]);
 
   const renderRHSPanel = () => {
+    if (lhsPreviewProcedureId) {
+      const mergedProc = getProcedureDetailContent(lhsPreviewProcedureId, {}, product);
+      return (
+        <RHS
+          key={`lhs-preview-${lhsPreviewProcedureId}`}
+          variant="procedureDetail"
+          title={mergedProc.name}
+          viewOnly={viewOnly}
+          product={product}
+          onBack={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+          bodyProps={{
+            initialValues: mergedProc,
+            onFieldChange: () => {},
+          }}
+          onClose={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+          onSave={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
+        />
+      );
+    }
+
     if (!selectedNodeId) return null;
 
     if (selectedNodeId === START_NODE_ID) {
@@ -1848,6 +2003,12 @@ export default function AgentBuilder({
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}
+              onProcedureClick={viewOnly ? undefined : (procedureId) => {
+                setLhsPreviewProcedureId(procedureId);
+                setSelectedNodeId(null);
+                setActiveProcedureId(null);
+                setDrawerOpen(true);
+              }}
             />
           </div>
 

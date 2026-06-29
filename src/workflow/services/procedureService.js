@@ -143,6 +143,39 @@ export const PROCEDURES = [
     ],
     escalation: 'Immediate escalation to nurse line for any clinical urgency. Life-threatening → 911.',
   },
+  // ── Healthcare Waitlist ──────────────────────────────────────────────────────
+  {
+    id: 'Waitlist slot confirmation',
+    name: 'Waitlist slot confirmation',
+    category: 'Healthcare Waitlist',
+    whenToUse: 'Agent is calling outbound to confirm a newly opened slot with a patient on the waitlist.',
+    tools: ['initiate-voice-call-hc', 'fetch-waitlist-hc'],
+    steps: [
+      'Greet the patient and identify the open appointment slot.',
+      'Confirm the patient is still interested and available for the slot.',
+      'Book the appointment if the patient accepts.',
+      'Update the waitlist status and notify the scheduling system.',
+      'Send a confirmation message to the patient.',
+    ],
+    escalation: 'If the patient declines, mark slot as rejected and offer to the next patient on the waitlist.',
+  },
+  // ── Healthcare Pre-visit ─────────────────────────────────────────────────────
+  {
+    id: 'Form not filled',
+    name: 'Form not filled',
+    category: 'Healthcare Pre-visit',
+    whenToUse: 'Patient has not completed their pre-visit intake form before the appointment date.',
+    tools: ['send-communication', 'initiate-voice-call-hc'],
+    steps: [
+      'Greet the patient and confirm their upcoming appointment details.',
+      'Inform them their intake form has not been completed yet.',
+      'Provide the intake form link and explain the importance of completing it before the visit.',
+      'Offer to resend the form link via email or SMS.',
+      'If the patient is unable to complete the form digitally, offer to assist or escalate to front desk staff.',
+      'Confirm next steps and close the interaction.',
+    ],
+    escalation: 'If patient cannot complete the form, escalate to front desk agent for manual intake.',
+  },
   {
     id: 'Handle unclear message',
     name: 'Handle unclear message',

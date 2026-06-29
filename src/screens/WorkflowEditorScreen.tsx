@@ -66,9 +66,14 @@ export function WorkflowEditorScreen({
   const { procedures, addProcedure } = useProcedureStore()
   const agentBaseName = agentName.replace(/ - .+$/, '')
   const isHCProduct = product === 'healthcare' || product === 'dental'
-  const filteredProcedures = procedures.filter((p) =>
-    isHCProduct ? p.category === 'Healthcare Frontdesk' : p.category !== 'Healthcare Frontdesk'
-  )
+  const isPreVisit = agentBaseName === 'Pre-visit agent'
+  const isWaitlist = agentBaseName === 'Waitlist agent'
+  const filteredProcedures = procedures.filter((p) => {
+    if (!isHCProduct) return p.category !== 'Healthcare Frontdesk' && p.category !== 'Healthcare Pre-visit'
+    if (isPreVisit) return p.category === 'Healthcare Pre-visit'
+    if (isWaitlist) return p.category === 'Healthcare Waitlist'
+    return p.category === 'Healthcare Frontdesk'
+  })
 
   // For healthcare / dental, patch the __start__ node details directly here
   // so we never rely on the agentWorkflows module cache being fresh.

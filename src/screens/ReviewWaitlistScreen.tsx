@@ -156,11 +156,12 @@ const OFFER_SLOT_FIELDS = [
 ]
 
 const ADD_EXISTING_FIELDS = [
-  { key: 'patient',  label: 'Patient',          type: 'select' as const, options: ['Michael Smith', 'Jessica Williams', 'David Brown', 'Emily Davis'], placeholder: 'Select' },
-  { key: 'apptType', label: 'Appointment type', type: 'select' as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
-  { key: 'provider', label: 'Provider',         type: 'select' as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'], placeholder: 'Select' },
-  { key: 'slotPref', label: 'Slot preference',  type: 'select' as const, options: ['Morning', 'Afternoon', 'Evening', 'Any'], placeholder: 'Select' },
-  { key: 'priority', label: 'Priority',         type: 'select' as const, options: ['High', 'Medium', 'Low'], placeholder: 'Select' },
+  { key: 'patient',  label: 'Patient',          type: 'select'   as const, options: ['Michael Smith', 'Jessica Williams', 'David Brown', 'Emily Davis'], placeholder: 'Select' },
+  { key: 'location', label: 'Location',         type: 'select'   as const, options: ['Main clinic', 'North branch', 'South branch'], placeholder: 'Select location' },
+  { key: 'apptType', label: 'Appointment type', type: 'select'   as const, options: ['Procedure', 'New consult', 'Follow-up', 'Annual physical', 'Urgent care'], placeholder: 'Select' },
+  { key: 'provider', label: 'Provider',         type: 'select'   as const, options: ['Dr. Smith', 'Dr. Patel', 'Dr. Lee', 'Dr. Nguyen'], placeholder: 'Select' },
+  { key: 'priority', label: 'Priority',         type: 'select'   as const, options: ['High', 'Medium', 'Low'], placeholder: 'Select' },
+  { key: 'notes',    label: 'Notes',            type: 'textarea' as const, placeholder: 'Add any relevant patient notes, availability, or reasons for urgency...', charLimit: 300 },
 ]
 
 const ADD_NEW_FIELDS = [
