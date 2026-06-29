@@ -319,6 +319,24 @@ export default function AddToolDrawer({ isOpen, onClose, onSelectTool, product, 
     );
   }
 
+  /* ── Tool config view (inline, no second overlay) ── */
+  if (toolConfigTool) {
+    return (
+      <NativeDrawer isOpen={isOpen} onClose={onClose}>
+        <ToolViewerContent
+          tool={toolConfigTool}
+          clearDefaults
+          onClose={() => setToolConfigTool(null)}
+          onSave={(tool, fieldValues) => {
+            onSelectTool?.({ ...tool, fieldValues });
+            setToolConfigTool(null);
+            onClose?.();
+          }}
+        />
+      </NativeDrawer>
+    );
+  }
+
   /* ── Brand tools view ── */
   if (view === 'brand-tools') {
     return (
@@ -401,24 +419,6 @@ export default function AddToolDrawer({ isOpen, onClose, onSelectTool, product, 
           onSave={() => {
             onSelectTool?.({ id: activeToolDrawerId });
             setActiveToolDrawerId(null);
-            onClose?.();
-          }}
-        />
-      </NativeDrawer>
-    );
-  }
-
-  /* ── Tool config view (inline, no second overlay) ── */
-  if (toolConfigTool) {
-    return (
-      <NativeDrawer isOpen={isOpen} onClose={onClose}>
-        <ToolViewerContent
-          tool={toolConfigTool}
-          clearDefaults
-          onClose={() => setToolConfigTool(null)}
-          onSave={(tool, fieldValues) => {
-            onSelectTool?.({ ...tool, fieldValues });
-            setToolConfigTool(null);
             onClose?.();
           }}
         />
