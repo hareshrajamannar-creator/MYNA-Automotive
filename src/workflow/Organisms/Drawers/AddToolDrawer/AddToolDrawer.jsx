@@ -56,6 +56,135 @@ const BRAND_TOOLS = {
   athena:  EHR_TOOLS.map((t, i) => ({ id: `ath-${i + 1}`, ...t })),
 };
 
+/* ─── Config drawers for brand tools that need paramList setup ─── */
+const BRAND_TOOL_CONFIGS = {
+  'Patient lookup': {
+    id: 'patient-lookup',
+    name: 'Patient lookup',
+    icon: 'person_search',
+    fields: [{
+      id: 'pl-params',
+      type: 'paramList',
+      params: [
+        { id: 'pl-phone',           identifier: 'phone',           dataType: 'String', required: true,  valueType: 'llm',      llmDescription: 'Phone number given by the caller.' },
+        { id: 'pl-business_number', identifier: 'business_number', dataType: 'String', required: true,  valueType: 'dynamic',  variableName: 'business_number' },
+        { id: 'pl-country_code',    identifier: 'country_code',    dataType: 'String', required: false, valueType: 'constant', constantValue: 'US' },
+        { id: 'pl-emailId',         identifier: 'emailId',         dataType: 'String', required: false, valueType: 'llm',      llmDescription: 'Email ID of the patient.' },
+        { id: 'pl-patientDob',      identifier: 'patientDob',      dataType: 'String', required: true,  valueType: 'llm',      llmDescription: 'DOB of the patient.' },
+      ],
+    }],
+  },
+  'Get services and specialists': {
+    id: 'get-services-specialists',
+    name: 'Get services and specialists',
+    icon: 'medical_services',
+    fields: [{
+      id: 'gss-params',
+      type: 'paramList',
+      params: [
+        { id: 'gss-business_number', identifier: 'business_number', dataType: 'String', required: true, valueType: 'dynamic', variableName: 'business_number' },
+      ],
+    }],
+  },
+  'Verify insurance': {
+    id: 'verify-insurance',
+    name: 'Verify insurance',
+    icon: 'verified_user',
+    fields: [{
+      id: 'vi-params',
+      type: 'paramList',
+      params: [
+        { id: 'vi-business_number',          identifier: 'business_number',          dataType: 'String', required: true,  valueType: 'dynamic', variableName: 'business_number' },
+        { id: 'vi-patientId',                identifier: 'patientId',                dataType: 'String', required: false, valueType: 'llm',     llmDescription: 'Patient identifier — externalId from patient lookup. If unavailable, send phone instead and leave patientId empty.' },
+        { id: 'vi-phone',                    identifier: 'phone',                    dataType: 'String', required: false, valueType: 'llm',     llmDescription: 'Phone number of the patient. Send at least one of patientId or phone.' },
+        { id: 'vi-payerName',                identifier: 'payerName',                dataType: 'String', required: true,  valueType: 'llm',     llmDescription: 'Payer name from the insurance card. Caller must provide.' },
+        { id: 'vi-memberId',                 identifier: 'memberId',                 dataType: 'String', required: true,  valueType: 'llm',     llmDescription: 'Member ID from the insurance card. Caller must provide.' },
+        { id: 'vi-policyHolderFirstName',    identifier: 'policyHolderFirstName',    dataType: 'String', required: true,  valueType: 'llm',     llmDescription: 'First name of the policy holder. Reuse caller details if they are the policy holder.' },
+        { id: 'vi-policyHolderLastName',     identifier: 'policyHolderLastName',     dataType: 'String', required: false, valueType: 'llm',     llmDescription: 'Last name of the policy holder. Reuse caller details if available.' },
+        { id: 'vi-policyHolderDob',          identifier: 'policyHolderDob',          dataType: 'String', required: true,  valueType: 'llm',     llmDescription: 'Policy holder date of birth. Format: MM/dd/yyyy.' },
+        { id: 'vi-policyHolderSex',          identifier: 'policyHolderSex',          dataType: 'String', required: true,  valueType: 'llm',     llmDescription: 'Gender/sex of the policy holder. Allowed values: M, F.' },
+        { id: 'vi-policyHolderAddress1',     identifier: 'policyHolderAddress1',     dataType: 'String', required: false, valueType: 'llm',     llmDescription: 'Address of the policy holder.' },
+        { id: 'vi-insurancePolicyHolderZip', identifier: 'insurancePolicyHolderZip', dataType: 'String', required: false, valueType: 'llm',     llmDescription: 'ZIP code of the policy holder\'s address. Skip if not available.' },
+      ],
+    }],
+  },
+  'Fetch waitlist': {
+    id: 'fetch-waitlist-hc',
+    name: 'Fetch waitlist',
+    icon: 'list_alt',
+    fields: [
+      { id: 'fwl-batch',      type: 'number',   label: 'Waitlist outbound batch', placeholder: 'No. of patients' },
+      { id: 'fwl-provider',   type: 'radio',    label: 'If no preferred provider, offer slots of', options: ['Last seen / scheduled provider', 'Any provider (matching appointment type)'], defaultValue: 'Last seen / scheduled provider' },
+      { id: 'fwl-ai',         type: 'checkbox', label: 'AI consideration',    showInfoIcon: true, options: ['Best day to send', 'Best time to send'], defaultValue: [] },
+      { id: 'fwl-additional', type: 'checkbox', label: 'Additional config',   showInfoIcon: true, options: ['Do not carry over unfilled slots to the next working day.'], defaultValue: [] },
+    ],
+  },
+  'Get form fields': {
+    id: 'get-form-fields',
+    name: 'Get form fields',
+    icon: 'dynamic_form',
+    fields: [{
+      id: 'gff-params',
+      type: 'paramList',
+      params: [
+        { id: 'gff-business_number', identifier: 'business_number', dataType: 'String', required: true,  valueType: 'dynamic', variableName: 'business_number' },
+        { id: 'gff-booking_type',    identifier: 'booking_type',    dataType: 'String', required: false, valueType: 'llm',     llmDescription: 'Who the appointment is for. Allowed values: self, other. Use self if booking for the caller, other if booking for someone else. Default: omit or pass self for caller-self bookings.' },
+      ],
+    }],
+  },
+  'Cancel appointment': {
+    id: 'cancel-appointment',
+    name: 'Cancel appointment',
+    icon: 'event_busy',
+    fields: [{
+      id: 'canc-params',
+      type: 'paramList',
+      params: [
+        { id: 'canc-appointment_id', identifier: 'appointment_id', dataType: 'String', required: true, valueType: 'llm', llmDescription: 'Alphanumeric appointmentId from lookup_patient (e.g. B7GY563rGe). Do not use numeric IDs.' },
+      ],
+    }],
+  },
+  'Reschedule appointment': {
+    id: 'reschedule-appointment',
+    name: 'Reschedule appointment',
+    icon: 'event_repeat',
+    fields: [{
+      id: 'ra-params',
+      type: 'paramList',
+      params: [
+        { id: 'ra-appointment_id',  identifier: 'appointment_id',  dataType: 'String', required: true, valueType: 'llm',     llmDescription: 'appointmentId string from lookup_patient for the appointment to reschedule. Alphanumeric, never numeric.' },
+        { id: 'ra-business_number', identifier: 'business_number', dataType: 'String', required: true, valueType: 'dynamic', variableName: 'business_number' },
+        { id: 'ra-service_id',      identifier: 'service_id',      dataType: 'Number', required: true, valueType: 'llm',     llmDescription: 'serviceId from lookup_patient for the appointment being rescheduled.' },
+        { id: 'ra-specialist_id',   identifier: 'specialist_id',   dataType: 'Number', required: true, valueType: 'llm',     llmDescription: 'specialistId from lookup_patient for the appointment being rescheduled.' },
+        { id: 'ra-start_time',      identifier: 'start_time',      dataType: 'String', required: true, valueType: 'llm',     llmDescription: 'Exact time value from the chosen slot in get_available_slots. ISO 8601 with timezone offset. Pass as-is.' },
+        { id: 'ra-slot_id',         identifier: 'slot_id',         dataType: 'String', required: true, valueType: 'llm',     llmDescription: 'Exact slotId value from the chosen slot in get_available_slots. Pass as-is.' },
+      ],
+    }],
+  },
+  'Create appointment': {
+    id: 'create-appointment',
+    name: 'Create appointment',
+    icon: 'calendar_add_on',
+    fields: [{
+      id: 'ca-params',
+      type: 'paramList',
+      params: [
+        { id: 'ca-business_number', identifier: 'business_number',        dataType: 'String',  required: true, valueType: 'dynamic', variableName: 'business_number' },
+        { id: 'ca-service_id',      identifier: 'service_id',             dataType: 'Number',  required: true, valueType: 'llm',     llmDescription: 'serviceId from get_services_and_specialists.' },
+        { id: 'ca-specialist_id',   identifier: 'specialist_id',          dataType: 'Number',  required: true, valueType: 'llm',     llmDescription: 'specialistId from get_services_and_specialists.' },
+        { id: 'ca-start_time',      identifier: 'start_time',             dataType: 'String',  required: true, valueType: 'llm',     llmDescription: 'Exact time value from the chosen slot in get_available_slots. ISO 8601 with timezone offset. Pass as-is.' },
+        { id: 'ca-slot_id',         identifier: 'slot_id',                dataType: 'String',  required: true, valueType: 'llm',     llmDescription: 'Exact slotId value from the chosen slot in get_available_slots. Pass as-is.' },
+        { id: 'ca-form_details',              identifier: 'form_details',              dataType: 'Object',  required: true, valueType: 'llm', llmDescription: 'Patient booking form. Collect fields from get_form_fields before calling. Contains selfBooking + formFieldValues[].' },
+        { id: 'ca-form_details_selfBooking',  identifier: 'form_details → selfBooking', dataType: 'Boolean', required: true, valueType: 'llm', llmDescription: 'true if the caller is booking for themselves, false if booking for a dependent.' },
+        { id: 'ca-formFieldValues',           identifier: 'form_details → formFieldValues[]', dataType: 'Array', required: true, valueType: 'llm', llmDescription: 'Form fields collected from caller. Each entry is {label, value}. Value formats: phone → (NXX) NXX-XXXX; date → MM-DD-YYYY; gender → Male, Female, or Others; multi-select → semicolon-delimited (e.g. Headache;Cough); name & email → plain text.' },
+        { id: 'ca-fv-label',                  identifier: 'formFieldValues → label',   dataType: 'String',  required: true, valueType: 'llm', llmDescription: 'Label exactly as returned by get_form_fields (e.g. Contact First name, Contact Phone number, Contact Date of birth).' },
+        { id: 'ca-fv-value',                  identifier: 'formFieldValues → value',   dataType: 'String',  required: true, valueType: 'llm', llmDescription: 'Value collected from caller. Follows format rules per label (see formFieldValues above).' },
+        { id: 'ca-newPatient',                identifier: 'newPatient',                dataType: 'Boolean', required: true, valueType: 'llm', llmDescription: 'true if caller is a new patient (appointmentsPresent: false from lookup_patient). false if existing patient.' },
+      ],
+    }],
+  },
+};
+
 /* ─── Entity options (Birdeye nav entities) ─── */
 const ENTITY_OPTIONS = [
   { id: 'conversation', label: 'Conversation' },
@@ -169,12 +298,10 @@ export default function AddToolDrawer({ isOpen, onClose, onSelectTool, product, 
   }
 
   function handleSelectTool(tool) {
-    if (tool.name === 'Patient lookup') {
-      const seedTool = internalTools.find(t => t.id === 'patient-lookup');
-      if (seedTool) {
-        setToolConfigTool({ ...seedTool, integrationId: selectedIntegration?.id, accountId: selectedAccount?.id });
-        return;
-      }
+    const config = BRAND_TOOL_CONFIGS[tool.name];
+    if (config) {
+      setToolConfigTool({ ...config, integrationId: selectedIntegration?.id, accountId: selectedAccount?.id });
+      return;
     }
     onSelectTool?.({ ...tool, integrationId: selectedIntegration?.id, accountId: selectedAccount?.id });
     onClose?.();

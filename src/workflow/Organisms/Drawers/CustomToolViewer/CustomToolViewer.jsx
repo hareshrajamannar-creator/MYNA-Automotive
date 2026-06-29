@@ -733,181 +733,240 @@ function InteractiveField({ field, onValueChange }) {
         </div>
       );
 
-    case 'paramConfig':
-      return <ParamConfigField field={field} />;
+    case 'paramList':
+      return <ParamListField field={field} />;
 
     default:
       return null;
   }
 }
 
-// ─── Parameter config card (for tools like Patient lookup) ───────────────────
+// ─── Parameter list (card-per-param style, matches Figma patient-lookup design) ─
 
-const VALUE_TYPE_LABELS = {
-  llm: 'LLM Prompt',
-  constant: 'Constant Value',
-  dynamic: 'Dynamic Variable',
-};
+const _DATA_TYPE_OPTS = ['String', 'Number', 'Boolean', 'Object', 'Array'];
+const _VALUE_TYPE_OPTS = [
+  { value: 'llm',      label: 'LLM' },
+  { value: 'dynamic',  label: 'Dynamic variable' },
+  { value: 'constant', label: 'Constant value' },
+];
 
-const DATA_TYPE_OPTIONS = ['String', 'Number', 'Boolean', 'Object', 'Array'];
-
-function ParamConfigField({ field }) {
-  const [description, setDescription]   = useState(field.llmDescription || '');
-  const [constantVal, setConstantVal]   = useState(field.constantValue || '');
-  const [variableName, setVariableName] = useState(field.variableName || '');
-  const [enumInput, setEnumInput]       = useState('');
-  const [enumValues, setEnumValues]     = useState([]);
+function ParamCard({ param, index, onChange, onDelete }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [hovered, setHovered]     = useState(false);
+  const [enumInput, setEnumInput]  = useState('');
+  const vt = param.valueType || 'llm';
 
   const addEnum = () => {
-    if (enumInput.trim()) {
-      setEnumValues((prev) => [...prev, enumInput.trim()]);
-      setEnumInput('');
-    }
+    if (!enumInput.trim()) return;
+    onChange({ ...param, enumValues: [...(param.enumValues || []), enumInput.trim()] });
+    setEnumInput('');
   };
 
+  const S = {
+    card:    { border: '1px solid #e0e0e0', borderRadius: 6, background: '#fff', fontFamily: 'Roboto, sans-serif', overflow: 'hidden' },
+    header:  { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: hovered ? '#f5f5f5' : 'transparent', borderBottom: collapsed ? 'none' : '1px solid #e0e0e0', cursor: 'pointer', userSelect: 'none', transition: 'background 0.15s' },
+    hdrLeft: { display: 'flex', alignItems: 'center', gap: 6 },
+    hdrTitle:{ fontSize: 13, color: '#212121', fontWeight: 400 },
+    iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#757575', lineHeight: 1 },
+    body:    { padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 },
+    row2:    { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+    fwrap:   { display: 'flex', flexDirection: 'column', gap: 5 },
+    label:   { fontSize: 12, color: '#212121', fontWeight: 400, display: 'flex', alignItems: 'center', gap: 4 },
+    req:     { color: '#e53935', marginLeft: 1 },
+    select:  { height: 36, width: '100%', padding: '0 32px 0 10px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 13, fontFamily: 'Roboto, sans-serif', color: '#212121', background: '#fff', appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', boxSizing: 'border-box' },
+    selWrap: { position: 'relative', width: '100%' },
+    chevron: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: 18, color: '#757575' },
+    input:   { height: 36, width: '100%', padding: '0 10px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 13, fontFamily: 'Roboto, sans-serif', color: '#212121', background: '#fff', boxSizing: 'border-box', outline: 'none' },
+    textarea:{ width: '100%', padding: '8px 10px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 13, fontFamily: 'Roboto, sans-serif', color: '#212121', background: '#fff', boxSizing: 'border-box', outline: 'none', resize: 'vertical', minHeight: 72 },
+    cbRow:   { display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' },
+    cbLabel: { fontSize: 13, color: '#212121', fontWeight: 400 },
+    chip:    { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px solid #c5cad3', borderRadius: 12, fontSize: 12, color: '#424242', background: '#fafafa' },
+    chipX:   { background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#757575' },
+    addBtn:  { width: 32, height: 36, border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' },
+    hint:    { fontSize: 11, color: '#9e9e9e', lineHeight: '16px' },
+    varChip: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', border: '1px solid #b3d4f5', borderRadius: 12, fontSize: 12, color: '#1565c0', background: '#e8f1fb' },
+  };
+
+  const iconStyle = { fontSize: 16, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 20, borderBottom: '1px solid #eaeaea' }}>
-      {/* Row 1: Data type + Identifier */}
-      <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span className={styles.fieldLabel}>Data type</span>
-          <div className={styles.selectWrap}>
-            <select className={styles.selectInput} defaultValue={field.dataType || 'String'}>
-              {DATA_TYPE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-            <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+    <div style={S.card} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      {/* Header */}
+      <div style={S.header} onClick={() => setCollapsed(c => !c)}>
+        <div style={S.hdrLeft}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#757575', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+            {collapsed ? 'expand_more' : 'expand_less'}
+          </span>
+          <span style={S.hdrTitle}>Parameter {index + 1}</span>
+        </div>
+        {hovered && (
+          <button type="button" style={S.iconBtn}
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+            <span className="material-symbols-outlined" style={{ ...iconStyle, color: '#9e9e9e' }}>delete</span>
+          </button>
+        )}
+      </div>
+
+      {/* Body */}
+      {!collapsed && (
+        <div style={S.body}>
+          {/* Type + Variable row */}
+          <div style={S.row2}>
+            <div style={S.fwrap}>
+              <span style={S.label}>Type <span style={S.req}>*</span></span>
+              <div style={S.selWrap}>
+                <select style={S.select} value={param.dataType || 'String'}
+                  onChange={(e) => onChange({ ...param, dataType: e.target.value })}>
+                  {_DATA_TYPE_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+                <span className="material-symbols-outlined" style={{ ...S.chevron, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>expand_more</span>
+              </div>
+            </div>
+            <div style={S.fwrap}>
+              <span style={S.label}>Variable <span style={S.req}>*</span></span>
+              <input type="text" style={S.input}
+                value={param.identifier || ''}
+                onChange={(e) => onChange({ ...param, identifier: e.target.value })}
+                placeholder="Variable name"
+              />
+            </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span className={styles.fieldLabel}>Identifier</span>
-          <input
-            type="text"
-            className={styles.selectInput}
-            defaultValue={field.identifier || ''}
-            style={{ height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, fontFamily: 'Roboto, sans-serif', width: '100%', boxSizing: 'border-box' }}
-          />
-        </div>
-      </div>
 
-      {/* Row 2: Required checkbox */}
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-        <input
-          type="checkbox"
-          defaultChecked={!!field.required}
-          className={styles.optionInput}
-          style={{ accentColor: '#1976d2', width: 16, height: 16 }}
-        />
-        <span className={styles.fieldLabel} style={{ marginBottom: 0 }}>Required</span>
-      </label>
-
-      {/* Row 3: Value Type display */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span className={styles.fieldLabel}>Value Type</span>
-        <div className={styles.selectWrap} style={{ pointerEvents: 'none', opacity: 0.85 }}>
-          <select className={styles.selectInput} value={field.valueType || 'llm'} readOnly onChange={() => {}}>
-            <option value="llm">LLM Prompt</option>
-            <option value="constant">Constant Value</option>
-            <option value="dynamic">Dynamic Variable</option>
-          </select>
-          <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
-        </div>
-      </div>
-
-      {/* Row 4: Value type-specific sub-UI */}
-      {field.valueType === 'llm' && (
-        <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span className={styles.fieldLabel}>Description</span>
-            <textarea
-              className={styles.promptTextarea}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              style={{ resize: 'vertical' }}
+          {/* Required */}
+          <label style={S.cbRow}>
+            <input type="checkbox" checked={!!param.required}
+              onChange={(e) => onChange({ ...param, required: e.target.checked })}
+              style={{ accentColor: '#1976d2', width: 15, height: 15, cursor: 'pointer', margin: 0 }}
             />
+            <span style={S.cbLabel}>Required</span>
+          </label>
+
+          {/* Value type */}
+          <div style={S.fwrap}>
+            <span style={S.label}>Type <span style={S.req}>*</span></span>
+            <div style={S.selWrap}>
+              <select style={S.select} value={vt}
+                onChange={(e) => onChange({ ...param, valueType: e.target.value })}>
+                {_VALUE_TYPE_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <span className="material-symbols-outlined" style={{ ...S.chevron, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>expand_more</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span className={styles.fieldLabel}>Enum Values <span style={{ color: '#8f8f8f', fontWeight: 400 }}>(optional)</span></span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                type="text"
+
+          {/* LLM → Description + Enum */}
+          {vt === 'llm' && (<>
+            <div style={S.fwrap}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={S.label}>Description</span>
+                <span style={{ fontSize: 11, color: '#9e9e9e' }}>{(param.llmDescription || '').length}/300</span>
+              </div>
+              <textarea style={S.textarea}
+                value={param.llmDescription || ''}
+                maxLength={300}
+                placeholder="Write description"
+                onChange={(e) => onChange({ ...param, llmDescription: e.target.value })}
+              />
+            </div>
+            <div style={S.fwrap}>
+              <span style={{ ...S.label, gap: 4 }}>
+                Enum value
+                <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#9e9e9e', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>info</span>
+              </span>
+              <input type="text" style={S.input}
                 value={enumInput}
+                placeholder="Enter value"
                 onChange={(e) => setEnumInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEnum(); } }}
-                placeholder="Enter an enum value"
-                style={{ flex: 1, height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, fontFamily: 'Roboto, sans-serif', boxSizing: 'border-box' }}
               />
-              <button
-                type="button"
-                onClick={addEnum}
-                style={{ width: 36, height: 36, border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#555', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>add</span>
-              </button>
+              {(param.enumValues || []).length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(param.enumValues || []).map((v, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px solid #e0e0e0', borderRadius: 4, fontSize: 12, color: '#555', background: '#f5f5f5' }}>
+                      {v}
+                      <button type="button" style={S.chipX}
+                        onClick={() => onChange({ ...param, enumValues: param.enumValues.filter((_, j) => j !== i) })}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>close</span>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-            {enumValues.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {enumValues.map((v, i) => (
-                  <span key={i} className={styles.tagChip}>
-                    {v}
-                    <button type="button" className={styles.tagChipRemove} onClick={() => setEnumValues((prev) => prev.filter((_, idx) => idx !== i))}>
-                      <span className="material-symbols-outlined">close</span>
+          </>)}
+
+          {/* Constant value */}
+          {vt === 'constant' && (
+            <div style={S.fwrap}>
+              <span style={S.label}>Constant value</span>
+              <textarea style={S.textarea}
+                value={param.constantValue || ''}
+                placeholder="Enter constant value"
+                onChange={(e) => onChange({ ...param, constantValue: e.target.value })}
+              />
+            </div>
+          )}
+
+          {/* Dynamic variable */}
+          {vt === 'dynamic' && (
+            <div style={S.fwrap}>
+              <span style={S.label}>Variable <span style={S.req}>*</span></span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, minHeight: 36, padding: '4px 8px', border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', boxSizing: 'border-box' }}>
+                {param.variableName ? (
+                  /* VariableChip-style: white body, #d1e5f9 border, left blue swatch */
+                  <span style={{ display: 'inline-flex', alignItems: 'center', height: 26, background: '#fff', border: '1px solid #d1e5f9', borderRadius: 4, overflow: 'hidden', flexShrink: 0 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 25, height: 24, background: '#ecf5fd', borderRight: '1px solid #d1e5f9', flexShrink: 0 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#1976d2', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>data_object</span>
+                    </span>
+                    <span style={{ fontSize: 12, color: '#555', padding: '0 4px 0 6px', fontFamily: 'Inter, Roboto, sans-serif', whiteSpace: 'nowrap' }}>{param.variableName}</span>
+                    <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center', color: '#9e9e9e' }}
+                      onClick={() => onChange({ ...param, variableName: '' })}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>close</span>
                     </button>
                   </span>
-                ))}
+                ) : (
+                  <input type="text"
+                    placeholder="Variable name"
+                    style={{ border: 'none', outline: 'none', fontSize: 13, fontFamily: 'Roboto, sans-serif', flex: 1, minWidth: 80, background: 'transparent' }}
+                    onChange={(e) => { if (e.target.value) onChange({ ...param, variableName: e.target.value }); }}
+                  />
+                )}
               </div>
-            )}
-            <span style={{ fontSize: 12, color: '#8f8f8f', fontFamily: 'Roboto, sans-serif', lineHeight: '18px' }}>
-              Add predefined values that the LLM can select from. If no values are provided, the LLM can use any string value.
-            </span>
-          </div>
-        </>
-      )}
-
-      {field.valueType === 'constant' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span className={styles.fieldLabel}>Constant Value</span>
-          <textarea
-            className={styles.promptTextarea}
-            value={constantVal}
-            onChange={(e) => setConstantVal(e.target.value)}
-            rows={3}
-            style={{ resize: 'vertical' }}
-          />
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
 
-      {field.valueType === 'dynamic' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span className={styles.fieldLabel}>Variable Name</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              type="text"
-              value={variableName}
-              onChange={(e) => setVariableName(e.target.value)}
-              style={{ flex: 1, height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, fontFamily: 'Roboto, sans-serif', boxSizing: 'border-box' }}
-            />
-            <button
-              type="button"
-              style={{ width: 36, height: 36, border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#555', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>expand_more</span>
-            </button>
-          </div>
-        </div>
-      )}
+function ParamListField({ field }) {
+  const [params, setParams] = useState(() =>
+    (field.params || []).map((p, i) => ({ ...p, _key: p.id || `param-${i}` }))
+  );
 
-      {/* Delete button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          type="button"
-          style={{ height: 36, padding: '0 20px', border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', fontSize: 14, fontFamily: 'Roboto, sans-serif', color: '#212121', cursor: 'pointer' }}
-        >
-          Delete
-        </button>
-      </div>
+  const updateParam = (idx, updated) =>
+    setParams(prev => prev.map((p, i) => (i === idx ? { ...updated, _key: p._key } : p)));
+  const deleteParam = (idx) =>
+    setParams(prev => prev.filter((_, i) => i !== idx));
+  const addParam = () =>
+    setParams(prev => [...prev, { _key: `param-new-${Date.now()}`, identifier: '', dataType: 'String', required: false, valueType: 'llm', enumValues: [], llmDescription: '' }]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {params.map((param, idx) => (
+        <ParamCard
+          key={param._key}
+          param={param}
+          index={idx}
+          onChange={(updated) => updateParam(idx, updated)}
+          onDelete={() => deleteParam(idx)}
+        />
+      ))}
+      <button type="button" onClick={addParam}
+        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', fontSize: 14, fontFamily: 'Roboto, sans-serif', padding: '4px 0' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>add_circle</span>
+        Add parameter
+      </button>
     </div>
   );
 }
