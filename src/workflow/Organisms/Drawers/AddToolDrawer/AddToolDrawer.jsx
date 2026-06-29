@@ -169,6 +169,13 @@ export default function AddToolDrawer({ isOpen, onClose, onSelectTool, product, 
   }
 
   function handleSelectTool(tool) {
+    if (tool.name === 'Patient lookup') {
+      const seedTool = internalTools.find(t => t.id === 'patient-lookup');
+      if (seedTool) {
+        setToolConfigTool({ ...seedTool, integrationId: selectedIntegration?.id, accountId: selectedAccount?.id });
+        return;
+      }
+    }
     onSelectTool?.({ ...tool, integrationId: selectedIntegration?.id, accountId: selectedAccount?.id });
     onClose?.();
   }
