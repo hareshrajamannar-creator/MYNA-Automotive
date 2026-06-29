@@ -119,7 +119,7 @@ function ChipContainer({ chips, onChipChange, onChipDelete, addingNew, onStartAd
   );
 }
 
-export default function LLMTaskBody({ initialValues = {}, onFieldChange }) {
+export default function LLMTaskBody({ initialValues = {}, onFieldChange, onOpenToolDrawer, onOpenTool }) {
   const [taskName, setTaskName] = useState(initialValues.taskName ?? '');
   const [description, setDescription] = useState(initialValues.description ?? '');
   const [llmModel, setLlmModel] = useState(initialValues.llmModel ?? 'Fast');
@@ -222,6 +222,8 @@ export default function LLMTaskBody({ initialValues = {}, onFieldChange }) {
         value={userPrompt}
         onChange={(val) => { setUserPrompt(val); emit('userPrompt', val); }}
         required
+        onOpenToolDrawer={onOpenToolDrawer}
+        onOpenTool={onOpenTool}
       />
 
       <OutputFields

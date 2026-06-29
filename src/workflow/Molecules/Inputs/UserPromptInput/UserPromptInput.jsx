@@ -8,7 +8,7 @@ import styles from './UserPromptInput.module.css';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export default function UserPromptInput({ value, onChange, required, hideLabel = false, readOnly = false, autoHeight = false, minEditorHeight, placeholder = 'Enter prompt', resolveType = null }) {
+export default function UserPromptInput({ value, onChange, required, hideLabel = false, readOnly = false, autoHeight = false, minEditorHeight, placeholder = 'Enter prompt', resolveType = null, onOpenToolDrawer, onOpenTool }) {
   const editorRef = useRef(null);
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
@@ -121,6 +121,13 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
             onInput={readOnly ? undefined : emitChange}
             onKeyDown={readOnly ? undefined : handleKeyDown}
             style={minEditorHeight ? { minHeight: minEditorHeight } : undefined}
+            onClick={onOpenTool ? (e) => {
+              const chip = e.target.closest('[data-chip-type="tool"], .prompt-chip--tool');
+              if (chip) {
+                const label = chip.querySelector('.prompt-chip-label')?.textContent?.trim();
+                if (label) onOpenTool(label);
+              }
+            } : undefined}
           />
           {!readOnly && (
           <div className={styles.toolbar} ref={pickerContainerRef}>
@@ -137,6 +144,7 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
               type="button"
               className={styles.toolbarBtn}
               onMouseDown={(e) => e.preventDefault()}
+              onClick={onOpenToolDrawer}
               title="Tools"
             >
               <BuildIcon />
