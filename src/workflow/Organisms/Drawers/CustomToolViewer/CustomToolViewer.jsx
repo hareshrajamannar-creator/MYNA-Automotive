@@ -733,9 +733,183 @@ function InteractiveField({ field, onValueChange }) {
         </div>
       );
 
+    case 'paramConfig':
+      return <ParamConfigField field={field} />;
+
     default:
       return null;
   }
+}
+
+// ─── Parameter config card (for tools like Patient lookup) ───────────────────
+
+const VALUE_TYPE_LABELS = {
+  llm: 'LLM Prompt',
+  constant: 'Constant Value',
+  dynamic: 'Dynamic Variable',
+};
+
+const DATA_TYPE_OPTIONS = ['String', 'Number', 'Boolean', 'Object', 'Array'];
+
+function ParamConfigField({ field }) {
+  const [description, setDescription]   = useState(field.llmDescription || '');
+  const [constantVal, setConstantVal]   = useState(field.constantValue || '');
+  const [variableName, setVariableName] = useState(field.variableName || '');
+  const [enumInput, setEnumInput]       = useState('');
+  const [enumValues, setEnumValues]     = useState([]);
+
+  const addEnum = () => {
+    if (enumInput.trim()) {
+      setEnumValues((prev) => [...prev, enumInput.trim()]);
+      setEnumInput('');
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 20, borderBottom: '1px solid #eaeaea' }}>
+      {/* Row 1: Data type + Identifier */}
+      <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span className={styles.fieldLabel}>Data type</span>
+          <div className={styles.selectWrap}>
+            <select className={styles.selectInput} defaultValue={field.dataType || 'String'}>
+              {DATA_TYPE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span className={styles.fieldLabel}>Identifier</span>
+          <input
+            type="text"
+            className={styles.selectInput}
+            defaultValue={field.identifier || ''}
+            style={{ height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, fontFamily: 'Roboto, sans-serif', width: '100%', boxSizing: 'border-box' }}
+          />
+        </div>
+      </div>
+
+      {/* Row 2: Required checkbox */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          defaultChecked={!!field.required}
+          className={styles.optionInput}
+          style={{ accentColor: '#1976d2', width: 16, height: 16 }}
+        />
+        <span className={styles.fieldLabel} style={{ marginBottom: 0 }}>Required</span>
+      </label>
+
+      {/* Row 3: Value Type display */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span className={styles.fieldLabel}>Value Type</span>
+        <div className={styles.selectWrap} style={{ pointerEvents: 'none', opacity: 0.85 }}>
+          <select className={styles.selectInput} value={field.valueType || 'llm'} readOnly onChange={() => {}}>
+            <option value="llm">LLM Prompt</option>
+            <option value="constant">Constant Value</option>
+            <option value="dynamic">Dynamic Variable</option>
+          </select>
+          <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+        </div>
+      </div>
+
+      {/* Row 4: Value type-specific sub-UI */}
+      {field.valueType === 'llm' && (
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span className={styles.fieldLabel}>Description</span>
+            <textarea
+              className={styles.promptTextarea}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              style={{ resize: 'vertical' }}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span className={styles.fieldLabel}>Enum Values <span style={{ color: '#8f8f8f', fontWeight: 400 }}>(optional)</span></span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                value={enumInput}
+                onChange={(e) => setEnumInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEnum(); } }}
+                placeholder="Enter an enum value"
+                style={{ flex: 1, height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, fontFamily: 'Roboto, sans-serif', boxSizing: 'border-box' }}
+              />
+              <button
+                type="button"
+                onClick={addEnum}
+                style={{ width: 36, height: 36, border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#555', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>add</span>
+              </button>
+            </div>
+            {enumValues.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {enumValues.map((v, i) => (
+                  <span key={i} className={styles.tagChip}>
+                    {v}
+                    <button type="button" className={styles.tagChipRemove} onClick={() => setEnumValues((prev) => prev.filter((_, idx) => idx !== i))}>
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <span style={{ fontSize: 12, color: '#8f8f8f', fontFamily: 'Roboto, sans-serif', lineHeight: '18px' }}>
+              Add predefined values that the LLM can select from. If no values are provided, the LLM can use any string value.
+            </span>
+          </div>
+        </>
+      )}
+
+      {field.valueType === 'constant' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span className={styles.fieldLabel}>Constant Value</span>
+          <textarea
+            className={styles.promptTextarea}
+            value={constantVal}
+            onChange={(e) => setConstantVal(e.target.value)}
+            rows={3}
+            style={{ resize: 'vertical' }}
+          />
+        </div>
+      )}
+
+      {field.valueType === 'dynamic' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span className={styles.fieldLabel}>Variable Name</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              type="text"
+              value={variableName}
+              onChange={(e) => setVariableName(e.target.value)}
+              style={{ flex: 1, height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, fontFamily: 'Roboto, sans-serif', boxSizing: 'border-box' }}
+            />
+            <button
+              type="button"
+              style={{ width: 36, height: 36, border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#555', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>expand_more</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          style={{ height: 36, padding: '0 20px', border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', fontSize: 14, fontFamily: 'Roboto, sans-serif', color: '#212121', cursor: 'pointer' }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ─── Shared content (used both in standalone drawer and embedded mode) ────────
