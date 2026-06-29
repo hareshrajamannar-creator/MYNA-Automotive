@@ -10,7 +10,7 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 /**
  * Bottom toolbar for procedure step editors: Fields, Tools, Rephrase.
  */
-export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert }) {
+export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert, onOpenToolDrawer }) {
   const pickerRef = useRef(null);
   const savedRangeRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -64,6 +64,7 @@ export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert })
           type="button"
           className={toolbarStyles.toolbarBtn}
           onMouseDown={(e) => e.preventDefault()}
+          onClick={onOpenToolDrawer}
           title="Tools"
           aria-label="Tools"
         >

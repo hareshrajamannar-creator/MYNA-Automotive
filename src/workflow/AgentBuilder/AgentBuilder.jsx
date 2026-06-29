@@ -6,12 +6,14 @@ import ScheduleBased from '../Molecules/RHS/Trigger/ScheduleBased/ScheduleBased'
 import ShareModal from '../Organisms/Modals/ShareModal/ShareModal';
 import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
-import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
+import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds, getSeedTools } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
 import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
 import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
 import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
+import TransferToolDrawer from '../Organisms/Drawers/TransferToolDrawer/TransferToolDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
+import AddToolDrawer from '../Organisms/Drawers/AddToolDrawer/AddToolDrawer';
 import {
   getProcedureById,
   getProcedureDetailContent,
@@ -700,8 +702,10 @@ export default function AgentBuilder({
   const [previewActive, setPreviewActive] = useState(false);
   // Tool viewer state
   const [viewingTool, setViewingTool] = useState(null); // full tool object
+  const [viewingToolValues, setViewingToolValues] = useState({}); // saved field values for filled state
   const [reminderToolOpen, setReminderToolOpen] = useState(false);
   const [voiceCallToolOpen, setVoiceCallToolOpen] = useState(false);
+  const [transferToolOpen, setTransferToolOpen] = useState(false);
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
@@ -754,6 +758,20 @@ export default function AgentBuilder({
       });
     }
   }, [viewOnly, initialNodes, initialNodeDetails, pageTitle]);
+
+  /* ─── Open a tool viewer by tool name or id (used when clicking a tool chip in prompts) ─── */
+  const openToolByName = useCallback((nameOrId) => {
+    const all = getSeedTools();
+    const found = all.find(t => t.id === nameOrId || t.name === nameOrId || t.id === nameOrId.toLowerCase().replace(/\s+/g, '-'));
+    if (found) {
+      setViewingTool(found);
+      // Look up saved field values for the filled state
+      const savedValues = selectedNodeId
+        ? (nodeDetails[selectedNodeId]?.toolFieldValues?.[found.id] ?? {})
+        : {};
+      setViewingToolValues(savedValues);
+    }
+  }, [selectedNodeId, nodeDetails]);
 
   /* ─── Load agent from URL slugs — re-runs whenever the URL params change ─── */
   useEffect(() => {
@@ -1570,6 +1588,7 @@ export default function AgentBuilder({
           bodyProps={{
             initialValues: mergedProc,
             onFieldChange: () => {},
+            onOpenToolDrawer: () => setToolPickerOpen(true),
           }}
           onClose={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
           onSave={() => { setLhsPreviewProcedureId(null); setDrawerOpen(false); }}
@@ -1808,6 +1827,7 @@ export default function AgentBuilder({
                 };
                 activeFieldChange('procedureOverrides', overridesNext);
               },
+              onOpenToolDrawer: () => setToolPickerOpen(true),
             }}
             onClose={handleCloseDrawer}
             onSave={() => setActiveProcedureId(null)}
@@ -1839,7 +1859,7 @@ export default function AgentBuilder({
           title="LLM Task"
           viewOnly={viewOnly}
           product={product}
-          bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
+          bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange, onOpenToolDrawer: () => setToolPickerOpen(true), onOpenTool: openToolByName }}
           onClose={handleCloseDrawer}
           onSave={handleCloseDrawer}
         />
@@ -1858,6 +1878,7 @@ export default function AgentBuilder({
             onFieldChange: activeFieldChange,
             onEditTool: (toolId) => {
               if (toolId === 'initiate-voice-call') { setVoiceCallToolOpen(true); return; }
+              if (toolId === 'transfer') { setTransferToolOpen(true); return; }
               getCustomToolsByIds([toolId]).then((tools) => {
                 if (tools[0]) setViewingTool(tools[0]);
               });
@@ -2061,38 +2082,60 @@ export default function AgentBuilder({
       {/* ─── Voice call tool drawer ─── */}
       <VoiceCallToolDrawer isOpen={voiceCallToolOpen} onClose={() => setVoiceCallToolOpen(false)} initialValues={currentDetails} product={product} />
 
+      {/* ─── Transfer tool drawer ─── */}
+      <TransferToolDrawer isOpen={transferToolOpen} onClose={() => setTransferToolOpen(false)} />
+
       {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (
         <CustomToolViewer
           isOpen={!!viewingTool}
           tool={viewingTool}
-          onClose={() => setViewingTool(null)}
-        />
-      )}
-
-      {/* ─── Tool picker (swap tool) ─── */}
-      {toolPickerOpen && selectedNodeId && (
-        <ToolLibraryDrawer
-          isOpen={toolPickerOpen}
-          onClose={() => setToolPickerOpen(false)}
-          selectedToolIds={[
-            nodeDetails[selectedNodeId]?.toolId
-              ?? nodeDetails[selectedNodeId]?.selectedTools?.[0]
-              ?? 'initiate-voice-call',
-          ]}
-          onToggleTool={(toolId) => {
-            setNodeDetails((prev) => ({
-              ...prev,
-              [selectedNodeId]: {
-                ...(prev[selectedNodeId] || {}),
-                toolId,
-                selectedTools: [toolId],
-              },
-            }));
-            setToolPickerOpen(false);
+          initialValues={viewingToolValues}
+          onClose={() => { setViewingTool(null); setViewingToolValues({}); }}
+          onSave={(tool, fieldValues) => {
+            // Persist filled state back into nodeDetails
+            if (selectedNodeId) {
+              setNodeDetails((prev) => ({
+                ...prev,
+                [selectedNodeId]: {
+                  ...(prev[selectedNodeId] || {}),
+                  toolFieldValues: {
+                    ...(prev[selectedNodeId]?.toolFieldValues || {}),
+                    [tool.id]: fieldValues,
+                  },
+                },
+              }));
+            }
+            setViewingTool(null);
+            setViewingToolValues({});
           }}
         />
       )}
+
+      {/* ─── Tool picker (add/swap tool) ─── */}
+      <AddToolDrawer
+        isOpen={toolPickerOpen}
+        onClose={() => setToolPickerOpen(false)}
+        product={product}
+        activeNavId={activeNavId}
+        onSelectTool={(tool) => {
+          if (!selectedNodeId) return;
+          const { fieldValues, ...toolBase } = tool;
+          setNodeDetails((prev) => ({
+            ...prev,
+            [selectedNodeId]: {
+              ...(prev[selectedNodeId] || {}),
+              toolId: toolBase.id,
+              selectedTools: [...(prev[selectedNodeId]?.selectedTools || []), toolBase.id].filter((v, i, a) => a.indexOf(v) === i),
+              toolFieldValues: {
+                ...(prev[selectedNodeId]?.toolFieldValues || {}),
+                ...(fieldValues ? { [toolBase.id]: fieldValues } : {}),
+              },
+            },
+          }));
+          setToolPickerOpen(false);
+        }}
+      />
 
       {/* ─── Hidden file input for JSON import ─── */}
       <input

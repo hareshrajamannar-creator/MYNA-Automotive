@@ -104,16 +104,16 @@ export const PROCEDURES = [
     id: 'Handle general inquiry',
     name: 'Handle general inquiry',
     category: 'Healthcare Frontdesk',
-    whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted, services offered, directions, telehealth availability, wait times.',
-    tools: ['knowledge_base', 'birdeye_task_creator'],
+    whenToUse: 'Patient asks a general query related to the hospital or anything that should come from the knowledge base — website, FAQs, hours, location, insurance, services, doctors.',
+    tools: ['knowledge_base', 'update_state', 'transfer_to_human', 'agent_turn'],
     steps: [
-      'Query knowledge_base with the patient\'s question.',
-      'If no confident match: "That\'s a great question — let me have someone from our team get back to you. What\'s the best way to reach you?" Capture callback details via birdeye_task_creator. Skip to step 3.',
-      'Answer in 1–2 sentences. Plain language. Never invent provider, insurance, or clinical details.',
-      '"Is there anything else I can help with?" (agent_turn). Wait for the patient\'s next message.',
-      'If patient indicates they\'re done → invoke Close_session.',
+      'Identify the core need (general information, service details, location, billing, health concern) and determine if it\'s about {{location_name}} or a general healthcare question.',
+      'If caller asks which hospital is the best fit: check history for caller location and service need; ask for any missing detail; query knowledge_base → LOCATIONS_FILE.txt and recommend naturally.',
+      'For {{location_name}} general inquiries, provide accurate information from knowledge_base. For general healthcare questions, give non-diagnostic information and advise consulting a medical professional.',
+      'For appointment requests or complex issues → route to router node. For human/frustration → call update_state then transfer to router node.',
+      '"Is there anything else I can help you with today?" → If done: CSAT 1-5 scale → "Thank you so much — have a great day!"',
     ],
-    escalation: 'If no knowledge base match, capture callback and queue for staff follow-up.',
+    escalation: 'Appointment requests, billing disputes, medical history discussions, or patient frustration → transfer to router node after calling update_state.',
   },
   {
     id: 'Talk to human',
@@ -199,7 +199,7 @@ export const FRONTDESK_PROCEDURE_PANEL = {
   },
   'General Inquiry': {
     name: 'Handle general inquiry',
-    whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted.',
+    whenToUse: 'Patient asks a general query related to the hospital or anything answerable from the knowledge base — FAQs, hours, location, insurance, services.',
   },
   'Handle Unclear Message': {
     name: 'Handle unclear message',
@@ -216,7 +216,7 @@ export const PROCEDURE_PANEL_DISPLAY = { ...FRONTDESK_PROCEDURE_PANEL };
 
 /** RHS Procedures pane — healthcare / dental panel copy (IDs = display names, no overrides needed) */
 export const PROCEDURE_PANEL_DISPLAY_HC = {
-  'Handle general inquiry':             { name: 'Handle general inquiry',             whenToUse: 'Patient asks a general or informational question.' },
+  'Handle general inquiry':             { name: 'Handle general inquiry',             whenToUse: 'Patient asks a general query related to the hospital or anything answerable from the knowledge base.' },
   'Handle emergency or urgent concern': { name: 'Handle emergency or urgent concern', whenToUse: "Patient describes worsening symptoms or a time-sensitive medical issue." },
   'Handle unclear message':             { name: 'Handle unclear message',             whenToUse: "Patient's message is too vague or out-of-scope." },
   'Talk to human':                      { name: 'Talk to human',                      whenToUse: 'Patient explicitly asks to speak with a person or expresses frustration.' },

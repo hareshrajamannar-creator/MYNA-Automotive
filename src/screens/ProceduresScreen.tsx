@@ -48,12 +48,17 @@ import { ProcedureDetailScreen } from './ProcedureDetailScreen'
 
 type ViewMode = 'grid' | 'list'
 
+const HC_PROCEDURE_IDS = new Set([
+  'hc-fd-02', 'hc-fd-05', 'hc-fd-06', 'hc-fd-11', 'hc-fd-12', 'hc-wl-01', 'hc-pv-01',
+])
+
 export function ProceduresScreen({ product = 'automotive' }: { product?: string }) {
   const { procedures, addProcedure, deleteProcedure } = useProcedureStore()
-  const isHC = product === 'healthcare' || product === 'dental'
-  const allProcedures = procedures.filter((p) =>
-    isHC ? p.category === 'Healthcare Frontdesk' : p.category !== 'Healthcare Frontdesk'
-  )
+  const allProcedures = procedures.filter((p) => {
+    if (product === 'dental') return HC_PROCEDURE_IDS.has(p.id) || p.category === 'Dental'
+    if (product === 'healthcare') return HC_PROCEDURE_IDS.has(p.id)
+    return !p.category.startsWith('Healthcare') && p.category !== 'Dental'
+  })
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState<ViewMode>('grid')
@@ -71,13 +76,14 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
   }
 
   const q = searchQuery.trim().toLowerCase()
-  const visibleProcedures = !q
+  const visibleProcedures = (!q
     ? allProcedures
     : allProcedures.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
       )
+  ).slice().sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <div className="flex h-full flex-col">

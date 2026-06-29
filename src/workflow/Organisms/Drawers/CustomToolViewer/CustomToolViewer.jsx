@@ -738,29 +738,22 @@ function InteractiveField({ field, onValueChange }) {
   }
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Shared content (used both in standalone drawer and embedded mode) ────────
 
-export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [fieldSnapshot, setFieldSnapshot] = useState({});
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    if (isOpen && tool?.fields) {
-      setFieldSnapshot(buildInitialSnapshot(tool.fields));
-    }
-  }, [isOpen, tool?.id]);
+export function ToolViewerContent({ tool, onClose, onSave, initialValues, clearDefaults = false }) {
+  const [fieldSnapshot, setFieldSnapshot] = useState(() =>
+    initialValues && Object.keys(initialValues).length > 0
+      ? { ...initialValues }
+      : buildInitialSnapshot(tool?.fields)
+  );
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [menuOpen]);
+    setFieldSnapshot(
+      initialValues && Object.keys(initialValues).length > 0
+        ? { ...initialValues }
+        : buildInitialSnapshot(tool?.fields)
+    );
+  }, [tool?.id]);
 
   const effectiveSnapshot = useMemo(() => {
     if (Object.keys(fieldSnapshot).length > 0) return fieldSnapshot;
@@ -769,10 +762,48 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
 
   if (!tool) return null;
 
-  const handleEdit = () => {
-    setMenuOpen(false);
-    onEditTool?.(tool);
+  const handleSave = () => {
+    if (onSave) onSave(tool, fieldSnapshot);
+    else onClose?.();
   };
+
+  return (
+    <div className={styles.outer}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <button className={styles.backBtn} type="button" onClick={onClose}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <span className={styles.headerTitle}>{tool.name}</span>
+        </div>
+        <button type="button" onClick={handleSave} className={styles.saveBtn}>
+          Save
+        </button>
+      </div>
+
+      <div className={styles.body}>
+        {tool.fields
+          ?.filter((f) => isFieldVisible(f, effectiveSnapshot))
+          .map((f) => (
+            <InteractiveField
+              key={f.id}
+              field={clearDefaults ? { ...f, defaultValue: undefined, defaultChecked: undefined } : f}
+              onValueChange={(id, val) => {
+                setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
+              }}
+            />
+          ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component (standalone drawer) ──────────────────────────────────────
+
+export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool, onSave, initialValues }) {
+  if (!tool) return null;
 
   return (
     <CommonSideDrawer
@@ -784,42 +815,12 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
       buttonPosition="right"
       headerRightContent={<span className={styles.drawerSuppress} />}
     >
-      <div className={styles.outer}>
-        {/* ─── Custom header ─── */}
-        <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            <button className={styles.backBtn} type="button" onClick={onClose}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
-              </svg>
-            </button>
-            <span className={styles.headerTitle}>{tool.name}</span>
-          </div>
-          {/* Save CTA — replaces three-dots menu */}
-          <button
-            type="button"
-            onClick={onClose}
-            className={styles.saveBtn}
-          >
-            Save
-          </button>
-        </div>
-
-        {/* ─── Interactive fields ─── */}
-        <div className={styles.body}>
-          {tool.fields
-            ?.filter((f) => isFieldVisible(f, effectiveSnapshot))
-            .map((f) => (
-              <InteractiveField
-                key={f.id}
-                field={f}
-                onValueChange={(id, val) => {
-                  setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
-                }}
-              />
-            ))}
-        </div>
-      </div>
+      <ToolViewerContent
+        tool={tool}
+        onClose={onClose}
+        onSave={onSave}
+        initialValues={initialValues}
+      />
     </CommonSideDrawer>
   );
 }
