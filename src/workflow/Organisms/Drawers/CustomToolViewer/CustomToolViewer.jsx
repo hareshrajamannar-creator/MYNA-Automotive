@@ -733,34 +733,260 @@ function InteractiveField({ field, onValueChange }) {
         </div>
       );
 
+    case 'paramList':
+      return <ParamListField field={field} />;
+
     default:
       return null;
   }
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Parameter list (card-per-param style, matches Figma patient-lookup design) ─
 
-export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [fieldSnapshot, setFieldSnapshot] = useState({});
-  const menuRef = useRef(null);
+const _DATA_TYPE_OPTS = ['String', 'Number', 'Boolean', 'Object', 'Array'];
+const _VALUE_TYPE_OPTS = [
+  { value: 'llm',      label: 'LLM' },
+  { value: 'dynamic',  label: 'Dynamic variable' },
+  { value: 'constant', label: 'Constant value' },
+];
+
+function ParamCard({ param, index, onChange, onDelete }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [hovered, setHovered]     = useState(false);
+  const [enumInput, setEnumInput]  = useState('');
+  const vt = param.valueType || 'llm';
+
+  const addEnum = () => {
+    if (!enumInput.trim()) return;
+    onChange({ ...param, enumValues: [...(param.enumValues || []), enumInput.trim()] });
+    setEnumInput('');
+  };
+
+  const S = {
+    card:    { border: '1px solid #e0e0e0', borderRadius: 6, background: '#fff', fontFamily: 'Roboto, sans-serif', overflow: 'hidden' },
+    header:  { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: hovered ? '#f5f5f5' : 'transparent', borderBottom: collapsed ? 'none' : '1px solid #e0e0e0', cursor: 'pointer', userSelect: 'none', transition: 'background 0.15s' },
+    hdrLeft: { display: 'flex', alignItems: 'center', gap: 6 },
+    hdrTitle:{ fontSize: 13, color: '#212121', fontWeight: 400 },
+    iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#757575', lineHeight: 1 },
+    body:    { padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 },
+    row2:    { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+    fwrap:   { display: 'flex', flexDirection: 'column', gap: 5 },
+    label:   { fontSize: 12, color: '#212121', fontWeight: 400, display: 'flex', alignItems: 'center', gap: 4 },
+    req:     { color: '#e53935', marginLeft: 1 },
+    select:  { height: 36, width: '100%', padding: '0 32px 0 10px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 13, fontFamily: 'Roboto, sans-serif', color: '#212121', background: '#fff', appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', boxSizing: 'border-box' },
+    selWrap: { position: 'relative', width: '100%' },
+    chevron: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: 18, color: '#757575' },
+    input:   { height: 36, width: '100%', padding: '0 10px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 13, fontFamily: 'Roboto, sans-serif', color: '#212121', background: '#fff', boxSizing: 'border-box', outline: 'none' },
+    textarea:{ width: '100%', padding: '8px 10px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 13, fontFamily: 'Roboto, sans-serif', color: '#212121', background: '#fff', boxSizing: 'border-box', outline: 'none', resize: 'vertical', minHeight: 72 },
+    cbRow:   { display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' },
+    cbLabel: { fontSize: 13, color: '#212121', fontWeight: 400 },
+    chip:    { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px solid #c5cad3', borderRadius: 12, fontSize: 12, color: '#424242', background: '#fafafa' },
+    chipX:   { background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#757575' },
+    addBtn:  { width: 32, height: 36, border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box' },
+    hint:    { fontSize: 11, color: '#9e9e9e', lineHeight: '16px' },
+    varChip: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', border: '1px solid #b3d4f5', borderRadius: 12, fontSize: 12, color: '#1565c0', background: '#e8f1fb' },
+  };
+
+  const iconStyle = { fontSize: 16, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" };
+
+  return (
+    <div style={S.card} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      {/* Header */}
+      <div style={S.header} onClick={() => setCollapsed(c => !c)}>
+        <div style={S.hdrLeft}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#757575', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+            {collapsed ? 'expand_more' : 'expand_less'}
+          </span>
+          <span style={S.hdrTitle}>Parameter {index + 1}</span>
+        </div>
+        {hovered && (
+          <button type="button" style={S.iconBtn}
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+            <span className="material-symbols-outlined" style={{ ...iconStyle, color: '#9e9e9e' }}>delete</span>
+          </button>
+        )}
+      </div>
+
+      {/* Body */}
+      {!collapsed && (
+        <div style={S.body}>
+          {/* Type + Variable row */}
+          <div style={S.row2}>
+            <div style={S.fwrap}>
+              <span style={S.label}>Type <span style={S.req}>*</span></span>
+              <div style={S.selWrap}>
+                <select style={S.select} value={param.dataType || 'String'}
+                  onChange={(e) => onChange({ ...param, dataType: e.target.value })}>
+                  {_DATA_TYPE_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+                <span className="material-symbols-outlined" style={{ ...S.chevron, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>expand_more</span>
+              </div>
+            </div>
+            <div style={S.fwrap}>
+              <span style={S.label}>Variable <span style={S.req}>*</span></span>
+              <input type="text" style={S.input}
+                value={param.identifier || ''}
+                onChange={(e) => onChange({ ...param, identifier: e.target.value })}
+                placeholder="Variable name"
+              />
+            </div>
+          </div>
+
+          {/* Required */}
+          <label style={S.cbRow}>
+            <input type="checkbox" checked={!!param.required}
+              onChange={(e) => onChange({ ...param, required: e.target.checked })}
+              style={{ accentColor: '#1976d2', width: 15, height: 15, cursor: 'pointer', margin: 0 }}
+            />
+            <span style={S.cbLabel}>Required</span>
+          </label>
+
+          {/* Value type */}
+          <div style={S.fwrap}>
+            <span style={S.label}>Type <span style={S.req}>*</span></span>
+            <div style={S.selWrap}>
+              <select style={S.select} value={vt}
+                onChange={(e) => onChange({ ...param, valueType: e.target.value })}>
+                {_VALUE_TYPE_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <span className="material-symbols-outlined" style={{ ...S.chevron, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>expand_more</span>
+            </div>
+          </div>
+
+          {/* LLM → Description + Enum */}
+          {vt === 'llm' && (<>
+            <div style={S.fwrap}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={S.label}>Description</span>
+                <span style={{ fontSize: 11, color: '#9e9e9e' }}>{(param.llmDescription || '').length}/300</span>
+              </div>
+              <textarea style={S.textarea}
+                value={param.llmDescription || ''}
+                maxLength={300}
+                placeholder="Write description"
+                onChange={(e) => onChange({ ...param, llmDescription: e.target.value })}
+              />
+            </div>
+            <div style={S.fwrap}>
+              <span style={{ ...S.label, gap: 4 }}>
+                Enum value
+                <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#9e9e9e', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>info</span>
+              </span>
+              <input type="text" style={S.input}
+                value={enumInput}
+                placeholder="Enter value"
+                onChange={(e) => setEnumInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEnum(); } }}
+              />
+              {(param.enumValues || []).length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(param.enumValues || []).map((v, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px solid #e0e0e0', borderRadius: 4, fontSize: 12, color: '#555', background: '#f5f5f5' }}>
+                      {v}
+                      <button type="button" style={S.chipX}
+                        onClick={() => onChange({ ...param, enumValues: param.enumValues.filter((_, j) => j !== i) })}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>close</span>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>)}
+
+          {/* Constant value */}
+          {vt === 'constant' && (
+            <div style={S.fwrap}>
+              <span style={S.label}>Constant value</span>
+              <textarea style={S.textarea}
+                value={param.constantValue || ''}
+                placeholder="Enter constant value"
+                onChange={(e) => onChange({ ...param, constantValue: e.target.value })}
+              />
+            </div>
+          )}
+
+          {/* Dynamic variable */}
+          {vt === 'dynamic' && (
+            <div style={S.fwrap}>
+              <span style={S.label}>Variable <span style={S.req}>*</span></span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, minHeight: 36, padding: '4px 8px', border: '1px solid #c5cad3', borderRadius: 4, background: '#fff', boxSizing: 'border-box' }}>
+                {param.variableName ? (
+                  /* VariableChip-style: white body, #d1e5f9 border, left blue swatch */
+                  <span style={{ display: 'inline-flex', alignItems: 'center', height: 26, background: '#fff', border: '1px solid #d1e5f9', borderRadius: 4, overflow: 'hidden', flexShrink: 0 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 25, height: 24, background: '#ecf5fd', borderRight: '1px solid #d1e5f9', flexShrink: 0 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#1976d2', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>data_object</span>
+                    </span>
+                    <span style={{ fontSize: 12, color: '#555', padding: '0 4px 0 6px', fontFamily: 'Inter, Roboto, sans-serif', whiteSpace: 'nowrap' }}>{param.variableName}</span>
+                    <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center', color: '#9e9e9e' }}
+                      onClick={() => onChange({ ...param, variableName: '' })}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>close</span>
+                    </button>
+                  </span>
+                ) : (
+                  <input type="text"
+                    placeholder="Variable name"
+                    style={{ border: 'none', outline: 'none', fontSize: 13, fontFamily: 'Roboto, sans-serif', flex: 1, minWidth: 80, background: 'transparent' }}
+                    onChange={(e) => { if (e.target.value) onChange({ ...param, variableName: e.target.value }); }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ParamListField({ field }) {
+  const [params, setParams] = useState(() =>
+    (field.params || []).map((p, i) => ({ ...p, _key: p.id || `param-${i}` }))
+  );
+
+  const updateParam = (idx, updated) =>
+    setParams(prev => prev.map((p, i) => (i === idx ? { ...updated, _key: p._key } : p)));
+  const deleteParam = (idx) =>
+    setParams(prev => prev.filter((_, i) => i !== idx));
+  const addParam = () =>
+    setParams(prev => [...prev, { _key: `param-new-${Date.now()}`, identifier: '', dataType: 'String', required: false, valueType: 'llm', enumValues: [], llmDescription: '' }]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {params.map((param, idx) => (
+        <ParamCard
+          key={param._key}
+          param={param}
+          index={idx}
+          onChange={(updated) => updateParam(idx, updated)}
+          onDelete={() => deleteParam(idx)}
+        />
+      ))}
+      <button type="button" onClick={addParam}
+        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#1976d2', fontSize: 14, fontFamily: 'Roboto, sans-serif', padding: '4px 0' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>add_circle</span>
+        Add parameter
+      </button>
+    </div>
+  );
+}
+
+// ─── Shared content (used both in standalone drawer and embedded mode) ────────
+
+export function ToolViewerContent({ tool, onClose, onSave, initialValues, clearDefaults = false }) {
+  const [fieldSnapshot, setFieldSnapshot] = useState(() =>
+    initialValues && Object.keys(initialValues).length > 0
+      ? { ...initialValues }
+      : buildInitialSnapshot(tool?.fields)
+  );
 
   useEffect(() => {
-    if (isOpen && tool?.fields) {
-      setFieldSnapshot(buildInitialSnapshot(tool.fields));
-    }
-  }, [isOpen, tool?.id]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [menuOpen]);
+    setFieldSnapshot(
+      initialValues && Object.keys(initialValues).length > 0
+        ? { ...initialValues }
+        : buildInitialSnapshot(tool?.fields)
+    );
+  }, [tool?.id]);
 
   const effectiveSnapshot = useMemo(() => {
     if (Object.keys(fieldSnapshot).length > 0) return fieldSnapshot;
@@ -769,10 +995,48 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
 
   if (!tool) return null;
 
-  const handleEdit = () => {
-    setMenuOpen(false);
-    onEditTool?.(tool);
+  const handleSave = () => {
+    if (onSave) onSave(tool, fieldSnapshot);
+    else onClose?.();
   };
+
+  return (
+    <div className={styles.outer}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <button className={styles.backBtn} type="button" onClick={onClose}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <span className={styles.headerTitle}>{tool.name}</span>
+        </div>
+        <button type="button" onClick={handleSave} className={styles.saveBtn}>
+          Save
+        </button>
+      </div>
+
+      <div className={styles.body}>
+        {tool.fields
+          ?.filter((f) => isFieldVisible(f, effectiveSnapshot))
+          .map((f) => (
+            <InteractiveField
+              key={f.id}
+              field={clearDefaults ? { ...f, defaultValue: undefined, defaultChecked: undefined } : f}
+              onValueChange={(id, val) => {
+                setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
+              }}
+            />
+          ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component (standalone drawer) ──────────────────────────────────────
+
+export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool, onSave, initialValues }) {
+  if (!tool) return null;
 
   return (
     <CommonSideDrawer
@@ -784,42 +1048,12 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
       buttonPosition="right"
       headerRightContent={<span className={styles.drawerSuppress} />}
     >
-      <div className={styles.outer}>
-        {/* ─── Custom header ─── */}
-        <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            <button className={styles.backBtn} type="button" onClick={onClose}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
-              </svg>
-            </button>
-            <span className={styles.headerTitle}>{tool.name}</span>
-          </div>
-          {/* Save CTA — replaces three-dots menu */}
-          <button
-            type="button"
-            onClick={onClose}
-            className={styles.saveBtn}
-          >
-            Save
-          </button>
-        </div>
-
-        {/* ─── Interactive fields ─── */}
-        <div className={styles.body}>
-          {tool.fields
-            ?.filter((f) => isFieldVisible(f, effectiveSnapshot))
-            .map((f) => (
-              <InteractiveField
-                key={f.id}
-                field={f}
-                onValueChange={(id, val) => {
-                  setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
-                }}
-              />
-            ))}
-        </div>
-      </div>
+      <ToolViewerContent
+        tool={tool}
+        onClose={onClose}
+        onSave={onSave}
+        initialValues={initialValues}
+      />
     </CommonSideDrawer>
   );
 }

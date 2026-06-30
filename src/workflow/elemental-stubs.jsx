@@ -446,5 +446,132 @@ export function Button({
   );
 }
 
+/* ─── TabHeader ─────────────────────────────────────────────────────────── */
+export function TabHeader({ content = [], activeTab, clickTab, isAeroDesign }) {
+  return (
+    <div style={{ display: 'flex', gap: 0 }}>
+      {content.map((tab) => {
+        const id = tab.value ?? tab.id;
+        const active = activeTab === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => clickTab(id)}
+            style={{
+              padding: '10px 16px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: active ? '2px solid #1976d2' : '2px solid transparent',
+              cursor: 'pointer',
+              fontFamily: '"Inter", sans-serif',
+              fontSize: 14,
+              fontWeight: 400,
+              lineHeight: '20px',
+              color: active ? '#1976d2' : '#555',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Tooltip ───────────────────────────────────────────────────────────── */
+export function Tooltip({ text, children, position = 'top', display = 'inline-flex' }) {
+  const [visible, setVisible] = React.useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: position === 'top' ? 'calc(100% + 6px)' : 'auto',
+            top: position === 'bottom' ? 'calc(100% + 6px)' : 'auto',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#212121',
+            color: '#fff',
+            fontSize: 12,
+            lineHeight: '18px',
+            padding: '4px 8px',
+            borderRadius: 4,
+            whiteSpace: 'nowrap',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            fontFamily: '"Inter", sans-serif',
+          }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/* ─── DrawerHeader ──────────────────────────────────────────────────────── */
+export function DrawerHeader({ title = '', onBack, actions = [] }) {
+  const visibleActions = actions.slice(0, 2);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '24px 24px 16px 24px',
+        background: '#ffffff',
+        width: '100%',
+        boxSizing: 'border-box',
+        fontFamily: '"Inter", sans-serif',
+      }}
+    >
+      <button
+        type="button"
+        onClick={onBack}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'transparent',
+          border: 'none',
+          padding: 0,
+          cursor: onBack ? 'pointer' : 'default',
+          color: '#1f2328',
+        }}
+        aria-label={onBack ? `Back from ${title}` : title}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+        <span style={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#1f2328', whiteSpace: 'nowrap' }}>
+          {title}
+        </span>
+      </button>
+      {visibleActions.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {visibleActions.map((action, idx) => (
+            <Button
+              key={action.key ?? action.label ?? idx}
+              type={action.type ?? (idx === visibleActions.length - 1 ? 'primary' : 'secondary')}
+              label={action.label}
+              onClick={action.onClick}
+              disabled={action.disabled}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Default export for convenience ────────────────────────────────────── */
-export default { FormInput, TextArea, SingleSelect, Chip, Toggle, Button };
+export default { FormInput, TextArea, SingleSelect, Chip, Toggle, Button, TabHeader, Tooltip, DrawerHeader };

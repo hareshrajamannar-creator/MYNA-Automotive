@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { TopNav, Icon, RefChip, ContextModal, EmptyHintField } from '../components'
+import StepsEditorToolbar from '../workflow/Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar'
 import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import UserPromptInput from '../workflow/Molecules/Inputs/UserPromptInput/UserPromptInput'
+import AddToolDrawer from '../workflow/Organisms/Drawers/AddToolDrawer/AddToolDrawer'
 import { type Procedure, type ProcedureStep, type ContextItem, type RefKind, type Token } from '../data/procedureData'
 import { useProcedureStore } from '../data/ProcedureStoreContext'
 
@@ -66,6 +68,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
   const [showAllContext, setShowAllContext] = useState(false)
   const [actionsOpen, setActionsOpen] = useState(false)
   const [contextModalOpen, setContextModalOpen] = useState(false)
+  const [toolPickerOpen, setToolPickerOpen] = useState(false)
 
   function handleContextSave(result: ContextModalResult) {
     const items: ContextItem[] = []
@@ -233,6 +236,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
                 value={stepsText}
                 onChange={setStepsText}
                 isNew={isNew}
+                onOpenToolDrawer={() => setToolPickerOpen(true)}
               />
             </Field>
           </div>
@@ -286,6 +290,14 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
         onClose={() => setContextModalOpen(false)}
         onSave={handleContextSave}
       />
+
+      <AddToolDrawer
+        isOpen={toolPickerOpen}
+        onClose={() => setToolPickerOpen(false)}
+        onSelectTool={() => {}}
+        product={product}
+        activeNavId="frontdesk"
+      />
     </div>
   )
 }
@@ -329,6 +341,28 @@ function resolveTokenType(label: string): string {
   return 'variable'
 }
 
+// Parses {{variable}} patterns in a plain string and renders inline chips.
+function renderInlineString(text: string, baseKey: string | number): React.ReactNode {
+  const parts = text.split(/({{[^}]+}})/)
+  if (parts.length === 1) return <span key={baseKey}>{text}</span>
+  return (
+    <span key={baseKey}>
+      {parts.map((part, i) => {
+        const m = part.match(/^{{([^}]+)}}$/)
+        if (m) {
+          const label = m[1]
+          return (
+            <span key={i} contentEditable={false} style={{ display: 'inline-block', userSelect: 'none' }}>
+              <RefChip kind="context" label={label} />
+            </span>
+          )
+        }
+        return part ? <span key={i}>{part}</span> : null
+      })}
+    </span>
+  )
+}
+
 // ── Bullet serializer ───────────────────────────────────────────────────────
 // Walk a contentEditable bullet div and reconstruct Token[] from its childNodes.
 // Text nodes → string tokens. Chip wrapper spans (data-chip-kind) → Ref tokens.
@@ -360,11 +394,13 @@ function serializeBulletEl(el: HTMLElement): Token[] {
 function EditableBulletLine({
   bullet,
   bulletRef,
+  onFocus,
   onBlur,
   onRemoveChip,
 }: {
   bullet: { tokens: Token[] }
   bulletRef: (el: HTMLDivElement | null) => void
+  onFocus?: (el: HTMLDivElement) => void
   onBlur: (el: HTMLElement) => void
   onRemoveChip: (tokenIdx: number) => void
 }) {
@@ -386,11 +422,12 @@ function EditableBulletLine({
         contentEditable
         suppressContentEditableWarning
         className="relative text-body leading-relaxed text-text-secondary outline-none"
+        onFocus={(e) => onFocus?.(e.currentTarget)}
         onBlur={(e) => onBlur(e.currentTarget)}
       >
         {bullet.tokens.map((token, k) =>
           typeof token === 'string' ? (
-            <span key={k}>{token}</span>
+            renderInlineString(token, k)
           ) : (
             <span
               key={k}
@@ -420,12 +457,16 @@ function ProcedureStepsPanel({
   value,
   onChange,
   isNew,
+  onOpenToolDrawer,
 }: {
   initialSteps: ProcedureStep[]
   value: string
   onChange: (v: string) => void
   isNew: boolean
+  onOpenToolDrawer?: () => void
 }) {
+  const lastFocusedBulletRef = useRef<HTMLDivElement | null>(null)
+  const getActiveEditable = useCallback(() => lastFocusedBulletRef.current, [])
   const hasStructure = !isNew && initialSteps.length > 0
   const [isEditing, setIsEditing] = useState(isNew)
   const [editSteps, setEditSteps] = useState<ProcedureStep[]>(initialSteps)
@@ -508,12 +549,14 @@ function ProcedureStepsPanel({
         onBlur={handleBlur}
       >
         <div className="steps-editor-shell">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <UserPromptInput
             hideLabel autoHeight
             value={value} onChange={onChange}
             resolveType={resolveTokenType}
             minEditorHeight={STEPS_FIELD_MIN_HEIGHT}
             placeholder={STEPS_PLACEHOLDER}
+            {...({ onOpenToolDrawer } as any)}
           />
         </div>
       </div>
@@ -577,7 +620,10 @@ function ProcedureStepsPanel({
                       {isEditing ? (
                         <EditableBulletLine
                           bullet={bullet}
-                          bulletRef={(el) => { bulletRefs.current[bKey] = el }}
+                          bulletRef={(el) => {
+                            bulletRefs.current[bKey] = el
+                          }}
+                          onFocus={(el) => { lastFocusedBulletRef.current = el }}
                           onBlur={(el) => updateBulletOnBlur(i, j, el)}
                           onRemoveChip={(k) => removeChipFromBullet(i, j, k)}
                         />
@@ -589,7 +635,7 @@ function ProcedureStepsPanel({
                         >
                           {bullet.tokens.map((token, k) =>
                             typeof token === 'string' ? (
-                              <span key={k}>{token}</span>
+                              renderInlineString(token, k)
                             ) : (
                               <RefChip key={k} kind={token.kind} label={token.label} className="mx-[2px] align-middle" />
                             )
@@ -604,6 +650,11 @@ function ProcedureStepsPanel({
           </div>
         ))}
       </div>
+      <StepsEditorToolbar
+        getActiveEditable={getActiveEditable}
+        onAfterInsert={() => {}}
+        onOpenToolDrawer={onOpenToolDrawer}
+      />
     </div>
   )
 }

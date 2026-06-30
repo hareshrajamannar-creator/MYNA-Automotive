@@ -166,6 +166,15 @@ export function WorkflowEditorScreen({
   const resolvedStatus = wizardDraft ? 'Draft' : agentStatus
   const publishDisabled = Boolean(wizardDraft)
 
+  const AGENT_NAV_MAP: Record<string, string> = {
+    'Front desk agent': 'frontdesk',
+    'Reminder agent': 'inbox',
+    'Outreach agent': 'marketing',
+    'Pre-visit agent': 'frontdesk',
+    'Waitlist agent': 'frontdesk',
+  }
+  const activeNavId = AGENT_NAV_MAP[agentName] ?? 'frontdesk'
+
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
       <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-gray-400">Loading…</div>}>
@@ -175,6 +184,7 @@ export function WorkflowEditorScreen({
           appTitle={agentName}
           onClose={onClose}
           product={product}
+          activeNavId={activeNavId}
           moduleSlug="myna"
           moduleContext="myna"
           sectionContext="workflow"

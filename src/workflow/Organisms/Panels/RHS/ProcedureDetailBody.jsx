@@ -164,7 +164,7 @@ function serializeStepsList(rootEl) {
 }
 
 /* ── Editable steps — identical layout to StepsRenderer ── */
-function EditableStepsRenderer({ text, onChange, createMode = false }) {
+function EditableStepsRenderer({ text, onChange, createMode = false, onOpenToolDrawer }) {
   const rootRef = useRef(null);
   const shellRef = useRef(null);
   const activeEditableRef = useRef(null);
@@ -294,6 +294,7 @@ function EditableStepsRenderer({ text, onChange, createMode = false }) {
       <StepsEditorToolbar
         getActiveEditable={getActiveEditable}
         onAfterInsert={emitChange}
+        onOpenToolDrawer={onOpenToolDrawer}
       />
     </div>
   );
@@ -585,6 +586,7 @@ export default function ProcedureDetailBody({
   showTitle = false,
   showLibraryCheckbox = false,
   contextEditable = false,
+  onOpenToolDrawer = undefined,
 }) {
   const [title, setTitle] = useState(initialValues.name ?? '');
   const [whenToUse, setWhenToUse] = useState(initialValues.whenToUse ?? '');
@@ -724,6 +726,7 @@ export default function ProcedureDetailBody({
           <EditableStepsRenderer
             text={stepsText}
             createMode={showTitle}
+            onOpenToolDrawer={onOpenToolDrawer}
             onChange={(val) => { setStepsText(val); onFieldChange?.('stepsText', val); }}
           />
         )}
