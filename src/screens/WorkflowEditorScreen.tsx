@@ -68,11 +68,17 @@ export function WorkflowEditorScreen({
   const isHCProduct = product === 'healthcare' || product === 'dental'
   const isPreVisit = agentBaseName === 'Pre-visit agent'
   const isWaitlist = agentBaseName === 'Waitlist agent'
+  const HC_FRONTDESK_SIDEBAR_NAMES = new Set([
+    'General inquiry',
+    'Talk to human',
+    'Book, cancel, reschedule appointment',
+    'Reschedule appointment',
+  ])
   const filteredProcedures = procedures.filter((p) => {
     if (!isHCProduct) return p.category !== 'Healthcare Frontdesk' && p.category !== 'Healthcare Pre-visit'
     if (isPreVisit) return p.category === 'Healthcare Pre-visit'
     if (isWaitlist) return p.category === 'Healthcare Waitlist'
-    return p.category === 'Healthcare Frontdesk'
+    return p.category === 'Healthcare Frontdesk' && HC_FRONTDESK_SIDEBAR_NAMES.has(p.name)
   })
 
   // For healthcare / dental, patch the __start__ node details directly here
@@ -132,18 +138,10 @@ export function WorkflowEditorScreen({
 
   const HC_FRONTDESK_FD2 = {
     procedureIds: [
-      'Handle general inquiry',
+      'General inquiry',
       'Talk to human',
-      'Book new appointment',
-      'Reschedule appointment',
-      'Cancel appointment',
-      'Handle slot conflict',
-      'Handle booking failure',
+      'Book, cancel, reschedule appointment',
       'Verify insurance',
-      'Appointment confirmation',
-      'Waitlist slot confirmation',
-      'Handle emergency or urgent concern',
-      'Handle unclear message',
     ],
   }
 

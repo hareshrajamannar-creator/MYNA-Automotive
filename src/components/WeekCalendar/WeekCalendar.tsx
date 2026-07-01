@@ -6,7 +6,10 @@ interface CalendarEvent {
   id: string
   name: string
   phone: string
+  email: string
   provider: string
+  apptType: string
+  insuranceStatus: string
   start: string
   end: string
   day: number
@@ -22,6 +25,7 @@ interface TooltipPos {
 
 interface WeekCalendarProps {
   weekStart: Date
+  visibleColumns?: string[]
 }
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -29,15 +33,15 @@ const HOURS = ['07:00am', '08:00am', '09:00am', '10:00am', '11:00am', '12:00pm',
 const TOOLTIP_WIDTH = 256
 
 const MOCK_EVENTS: CalendarEvent[] = [
-  { id: '1', name: 'Robin Willams',    phone: '(501) 336-7516', provider: 'Dr. Smith Lee',  start: '08:00am', end: '09:00am', day: 0, color: 'green', checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
-  { id: '2', name: 'David Goggins',    phone: '(415) 555-0101', provider: 'Dr. Lopez',       start: '08:00am', end: '08:30am', day: 1, color: 'green', warning: true, checks: ['Appointment confirmed'] },
-  { id: '3', name: 'Rafeque Mohammed', phone: '(650) 555-0177', provider: 'Dr. Williams',    start: '08:30am', end: '09:00am', day: 1, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
-  { id: '4', name: 'David Goggins',    phone: '(415) 555-0101', provider: 'Dr. Lopez',       start: '08:00am', end: '08:30am', day: 2, color: 'green', checks: ['Appointment confirmed'] },
-  { id: '5', name: 'Kapoor Klause',    phone: '(408) 555-0188', provider: 'Dr. Carter',      start: '08:00am', end: '08:30am', day: 3, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
-  { id: '6', name: 'Mark Rufflow',     phone: '(669) 555-0123', provider: 'Dr. Smith Lee',   start: '08:15am', end: '09:00am', day: 3, color: 'blue',  checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
-  { id: '7', name: 'Ruth Regan',       phone: '(415) 555-0132', provider: 'Dr. Martinez',    start: '09:00am', end: '10:00am', day: 0, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
-  { id: '8', name: 'Mark Rufflow',     phone: '(669) 555-0123', provider: 'Dr. Smith Lee',   start: '09:00am', end: '09:30am', day: 4, color: 'blue',  checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
-  { id: '9', name: 'Rafeque Mohammed', phone: '(650) 555-0177', provider: 'Dr. Garcia',      start: '09:30am', end: '10:00am', day: 4, color: 'blue',  checks: ['Appointment confirmed'] },
+  { id: '1', name: 'Robin Willams',    phone: '(501) 336-7516', email: 'r.willams@email.com',    provider: 'Dr. Smith Lee', apptType: 'Follow Up',       insuranceStatus: 'Verified',     start: '08:00am', end: '09:00am', day: 0, color: 'green', checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
+  { id: '2', name: 'David Goggins',    phone: '(415) 555-0101', email: 'd.goggins@email.com',    provider: 'Dr. Lopez',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',      start: '08:00am', end: '08:30am', day: 1, color: 'green', warning: true, checks: ['Appointment confirmed'] },
+  { id: '3', name: 'Rafeque Mohammed', phone: '(650) 555-0177', email: 'r.mohammed@email.com',   provider: 'Dr. Williams',  apptType: 'New Consult',     insuranceStatus: 'In Progress',  start: '08:30am', end: '09:00am', day: 1, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
+  { id: '4', name: 'David Goggins',    phone: '(415) 555-0101', email: 'd.goggins@email.com',    provider: 'Dr. Lopez',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',      start: '08:00am', end: '08:30am', day: 2, color: 'green', checks: ['Appointment confirmed'] },
+  { id: '5', name: 'Kapoor Klause',    phone: '(408) 555-0188', email: 'k.klause@email.com',     provider: 'Dr. Carter',    apptType: 'Annual Physical', insuranceStatus: 'Verified',     start: '08:00am', end: '08:30am', day: 3, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
+  { id: '6', name: 'Mark Rufflow',     phone: '(669) 555-0123', email: 'm.rufflow@email.com',    provider: 'Dr. Smith Lee', apptType: 'Procedure',       insuranceStatus: 'Denied',       start: '08:15am', end: '09:00am', day: 3, color: 'blue',  checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
+  { id: '7', name: 'Ruth Regan',       phone: '(415) 555-0132', email: 'ruth.regan@email.com',   provider: 'Dr. Martinez',  apptType: 'Follow Up',       insuranceStatus: 'Verified',     start: '09:00am', end: '10:00am', day: 0, color: 'green', checks: ['Appointment confirmed', 'Insurance verified'] },
+  { id: '8', name: 'Mark Rufflow',     phone: '(669) 555-0123', email: 'm.rufflow@email.com',    provider: 'Dr. Smith Lee', apptType: 'Procedure',       insuranceStatus: 'Denied',       start: '09:00am', end: '09:30am', day: 4, color: 'blue',  checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'] },
+  { id: '9', name: 'Rafeque Mohammed', phone: '(650) 555-0177', email: 'r.mohammed@email.com',   provider: 'Dr. Garcia',    apptType: 'New Consult',     insuranceStatus: 'In Progress',  start: '09:30am', end: '10:00am', day: 4, color: 'blue',  checks: ['Appointment confirmed'] },
 ]
 
 const COLOR_MAP = {
@@ -102,7 +106,15 @@ function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: Tool
   )
 }
 
-export function WeekCalendar({ weekStart }: WeekCalendarProps) {
+const COLUMN_FIELD_MAP: Record<string, (evt: CalendarEvent) => string> = {
+  staff:           (e) => e.provider,
+  apptType:        (e) => e.apptType,
+  insuranceStatus: (e) => e.insuranceStatus,
+  phone:           (e) => e.phone,
+  email:           (e) => e.email,
+}
+
+export function WeekCalendar({ weekStart, visibleColumns = ['name', 'dateTime'] }: WeekCalendarProps) {
   const startHour = 7
   const rowHeight = 80
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null)
@@ -179,14 +191,21 @@ export function WeekCalendar({ weekStart }: WeekCalendarProps) {
                   <div
                     key={evt.id}
                     onClick={(e) => handleEventClick(evt, e)}
-                    className={`absolute left-[2px] right-[2px] cursor-pointer rounded-sm border-l-[3px] ${c.bg} ${c.border} px-sm py-xs ${isActive ? 'ring-1 ring-primary/40' : 'hover:brightness-95'}`}
+                    className={`absolute left-[2px] right-[2px] overflow-hidden cursor-pointer rounded-sm border-l-[3px] ${c.bg} ${c.border} px-sm py-xs ${isActive ? 'ring-1 ring-primary/40' : 'hover:brightness-95'}`}
                     style={{ top, height: Math.max(height, 28) }}
                   >
                     <div className="flex items-center gap-xs">
                       <span className={`truncate text-small ${c.text}`}>{evt.name}</span>
                       {evt.warning && <Icon name="warning" size={12} className="shrink-0 text-[#f59e0b]" />}
                     </div>
-                    <span className="text-[10px] text-text-secondary">{evt.start} - {evt.end}</span>
+                    {height >= 40 && (
+                      <span className="text-[10px] text-text-secondary">{evt.start} - {evt.end}</span>
+                    )}
+                    {height >= 80 && Object.entries(COLUMN_FIELD_MAP)
+                      .filter(([key]) => visibleColumns.includes(key))
+                      .map(([key, getVal]) => (
+                        <p key={key} className="truncate text-[10px] text-text-secondary">{getVal(evt)}</p>
+                      ))}
                   </div>
                 )
               })}

@@ -25,7 +25,7 @@ const FRONTDESK_NODES = [
   {
     id: 'fd-2',
     flowType: 'procedures',
-    data: { title: 'Route to Procedure', subtype: 'Procedures', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' },
+    data: { title: 'Follow procedures', subtype: 'Procedures', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description' },
   },
 ]
 
@@ -42,7 +42,7 @@ const FRONTDESK_NODE_DETAILS: Record<string, any> = {
   },
   'fd-1': {
     triggerName: 'Channel',
-    description: 'Agent triggers when a voice, chat, or text conversations start',
+    description: 'Agent triggers when a voice, chat, or text event occurs',
     voiceRows: [{ id: 'voice-1', condition: 'incoming_call', time: 'during_business' }],
     webChatRows: [{ id: 'web-1', condition: 'message_received', time: 'during_business' }],
   },

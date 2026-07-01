@@ -316,9 +316,9 @@ export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?:
             <div className="flex flex-1 overflow-hidden px-2xl py-lg">
               <div className="flex flex-1 flex-col overflow-hidden rounded-sm border border-border">
                 {timescale === 'day' ? (
-                  <DayCalendar day={date} />
+                  <DayCalendar day={date} visibleColumns={visible} />
                 ) : (
-                  <WeekCalendar weekStart={date} />
+                  <WeekCalendar weekStart={date} visibleColumns={visible} />
                 )}
               </div>
             </div>
