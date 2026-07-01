@@ -6,7 +6,10 @@ interface CalendarEvent {
   id: string
   name: string
   phone: string
+  email: string
   provider: string
+  apptType: string
+  insuranceStatus: string
   start: string
   end: string
   color: 'green' | 'red' | 'blue'
@@ -20,6 +23,7 @@ interface TooltipPos {
 
 interface DayCalendarProps {
   day: Date
+  visibleColumns?: string[]
 }
 
 function buildSlots() {
@@ -40,22 +44,22 @@ const TOOLTIP_WIDTH = 256
 
 const MOCK_EVENTS: CalendarEvent[] = [
   {
-    id: '1', name: 'Robin Willams',  phone: '(501) 336-7516', provider: 'Dr. Smith Lee',
+    id: '1', name: 'Robin Willams',  phone: '(501) 336-7516', email: 'r.willams@email.com', provider: 'Dr. Smith Lee', apptType: 'Follow Up',      insuranceStatus: 'Verified',
     start: '08:00am', end: '09:00am', color: 'green',
     checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'],
   },
   {
-    id: '2', name: 'Robin Willams',  phone: '(501) 336-7516', provider: 'Dr. Smith Lee',
+    id: '2', name: 'Robin Willams',  phone: '(501) 336-7516', email: 'r.willams@email.com', provider: 'Dr. Smith Lee', apptType: 'Follow Up',      insuranceStatus: 'Verified',
     start: '08:00am', end: '09:00am', color: 'green',
     checks: ['Appointment confirmed', 'Insurance verified', 'Intake form completed'],
   },
   {
-    id: '3', name: 'Ruth Regan',     phone: '(415) 555-0132', provider: 'Dr. Lopez',
+    id: '3', name: 'Ruth Regan',     phone: '(415) 555-0132', email: 'ruth.regan@email.com', provider: 'Dr. Lopez',    apptType: 'Urgent Care',   insuranceStatus: 'Pending',
     start: '09:00am', end: '10:00am', color: 'red',
     checks: ['Appointment confirmed'],
   },
   {
-    id: '4', name: 'Ruth Regan',     phone: '(415) 555-0132', provider: 'Dr. Martinez',
+    id: '4', name: 'Ruth Regan',     phone: '(415) 555-0132', email: 'ruth.regan@email.com', provider: 'Dr. Martinez', apptType: 'Annual Physical', insuranceStatus: 'In Progress',
     start: '09:00am', end: '10:00am', color: 'blue',
     checks: ['Appointment confirmed', 'Insurance verified'],
   },
@@ -141,7 +145,15 @@ function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: Tool
   )
 }
 
-export function DayCalendar({ day: _day }: DayCalendarProps) {
+const COLUMN_FIELD_MAP: Record<string, (evt: CalendarEvent) => string> = {
+  staff:           (e) => e.provider,
+  apptType:        (e) => e.apptType,
+  insuranceStatus: (e) => e.insuranceStatus,
+  phone:           (e) => e.phone,
+  email:           (e) => e.email,
+}
+
+export function DayCalendar({ day: _day, visibleColumns = ['name', 'dateTime'] }: DayCalendarProps) {
   const pxPerHour = SLOT_HEIGHT * 2
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos>({ x: 0, y: 0 })
@@ -200,7 +212,14 @@ export function DayCalendar({ day: _day }: DayCalendarProps) {
                 />
                 <div className="pl-[10px] pt-[8px]">
                   <p className={`text-[12px] ${c.text}`}>{evt.name}</p>
-                  <p className="text-[10px] text-[#555]">{evt.start} - {evt.end}</p>
+                  {height >= 40 && (
+                    <p className="text-[10px] text-[#555]">{evt.start} - {evt.end}</p>
+                  )}
+                  {height >= 80 && Object.entries(COLUMN_FIELD_MAP)
+                    .filter(([key]) => visibleColumns.includes(key))
+                    .map(([key, getVal]) => (
+                      <p key={key} className="truncate text-[10px] text-[#555]">{getVal(evt)}</p>
+                    ))}
                 </div>
               </div>
             )
