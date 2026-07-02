@@ -123,7 +123,7 @@ export function BookAppointmentDrawer({ open, onClose }: BookAppointmentDrawerPr
     const r = e.currentTarget.getBoundingClientRect()
     if (field?.isDatePicker) {
       if (datePickerOpen) { setDatePickerOpen(false); return }
-      setDatePickerAnchor({ top: r.bottom, left: r.left })
+      setDatePickerAnchor({ top: r.top - 80, left: r.left })
       setDatePickerOpen(true)
       setOpenField(null)
       setWidgetMenuOpen(false)
