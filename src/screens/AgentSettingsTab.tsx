@@ -372,7 +372,7 @@ function WebChatSettings() {
           {duringEnabled && (
             <CheckboxRowField>
               <FallbackField
-                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                prefix="We're not available right now. Our team will follow up during business hours. You can also reach us at"
                 chipLabel="business.phone"
               />
             </CheckboxRowField>
@@ -430,7 +430,7 @@ function TextSettings() {
           {beforeEnabled && (
             <CheckboxRowField>
               <FallbackField
-                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                prefix="We're not available right now. Our team will follow up during business hours. You can also reach us at"
                 chipLabel="business.phone"
               />
             </CheckboxRowField>

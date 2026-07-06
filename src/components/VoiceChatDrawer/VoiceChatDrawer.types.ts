@@ -10,5 +10,6 @@ export interface VoiceChatDrawerProps {
   summary?: string
   audioUrl?: string
   durationSecs?: number
+  mode?: 'voice' | 'chat'
   onClose: () => void
 }

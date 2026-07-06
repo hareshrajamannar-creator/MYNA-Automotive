@@ -1228,10 +1228,16 @@ export default function AgentBuilder({
 
   const startAgentName = nodeDetails[START_NODE_ID]?.agentName || pageTitle;
   const startLocations = nodeDetails[START_NODE_ID]?.locations || [];
+  const locationCount = startLocations.length;
+  const startSubtitle = locationCount === 0
+    ? 'Add locations'
+    : locationCount === 1
+      ? '1 location'
+      : `${locationCount} locations`;
   const startData = {
     title: startAgentName,
-    subtitle: startLocations.length > 0 ? 'All locations' : 'Add locations',
-    subtitleIsLink: startLocations.length === 0,
+    subtitle: startSubtitle,
+    subtitleIsLink: locationCount === 0,
   };
   const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails, product);
 

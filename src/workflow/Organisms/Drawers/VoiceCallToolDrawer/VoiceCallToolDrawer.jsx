@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import FieldPickerModal from '../../Modals/FieldPickerModal/FieldPickerModal';
 import VariableChip, { DataTypeIcon } from '../../../Molecules/Inputs/VariableChip/VariableChip';
 import { SingleSelect } from '../../../elemental-stubs';
+import { getVoiceCallProcedureDetail } from './voiceCallProcedureDetails';
+import ProcedureDetailBody from '../../Panels/RHS/ProcedureDetailBody';
 import './VoiceCallToolDrawer.css';
 
 /* ── option helpers ── */
@@ -20,6 +22,21 @@ const DENTAL_PROCEDURE_OPTIONS = [
   'Payment reminder procedure',
   'Treatment plan coordinator procedure',
   'Front desk intake procedure',
+];
+
+const AUTOMOTIVE_PROCEDURE_OPTIONS = [
+  'Appointment confirmation',
+  'Service reminder procedure',
+  'Recall notice procedure',
+  'Front desk intake procedure',
+];
+
+const DEFAULT_CONTEXT_VARS = [
+  { value: 'Appointment ID',   name: 'Appointment ID' },
+  { value: 'Patient ID',       name: 'Patient ID' },
+  { value: 'Provider ID',      name: 'Provider ID' },
+  { value: 'Diagnosis Code',   name: 'Diagnosis Code' },
+  { value: 'Appointment_Type', name: 'Appointment_Type' },
 ];
 
 
@@ -46,13 +63,26 @@ function NativeDrawer({ isOpen, onClose, children }) {
   );
 }
 
-function FieldLabel({ children, showInfo = false }) {
+function InfoTooltip({ text }) {
+  const [show, setShow] = useState(false);
+  if (!text) return null;
+  return (
+    <span
+      className="vctd__info-wrap"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      <span className="material-symbols-outlined vctd__info" aria-hidden="true">info</span>
+      {show && <span className="vctd__tooltip">{text}</span>}
+    </span>
+  );
+}
+
+function FieldLabel({ children, tooltip }) {
   return (
     <div className="vctd__label-row">
       <span className="vctd__label">{children}</span>
-      {showInfo && (
-        <span className="material-symbols-outlined vctd__info" aria-hidden="true">info</span>
-      )}
+      <InfoTooltip text={tooltip} />
     </div>
   );
 }
@@ -93,15 +123,13 @@ function VoicemailTextarea({ value, onChange, placeholder }) {
   );
 }
 
-function Toggle({ label, subtext, showInfo = false, checked, onChange }) {
+function Toggle({ label, subtext, tooltip, checked, onChange }) {
   return (
     <div className="vctd__toggle-row">
       <div className="vctd__toggle-text">
         <div className="vctd__label-row">
           <span className="vctd__label">{label}</span>
-          {showInfo && (
-            <span className="material-symbols-outlined vctd__info" aria-hidden="true">info</span>
-          )}
+          <InfoTooltip text={tooltip} />
         </div>
         {subtext && <span className="vctd__toggle-subtext">{subtext}</span>}
       </div>
@@ -113,6 +141,73 @@ function Toggle({ label, subtext, showInfo = false, checked, onChange }) {
       >
         <span className="vctd__toggle-thumb" />
       </button>
+    </div>
+  );
+}
+
+function StartingProcedureField({ value, options, onChange, onView }) {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  if (!value) {
+    return (
+      <div className="vctd__procedure-select-wrap">
+        <SingleSelect
+          name="startingProcedure"
+          selected={value}
+          options={options}
+          placeholder="Select a procedure"
+          onChange={(opt) => onChange(opt.value)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="vctd__procedure-field-wrap">
+      <div className="vctd__procedure-field">
+        <div
+          className="vctd__procedure-pill"
+          role="button"
+          tabIndex={0}
+          onClick={() => onView(value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onView(value); }
+          }}
+        >
+          <VariableChip
+            value={selectedOption?.label ?? value}
+            type="product"
+            readOnly
+            onDelete={() => onChange('')}
+          />
+        </div>
+        <button
+          type="button"
+          className="vctd__procedure-chevron"
+          aria-label="Change starting procedure"
+          onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        >
+          <span className="material-symbols-outlined">{open ? 'expand_less' : 'expand_more'}</span>
+        </button>
+      </div>
+      {open && (
+        <>
+          <div className="vctd__procedure-overlay" onClick={() => setOpen(false)} />
+          <div className="vctd__procedure-menu">
+            {options.map((opt) => (
+              <button
+                type="button"
+                key={opt.value}
+                className="vctd__procedure-menu-item"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -139,11 +234,13 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
   const [retryUnit,        setRetryUnit]         = useState('Hours');
   const [contextVariables, setContextVariables]  = useState([]);
   const [fieldPickerOpen,  setFieldPickerOpen]   = useState(false);
+  const [viewingProcedureId, setViewingProcedureId] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    setStartingProcedure(initialValues.startingProcedure ?? '');
-    setRouteToFrontdesk(initialValues.routeToFrontdesk ?? false);
+    setViewingProcedureId(null);
+    setStartingProcedure(initialValues.startingProcedure ?? 'Appointment confirmation');
+    setRouteToFrontdesk(initialValues.routeToFrontdesk ?? true);
     setRetryNoAnswer(initialValues.retrySettings?.noAnswer ?? true);
     setRetryRejected(initialValues.retrySettings?.callRejected ?? false);
     setRetryVoicemail(initialValues.retrySettings?.voiceMail ?? true);
@@ -151,17 +248,57 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
     setMaxAttempts(String(initialValues.maxAttempts ?? '2'));
     setRetryInterval(String(initialValues.retryInterval ?? '24'));
     setRetryUnit(initialValues.retryIntervalUnit ?? 'Hours');
-    setContextVariables(contextItemsToVars(initialValues.contextItems));
+    const initialContextVars = contextItemsToVars(initialValues.contextItems);
+    setContextVariables(initialContextVars.length > 0 ? initialContextVars : DEFAULT_CONTEXT_VARS);
     setHasPhoneChip(true);
     setCallFrom(initialValues.callFrom ?? '');
   }, [isOpen, initialValues]);
 
-  const procedureOptions = isDental
-    ? toOpts(Array.from(new Set([
-        ...(initialValues.startingProcedure ? [initialValues.startingProcedure] : []),
-        ...DENTAL_PROCEDURE_OPTIONS,
-      ])))
-    : [];
+  const procedureOptions = toOpts(Array.from(new Set([
+    ...(initialValues.startingProcedure ? [initialValues.startingProcedure] : []),
+    ...(isDental ? DENTAL_PROCEDURE_OPTIONS : AUTOMOTIVE_PROCEDURE_OPTIONS),
+  ])));
+
+  const procedureDetail = viewingProcedureId
+    ? getVoiceCallProcedureDetail(viewingProcedureId, product)
+    : null;
+
+  if (procedureDetail) {
+    return (
+      <NativeDrawer isOpen={isOpen} onClose={onClose}>
+        <div className="vctd">
+          <div className="vctd__header">
+            <div className="vctd__header-left">
+              <button type="button" className="vctd__back" onClick={() => setViewingProcedureId(null)} aria-label="Back">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+              </button>
+              <span className="vctd__title">{procedureDetail.name}</span>
+            </div>
+            <div className="vctd__header-actions">
+              <button type="button" className="vctd__cancel" onClick={() => setViewingProcedureId(null)}>Cancel</button>
+              <span className="vctd__save-split">
+                <button type="button" className="vctd__save vctd__save--split" onClick={() => setViewingProcedureId(null)}>Save</button>
+                <button type="button" className="vctd__save vctd__save-chevron" aria-label="More save options">
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>expand_more</span>
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <div className="vctd__body vctd__body--procedure-detail">
+            <ProcedureDetailBody
+              initialValues={procedureDetail}
+              onFieldChange={() => {}}
+              showTypeField
+              whenToUseLabel="When to use this procedure?"
+              contextLibraryStyle
+              onOpenToolDrawer={() => {}}
+            />
+          </div>
+        </div>
+      </NativeDrawer>
+    );
+  }
 
   return (
     <NativeDrawer isOpen={isOpen} onClose={onClose}>
@@ -196,7 +333,7 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
 
           {/* Call from */}
           <div className="vctd__field">
-            <FieldLabel showInfo>Call from</FieldLabel>
+            <FieldLabel tooltip="The outbound number shown to the patient on the call">Call from</FieldLabel>
             <SingleSelect
               name="callFrom"
               selected={callFrom}
@@ -206,46 +343,29 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
             />
           </div>
 
-          {/* Starting procedure — dental only */}
-          {isDental && (
-            <div className="vctd__field">
-              <FieldLabel showInfo>Starting procedure</FieldLabel>
-              <SingleSelect
-                name="startingProcedure"
-                selected={startingProcedure}
-                options={procedureOptions}
-                placeholder="Select a procedure"
-                onChange={(opt) => setStartingProcedure(opt.value)}
-              />
-            </div>
-          )}
-
-          {/* Route to front desk — dental only */}
-          {isDental && (
-            <Toggle
-              label="Route to front desk agent"
-              subtext="Anything outside the selected procedures is handed off to the Front desk agent of respective locations"
-              showInfo
-              checked={routeToFrontdesk}
-              onChange={setRouteToFrontdesk}
+          {/* Starting procedure */}
+          <div className="vctd__field">
+            <FieldLabel tooltip="Sets how the agent starts the conversation">Starting procedure</FieldLabel>
+            <StartingProcedureField
+              value={startingProcedure}
+              options={procedureOptions}
+              onChange={setStartingProcedure}
+              onView={setViewingProcedureId}
             />
-          )}
+          </div>
 
-          {/* Call routed to — non-dental read-only fallback */}
-          {!isDental && (
-            <div className="vctd__field">
-              <FieldLabel showInfo>Call routed to</FieldLabel>
-              <button type="button" className="vctd__routed-field" aria-readonly="true" tabIndex={-1}>
-                <span className="material-symbols-outlined vctd__routed-icon">smart_toy</span>
-                <span className="vctd__routed-value">Front desk agent</span>
-                <span className="material-symbols-outlined vctd__routed-chevron">expand_more</span>
-              </button>
-            </div>
-          )}
+          {/* Route to front desk */}
+          <Toggle
+            label="Route to front desk agent"
+            subtext={`Anything outside the selected procedures is handed off to the front desk agent for the location`}
+            tooltip="Turn off to keep the agent limited to the selected procedures only"
+            checked={routeToFrontdesk}
+            onChange={setRouteToFrontdesk}
+          />
 
           {/* Context */}
           <div className="vctd__field">
-            <FieldLabel showInfo>Context</FieldLabel>
+            <FieldLabel tooltip="Uses your brand voice and industry knowledge to generate accurate responses">Context</FieldLabel>
             <div className="vctd__context-box">
               {contextVariables.length === 0 ? (
                 <div className="vctd__context-footer">
@@ -297,7 +417,7 @@ export default function VoiceCallToolDrawer({ isOpen, onClose, initialValues = {
             <div className="vctd__checkbox-row">
               <Checkbox checked={retryNoAnswer}  onChange={setRetryNoAnswer}  label="No answer"     />
               <Checkbox checked={retryRejected}  onChange={setRetryRejected}  label="Call rejected" />
-              <Checkbox checked={retryVoicemail} onChange={setRetryVoicemail} label="Voice mail"    />
+              <Checkbox checked={retryVoicemail} onChange={setRetryVoicemail} label="Voicemail"     />
             </div>
             {retryVoicemail && (
               <div className="vctd__voicemail-block">

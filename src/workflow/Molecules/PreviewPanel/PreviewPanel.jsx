@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { VoiceChatDrawer } from '../../../components/VoiceChatDrawer/VoiceChatDrawer';
+import voicemailSample from '../../../assets/voicemail_sample.mp3';
 import {
   PREVIEW_DEMO_SCRIPT as DEMO_SCRIPT,
   PREVIEW_GREETING as GREETING,
@@ -38,172 +39,8 @@ function speakText(text, onEnd, speakerOff) {
   window.speechSynthesis.speak(utter);
 }
 
-/* ── Deterministic waveform bar heights ────────────────────── */
-const WAVE_BARS = [
-  14,22,36,28,44,18,32,24,48,30,16,40,26,44,20,34,12,38,28,46,
-  22,36,16,42,30,24,40,18,44,28,36,20,46,14,32,26,42,18,36,28,
-  20,44,32,16,40,24,36,28,44,20,32,48,24,36,16,40,28,20,44,32,
-  24,36,16,28,40,24,32,14,36,28,44,16,32,24,20,
-];
-const CALL_DURATION = 332; // seconds (5m 32s)
-
-function fmtTime(secs) {
-  const m = Math.floor(secs / 60);
-  const s = Math.floor(secs % 60);
-  return `${m}.${String(s).padStart(2, '0')}`;
-}
-
-/* ── Call / chat details view ───────────────────────────────── */
-export function CallDetailsView({ messages, onBack, mode = 'voice' }) {
-  const isChat = mode === 'chat';
-  const [playing, setPlaying]       = useState(false);
-  const [elapsed, setElapsed]       = useState(0);
-  const [speed, setSpeed]           = useState(1.5);
-  const [summaryOpen, setSummaryOpen] = useState(true);
-  const timerRef = useRef(null);
-
-  // Simulate playback progress
-  useEffect(() => {
-    if (playing) {
-      timerRef.current = setInterval(() => {
-        setElapsed(prev => {
-          const next = prev + speed;
-          if (next >= CALL_DURATION) { setPlaying(false); return CALL_DURATION; }
-          return next;
-        });
-      }, 1000);
-    } else {
-      clearInterval(timerRef.current);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [playing, speed]);
-
-  const progress = elapsed / CALL_DURATION;
-  const SPEEDS = [1, 1.5, 2];
-  const nextSpeed = () => setSpeed(s => SPEEDS[(SPEEDS.indexOf(s) + 1) % SPEEDS.length]);
-  const speedLabel = speed === 1 ? '1x' : speed === 1.5 ? '1.5x' : '2x';
-
-  const callStartTime = (() => {
-    const now = new Date();
-    const h = now.getHours() % 12 || 12;
-    const m = String(now.getMinutes()).padStart(2, '0');
-    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-    return `${h}.${m} ${ampm}`;
-  })();
-
-  return (
-    <div className="pp-details">
-      {/* Header */}
-      <div className="pp-details__header">
-        <button className="pp-details__back-btn" type="button" onClick={onBack} aria-label="Back">
-          <span className="material-symbols-outlined">chevron_left</span>
-        </button>
-        <span className="pp-details__title">{isChat ? 'Chat with Myna' : 'Call with Myna'}</span>
-      </div>
-
-      <div className="pp-details__body">
-        {!isChat && (
-        <div className="pp-details__player-wrap">
-          {/* Waveform */}
-          <div
-            className="pp-waveform"
-            onClick={e => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const ratio = (e.clientX - rect.left) / rect.width;
-              setElapsed(ratio * CALL_DURATION);
-            }}
-          >
-            {WAVE_BARS.map((h, i) => {
-              const barPos = i / WAVE_BARS.length;
-              const played = barPos <= progress;
-              return (
-                <span
-                  key={i}
-                  className="pp-waveform__bar"
-                  style={{ height: h, background: played ? '#1976d2' : '#d8dde6' }}
-                />
-              );
-            })}
-          </div>
-
-          {/* Controls row */}
-          <div className="pp-player">
-            <button
-              className="pp-player__play-btn"
-              type="button"
-              onClick={() => setPlaying(v => !v)}
-              aria-label={playing ? 'Pause' : 'Play'}
-            >
-              <span className="material-symbols-outlined">
-                {playing ? 'pause' : 'play_arrow'}
-              </span>
-            </button>
-            <button className="pp-player__speed" type="button" onClick={nextSpeed}>
-              {speedLabel}
-            </button>
-            <span className="pp-player__spacer" />
-            <span className="pp-player__time">
-              {fmtTime(elapsed)} / {fmtTime(CALL_DURATION)}
-            </span>
-          </div>
-        </div>
-        )}
-
-        {/* AI Summary card */}
-        <div className="pp-summary-card">
-          <button
-            className="pp-summary-card__header"
-            type="button"
-            onClick={() => setSummaryOpen(v => !v)}
-          >
-            <span className="pp-summary-card__icon-wrap" aria-hidden>
-              <span className="material-symbols-outlined">auto_awesome</span>
-            </span>
-            <span className="pp-summary-card__label">Summary</span>
-            <span className="material-symbols-outlined pp-summary-card__chevron">
-              {summaryOpen ? 'expand_less' : 'expand_more'}
-            </span>
-          </button>
-          {summaryOpen && (
-            <p className="pp-summary-card__body">
-              Patient reported tooth-origin pain with mild swelling (no fever or breathing issues).
-              Myna screened symptoms and offered an urgent appointment, but the patient ended the call.
-            </p>
-          )}
-        </div>
-
-        {/* Transcript */}
-        <div className="pp-details__transcript">
-          <div className="pp-system">
-            {isChat ? 'Conversation started' : `Call started • ${callStartTime}`}
-          </div>
-          {messages
-            .filter(m => m.role !== 'system')
-            .map(m => {
-              if (m.role === 'system') return null;
-              if (m.role === 'agent') {
-                return (
-                  <div key={m.id} className="pp-agent-row">
-                    <div className="pp-agent-avatar">
-                      <span className="material-symbols-outlined">auto_awesome</span>
-                    </div>
-                    <p className="pp-agent-text">{m.text}</p>
-                  </div>
-                );
-              }
-              return (
-                <div key={m.id} className="pp-user-row">
-                  <p className="pp-user-bubble">{m.text}</p>
-                </div>
-              );
-            })
-          }
-          <div className="pp-system">{isChat ? 'You ended the chat' : 'You ended the call'}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const PREVIEW_CALL_SUMMARY =
+  'Patient reported tooth-origin pain with mild swelling (no fever or breathing issues). Myna screened symptoms and offered an urgent appointment, but the patient ended the call.';
 
 /* ── Sound-wave bars (5 bars) ───────────────────────────────── */
 function SoundWave({ active }) {
@@ -453,12 +290,14 @@ function OutboundPreviewPanel({ onClose, testAppointment, onPreviewActiveChange,
     setPanelView((v) => (v === 'logs' ? 'preview' : 'logs'));
   }, []);
 
-  const showProgressiveLogs =
+  const showProgressiveLogs = Boolean(testAppointment) && showLogs;
+  const showInitialPreview =
     Boolean(testAppointment) &&
-    (showLogs || callPhase === 'idle' || callPhase === 'calling');
+    !showLogs &&
+    (callPhase === 'idle' || callPhase === 'calling');
   const showCallPrompt = !showLogs && callPhase === 'calling';
   const showConversation = !showLogs && (callPhase === 'active' || callPhase === 'ended');
-  const showViewLogsToggle = callPhase === 'active' || callPhase === 'ended';
+  const showViewLogsToggle = Boolean(testAppointment);
 
   return (
     <div className="preview-panel">
@@ -476,7 +315,7 @@ function OutboundPreviewPanel({ onClose, testAppointment, onPreviewActiveChange,
           showConversation ? ' preview-panel__body--outbound-call' : ''
         }`}
       >
-        {showProgressiveLogs && (
+        {(showProgressiveLogs || showInitialPreview) && (
           <OutboundPreviewLogsPanel
             patientName={patientName}
             appointmentLine={appointmentLine}
@@ -755,13 +594,8 @@ export default function PreviewPanel({
 
   const handleToggleView = useCallback(() => {
     if (logsLinkDisabled) return;
-    if (showLogs) {
-      handleReset();
-      setPanelView('preview');
-    } else {
-      setPanelView('logs');
-    }
-  }, [showLogs, logsLinkDisabled, handleReset]);
+    setPanelView((v) => (v === 'logs' ? 'preview' : 'logs'));
+  }, [logsLinkDisabled]);
 
   const handleClose = useCallback(() => {
     handleReset();
@@ -790,22 +624,14 @@ export default function PreviewPanel({
 
   return (
     <>
-      {/* Details overlay drawer — portal to body so it covers the full viewport */}
-      {panelView === 'details' && createPortal(
-        <div className="pp-details-overlay" onClick={() => setPanelView('preview')}>
-          <div
-            className="pp-details-drawer"
-            onClick={e => e.stopPropagation()}
-          >
-            <CallDetailsView
-              messages={messages}
-              mode={mode}
-              onBack={() => setPanelView('preview')}
-            />
-          </div>
-        </div>,
-        document.body
-      )}
+      <VoiceChatDrawer
+        open={panelView === 'details'}
+        messages={messages}
+        mode={mode}
+        summary={PREVIEW_CALL_SUMMARY}
+        audioUrl={mode === 'voice' ? voicemailSample : undefined}
+        onClose={() => setPanelView('preview')}
+      />
 
     <div className="preview-panel">
 
@@ -917,7 +743,7 @@ export default function PreviewPanel({
                 type="button"
                 onClick={!showViewDetails ? handleReset : mode === 'chat' ? handleReset : handleStartCall}
               >
-                {!showViewDetails ? 'Preview again' : mode === 'chat' ? 'Start a chat' : 'Start a call'}
+                {!showViewDetails ? 'Preview again' : mode === 'chat' ? 'Start a chat' : 'Test again'}
               </button>
               {showViewDetails && (
                 <button className="preview-panel__details-btn" type="button" onClick={() => setPanelView('details')}>

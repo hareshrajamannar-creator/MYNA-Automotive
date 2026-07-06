@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { TopNav, Icon, RefChip, ContextModal, EmptyHintField } from '../components'
+import { TopNav, Icon, RefChip, ContextModal, EmptyHintField, SelectMenu } from '../components'
 import StepsEditorToolbar from '../workflow/Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar'
 import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
@@ -62,6 +62,9 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
 
   const [title, setTitle] = useState(procedure?.name ?? '')
   const [whenToUse, setWhenToUse] = useState(procedure?.whenToUse ?? '')
+  const [queue, setQueue] = useState<'Inbound' | 'Outbound'>(procedure?.queue ?? 'Inbound')
+  const [queueMenuOpen, setQueueMenuOpen] = useState(false)
+  const [queueAnchor, setQueueAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
   const initialStepsText = stepsToEditorText(procedure?.steps ?? [])
   const [stepsText, setStepsText] = useState(initialStepsText)
   const [context, setContext] = useState<ContextItem[]>(procedure?.context ?? [])
@@ -90,6 +93,8 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
       id: isNew ? `p-${Date.now()}` : procedure!.id,
       name: title.trim() || 'Untitled procedure',
       category: procedure?.category ?? defaultCategory,
+      queue,
+      channels: procedure?.channels ?? [],
       description: whenToUse.trim().split(/[.!?]/)[0].trim() || title.trim() || 'No description',
       lastEdited: now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       whenToUse: whenToUse.trim(),
@@ -116,6 +121,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
     : (
       title !== procedure?.name ||
       whenToUse !== procedure?.whenToUse ||
+      queue !== (procedure?.queue ?? 'Inbound') ||
       stepsText !== initialStepsText ||
       context.length !== (procedure?.context.length ?? 0)
     )
@@ -230,6 +236,41 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               </EmptyHintField>
             </Field>
 
+            <Field label="Type">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                    setQueueAnchor({ top: rect.bottom, left: rect.left, width: rect.width })
+                    setQueueMenuOpen((v) => !v)
+                  }}
+                  className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
+                    queueMenuOpen ? 'border-primary' : 'border-border-input'
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate text-left text-body text-text-primary">{queue}</span>
+                  <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+                </button>
+                {queueMenuOpen && queueAnchor && (
+                  <>
+                    <div className="fixed inset-0 z-[105]" onClick={() => setQueueMenuOpen(false)} />
+                    <div className="fixed z-[110]" style={{ top: queueAnchor.top, left: queueAnchor.left, width: queueAnchor.width }}>
+                      <SelectMenu
+                        options={[{ value: 'Inbound', label: 'Inbound' }, { value: 'Outbound', label: 'Outbound' }]}
+                        value={[queue]}
+                        searchable={false}
+                        onChange={(val) => {
+                          setQueue(val[0] as 'Inbound' | 'Outbound')
+                          setQueueMenuOpen(false)
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </Field>
+
             <Field label="Steps" info>
               <ProcedureStepsPanel
                 initialSteps={procedure?.steps ?? []}
@@ -342,7 +383,11 @@ function resolveTokenType(label: string): string {
 }
 
 // Parses {{variable}} patterns in a plain string and renders inline chips.
-function renderInlineString(text: string, baseKey: string | number): React.ReactNode {
+function renderInlineString(
+  text: string,
+  baseKey: string | number,
+  onRemoveInlineChip?: (label: string) => void,
+): React.ReactNode {
   const parts = text.split(/({{[^}]+}})/)
   if (parts.length === 1) return <span key={baseKey}>{text}</span>
   return (
@@ -353,7 +398,7 @@ function renderInlineString(text: string, baseKey: string | number): React.React
           const label = m[1]
           return (
             <span key={i} contentEditable={false} style={{ display: 'inline-block', userSelect: 'none' }}>
-              <RefChip kind="context" label={label} />
+              <RefChip kind="context" label={label} onRemove={onRemoveInlineChip ? () => onRemoveInlineChip(label) : undefined} />
             </span>
           )
         }
@@ -533,6 +578,31 @@ function ProcedureStepsPanel({
     setTimeout(() => bulletRefs.current[bKey]?.focus(), 0)
   }
 
+  function removeInlineChipFromStringToken(si: number, bi: number, tokenIdx: number, label: string) {
+    const pattern = `{{${label}}}`
+    const bKey = `${si}-${bi}`
+    const updated = editSteps.map((s, i) => {
+      if (i !== si) return s
+      return {
+        ...s,
+        bullets: s.bullets.map((b, j) => {
+          if (j !== bi) return b
+          return {
+            tokens: b.tokens.map((t, k) => {
+              if (k !== tokenIdx || typeof t !== 'string') return t
+              const idx = t.indexOf(pattern)
+              if (idx === -1) return t
+              return t.slice(0, idx) + t.slice(idx + pattern.length)
+            }),
+          }
+        }),
+      }
+    })
+    setEditSteps(updated)
+    onChange(stepsToEditorText(updated))
+    setTimeout(() => bulletRefs.current[bKey]?.focus(), 0)
+  }
+
   const borderCls = isFocused ? 'border-primary' : 'border-border-input'
 
   function handleFocus() { setIsFocused(true) }
@@ -635,9 +705,9 @@ function ProcedureStepsPanel({
                         >
                           {bullet.tokens.map((token, k) =>
                             typeof token === 'string' ? (
-                              renderInlineString(token, k)
+                              renderInlineString(token, k, (label) => removeInlineChipFromStringToken(i, j, k, label))
                             ) : (
-                              <RefChip key={k} kind={token.kind} label={token.label} className="mx-[2px] align-middle" />
+                              <RefChip key={k} kind={token.kind} label={token.label} className="mx-[2px] align-middle" onRemove={() => removeChipFromBullet(i, j, k)} />
                             )
                           )}
                         </span>
