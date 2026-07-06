@@ -127,26 +127,25 @@ const COLUMNS2: Column<PhoneNumber2Row>[] = [
   { key: 'name',        label: 'Name',         sortable: true },
   { key: 'phoneNumber', label: 'Phone number', sortable: true },
   {
-    key: 'locations', label: 'Locations', sortable: true,
-    render: (val) => {
-      const locs = String(val).split(', ').filter(Boolean)
-      if (locs.length === 0) return <span className="text-text-tertiary">—</span>
-      return (
-        <span>
-          {locs[0]}
-          {locs.length > 1 && <span className="text-text-tertiary">, +{locs.length - 1} more</span>}
-        </span>
-      )
-    },
+    key: 'assignedAgents', label: 'Agent', sortable: true,
+    render: (val) => (String(val).trim()
+      ? <span>{String(val)}</span>
+      : <span className="text-text-tertiary">—</span>),
   },
 ]
 
 
-const LOCATION_OPTIONS = [
-  { value: 'North Austin',  label: 'North Austin'  },
-  { value: 'South Austin',  label: 'South Austin'  },
-  { value: 'San Francisco', label: 'San Francisco' },
-  { value: 'All locations', label: 'All locations' },
+// Mirrors AGENT_NAMES in App.tsx — kept local here to avoid a circular import
+// (App.tsx renders PhoneNumber2Screen).
+const AGENT_OPTIONS = [
+  { value: 'Front desk agent',      label: 'Front desk agent'      },
+  { value: 'Reminder agent',        label: 'Reminder agent'        },
+  { value: 'Outreach agent',        label: 'Outreach agent'        },
+  { value: 'Waitlist agent',        label: 'Waitlist agent'        },
+  { value: 'Pre-visit agent',       label: 'Pre-visit agent'       },
+  { value: 'Recall agent',          label: 'Recall agent'          },
+  { value: 'Revenue agent',         label: 'Revenue agent'         },
+  { value: 'Treatment plan agent',  label: 'Treatment plan agent'  },
 ]
 
 
@@ -196,13 +195,13 @@ interface ImportState {
   transport: string
   sipUsername: string
   sipPassword: string
-  location: string[]
+  agent: string[]
 }
 
 const EMPTY_IMPORT: ImportState = {
   name: '',
   phoneNumber: '', e164Format: 'E.164', terminationUri: '', transport: 'TCP', sipUsername: '', sipPassword: '',
-  location: [],
+  agent: [],
 }
 
 // ── Prefix-dropdown-inside-input (e.g. format selector + phone number) ──────────
@@ -349,7 +348,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
         transport:      initialRow.transport      || 'TCP',
         sipUsername:    initialRow.sipUsername     || '',
         sipPassword:    initialRow.sipPassword     || '',
-        location:       initialRow.locations ? initialRow.locations.split(', ') : [],
+        agent:          initialRow.assignedAgents ? [initialRow.assignedAgents] : [],
       })
       setVerified(true)
     }
@@ -363,7 +362,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
   if (!open) return null
 
   const canVerify = form.name.trim() !== '' && form.phoneNumber.trim() !== '' && form.terminationUri.trim() !== ''
-  const canSave   = verified && form.location.length > 0
+  const canSave   = verified && form.agent.length > 0
 
   return (
     <>
@@ -393,8 +392,8 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
                 sipPassword:    form.sipPassword,
                 connection:     'SIP trunk',
                 routingMode:    '—',
-                assignedAgents: '—',
-                locations:      form.location.join(', '),
+                assignedAgents: form.agent[0] ?? '—',
+                locations:      '—',
                 provider:       'Twilio',
                 status:         'Active',
               })
@@ -522,19 +521,18 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             )}
           </div>
 
-          {/* Location — visible only after verify */}
+          {/* Agent selection — visible only after verify */}
           {verified && (
             <>
               <p className="mt-[16px] text-body text-text-secondary">
-                Assign to a location to start routing calls.
+                Assign to an agent to start routing calls.
               </p>
               <DropdownField
-                label="Location"
-                options={LOCATION_OPTIONS}
-                value={form.location}
-                multi
-                placeholder="Select location"
-                onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
+                label="Agent selection"
+                options={AGENT_OPTIONS}
+                value={form.agent}
+                placeholder="Select agent"
+                onChange={(v: string[]) => setForm((f) => ({ ...f, agent: v }))}
               />
             </>
           )}
