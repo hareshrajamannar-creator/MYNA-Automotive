@@ -567,6 +567,7 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
   const [simActive, setSimActive] = useState(false)
   const [visibleCount, setVisibleCount] = useState(9999)
   const [divPhase, setDivPhase] = useState<DivPhase>('hidden')
+  const afterCardRef = React.useRef<HTMLDivElement>(null)
 
   const allTurns = CONV_THREADS[conv.message] ?? [
     { role: 'user' as const,  text: conv.message, time: '10:12 AM' },
@@ -654,6 +655,12 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
     }
   }, [simActive, divergeTurnIdx])
 
+  React.useEffect(() => {
+    if (divPhase === 'improved') {
+      afterCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [divPhase])
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <style>{`
@@ -666,6 +673,22 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
           to   { opacity: 1; transform: translateY(0); }
         }
         .sim-slide-in { animation: sim-slide-in 0.4s ease-out forwards; }
+        @keyframes sim-msg-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .sim-msg-in { animation: sim-msg-in 0.3s ease-out forwards; }
+        @keyframes sim-glow-pulse {
+          0%   { box-shadow: 0 0 0 0 rgba(176, 144, 224, 0.45); }
+          70%  { box-shadow: 0 0 0 14px rgba(176, 144, 224, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(176, 144, 224, 0); }
+        }
+        .sim-glow-pulse { animation: sim-glow-pulse 1s ease-out; }
+        @keyframes sim-sparkle-pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50%      { transform: scale(1.3); opacity: 0.7; }
+        }
+        .sim-sparkle-pulse { animation: sim-sparkle-pulse 1.1s ease-in-out infinite; }
       `}</style>
 
       {/* Header */}
@@ -737,48 +760,47 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
 
           // ── Divergence agent turn ──────────────────────────────────────────
           if (isDivergence) {
+            const beforeSettled = divPhase === 'improved'
             return (
-              <div key={i} className="mb-[16px] flex max-w-[72%] flex-col items-end gap-[10px] self-end">
+              <div key={i} className="mb-[16px] flex max-w-[78%] flex-col items-end gap-[10px] self-end">
 
-                {/* Slot above original: typing → improved */}
-                {divPhase === 'typing' && (
-                  <div className="sim-slide-in flex flex-col items-end gap-[6px]">
-                    <span className="text-[11px] text-[#9aa0a6]">Agent working…</span>
-                    <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[12px]">
-                      <TypingDots />
-                    </div>
-                  </div>
-                )}
-
-                {divPhase === 'improved' && (
-                  <div className="sim-slide-in flex flex-col items-end gap-[6px]">
-                    <span className="rounded-full bg-[#e6f4ea] px-[10px] py-[2px] text-[11px] text-[#188038]">
-                      Recommendation applied
-                    </span>
-                    <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
-                      <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{improvedText}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Original — always shown once divPhase >= 'original'; fades when improved arrives */}
+                {/* Before — original response, settles back once the new one lands */}
                 {(divPhase === 'original' || divPhase === 'typing' || divPhase === 'improved') && (
                   <div
-                    className="flex flex-col items-end gap-[6px] transition-opacity duration-500"
-                    style={{ opacity: divPhase === 'improved' ? 0.38 : 1 }}
+                    className="sim-msg-in flex flex-col items-end gap-[6px] transition-opacity duration-500 ease-out"
+                    style={{ opacity: beforeSettled ? 0.5 : 1 }}
                   >
-                    {divPhase === 'improved' && (
-                      <span className="rounded-full bg-[#f1f3f4] px-[10px] py-[2px] text-[11px] text-[#5f6368]">
-                        Original response
-                      </span>
-                    )}
+                    <span className="text-[11px] text-text-tertiary">Previous reply</span>
                     <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
                       <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
                     </div>
-                    <span className="text-[11px] text-[#9aa0a6]">
-                      {divPhase === 'improved' ? `Original · ${turn.time}` : turn.time}
-                    </span>
+                    <span className="text-[11px] text-[#9aa0a6]">{turn.time}</span>
                   </div>
+                )}
+
+                {/* Typing */}
+                {divPhase === 'typing' && (
+                  <div className="sim-msg-in rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[12px]">
+                    <TypingDots />
+                  </div>
+                )}
+
+                {/* Connector + After */}
+                {divPhase === 'improved' && (
+                  <>
+                    <div className="sim-msg-in flex shrink-0 items-center gap-[6px] rounded-full bg-[#f9f7fd] px-[12px] py-[5px]">
+                      <Icon name="auto_awesome" size={12} className="sim-sparkle-pulse text-ai-brand" />
+                      <span className="text-[11px] text-ai-brand">Recommendation applied</span>
+                    </div>
+                    <div ref={afterCardRef} className="sim-msg-in flex flex-col items-end gap-[6px]">
+                      <div className="sim-glow-pulse rounded-[18px]">
+                        <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
+                          <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{improvedText}</p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] text-[#9aa0a6]">{turn.time}</span>
+                    </div>
+                  </>
                 )}
               </div>
             )
