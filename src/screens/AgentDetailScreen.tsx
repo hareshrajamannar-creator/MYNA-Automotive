@@ -187,8 +187,15 @@ const LIBRARY_TEMPLATES = [
   },
 ]
 
-// ── Per-agent library cards (dental outbound agents — exactly 2 each) ──────
+// ── Per-agent library cards ──────────────────────────────────────────────────
 const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; description: string }[]> = {
+  'Front desk agent': [
+    {
+      id: 'frontdesk-routing-triage',
+      title: 'Front desk agent routing and triage',
+      description: 'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
+    },
+  ],
   'Recall agent': [
     {
       id: 'recall-hygiene-outreach',
