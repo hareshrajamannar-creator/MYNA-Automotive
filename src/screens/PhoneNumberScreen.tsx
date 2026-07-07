@@ -114,7 +114,6 @@ interface PhoneNumber2Row {
   connection: string
   routingMode: string
   assignedAgents: string
-  locations: string
   provider: string
   status: string
   [key: string]: string
@@ -127,10 +126,12 @@ const COLUMNS2: Column<PhoneNumber2Row>[] = [
   { key: 'name',        label: 'Name',         sortable: true },
   { key: 'phoneNumber', label: 'Phone number', sortable: true },
   {
-    key: 'assignedAgents', label: 'Agent', sortable: true,
-    render: (val) => (String(val).trim()
-      ? <span>{String(val)}</span>
-      : <span className="text-text-tertiary">—</span>),
+    key: 'assignedAgents', label: 'Assigned agent', sortable: true,
+    render: (val) => {
+      const agent = String(val ?? '').trim()
+      if (!agent || agent === '—') return <span className="text-text-tertiary">—</span>
+      return <span>{agent}</span>
+    },
   },
 ]
 
@@ -348,7 +349,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
         transport:      initialRow.transport      || 'TCP',
         sipUsername:    initialRow.sipUsername     || '',
         sipPassword:    initialRow.sipPassword     || '',
-        agent:          initialRow.assignedAgents ? [initialRow.assignedAgents] : [],
+        agent:          initialRow.assignedAgents && initialRow.assignedAgents !== '—' ? [initialRow.assignedAgents] : [],
       })
       setVerified(true)
     }
@@ -375,7 +376,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={18} />
             </button>
-            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Add number'}</span>
+            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Integrate using SIP trunking'}</span>
           </div>
           <button
             type="button"
@@ -393,7 +394,6 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
                 connection:     'SIP trunk',
                 routingMode:    '—',
                 assignedAgents: form.agent[0] ?? '—',
-                locations:      '—',
                 provider:       'Twilio',
                 status:         'Active',
               })
@@ -521,18 +521,18 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             )}
           </div>
 
-          {/* Agent selection — visible only after verify */}
+          {/* Agent — visible only after verify */}
           {verified && (
             <>
               <p className="mt-[16px] text-body text-text-secondary">
                 Assign to an agent to start routing calls.
               </p>
               <DropdownField
-                label="Agent selection"
+                label="Agent"
                 options={AGENT_OPTIONS}
                 value={form.agent}
                 placeholder="Select agent"
-                onChange={(v: string[]) => setForm((f) => ({ ...f, agent: v }))}
+                onChange={(v: string[]) => setForm((f) => ({ ...f, agent: v.slice(-1) }))}
               />
             </>
           )}
@@ -657,9 +657,145 @@ function CallForwardingDrawer({ open, onClose }: { open: boolean; onClose: () =>
   )
 }
 
+// ── Add a phone number — SIP trunking vs. call forwarding ─────────────────────
+function AddPhoneNumberButton({ onSelect }: { onSelect: (mode: 'sip' | 'forwarding') => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+      >
+        Add number
+      </button>
+      {open && (
+        <div className="absolute right-0 top-[40px] z-50 min-w-[240px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+          <button
+            type="button"
+            onClick={() => { onSelect('sip'); setOpen(false) }}
+            className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
+          >
+            Integrate using SIP trunking
+          </button>
+          <button
+            type="button"
+            onClick={() => { onSelect('forwarding'); setOpen(false) }}
+            className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
+          >
+            Setup call forwarding
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface CallForwardingSetupState {
+  name: string
+  phoneNumber: string
+}
+
+const EMPTY_CALL_FORWARDING_SETUP: CallForwardingSetupState = { name: '', phoneNumber: '' }
+
+function SetupCallForwardingDrawer({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
+  const [form, setForm] = useState<CallForwardingSetupState>(EMPTY_CALL_FORWARDING_SETUP)
+
+  useEffect(() => { if (!open) setForm(EMPTY_CALL_FORWARDING_SETUP) }, [open])
+
+  if (!open) return null
+
+  const canSave = form.name.trim() !== '' && form.phoneNumber.trim() !== ''
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[70] bg-black/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-[80] flex h-full w-[650px] flex-col bg-surface shadow-modal">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-2xl py-lg">
+          <div className="flex items-center gap-sm">
+            <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="arrow_back" size={18} />
+            </button>
+            <span className="text-h3 text-text-primary">Setup call forwarding</span>
+          </div>
+          <button
+            type="button"
+            disabled={!canSave}
+            onClick={() => {
+              if (!canSave) return
+              onSave({
+                name:           form.name,
+                phoneNumber:    form.phoneNumber,
+                e164Format:     'E.164',
+                terminationUri: '',
+                transport:      '',
+                sipUsername:    '',
+                sipPassword:    '',
+                connection:     'Call forwarding',
+                routingMode:    '—',
+                assignedAgents: '—',
+                provider:       '—',
+                status:         'Active',
+              })
+              onClose()
+            }}
+            className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
+              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary text-white hover:bg-primary-hover'
+            }`}
+          >
+            Save
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex flex-1 flex-col gap-lg overflow-auto p-2xl">
+
+          {/* Name */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Name <span className="text-chip-danger-text">*</span></label>
+            <input
+              type="text"
+              placeholder="e.g. Main reception"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Phone number */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Phone number <span className="text-chip-danger-text">*</span></label>
+            <input
+              type="text"
+              placeholder="(415) 555-2671"
+              value={form.phoneNumber}
+              onChange={(e) => setForm((f) => ({ ...f, phoneNumber: applyPhoneFormat(e.target.value, 'National') }))}
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+        </div>
+      </div>
+    </>
+  )
+}
+
 export function PhoneNumber2Screen() {
   const [rows, setRows] = useState<PhoneNumber2Row[]>(DEFAULT_ROWS)
-  const [importOpen, setImportOpen] = useState(false)
+  const [addMode, setAddMode] = useState<'sip' | 'forwarding' | null>(null)
   const [editRow, setEditRow] = useState<PhoneNumber2Row | null>(null)
   const [callForwardingOpen, setCallForwardingOpen] = useState(false)
 
@@ -684,13 +820,7 @@ export function PhoneNumber2Screen() {
               >
                 Call forwarding
               </button>
-              <button
-                type="button"
-                onClick={() => setImportOpen(true)}
-                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-              >
-                Add number
-              </button>
+              <AddPhoneNumberButton onSelect={setAddMode} />
             </div>
           )}
         </div>
@@ -706,13 +836,9 @@ export function PhoneNumber2Screen() {
                   Add phone numbers to start routing calls across your locations.
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setImportOpen(true)}
-                className="mt-2xl flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-              >
-                Add number
-              </button>
+              <div className="mt-2xl">
+                <AddPhoneNumberButton onSelect={setAddMode} />
+              </div>
             </div>
           ) : (
             <div className="px-lg">
@@ -733,11 +859,11 @@ export function PhoneNumber2Screen() {
       {/* Call forwarding modal */}
       <CallForwardingDrawer open={callForwardingOpen} onClose={() => setCallForwardingOpen(false)} />
 
-      {/* Import / Edit drawer */}
+      {/* SIP trunking / Edit drawer */}
       <ImportDrawer
-        open={importOpen || editRow !== null}
+        open={addMode === 'sip' || editRow !== null}
         initialRow={editRow ?? undefined}
-        onClose={() => { setImportOpen(false); setEditRow(null) }}
+        onClose={() => { setAddMode(null); setEditRow(null) }}
         onSave={(row) => {
           if (editRow) {
             setRows((prev) => prev.map((r) => r === editRow ? row : r))
@@ -745,8 +871,15 @@ export function PhoneNumber2Screen() {
             setRows((prev) => [...prev, row])
           }
           setEditRow(null)
-          setImportOpen(false)
+          setAddMode(null)
         }}
+      />
+
+      {/* Setup call forwarding drawer */}
+      <SetupCallForwardingDrawer
+        open={addMode === 'forwarding'}
+        onClose={() => setAddMode(null)}
+        onSave={(row) => { setRows((prev) => [...prev, row]); setAddMode(null) }}
       />
     </div>
   )
