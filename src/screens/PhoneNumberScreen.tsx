@@ -705,18 +705,30 @@ function AddPhoneNumberButton({ onSelect }: { onSelect: (mode: 'sip' | 'forwardi
 interface CallForwardingSetupState {
   name: string
   phoneNumber: string
+  agent: string[]
 }
 
-const EMPTY_CALL_FORWARDING_SETUP: CallForwardingSetupState = { name: '', phoneNumber: '' }
+const EMPTY_CALL_FORWARDING_SETUP: CallForwardingSetupState = { name: '', phoneNumber: '', agent: [] }
 
-function SetupCallForwardingDrawer({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
+function SetupCallForwardingDrawer({ open, initialRow, onClose, onSave }: { open: boolean; initialRow?: PhoneNumber2Row; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
+  const isEdit = !!initialRow
   const [form, setForm] = useState<CallForwardingSetupState>(EMPTY_CALL_FORWARDING_SETUP)
 
-  useEffect(() => { if (!open) setForm(EMPTY_CALL_FORWARDING_SETUP) }, [open])
+  useEffect(() => {
+    if (!open) {
+      setForm(EMPTY_CALL_FORWARDING_SETUP)
+    } else if (initialRow) {
+      setForm({
+        name:        initialRow.name,
+        phoneNumber: initialRow.phoneNumber,
+        agent:       initialRow.assignedAgents && initialRow.assignedAgents !== '—' ? [initialRow.assignedAgents] : [],
+      })
+    }
+  }, [open, initialRow])
 
   if (!open) return null
 
-  const canSave = form.name.trim() !== '' && form.phoneNumber.trim() !== ''
+  const canSave = form.name.trim() !== '' && form.phoneNumber.trim() !== '' && form.agent.length > 0
 
   return (
     <>
@@ -729,7 +741,7 @@ function SetupCallForwardingDrawer({ open, onClose, onSave }: { open: boolean; o
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={18} />
             </button>
-            <span className="text-h3 text-text-primary">Setup call forwarding</span>
+            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Setup call forwarding'}</span>
           </div>
           <button
             type="button"
@@ -746,7 +758,7 @@ function SetupCallForwardingDrawer({ open, onClose, onSave }: { open: boolean; o
                 sipPassword:    '',
                 connection:     'Call forwarding',
                 routingMode:    '—',
-                assignedAgents: '—',
+                assignedAgents: form.agent[0] ?? '—',
                 provider:       '—',
                 status:         'Active',
               })
@@ -786,6 +798,18 @@ function SetupCallForwardingDrawer({ open, onClose, onSave }: { open: boolean; o
               className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
             />
           </div>
+
+          {/* Agent */}
+          <p className="mt-[16px] text-body text-text-secondary">
+            Assign to an agent to start routing calls.
+          </p>
+          <DropdownField
+            label="Agent"
+            options={AGENT_OPTIONS}
+            value={form.agent}
+            placeholder="Select agent"
+            onChange={(v: string[]) => setForm((f) => ({ ...f, agent: v.slice(-1) }))}
+          />
 
         </div>
       </div>
@@ -861,7 +885,7 @@ export function PhoneNumber2Screen() {
 
       {/* SIP trunking / Edit drawer */}
       <ImportDrawer
-        open={addMode === 'sip' || editRow !== null}
+        open={addMode === 'sip' || (editRow !== null && editRow.connection !== 'Call forwarding')}
         initialRow={editRow ?? undefined}
         onClose={() => { setAddMode(null); setEditRow(null) }}
         onSave={(row) => {
@@ -877,9 +901,18 @@ export function PhoneNumber2Screen() {
 
       {/* Setup call forwarding drawer */}
       <SetupCallForwardingDrawer
-        open={addMode === 'forwarding'}
-        onClose={() => setAddMode(null)}
-        onSave={(row) => { setRows((prev) => [...prev, row]); setAddMode(null) }}
+        open={addMode === 'forwarding' || editRow?.connection === 'Call forwarding'}
+        initialRow={editRow?.connection === 'Call forwarding' ? editRow : undefined}
+        onClose={() => { setAddMode(null); setEditRow(null) }}
+        onSave={(row) => {
+          if (editRow) {
+            setRows((prev) => prev.map((r) => r === editRow ? row : r))
+          } else {
+            setRows((prev) => [...prev, row])
+          }
+          setEditRow(null)
+          setAddMode(null)
+        }}
       />
     </div>
   )
