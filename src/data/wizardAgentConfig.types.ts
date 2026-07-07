@@ -4,7 +4,7 @@ import type {
   WebChatChannelSettings,
 } from '../screens/channelSetupSettings.types'
 
-export type WizardChannelId = 'voice' | 'webchat' | 'text'
+export type WizardChannelId = 'voice' | 'webchat' | 'text' | 'email' | 'facebook' | 'instagram'
 export type WizardRecordingMode = 'off' | 'announced' | 'silent'
 
 export interface WizardAgentDraft {
@@ -16,6 +16,7 @@ export interface WizardAgentDraft {
   consent: string
   webchatSettings: WebChatChannelSettings
   textSettings: TextChannelSettings
+  selectedLocationIds: string[]
   selectedProcedureIds: string[]
   procedureCatalog: HealthcareProcedureCatalogItem[]
   selectedIntegrationId: string | null

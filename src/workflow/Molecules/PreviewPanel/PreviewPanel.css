@@ -109,6 +109,161 @@
   min-height: 0;
 }
 
+.preview-panel__body--outbound {
+  overflow-y: auto;
+  padding: 16px 16px 16px;
+  gap: 16px;
+}
+
+.preview-panel__body--outbound-call {
+  overflow: hidden;
+  padding: 0;
+  gap: 0;
+}
+
+.preview-panel__active--outbound {
+  flex: 1;
+  min-height: 0;
+}
+
+.preview-panel__outbound-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 16px;
+}
+
+.preview-panel__outbound-running-label {
+  font-size: 13px;
+  line-height: 20px;
+  color: #757575;
+}
+
+.preview-panel__call-prompt--interactive {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  padding: 20px 12px 8px;
+}
+
+.preview-panel__call-prompt--interactive:hover .preview-panel__call-prompt-icon {
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+}
+
+.preview-panel__call-prompt--inline {
+  flex: none;
+  padding: 8px 0 0;
+}
+
+.preview-panel__appointment-card {
+  flex-shrink: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fff;
+  padding: 10px 12px;
+}
+
+.preview-panel__appointment-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.preview-panel__appointment-card-label {
+  font-size: 11px;
+  line-height: 16px;
+  color: #9aa0ab;
+}
+
+.preview-panel__appointment-edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  color: #757575;
+  padding: 0;
+}
+
+.preview-panel__appointment-edit:hover {
+  background: #f5f5f5;
+}
+
+.preview-panel__appointment-edit .material-symbols-outlined {
+  font-size: 16px !important;
+}
+
+.preview-panel__appointment-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.preview-panel__appointment-name {
+  font-size: 14px;
+  line-height: 20px;
+  color: #212121;
+}
+
+.preview-panel__appointment-status {
+  font-size: 11px;
+  line-height: 18px;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 9999px;
+  padding: 0 8px;
+}
+
+.preview-panel__appointment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-panel__appointment-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #757575;
+}
+
+.preview-panel__appointment-meta-row .material-symbols-outlined {
+  font-size: 14px !important;
+  color: #9aa0ab;
+}
+
+.preview-panel__call-prompt-action {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
+  background: #fff;
+  color: #1976d2;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+}
+
+.preview-panel__call-prompt-action:hover {
+  background: #e3f2fd;
+}
+
 /* ══════════════════════════════════════
    IDLE STATE
 ══════════════════════════════════════ */
@@ -528,12 +683,20 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #22c55e;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 0 0 2px #fff;
+}
+
+.preview-panel__log-status--completed {
+  background: #22c55e;
+}
+
+.preview-panel__log-status--active {
+  background: #fff;
+  border: 2px solid #bdbdbd;
 }
 
 .preview-panel__log-status .material-symbols-outlined {
@@ -687,6 +850,95 @@
   margin-left: 32px;
   padding-left: 12px;
   border-left: 1px solid #e0e0e0;
+}
+
+.preview-panel__logs--embedded {
+  padding: 0;
+  min-height: 0;
+}
+
+.preview-panel__logs--embedded::before {
+  top: 12px;
+  bottom: 12px;
+}
+
+.preview-panel__log-kind-icon--material {
+  color: #757575;
+}
+
+.preview-panel__log-kind-icon--material .material-symbols-outlined {
+  font-size: 16px !important;
+}
+
+.preview-panel__log-kind-icon--end {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: #eaeaea;
+  font-size: 11px;
+  line-height: 18px;
+  color: #555;
+}
+
+.preview-panel__awaiting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  font-size: 12px;
+  line-height: 18px;
+  color: #92400e;
+}
+
+.preview-panel__awaiting .material-symbols-outlined {
+  font-size: 16px !important;
+  color: #d97706;
+}
+
+.preview-panel__call-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 20px 12px 8px;
+  text-align: center;
+}
+
+.preview-panel__call-prompt-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #1976d2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+}
+
+.preview-panel__call-prompt-icon .material-symbols-outlined {
+  font-size: 26px !important;
+  color: #fff;
+}
+
+.preview-panel__call-prompt-title {
+  font-size: 14px;
+  line-height: 20px;
+  color: #212121;
+}
+
+.preview-panel__call-prompt-subtitle {
+  font-size: 12px;
+  line-height: 18px;
+  color: #757575;
 }
 
 /* ═══════════════════════════════════════════════

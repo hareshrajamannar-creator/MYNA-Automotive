@@ -17,7 +17,16 @@ function speedLabel(s: Speed): string {
   return s === 1 ? '1 x' : s === 1.5 ? '1.5 x' : '2 x'
 }
 
-export function VoiceChatDrawer({ open, messages, summary, audioUrl, durationSecs = 0, onClose }: VoiceChatDrawerProps) {
+export function VoiceChatDrawer({
+  open,
+  messages,
+  summary,
+  audioUrl,
+  durationSecs = 0,
+  mode = 'voice',
+  onClose,
+}: VoiceChatDrawerProps) {
+  const isChat = mode === 'chat'
   const [playing, setPlaying] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [wsReady, setWsReady] = useState(false)
@@ -59,7 +68,7 @@ export function VoiceChatDrawer({ open, messages, summary, audioUrl, durationSec
 
     wsRef.current = ws
     return () => { ws.destroy(); wsRef.current = null; setWsReady(false) }
-  }, [open, audioUrl])
+  }, [open, audioUrl, isChat])
 
   // Apply playback rate whenever speed changes
   useEffect(() => {
@@ -90,12 +99,13 @@ export function VoiceChatDrawer({ open, messages, summary, audioUrl, durationSec
             <button className="pp-details__back-btn" type="button" onClick={onClose} aria-label="Back">
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
-            <span className="pp-details__title">Call with Myna</span>
+            <span className="pp-details__title">{isChat ? 'Chat with Myna' : 'Call with Myna'}</span>
           </div>
 
           <div className="pp-details__body">
 
             {/* WaveSurfer player */}
+            {!isChat && (
             <div className="pp-details__player-wrap">
               <div
                 ref={containerRef}
@@ -129,6 +139,7 @@ export function VoiceChatDrawer({ open, messages, summary, audioUrl, durationSec
                 </span>
               </div>
             </div>
+            )}
 
             {/* Summary card */}
             {summary && (

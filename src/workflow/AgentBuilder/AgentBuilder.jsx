@@ -9,6 +9,7 @@ import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds, getSeedTools } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
 import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
+import { BookTestAppointmentModal } from '../../components/BookTestAppointmentModal/BookTestAppointmentModal';
 import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
 import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import TransferToolDrawer from '../Organisms/Drawers/TransferToolDrawer/TransferToolDrawer';
@@ -672,7 +673,6 @@ export default function AgentBuilder({
   onAddProcedure,
   publishDisabled = false,
   defaultOpenSection = 'Tasks',
-  onTestCall,
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -699,6 +699,8 @@ export default function AgentBuilder({
   const [activeProcedureId, setActiveProcedureId] = useState(null);
   const [lhsPreviewProcedureId, setLhsPreviewProcedureId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [bookTestModalOpen, setBookTestModalOpen] = useState(false);
+  const [testAppointment, setTestAppointment] = useState(null);
   const [previewActive, setPreviewActive] = useState(false);
   // Tool viewer state
   const [viewingTool, setViewingTool] = useState(null); // full tool object
@@ -855,6 +857,7 @@ export default function AgentBuilder({
   }, [headerMenuOpen]);
   /* ─── Agent name is derived from nodeDetails (single source of truth) ─── */
   const agentName = nodeDetails[START_NODE_ID]?.agentName || (typeof pageTitle === 'string' ? pageTitle : '') || '';
+  const isReminderAgent = /reminder/i.test(agentName);
   const [agentDesc] = useState(initialDescription || '');
   // isTemplateMode uses state so it correctly activates after applyAgent loads templateId from Firestore
   const isTemplateMode = !!agentTemplateId && agentStatus !== 'Running';
@@ -1225,10 +1228,16 @@ export default function AgentBuilder({
 
   const startAgentName = nodeDetails[START_NODE_ID]?.agentName || pageTitle;
   const startLocations = nodeDetails[START_NODE_ID]?.locations || [];
+  const locationCount = startLocations.length;
+  const startSubtitle = locationCount === 0
+    ? 'Add locations'
+    : locationCount === 1
+      ? '1 location'
+      : `${locationCount} locations`;
   const startData = {
     title: startAgentName,
-    subtitle: startLocations.length > 0 ? 'All locations' : 'Add locations',
-    subtitleIsLink: startLocations.length === 0,
+    subtitle: startSubtitle,
+    subtitleIsLink: locationCount === 0,
   };
   const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails, product);
 
@@ -2041,7 +2050,14 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               onEdit={viewOnly ? onEdit : undefined}
-              onRun={() => setPreviewOpen(true)}
+              onRun={() => {
+                if (isReminderAgent) {
+                  setBookTestModalOpen(true);
+                } else {
+                  setTestAppointment(null);
+                  setPreviewOpen(true);
+                }
+              }}
             />
           </div>
 
@@ -2056,15 +2072,33 @@ export default function AgentBuilder({
           {previewOpen && (
             <div className="agent-builder__preview">
               <PreviewPanel
-                onClose={() => { setPreviewOpen(false); setPreviewActive(false); }}
+                onClose={() => {
+                  setPreviewOpen(false);
+                  setPreviewActive(false);
+                  setTestAppointment(null);
+                }}
                 onPreviewActiveChange={setPreviewActive}
                 agentName={agentName}
-                onTestCall={onTestCall}
+                testAppointment={testAppointment}
+                onEditAppointment={() => setBookTestModalOpen(true)}
               />
             </div>
           )}
         </div>
       </div>
+
+      {isReminderAgent && (
+        <BookTestAppointmentModal
+          open={bookTestModalOpen}
+          initialValues={testAppointment}
+          onClose={() => setBookTestModalOpen(false)}
+          onBookAndRun={(values) => {
+            setBookTestModalOpen(false);
+            setTestAppointment(values);
+            setPreviewOpen(true);
+          }}
+        />
+      )}
 
       {/* ─── Share modal ─── */}
       {shareModalOpen && (

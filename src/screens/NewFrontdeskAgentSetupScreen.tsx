@@ -1,14 +1,13 @@
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import {
+  DataTable,
   Icon,
-  IntegrationSelectCard,
-  IntegrationsPickerDrawer,
   ProcedureSelectCard,
   ProceduresPickerDrawer,
   TopNav,
 } from '../components'
-import type { IntegrationsPickerSaveResult } from '../components/IntegrationsPickerDrawer/IntegrationsPickerDrawer.types'
+import type { Column } from '../components'
 import type { ProcedurePickerItem } from '../components/ProceduresPickerDrawer/ProceduresPickerDrawer.types'
 import {
   DEFAULT_WIZARD_PROCEDURE_IDS,
@@ -18,15 +17,11 @@ import {
 import {
   DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
   DEFAULT_WIZARD_CONNECTED_INTEGRATION_IDS,
-  getHealthcareIntegration,
-  HEALTHCARE_INTEGRATION_CATALOG,
-  type HealthcareIntegration,
 } from '../data/healthcareIntegrations'
-import {
-  ChannelSettingsPanel,
-  TextSetupSettings,
-  WebChatSetupSettings,
-} from './channelSetupSettings'
+import { WIZARD_LOCATIONS } from '../data/wizardLocations'
+import iconFacebook from '../assets/icon-facebook.svg'
+import iconInstagram from '../assets/icon-instagram.svg'
+import { TextSetupSettings, WebChatSetupSettings } from './channelSetupSettings'
 import {
   DEFAULT_TEXT_CHANNEL_SETTINGS,
   DEFAULT_WEBCHAT_CHANNEL_SETTINGS,
@@ -40,31 +35,54 @@ interface NewFrontdeskAgentSetupScreenProps {
   onBack: () => void
   onCancel: () => void
   onComplete?: (draft: WizardAgentDraft) => void
-  onOpenIntegrationSettings?: (integrationId: string) => void
 }
 
 const STEPS = [
-  { id: 1, label: 'Configure channels' },
-  { id: 2, label: 'Select procedures' },
-  { id: 3, label: 'Select integrations' },
+  { id: 1, label: 'Getting started' },
+  { id: 2, label: 'Configure channels' },
+  { id: 3, label: 'Select procedures' },
   { id: 4, label: 'Review summary' },
 ] as const
 
 const PROGRESS_BY_STEP: Record<number, number> = {
-  1: 17,
-  2: 50,
-  3: 75,
+  1: 13,
+  2: 27,
+  3: 64,
   4: 100,
 }
 
 const CHANNELS = [
-  { id: 'voice', label: 'Voice call' },
-  { id: 'webchat', label: 'Web chat' },
-  { id: 'text', label: 'Text' },
+  { id: 'voice', label: 'Voice call', icon: 'call' },
+  { id: 'webchat', label: 'Web chat', icon: 'chat' },
+  { id: 'text', label: 'Text', icon: 'sms' },
+  { id: 'email', label: 'Email', icon: 'mail' },
+  {
+    id: 'facebook',
+    label: 'Facebook',
+    iconSrc: iconFacebook,
+    disabled: true,
+    note: 'No Facebook account is connected for the selected locations',
+  },
+  { id: 'instagram', label: 'Instagram', iconSrc: iconInstagram },
 ] as const
 
 type ChannelId = (typeof CHANNELS)[number]['id']
 type RecordingMode = 'off' | 'announced' | 'silent'
+
+const CONVERSATION_CHANNEL_IDS: ChannelId[] = ['webchat', 'text', 'facebook', 'instagram']
+
+function isChannelLockedOut(id: ChannelId, selectedChannels: Set<ChannelId>): boolean {
+  if (selectedChannels.has(id)) return false
+  if (selectedChannels.has('voice')) return true
+  if (selectedChannels.has('email')) return true
+  if (
+    (id === 'voice' || id === 'email') &&
+    CONVERSATION_CHANNEL_IDS.some((c) => selectedChannels.has(c))
+  ) {
+    return true
+  }
+  return false
+}
 
 const FIELD_BORDER_CLASS =
   'rounded-sm border border-border-input bg-surface transition-colors focus:border-primary focus:outline-none focus-visible:border-primary'
@@ -175,28 +193,125 @@ function SettingsCheckboxBox({ checked }: { checked: boolean }) {
   )
 }
 
-function ChannelCard({
-  label,
-  selected,
-  onToggle,
+function ChannelsMultiSelect({
+  selectedChannels,
+  onToggleChannel,
 }: {
-  label: string
-  selected: boolean
-  onToggle: () => void
+  selectedChannels: Set<ChannelId>
+  onToggleChannel: (id: ChannelId) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
+
+  const openMenu = (e: MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+    setOpen((o) => !o)
+  }
+
+  const selectedChannelDefs = CHANNELS.filter((c) => selectedChannels.has(c.id))
+
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`flex min-h-[56px] flex-1 items-center gap-md rounded-md border-2 px-lg py-lg text-left transition-colors ${
-        selected
-          ? 'border-primary bg-surface-selected'
-          : 'border-border-selected bg-surface hover:bg-surface-l2'
-      }`}
-    >
-      <SettingsCheckboxBox checked={selected} />
-      <span className="text-body text-text-primary">{label}</span>
-    </button>
+    <>
+      <div
+        className={`flex min-h-9 w-full flex-wrap items-center gap-sm rounded-sm border bg-surface py-xs pr-sm transition-colors ${
+          selectedChannelDefs.length === 0 ? 'pl-md' : 'pl-xs'
+        } ${open ? 'border-primary' : 'border-border-input'}`}
+      >
+        {selectedChannelDefs.map((channel) => (
+          <span
+            key={channel.id}
+            className="flex h-7 items-center gap-xs rounded-sm bg-chip-neutral-bg pl-sm pr-xs text-body text-text-primary"
+          >
+            {'iconSrc' in channel ? (
+              <img src={channel.iconSrc} alt="" className="size-4 shrink-0" />
+            ) : (
+              <Icon name={channel.icon} size={16} className="shrink-0 text-text-icon" />
+            )}
+            {channel.label}
+            <button
+              type="button"
+              aria-label={`Remove ${channel.label}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleChannel(channel.id)
+              }}
+              className="flex size-5 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-l2"
+            >
+              <Icon name="close" size={16} />
+            </button>
+          </span>
+        ))}
+        <button
+          type="button"
+          onClick={openMenu}
+          className="flex h-9 flex-1 items-center justify-between gap-sm"
+        >
+          {selectedChannelDefs.length === 0 && (
+            <span className="text-body text-text-tertiary">Select</span>
+          )}
+          <Icon
+            name={open ? 'expand_less' : 'expand_more'}
+            size={20}
+            className="ml-auto shrink-0 text-text-icon"
+          />
+        </button>
+      </div>
+      {open && anchor && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => setOpen(false)} aria-hidden />
+          <div
+            className="fixed z-[110] rounded-sm border border-border bg-surface shadow-dropdown"
+            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+          >
+            <div className="max-h-[320px] overflow-y-auto py-xs">
+              {CHANNELS.map((channel) => {
+                const isSelected = selectedChannels.has(channel.id)
+                const isDisabled =
+                  ('disabled' in channel && channel.disabled) ||
+                  isChannelLockedOut(channel.id, selectedChannels)
+                return (
+                  <div
+                    key={channel.id}
+                    onClick={() => !isDisabled && onToggleChannel(channel.id)}
+                    className={`flex items-start gap-sm px-md py-sm ${
+                      isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-surface-hover'
+                    }`}
+                  >
+                    <span className="mt-[2px]">
+                      <SettingsCheckboxBox checked={isSelected} />
+                    </span>
+                    <span className="mt-[1px] flex shrink-0 items-center px-xs">
+                      {'iconSrc' in channel ? (
+                        <img src={channel.iconSrc} alt="" className="size-4" />
+                      ) : (
+                        <Icon name={channel.icon} size={16} className="text-text-icon" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-body text-text-primary">{channel.label}</p>
+                      {'note' in channel && channel.note && (
+                        <p className="mt-[2px] text-small text-text-tertiary">{channel.note}</p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <span className="block h-px w-full bg-border" />
+            <div className="flex justify-end p-lg">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-sm bg-primary px-lg py-[7px] text-body text-white transition-colors hover:bg-primary-hover"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   )
 }
 
@@ -310,7 +425,6 @@ function VoiceChannelSettings({
   onConsentChange: (value: string) => void
 }) {
   return (
-    <ChannelSettingsPanel title="Voice call">
       <div className="flex flex-col gap-lg">
         <div>
           <label className="block text-small text-text-secondary">Voice</label>
@@ -373,13 +487,85 @@ function VoiceChannelSettings({
           </div>
         </div>
       </div>
-    </ChannelSettingsPanel>
+  )
+}
+
+function ChannelAccordion({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string
+  children: ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-14 w-full items-center justify-between px-lg text-left hover:bg-surface-l2"
+      >
+        <span className="text-body text-text-primary">{title}</span>
+        <Icon name={open ? 'expand_less' : 'expand_more'} size={20} className="shrink-0 text-text-icon" />
+      </button>
+      {open && <div className="px-lg pb-lg pt-md">{children}</div>}
+    </div>
+  )
+}
+
+function GettingStartedStep({
+  agentName,
+  onAgentNameChange,
+  locations,
+  selectedLocationIds,
+  onToggleLocation,
+  onToggleAllLocations,
+}: {
+  agentName: string
+  onAgentNameChange: (value: string) => void
+  locations: { id: string; name: string; address: string }[]
+  selectedLocationIds: string[]
+  onToggleLocation: (id: string) => void
+  onToggleAllLocations: () => void
+}) {
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    nameInputRef.current?.focus()
+  }, [])
+
+  return (
+    <div className="flex w-full max-w-[1200px] flex-col gap-xl">
+      <div>
+        <h2 className="text-h3 text-text-primary">Getting started</h2>
+      </div>
+
+      <div className="flex max-w-[700px] flex-col gap-sm">
+        <label className="text-body text-text-primary">Name</label>
+        <input
+          ref={nameInputRef}
+          type="text"
+          value={agentName}
+          onChange={(e) => onAgentNameChange(e.target.value)}
+          placeholder="e.g. Myna, Front desk AI, Scheduling assistant"
+          className={`${INPUT_CLASS} h-9 placeholder:text-text-tertiary`}
+        />
+      </div>
+
+      <SelectLocationsStep
+        locations={locations}
+        selectedIds={selectedLocationIds}
+        onToggleLocation={onToggleLocation}
+        onToggleAll={onToggleAllLocations}
+      />
+    </div>
   )
 }
 
 function ConfigureChannelsStep({
-  agentName,
-  onAgentNameChange,
   selectedChannels,
   onToggleChannel,
   voice,
@@ -394,9 +580,8 @@ function ConfigureChannelsStep({
   onWebchatSettingsChange,
   textSettings,
   onTextSettingsChange,
+  chatAgentNameError = false,
 }: {
-  agentName: string
-  onAgentNameChange: (value: string) => void
   selectedChannels: Set<ChannelId>
   onToggleChannel: (id: ChannelId) => void
   voice: string
@@ -411,92 +596,265 @@ function ConfigureChannelsStep({
   onWebchatSettingsChange: (patch: Partial<WebChatChannelSettings>) => void
   textSettings: TextChannelSettings
   onTextSettingsChange: (patch: Partial<TextChannelSettings>) => void
+  chatAgentNameError?: boolean
 }) {
   return (
     <div className="flex w-full max-w-[700px] flex-col gap-xl">
       <div>
-        <h2 className="text-h3 text-text-primary">Getting started</h2>
-        <p className="mt-xs text-body text-text-secondary">
-          Name your agent and choose the channels it will serve
-        </p>
+        <h2 className="text-h3 text-text-primary">Configure channels</h2>
       </div>
 
       <div className="flex flex-col gap-sm">
-        <label className="text-body text-text-primary">
-          Agent name <span className="text-chip-danger-text">*</span>
-        </label>
-        <input
-          type="text"
-          value={agentName}
-          onChange={(e) => onAgentNameChange(e.target.value)}
-          placeholder="e.g. Myna, Front desk AI, Scheduling assistant"
-          className={`${INPUT_CLASS} h-9 placeholder:text-text-tertiary`}
-        />
-        <p className="text-small text-text-secondary">
-          This is the name your agent uses when greeting patients
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-md">
         <div>
-          <p className="text-body text-text-primary">Channels</p>
-          <p className="mt-xs text-body text-text-secondary">
+          <label className="text-body text-text-primary">Channels</label>
+          <p className="mt-[2px] text-small text-text-secondary">
             Choose the channels this agent should handle
           </p>
         </div>
-        <div className="flex gap-md">
-          {CHANNELS.map((channel) => (
-            <ChannelCard
-              key={channel.id}
-              label={channel.label}
-              selected={selectedChannels.has(channel.id)}
-              onToggle={() => onToggleChannel(channel.id)}
-            />
-          ))}
-        </div>
+        <ChannelsMultiSelect selectedChannels={selectedChannels} onToggleChannel={onToggleChannel} />
       </div>
 
-      {selectedChannels.size === 0 && (
-        <div className="flex items-center gap-md rounded-md border border-border bg-surface-subtle px-lg py-md">
-          <Icon name="info" size={18} className="shrink-0 text-text-tertiary" />
-          <p className="text-body text-text-secondary">
-            Select one or more channels above to configure their settings.
-          </p>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-[32px]">
+      <div className="flex flex-col gap-lg">
         {selectedChannels.has('voice') && (
-          <VoiceChannelSettings
-            voice={voice}
-            onVoiceChange={onVoiceChange}
-            greeting={greeting}
-            onGreetingChange={onGreetingChange}
-            recording={recording}
-            onRecordingChange={onRecordingChange}
-            consent={consent}
-            onConsentChange={onConsentChange}
-          />
+          <div className="overflow-hidden rounded-md border border-border bg-surface">
+            <div className="flex h-14 items-center px-lg">
+              <span className="text-body text-text-primary">Voice call settings</span>
+            </div>
+            <div className="px-lg pb-lg pt-md">
+              <VoiceChannelSettings
+                voice={voice}
+                onVoiceChange={onVoiceChange}
+                greeting={greeting}
+                onGreetingChange={onGreetingChange}
+                recording={recording}
+                onRecordingChange={onRecordingChange}
+                consent={consent}
+                onConsentChange={onConsentChange}
+              />
+            </div>
+          </div>
         )}
 
         {selectedChannels.has('webchat') && (
-          <ChannelSettingsPanel title="Web chat">
+          <ChannelAccordion title="Web chat settings">
             <WebChatSetupSettings
               settings={webchatSettings}
               onSettingsChange={onWebchatSettingsChange}
+              chatAgentNameError={chatAgentNameError}
             />
-          </ChannelSettingsPanel>
+          </ChannelAccordion>
         )}
 
         {selectedChannels.has('text') && (
-          <ChannelSettingsPanel title="Text">
+          <ChannelAccordion title="Text settings">
             <TextSetupSettings
               settings={textSettings}
               onSettingsChange={onTextSettingsChange}
             />
-          </ChannelSettingsPanel>
+          </ChannelAccordion>
+        )}
+
+        {selectedChannels.has('email') && (
+          <div className="overflow-hidden rounded-md border border-border bg-surface">
+            <div className="flex h-14 items-center px-lg">
+              <span className="text-body text-text-primary">Email settings</span>
+            </div>
+            <div className="px-lg pb-lg pt-md">
+              <p className="text-body text-text-secondary">
+                No additional configuration required for this channel yet.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {selectedChannels.has('facebook') && (
+          <ChannelAccordion title="Facebook settings">
+            <p className="text-body text-text-secondary">
+              No additional configuration required for this channel yet.
+            </p>
+          </ChannelAccordion>
+        )}
+
+        {selectedChannels.has('instagram') && (
+          <ChannelAccordion title="Instagram settings">
+            <p className="text-body text-text-secondary">
+              No additional configuration required for this channel yet.
+            </p>
+          </ChannelAccordion>
         )}
       </div>
+    </div>
+  )
+}
+
+function LocationCheckbox({
+  checked,
+  indeterminate = false,
+}: {
+  checked: boolean
+  indeterminate?: boolean
+}) {
+  return (
+    <span
+      className={`flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+        checked || indeterminate ? 'border-primary bg-primary' : 'border-control-border bg-surface'
+      }`}
+    >
+      {indeterminate ? (
+        <Icon name="remove" size={12} fill weight={600} className="text-white" />
+      ) : (
+        checked && <Icon name="check" size={12} fill weight={600} className="text-white" />
+      )}
+    </span>
+  )
+}
+
+function SelectLocationsStep({
+  locations,
+  selectedIds,
+  onToggleLocation,
+  onToggleAll,
+}: {
+  locations: { id: string; name: string; address: string }[]
+  selectedIds: string[]
+  onToggleLocation: (id: string) => void
+  onToggleAll: () => void
+}) {
+  const [search, setSearch] = useState('')
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
+
+  const filteredLocations = locations.filter((location) => {
+    const query = search.trim().toLowerCase()
+    if (!query) return true
+    return (
+      location.name.toLowerCase().includes(query) ||
+      location.address.toLowerCase().includes(query)
+    )
+  })
+
+  const selectedCount = selectedIds.length
+  const allSelected = locations.length > 0 && selectedCount === locations.length
+  const someSelected = selectedCount > 0 && !allSelected
+
+  const columns = useMemo<Column<{ id: string; name: string; address: string }>[]>(
+    () => [
+      {
+        key: 'name',
+        label: 'Location',
+        width: 640,
+        sortable: true,
+        truncate: false,
+        headerRender: ({ sorted, sortDir, onSort }) => (
+          <div className="flex items-center gap-md">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleAll()
+              }}
+              aria-label={allSelected ? 'Deselect all locations' : 'Select all locations'}
+              className="flex shrink-0 items-center"
+            >
+              <LocationCheckbox checked={allSelected} indeterminate={someSelected} />
+            </button>
+            <button
+              type="button"
+              onClick={onSort}
+              className="group/hdr flex min-w-0 items-center gap-xs"
+            >
+              <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
+                {selectedCount > 0 ? `${selectedCount} selected` : 'Location'}
+              </span>
+              <Icon
+                name={sorted && sortDir === 'asc' ? 'expand_less' : 'expand_more'}
+                size={16}
+                className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
+              />
+            </button>
+          </div>
+        ),
+        render: (value, row) => (
+          <span className="flex items-start gap-md">
+            <span className="mt-[3px] shrink-0">
+              <LocationCheckbox checked={selectedIds.includes(row.id)} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-body text-text-primary">{String(value)}</span>
+              <span className="mt-[2px] block text-small text-text-secondary">{row.address}</span>
+            </span>
+          </span>
+        ),
+      },
+    ],
+    [allSelected, onToggleAll, selectedCount, selectedIds, someSelected],
+  )
+
+  return (
+    <div className="mt-xl flex w-full max-w-[1200px] flex-col gap-sm">
+      <div className="flex items-start justify-between gap-xl">
+        <div>
+          <label className="text-body text-text-primary">Select locations</label>
+          <p className="mt-[2px] text-small text-text-tertiary">
+            Choose the locations which this agent will work for. Select by{' '}
+            <span className="relative inline-block">
+              <button
+                type="button"
+                onClick={() => setFilterMenuOpen((open) => !open)}
+                className="inline-flex items-center gap-[2px] text-text-action hover:underline"
+              >
+                locations
+                <Icon name="expand_more" size={16} />
+              </button>
+              {filterMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-[105]"
+                    onClick={() => setFilterMenuOpen(false)}
+                    aria-hidden
+                  />
+                  <div className="absolute left-0 top-full z-[110] mt-xs min-w-[140px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+                    <div
+                      onClick={() => setFilterMenuOpen(false)}
+                      className="cursor-pointer px-md py-sm text-body text-text-primary hover:bg-surface-hover"
+                    >
+                      Locations
+                    </div>
+                    <div
+                      onClick={() => setFilterMenuOpen(false)}
+                      className="cursor-pointer px-md py-sm text-body text-text-primary hover:bg-surface-hover"
+                    >
+                      Regions
+                    </div>
+                  </div>
+                </>
+              )}
+            </span>
+          </p>
+        </div>
+
+        <div className="relative w-[280px] shrink-0">
+          <Icon
+            name="search"
+            size={18}
+            className="pointer-events-none absolute left-md top-1/2 -translate-y-1/2 text-text-icon"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search"
+            className={`${INPUT_CLASS} h-9 pl-[38px] placeholder:text-text-tertiary`}
+          />
+        </div>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={filteredLocations}
+        scrollOnHover
+        rowHeight={64}
+        onRowClick={(row) => onToggleLocation(row.id)}
+      />
     </div>
   )
 }
@@ -516,20 +874,18 @@ function SelectProceduresStep({
 }) {
   return (
     <div className="flex w-full max-w-[960px] flex-col">
-      <div className="mb-xl flex items-start justify-between gap-md">
-        <div>
-          <h2 className="text-h3 text-text-primary">Select procedures</h2>
-          <p className="mt-xs text-body text-text-secondary">
-            Choose the procedures your agent will follow.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="shrink-0 rounded-sm px-md py-xs text-body text-text-action transition-colors hover:bg-surface-hover"
-        >
-          Create
-        </button>
+      <div className="mb-xl">
+        <h2 className="text-h3 text-text-primary">Select procedures</h2>
+        <p className="mt-xs text-small text-text-tertiary">
+          Choose the procedures your agent will follow, or{' '}
+          <button
+            type="button"
+            onClick={onCreate}
+            className="inline text-text-action hover:underline"
+          >
+            create new
+          </button>
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-lg">
@@ -548,70 +904,10 @@ function SelectProceduresStep({
   )
 }
 
-function SelectIntegrationsStep({
-  integrations,
-  connectedIds,
-  selectedId,
-  onSelectIntegration,
-  onViewIntegration,
-  onConnectIntegration,
-  onAddCustom,
-}: {
-  integrations: HealthcareIntegration[]
-  connectedIds: string[]
-  selectedId: string | null
-  onSelectIntegration: (id: string) => void
-  onViewIntegration: (id: string) => void
-  onConnectIntegration: (id: string) => void
-  onAddCustom: () => void
-}) {
-  return (
-    <div className="flex w-full max-w-[960px] flex-col">
-      <div className="mb-xl flex items-start justify-between gap-md">
-        <div>
-          <h2 className="text-h3 text-text-primary">Select integrations</h2>
-          <p className="mt-xs text-body text-text-secondary">
-            Connect the tools your agent needs to take action.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onAddCustom}
-          className="flex shrink-0 items-center gap-xs rounded-sm px-md py-xs text-body text-text-action transition-colors hover:bg-surface-hover"
-        >
-          Add custom integration
-          <Icon name="open_in_new" size={16} />
-        </button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-lg">
-        {integrations.map((integration) => {
-          const connected = connectedIds.includes(integration.id)
-          return (
-            <IntegrationSelectCard
-              key={integration.id}
-              name={integration.name}
-              description={integration.description}
-              iconBg={integration.iconBg}
-              iconLabel={integration.iconLabel}
-              selected={connected && selectedId === integration.id}
-              connected={connected}
-              onSelect={() => onSelectIntegration(integration.id)}
-              onView={() => onViewIntegration(integration.id)}
-              onConnect={() => onConnectIntegration(integration.id)}
-            />
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 export function NewFrontdeskAgentSetupScreen({
   onBack,
   onCancel,
   onComplete,
-  onOpenIntegrationSettings,
 }: NewFrontdeskAgentSetupScreenProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [maxStepReached, setMaxStepReached] = useState(1)
@@ -623,6 +919,7 @@ export function NewFrontdeskAgentSetupScreen({
   const [greeting, setGreeting] = useState('')
   const [recording, setRecording] = useState<RecordingMode>('off')
   const [consent, setConsent] = useState('')
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([])
   const [procedureCatalog, setProcedureCatalog] = useState<HealthcareProcedureCatalogItem[]>(
     () => [...HEALTHCARE_PROCEDURE_CATALOG],
   )
@@ -634,31 +931,43 @@ export function NewFrontdeskAgentSetupScreen({
   const [procedureDrawerInitialView, setProcedureDrawerInitialView] = useState<'list' | 'create'>(
     'list',
   )
-  const [connectedIntegrationIds, setConnectedIntegrationIds] = useState<string[]>(
-    () => [...DEFAULT_WIZARD_CONNECTED_INTEGRATION_IDS],
-  )
-  const [selectedIntegrationId, setSelectedIntegrationId] = useState<string | null>(
+  const [selectedIntegrationId] = useState<string | null>(
     DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
   )
-  const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
+  const [connectedIntegrationIds] = useState<string[]>(
+    () => [...DEFAULT_WIZARD_CONNECTED_INTEGRATION_IDS],
+  )
   const [webchatSettings, setWebchatSettings] = useState<WebChatChannelSettings>(
     () => ({ ...DEFAULT_WEBCHAT_CHANNEL_SETTINGS }),
   )
   const [textSettings, setTextSettings] = useState<TextChannelSettings>(
     () => ({ ...DEFAULT_TEXT_CHANNEL_SETTINGS }),
   )
+  const [webchatNameValidationAttempted, setWebchatNameValidationAttempted] = useState(false)
 
-  const selectedIntegration = selectedIntegrationId
-    ? getHealthcareIntegration(selectedIntegrationId) ?? null
-    : null
 
   const toggleChannel = (id: ChannelId) => {
     setSelectedChannels((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
+      if (id === 'webchat' && !next.has('webchat')) {
+        setWebchatNameValidationAttempted(false)
+      }
       return next
     })
+  }
+
+  const toggleLocation = (id: string) => {
+    setSelectedLocationIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    )
+  }
+
+  const toggleAllLocations = () => {
+    setSelectedLocationIds((current) =>
+      current.length === WIZARD_LOCATIONS.length ? [] : WIZARD_LOCATIONS.map((l) => l.id),
+    )
   }
 
   const toggleProcedure = (id: string) => {
@@ -692,26 +1001,6 @@ export function NewFrontdeskAgentSetupScreen({
     ])
   }
 
-  const selectIntegration = (id: string) => {
-    if (connectedIntegrationIds.includes(id)) {
-      setSelectedIntegrationId(id)
-    }
-  }
-
-  const openIntegrationDrawer = () => {
-    setIntegrationDrawerOpen(true)
-  }
-
-  const closeIntegrationDrawer = () => {
-    setIntegrationDrawerOpen(false)
-  }
-
-  const saveIntegrations = ({ selectedId, connectedIds }: IntegrationsPickerSaveResult) => {
-    setConnectedIntegrationIds(connectedIds)
-    setSelectedIntegrationId(selectedId)
-    setIntegrationDrawerOpen(false)
-  }
-
   const goToStep = (step: number) => {
     if (step <= maxStepReached) {
       setCurrentStep(step)
@@ -724,10 +1013,18 @@ export function NewFrontdeskAgentSetupScreen({
     }
   }
 
-  const isStep1Complete = agentName.trim().length > 0 && selectedChannels.size > 0
+  const isStep1Complete = agentName.trim().length > 0 && selectedLocationIds.length > 0
+  const isWebchatNameMissing =
+    selectedChannels.has('webchat') && webchatSettings.aiAgentName.trim().length === 0
   const isNextDisabled = currentStep === 1 && !isStep1Complete
+  const showChatAgentNameError = webchatNameValidationAttempted && isWebchatNameMissing
 
   const handleNext = () => {
+    if (currentStep === 2 && isWebchatNameMissing) {
+      setWebchatNameValidationAttempted(true)
+      return
+    }
+
     if (isNextDisabled) return
 
     if (currentStep < STEPS.length) {
@@ -745,6 +1042,7 @@ export function NewFrontdeskAgentSetupScreen({
       consent,
       webchatSettings,
       textSettings,
+      selectedLocationIds,
       selectedProcedureIds,
       procedureCatalog,
       selectedIntegrationId,
@@ -798,9 +1096,9 @@ export function NewFrontdeskAgentSetupScreen({
       <div className="flex flex-1 gap-2xl overflow-y-auto px-2xl pb-2xl pt-lg">
         <aside className="sticky top-0 flex w-[280px] shrink-0 flex-col self-start rounded-md border border-border bg-surface px-xl py-xl" style={{ height: 'calc(100vh - 9rem)' }}>
           <div className="mb-xl">
-            <h2 className="text-body text-text-primary">Agent setup</h2>
-            <p className="mt-xs text-small text-text-secondary">
-              Configure channels, procedures, and tools
+            <h2 className="text-h3 text-text-primary">Setup</h2>
+            <p className="mt-[2px] text-small text-text-tertiary">
+              Configure channels, locations and procedures
             </p>
           </div>
 
@@ -811,9 +1109,8 @@ export function NewFrontdeskAgentSetupScreen({
           />
 
           <div className="mt-auto pt-xl">
-            <div className="mb-sm flex items-center justify-between text-small text-text-secondary">
+            <div className="mb-sm text-small text-text-secondary">
               <span>Step {currentStep} of {STEPS.length}</span>
-              <span>{progress}%</span>
             </div>
             <div className="h-1 w-full overflow-hidden rounded-full bg-surface-selected">
               <div
@@ -826,9 +1123,17 @@ export function NewFrontdeskAgentSetupScreen({
 
         <div className="min-w-0 flex-1 pt-xl pb-[160px]">
           {currentStep === 1 && (
-            <ConfigureChannelsStep
+            <GettingStartedStep
               agentName={agentName}
               onAgentNameChange={setAgentName}
+              locations={WIZARD_LOCATIONS}
+              selectedLocationIds={selectedLocationIds}
+              onToggleLocation={toggleLocation}
+              onToggleAllLocations={toggleAllLocations}
+            />
+          )}
+          {currentStep === 2 && (
+            <ConfigureChannelsStep
               selectedChannels={selectedChannels}
               onToggleChannel={toggleChannel}
               voice={voice}
@@ -840,33 +1145,26 @@ export function NewFrontdeskAgentSetupScreen({
               consent={consent}
               onConsentChange={setConsent}
               webchatSettings={webchatSettings}
-              onWebchatSettingsChange={(patch) =>
+              onWebchatSettingsChange={(patch) => {
                 setWebchatSettings((current) => ({ ...current, ...patch }))
-              }
+                if (patch.aiAgentName?.trim()) {
+                  setWebchatNameValidationAttempted(false)
+                }
+              }}
               textSettings={textSettings}
               onTextSettingsChange={(patch) =>
                 setTextSettings((current) => ({ ...current, ...patch }))
               }
+              chatAgentNameError={showChatAgentNameError}
             />
           )}
-          {currentStep === 2 && (
+          {currentStep === 3 && (
             <SelectProceduresStep
               procedures={procedureCatalog}
               selectedIds={selectedProcedureIds}
               onToggleProcedure={toggleProcedure}
               onCreate={openProcedureCreate}
               onViewProcedure={openProcedureView}
-            />
-          )}
-          {currentStep === 3 && (
-            <SelectIntegrationsStep
-              integrations={HEALTHCARE_INTEGRATION_CATALOG}
-              connectedIds={connectedIntegrationIds}
-              selectedId={selectedIntegrationId}
-              onSelectIntegration={selectIntegration}
-              onViewIntegration={(id) => onOpenIntegrationSettings?.(id)}
-              onConnectIntegration={openIntegrationDrawer}
-              onAddCustom={openIntegrationDrawer}
             />
           )}
           {currentStep === 4 && (
@@ -879,10 +1177,12 @@ export function NewFrontdeskAgentSetupScreen({
               consent={consent}
               webchatSettings={webchatSettings}
               textSettings={textSettings}
+              locations={WIZARD_LOCATIONS}
+              selectedLocationIds={selectedLocationIds}
               procedures={procedureCatalog}
               selectedProcedureIds={selectedProcedureIds}
-              integration={selectedIntegration}
               onEditStep={goToStep}
+              onViewProcedure={openProcedureView}
             />
           )}
         </div>
@@ -898,15 +1198,6 @@ export function NewFrontdeskAgentSetupScreen({
         onSave={setSelectedProcedureIds}
         onCreateProcedure={handleCreateProcedure}
         closeOnCreateCancel
-      />
-
-      <IntegrationsPickerDrawer
-        open={integrationDrawerOpen}
-        integrations={HEALTHCARE_INTEGRATION_CATALOG}
-        connectedIds={connectedIntegrationIds}
-        selectedId={selectedIntegrationId}
-        onClose={closeIntegrationDrawer}
-        onSave={saveIntegrations}
       />
     </div>
   )

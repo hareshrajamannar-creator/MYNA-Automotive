@@ -162,7 +162,7 @@ export function WorkflowEditorScreen({
         }
 
   const resolvedStatus = wizardDraft ? 'Draft' : agentStatus
-  const publishDisabled = Boolean(wizardDraft)
+  const publishDisabled = false
 
   const AGENT_NAV_MAP: Record<string, string> = {
     'Front desk agent': 'frontdesk',

@@ -83,25 +83,271 @@ export function buildStaticPreviewMessages({
   ];
 }
 
+export const OUTBOUND_REMINDER_DEMO_SCRIPT = [
+  { role: 'user', text: 'Hi' },
+  ...PREVIEW_DEMO_SCRIPT,
+];
+
+export function PreviewAppointmentCard({
+  patientName,
+  appointmentLine,
+  phone,
+  reminderLabel = '24-hour reminder · Voice call',
+  onEdit,
+}) {
+  return (
+    <div className="preview-panel__appointment-card">
+      <div className="preview-panel__appointment-card-header">
+        <span className="preview-panel__appointment-card-label">Appointment details</span>
+        <button
+          type="button"
+          aria-label="Edit appointment details"
+          className="preview-panel__appointment-edit"
+          onClick={onEdit}
+        >
+          <span className="material-symbols-outlined">edit</span>
+        </button>
+      </div>
+
+      <div className="preview-panel__appointment-name-row">
+        <span className="preview-panel__appointment-name">{patientName}</span>
+        <span className="preview-panel__appointment-status">Confirmed</span>
+      </div>
+
+      <div className="preview-panel__appointment-meta">
+        <div className="preview-panel__appointment-meta-row">
+          <span className="material-symbols-outlined">calendar_today</span>
+          <span>{appointmentLine}</span>
+        </div>
+        <div className="preview-panel__appointment-meta-row">
+          <span className="material-symbols-outlined">call</span>
+          <span>{phone}</span>
+        </div>
+        <div className="preview-panel__appointment-meta-row">
+          <span className="material-symbols-outlined">notifications</span>
+          <span>{reminderLabel}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function OutboundPreviewLogsPanel({
+  patientName,
+  appointmentLine,
+  phone,
+  sections,
+  visibleCount,
+  completedCount,
+  onEditAppointment,
+}) {
+  return (
+    <>
+      <PreviewAppointmentCard
+        patientName={patientName}
+        appointmentLine={appointmentLine}
+        phone={phone}
+        onEdit={onEditAppointment}
+      />
+      <ProgressivePreviewLogsView
+        sections={sections}
+        visibleCount={visibleCount}
+        completedCount={completedCount}
+      />
+    </>
+  );
+}
+
+export function buildVoiceCallLogOutput(phone, completed = false) {
+  return {
+    id: 'vc-out',
+    label: 'Task output',
+    rows: [
+      { label: 'Source', value: 'Voice call' },
+      {
+        label: 'Summary',
+        value: completed
+          ? 'Outbound reminder call completed'
+          : 'Outbound reminder call connected',
+      },
+      { label: 'Phone', value: phone },
+    ],
+    children: [],
+    extraRows: [],
+  };
+}
+
+export function buildEndLogStep() {
+  return {
+    id: 'end',
+    kind: 'end',
+    kindLabel: 'End',
+    stepLabel: 'End',
+    outputSections: [
+      {
+        id: 'end-out',
+        label: 'Run output',
+        rows: [
+          { label: 'Status', value: 'Completed' },
+          { label: 'Summary', value: 'Reminder workflow finished successfully' },
+        ],
+        children: [],
+        extraRows: [],
+      },
+    ],
+  };
+}
+
 function LogKindIcon({ kind }) {
+  if (kind === 'trigger') {
+    return (
+      <span className="preview-panel__log-kind-icon">
+        <TriggerIcon />
+      </span>
+    );
+  }
+  if (kind === 'delay') {
+    return (
+      <span className="preview-panel__log-kind-icon preview-panel__log-kind-icon--material">
+        <span className="material-symbols-outlined">schedule</span>
+      </span>
+    );
+  }
+  if (kind === 'branch') {
+    return (
+      <span className="preview-panel__log-kind-icon preview-panel__log-kind-icon--material">
+        <span className="material-symbols-outlined">account_tree</span>
+      </span>
+    );
+  }
+  if (kind === 'end') {
+    return (
+      <span className="preview-panel__log-kind-icon preview-panel__log-kind-icon--end">
+        End
+      </span>
+    );
+  }
   return (
     <span className="preview-panel__log-kind-icon">
-      {kind === 'trigger' ? <TriggerIcon /> : <ProcedureIcon />}
+      <ProcedureIcon />
     </span>
   );
 }
 
-function PreviewLogSection({ section, isLast }) {
+export function buildReminderPreviewLogSteps(booking) {
+  const patientName = booking
+    ? `${booking.firstName} ${booking.lastName}`.trim()
+    : 'Sarah Lawson';
+  const phone = booking?.phone || '+1(404)555-1092';
+  const email = booking?.email || 'sarahl@abc.com';
+  const appointmentLine = booking
+    ? `${booking.appointmentType} · ${booking.dateTime.replace(' · ', ' at ')}`
+    : 'Teeth cleaning · Jun 15 at 10:00 AM';
+
+  return {
+    appointmentLine,
+    patientName,
+    phone,
+    steps: [
+      {
+        id: 'trigger',
+        kind: 'trigger',
+        kindLabel: 'Trigger',
+        stepLabel: '1. Appointment is booked',
+        outputSections: [
+          {
+            id: 'to1',
+            label: 'Trigger output',
+            rows: [
+              { label: 'Source', value: 'Voice call' },
+              {
+                label: 'Comments',
+                value: 'Patient called reporting tooth pain and mild swelling scheduled appointment',
+              },
+            ],
+            children: [
+              {
+                id: 'reviewer',
+                label: 'Reviewer',
+                badge: '1 property',
+                rows: [
+                  { label: 'Name', value: patientName },
+                  { label: 'Phone', value: phone },
+                ],
+              },
+            ],
+            extraRows: [],
+          },
+        ],
+      },
+      {
+        id: 'reminder-email',
+        kind: 'task',
+        kindLabel: 'Task',
+        stepLabel: '2. Appointment reminder',
+        awaitingResponse: true,
+        outputSections: [
+          {
+            id: 'to2',
+            label: 'Trigger output',
+            rows: [
+              { label: 'Source', value: 'Email' },
+              { label: 'Summary', value: 'Email reminder sent' },
+              {
+                label: 'Description',
+                value: `Check ${email} — a reminder for confirmation is sent`,
+              },
+            ],
+            children: [],
+            extraRows: [],
+          },
+        ],
+      },
+      {
+        id: 'delay',
+        kind: 'delay',
+        kindLabel: 'Delay',
+        stepLabel: '3. Delay skipped for preview',
+        outputSections: [],
+      },
+      {
+        id: 'branch',
+        kind: 'branch',
+        kindLabel: 'Branch',
+        stepLabel: '4. Based on conditions',
+        outputSections: [],
+      },
+      {
+        id: 'voice-call',
+        kind: 'task',
+        kindLabel: 'Task',
+        stepLabel: '5. Initiating voice call',
+        outputSections: [],
+      },
+    ],
+  };
+}
+
+function PreviewLogSection({
+  section,
+  isLast,
+  status = 'completed',
+  showAwaiting = false,
+}) {
   const [stepOpen, setStepOpen] = useState(true);
   const [outputOpen, setOutputOpen] = useState(true);
   const [childOpen, setChildOpen] = useState({ reviewer: true });
-  const kindLabel = section.kind === 'trigger' ? 'Trigger' : 'Procedures';
+  const kindLabel = section.kindLabel || (section.kind === 'trigger' ? 'Trigger' : 'Procedures');
+  const statusClass =
+    status === 'completed'
+      ? ' preview-panel__log-status--completed'
+      : ' preview-panel__log-status--active';
 
   return (
     <div className={`preview-panel__log-section${isLast ? ' preview-panel__log-section--last' : ''}`}>
       <div className="preview-panel__log-track">
-        <div className="preview-panel__log-status" aria-hidden>
-          <span className="material-symbols-outlined">check</span>
+        <div className={`preview-panel__log-status${statusClass}`} aria-hidden>
+          {status === 'completed' && <span className="material-symbols-outlined">check</span>}
         </div>
       </div>
 
@@ -186,7 +432,41 @@ function PreviewLogSection({ section, isLast }) {
             )}
           </div>
         ))}
+
+        {showAwaiting && (
+          <div className="preview-panel__awaiting">
+            <span className="material-symbols-outlined">warning</span>
+            <span>Awaiting your response</span>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+export function ProgressivePreviewLogsView({
+  sections,
+  visibleCount,
+  completedCount,
+}) {
+  return (
+    <div className="preview-panel__logs preview-panel__logs--embedded">
+      {sections.map((section, index) => {
+        if (index >= visibleCount) return null;
+        const status = index < completedCount ? 'completed' : 'active';
+        const isLastVisible =
+          index === visibleCount - 1 ||
+          sections.slice(index + 1).every((_, i) => index + 1 + i >= visibleCount);
+        return (
+          <PreviewLogSection
+            key={section.id}
+            section={section}
+            status={status}
+            isLast={isLastVisible}
+            showAwaiting={Boolean(section.awaitingResponse && status === 'active')}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -198,6 +478,7 @@ export function PreviewLogsView({ sections = PREVIEW_LOG_SECTIONS }) {
         <PreviewLogSection
           key={section.id}
           section={section}
+          status="completed"
           isLast={index === sections.length - 1}
         />
       ))}

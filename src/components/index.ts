@@ -2,6 +2,11 @@ export { Chip } from './Chip/Chip'
 export { InfoTooltip } from './InfoTooltip/InfoTooltip'
 export { TestCallModal } from './TestCallModal/TestCallModal'
 export type { TestCallModalProps } from './TestCallModal/TestCallModal.types'
+export { BookTestAppointmentModal } from './BookTestAppointmentModal/BookTestAppointmentModal'
+export type {
+  BookTestAppointmentModalProps,
+  BookTestAppointmentValues,
+} from './BookTestAppointmentModal/BookTestAppointmentModal.types'
 export { ContextModal } from './ContextModal/ContextModal'
 export { CustomizeColumnsDrawer } from './CustomizeColumnsDrawer/CustomizeColumnsDrawer'
 export { EmptyHintField } from './EmptyHintField/EmptyHintField'

@@ -136,15 +136,17 @@ const COLUMNS2: Column<PhoneNumber2Row>[] = [
 ]
 
 
+// Mirrors AGENT_NAMES in App.tsx — kept local here to avoid a circular import
+// (App.tsx renders PhoneNumber2Screen).
 const AGENT_OPTIONS = [
-  { value: 'Front desk agent',     label: 'Front desk agent'     },
-  { value: 'Reminder agent',       label: 'Reminder agent'       },
-  { value: 'Outreach agent',       label: 'Outreach agent'       },
-  { value: 'Waitlist agent',       label: 'Waitlist agent'       },
-  { value: 'Pre-visit agent',      label: 'Pre-visit agent'      },
-  { value: 'Recall agent',         label: 'Recall agent'         },
-  { value: 'Revenue agent',        label: 'Revenue agent'        },
-  { value: 'Treatment plan agent', label: 'Treatment plan agent' },
+  { value: 'Front desk agent',      label: 'Front desk agent'      },
+  { value: 'Reminder agent',        label: 'Reminder agent'        },
+  { value: 'Outreach agent',        label: 'Outreach agent'        },
+  { value: 'Waitlist agent',        label: 'Waitlist agent'        },
+  { value: 'Pre-visit agent',       label: 'Pre-visit agent'       },
+  { value: 'Recall agent',          label: 'Recall agent'          },
+  { value: 'Revenue agent',         label: 'Revenue agent'         },
+  { value: 'Treatment plan agent',  label: 'Treatment plan agent'  },
 ]
 
 

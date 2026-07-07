@@ -102,22 +102,30 @@ export function DataTable<T extends Record<string, unknown>>({
               const showDivider = i < columns.length - 1
               return (
                 <th key={key} className="relative h-12 border-b border-border px-[10px] align-middle font-normal">
-                  <button
-                    type="button"
-                    onClick={() => toggleSort(col)}
-                    className={`group/hdr flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
-                  >
-                    <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
-                      {col.label}
-                    </span>
-                    {col.sortable && (
-                      <Icon
-                        name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
-                        size={16}
-                        className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
-                      />
-                    )}
-                  </button>
+                  {col.headerRender ? (
+                    col.headerRender({
+                      sorted,
+                      sortDir: sort.dir,
+                      onSort: () => toggleSort(col),
+                    })
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(col)}
+                      className={`group/hdr flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
+                    >
+                      <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
+                        {col.label}
+                      </span>
+                      {col.sortable && (
+                        <Icon
+                          name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
+                          size={16}
+                          className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
+                        />
+                      )}
+                    </button>
+                  )}
                   {showDivider && (
                     <span
                       onMouseDown={resizable ? (e) => startResize(col, e) : undefined}
@@ -151,6 +159,7 @@ export function DataTable<T extends Record<string, unknown>>({
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
                 const content = col.render ? col.render(row[col.key], row) : String(row[col.key] ?? '')
+                const wrapTruncate = isLast && col.truncate !== false
                 return (
                   <td
                     key={String(col.key)}
@@ -159,7 +168,7 @@ export function DataTable<T extends Record<string, unknown>>({
                       isLast ? 'relative' : 'truncate'
                     }`}
                   >
-                    {isLast ? <span className="block truncate">{content}</span> : content}
+                    {wrapTruncate ? <span className="block truncate">{content}</span> : content}
 
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
