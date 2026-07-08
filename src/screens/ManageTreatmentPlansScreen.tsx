@@ -406,10 +406,7 @@ export function ManageTreatmentPlansScreen() {
               <button type="button" onClick={() => setColumnsOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                 <Icon name="view_column" size={20} />
               </button>
-              <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
-                Create campaign
-              </button>
-              <button type="button" onClick={() => setFilterOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+<button type="button" onClick={() => setFilterOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                 <Icon name="filter_list" size={20} />
               </button>
             </div>
