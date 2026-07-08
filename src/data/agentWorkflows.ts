@@ -1573,12 +1573,353 @@ const TREATMENT_PLAN_NODE_DETAILS: Record<string, any> = {
   'tpa-v-email': { taskName: 'Send treatment plan email', description: 'Follow-up treatment plan email with scheduling link', selectedTools: ['send-confirmation'] },
 }
 
+// ─── Dental: Treatment Plan Agent — Schedule based ───────────────────────────
+// Workflow: schedule trigger → query unscheduled plans → email → text → delay 2d
+//   → condition (if still unscheduled)
+//     → initiate voice call (4 branches: answered / rejected / missed / voicemail)
+//     → fallback (scheduled)
+
+const TPS_NODES = [
+  { id: 'tps-1', flowType: 'trigger' as const, data: { title: 'Schedule — every 2 weeks', subtype: 'Schedule-based', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' } },
+  { id: 'tps-2', flowType: 'task'    as const, data: { title: 'Get all unscheduled treatment plans', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Query all plans with no scheduled appointment' } },
+  { id: 'tps-3', flowType: 'task'    as const, data: { title: 'Send email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Personalized treatment plan with scheduling link.' } },
+  { id: 'tps-4', flowType: 'task'    as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Short SMS with scheduling link.' } },
+  { id: 'tps-5', flowType: 'delay'   as const, data: { title: 'Delay for 2 days', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before checking schedule status.' } },
+  { id: 'tps-6', flowType: 'branch'  as const, data: { title: 'If still unscheduled', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Check if treatment plan is still unscheduled.', branches: [{ id: 'tps-6-path-1', name: 'Still unscheduled' }, { id: 'tps-6-path-2', name: 'Now scheduled', isFallback: true }] } },
+]
+
+const TPS_NODE_DETAILS: Record<string, unknown> = {
+  '__start__': {
+    agentName: 'Treatment plan agent — Schedule based',
+    goals: 'Re-engage patients with unscheduled treatment plans through a cadenced outreach sequence that escalates from email to SMS to a live voice call.',
+    outcomes: 'Increase treatment plan acceptance rate by automatically following up with every unscheduled plan on a fixed 2-week cadence.',
+    locations: ['Cedar Park Dental', 'Riverside Family Dental', 'Lakeview Dental'],
+  },
+  'tps-1': {
+    triggerName: 'Schedule — every 2 weeks',
+    description: 'Runs on a fixed 2-week cadence to identify and reach out to patients with unscheduled treatment plans.',
+    frequency: 'Every 2 weeks',
+    day: 'Monday',
+    time: '9:00 AM',
+  },
+  'tps-2': {
+    taskName: 'Get all unscheduled treatment plans',
+    description: 'Filters applied: D-code = XYZ & treating office = 124.',
+    selectedTools: ['get-unscheduled-treatment-plans'],
+  },
+  'tps-3': {
+    taskName: 'Send email',
+    description: 'Personalized treatment plan with scheduling link.',
+    selectedTools: ['send-confirmation'],
+  },
+  'tps-4': {
+    taskName: 'Send text',
+    description: 'Short SMS with scheduling link.',
+    selectedTools: ['send-confirmation'],
+  },
+  'tps-5': { name: 'Delay for 2 days', duration: '2', unit: 'days' },
+  'tps-6': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'tps-6-path-1', name: 'Still unscheduled' },
+      { id: 'tps-6-path-2', name: 'Now scheduled', isFallback: true },
+    ],
+  },
+  'tps-6-path-1': {
+    branchName: 'Still unscheduled',
+    description: 'Patient has not yet scheduled — escalate to voice call.',
+    conditions: [{ id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'false' }],
+    conditionOptions: {
+      field:    [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+      operator: [{ value: 'equals', label: 'Equals' }, { value: 'not_equals', label: 'Does not equal' }],
+      value:    [{ value: 'true', label: 'True' }, { value: 'false', label: 'False' }],
+    },
+    parentId: 'tps-6',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tps-7', flowType: 'voiceCall' as const, data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter name', descriptionPlaceholder: 'Call the patient to schedule their treatment plan.', branches: [{ id: 'tps-7-vc-answered', name: 'Call answered', isVoiceCallBranch: true }, { id: 'tps-7-vc-rejected', name: 'Call rejected', isVoiceCallBranch: true }, { id: 'tps-7-vc-missed', name: 'Call missed', isVoiceCallBranch: true }, { id: 'tps-7-vc-voicemail', name: 'Voice mail', isVoiceCallBranch: true, isFallback: true }] } },
+    ],
+  },
+  'tps-6-path-2': {
+    branchName: 'Now scheduled',
+    description: 'Treatment plan is already scheduled — sequence complete.',
+    conditions: [{ id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'true' }],
+    conditionOptions: {
+      field:    [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+      operator: [{ value: 'equals', label: 'Equals' }],
+      value:    [{ value: 'true', label: 'True' }],
+    },
+    parentId: 'tps-6',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'tps-7': {
+    taskName: 'Initiate voice call',
+    description: 'Call the patient to schedule their unscheduled treatment plan.',
+    toolId: 'voice-call',
+    phoneNumber: 'Contact.PhoneNumber',
+    callFrom: '',
+    startingProcedure: 'Treatment plan coordinator',
+    routeToFrontdesk: false,
+    contextItems: [
+      { id: '1', label: 'Patient name',        variable: 'Contact.FullName'          },
+      { id: '2', label: 'Treatment plan ID',   variable: 'Contact.TreatmentPlanId'   },
+      { id: '3', label: 'Procedure code',      variable: 'Contact.ProcedureCode'     },
+      { id: '4', label: 'Treating provider',   variable: 'Contact.Provider'          },
+      { id: '5', label: 'Office',              variable: 'Contact.Office'            },
+    ],
+    retrySettings: { noAnswer: true, callRejected: false, voiceMail: true },
+    voicemailMessage: 'Hi {{Contact.FirstName}}, this is {{Practice.Name}} calling about your treatment plan. We noticed your appointment hasn\'t been scheduled yet. Please call us at {{Practice.PhoneNumber}} or use the link we sent to book at your convenience.',
+    maxAttempts: 2,
+    retryInterval: 24,
+    retryIntervalUnit: 'Hours',
+    branches: [
+      { id: 'tps-7-vc-answered',  name: 'Call answered', isVoiceCallBranch: true, isFallback: false },
+      { id: 'tps-7-vc-rejected',  name: 'Call rejected', isVoiceCallBranch: true, isFallback: false },
+      { id: 'tps-7-vc-missed',    name: 'Call missed',   isVoiceCallBranch: true, isFallback: false },
+      { id: 'tps-7-vc-voicemail', name: 'Voice mail',    isVoiceCallBranch: true, isFallback: true  },
+    ],
+  },
+  'tps-7-vc-answered': {
+    branchName: 'Call answered',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'answered' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tps-7',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tps-7-a1', flowType: 'task' as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Send booking confirmation SMS.' } },
+    ],
+  },
+  'tps-7-vc-rejected': {
+    branchName: 'Call rejected',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'rejected' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tps-7',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tps-7-r1', flowType: 'delay' as const, data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'tps-7-r2', flowType: 'task'  as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up SMS with scheduling link.' } },
+    ],
+  },
+  'tps-7-vc-missed': {
+    branchName: 'Call missed',
+    isVoiceCallBranch: true,
+    isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'missed' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tps-7',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tps-7-m1', flowType: 'delay' as const, data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'tps-7-m2', flowType: 'task'  as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up SMS with scheduling link.' } },
+    ],
+  },
+  'tps-7-vc-voicemail': {
+    branchName: 'Voice mail',
+    isVoiceCallBranch: true,
+    isFallback: true,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'voicemail' }],
+    conditionOptions: VC_CONDITION_OPTIONS,
+    parentId: 'tps-7',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tps-7-v1', flowType: 'delay' as const, data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait after voicemail.' } },
+      { id: 'tps-7-v2', flowType: 'task'  as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up SMS with scheduling link.' } },
+    ],
+  },
+  'tps-7-a1': { taskName: 'Send text', description: 'Send booking confirmation SMS.', selectedTools: ['send-confirmation'] },
+  'tps-7-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tps-7-r2': { taskName: 'Send text', description: 'Follow-up SMS with scheduling link.', selectedTools: ['send-confirmation'] },
+  'tps-7-m1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tps-7-m2': { taskName: 'Send text', description: 'Follow-up SMS with scheduling link.', selectedTools: ['send-confirmation'] },
+  'tps-7-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tps-7-v2': { taskName: 'Send text', description: 'Follow-up SMS with scheduling link.', selectedTools: ['send-confirmation'] },
+}
+
+/* ─── Treatment plan agent — Event trigger based ─── */
+const TPE_NODES = [
+  { id: 'tpe-1', flowType: 'trigger' as const, data: { title: 'New treatment plan added (unscheduled)', subtype: 'Entity trigger', headerLabel: 'Trigger', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description' } },
+  { id: 'tpe-2', flowType: 'delay'   as const, data: { title: 'Delay for 2 days', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before first outreach.' } },
+  { id: 'tpe-3', flowType: 'branch'  as const, data: { title: 'If still unscheduled', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Check if treatment plan is still unscheduled.', branches: [{ id: 'tpe-3-path-1', name: 'Still unscheduled' }, { id: 'tpe-3-path-2', name: 'Now scheduled', isFallback: true }] } },
+]
+
+const TPE_NODE_DETAILS: Record<string, unknown> = {
+  '__start__': {
+    agentName: 'Treatment plan agent — Event trigger based',
+    goals: 'Convert unscheduled treatment plans into booked appointments by reaching out as soon as a new plan is created.',
+    outcomes: 'Patients with unscheduled treatment plans receive timely, personalised outreach across email, text, and voice.',
+    locations: ['All locations'],
+  },
+  'tpe-1': {
+    triggerName: 'New treatment plan added (unscheduled)',
+    description: 'Fires when a new plan satisfies filters: D-code = ABC & treating office = 124.',
+    conditions: [
+      { id: 1, fieldValue: 'dcode',          operatorValue: 'equals', valueValue: 'ABC' },
+      { id: 2, fieldValue: 'treating_office', operatorValue: 'equals', valueValue: '124' },
+    ],
+    conditionOptions: {
+      field: [
+        { value: 'dcode',                 label: 'D-code'          },
+        { value: 'treating_office',       label: 'Treating office' },
+        { value: 'treatment_plan_status', label: 'Plan status'     },
+        { value: 'plan_value',            label: 'Plan value'      },
+      ],
+      operator: [
+        { value: 'equals',     label: 'equals'     },
+        { value: 'not_equals', label: 'not equals' },
+        { value: 'contains',   label: 'contains'   },
+      ],
+      value: [
+        { value: 'ABC', label: 'ABC' },
+        { value: '124', label: '124' },
+        { value: 'unscheduled', label: 'Unscheduled' },
+        { value: 'diagnosed',   label: 'Diagnosed'   },
+        { value: 'accepted',    label: 'Accepted'    },
+      ],
+    },
+  },
+  'tpe-2': { name: 'Delay for 2 days', duration: '2', unit: 'days' },
+  'tpe-3': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'tpe-3-path-1', name: 'Still unscheduled' },
+      { id: 'tpe-3-path-2', name: 'Now scheduled', isFallback: true },
+    ],
+  },
+  'tpe-3-path-1': {
+    branchName: 'Still unscheduled',
+    description: 'Treatment plan has not been scheduled — proceed with outreach.',
+    conditions: [{ id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'false' }],
+    field: [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+    parentId: 'tpe-3',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tpe-4', flowType: 'task'   as const, data: { title: 'Send email', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Personalized treatment plan with scheduling link.' } },
+      { id: 'tpe-5', flowType: 'task'   as const, data: { title: 'Send text',  subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Short SMS with scheduling link.' } },
+      { id: 'tpe-6', flowType: 'delay'  as const, data: { title: 'Delay for 2 days', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before checking schedule status again.' } },
+      { id: 'tpe-7', flowType: 'branch' as const, data: { title: 'If still unscheduled', subtype: 'Branch', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter branch name', descriptionPlaceholder: 'Second check — escalate to voice if still unscheduled.', branches: [{ id: 'tpe-7-path-1', name: 'Still unscheduled' }, { id: 'tpe-7-path-2', name: 'Now scheduled', isFallback: true }] } },
+    ],
+  },
+  'tpe-3-path-2': {
+    branchName: 'Now scheduled',
+    description: 'Treatment plan is already scheduled — sequence complete.',
+    conditions: [{ id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'true' }],
+    field: [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+    parentId: 'tpe-3',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'tpe-4': { taskName: 'Send email', description: 'Personalized treatment plan with scheduling link.', selectedTools: ['send-confirmation'] },
+  'tpe-5': { taskName: 'Send text',  description: 'Short SMS with scheduling link.',                  selectedTools: ['send-confirmation'] },
+  'tpe-6': { name: 'Delay for 2 days', duration: '2', unit: 'days' },
+  'tpe-7': {
+    basedOn: 'conditions',
+    branches: [
+      { id: 'tpe-7-path-1', name: 'Still unscheduled' },
+      { id: 'tpe-7-path-2', name: 'Now scheduled', isFallback: true },
+    ],
+  },
+  'tpe-7-path-1': {
+    branchName: 'Still unscheduled',
+    description: 'Escalate to voice call.',
+    conditions: [{ id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'false' }],
+    field: [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+    parentId: 'tpe-7',
+    isBranchPath: true,
+    nodes: [
+      { id: 'tpe-8', flowType: 'voiceCall' as const, data: { title: 'Initiate voice call', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter name', descriptionPlaceholder: 'Initial procedure: Treatment plan coordinator.', branches: [{ id: 'tpe-8-vc-answered', name: 'Call answered', isVoiceCallBranch: true }, { id: 'tpe-8-vc-rejected', name: 'Call rejected', isVoiceCallBranch: true }, { id: 'tpe-8-vc-missed', name: 'Call not answered', isVoiceCallBranch: true }, { id: 'tpe-8-vc-voicemail', name: 'Voice mail', isVoiceCallBranch: true, isFallback: true }] } },
+    ],
+  },
+  'tpe-7-path-2': {
+    branchName: 'Now scheduled',
+    description: 'Treatment plan is already scheduled — sequence complete.',
+    conditions: [{ id: 1, fieldValue: 'treatment_plan_scheduled', operatorValue: 'equals', valueValue: 'true' }],
+    field: [{ value: 'treatment_plan_scheduled', label: 'Treatment plan scheduled' }],
+    parentId: 'tpe-7',
+    isBranchPath: true,
+    isFallback: true,
+    nodes: [],
+  },
+  'tpe-8': {
+    taskName: 'Initiate voice call',
+    description: 'Initial procedure: Treatment plan coordinator.',
+    toolId: 'initiate-voice-call',
+    selectedTools: ['initiate-voice-call'],
+    startingProcedure: 'Treatment plan coordinator procedure',
+    routeToFrontdesk: true,
+    contextItems: [
+      { id: '1', label: 'Patient ID',          variable: 'Contact.PatientId'       },
+      { id: '2', label: 'Treatment plan ID',   variable: 'Contact.TreatmentPlanId' },
+      { id: '3', label: 'Full name',           variable: 'Contact.FullName'        },
+    ],
+    retrySettings: { noAnswer: true, callRejected: false, voiceMail: true },
+    voicemailMessage: 'Hi {{Contact.FirstName}}, this is {{Practice.Name}} calling about your treatment plan. Please call us back at {{Practice.PhoneNumber}} to schedule your appointment.',
+    maxAttempts: '2',
+    retryInterval: '24',
+    retryIntervalUnit: 'Hours',
+    branches: [
+      { id: 'tpe-8-vc-answered',  name: 'Call answered',     isVoiceCallBranch: true, isFallback: false },
+      { id: 'tpe-8-vc-rejected',  name: 'Call rejected',     isVoiceCallBranch: true, isFallback: false },
+      { id: 'tpe-8-vc-missed',    name: 'Call not answered', isVoiceCallBranch: true, isFallback: false },
+      { id: 'tpe-8-vc-voicemail', name: 'Voice mail',        isVoiceCallBranch: true, isFallback: true  },
+    ],
+  },
+  'tpe-8-vc-answered': {
+    branchName: 'Call answered', isVoiceCallBranch: true, isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'answered' }],
+    conditionOptions: VC_CONDITION_OPTIONS, parentId: 'tpe-8', isBranchPath: true,
+    nodes: [
+      { id: 'tpe-8-a1', flowType: 'task' as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Send booking confirmation SMS.' } },
+    ],
+  },
+  'tpe-8-vc-rejected': {
+    branchName: 'Call rejected', isVoiceCallBranch: true, isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'rejected' }],
+    conditionOptions: VC_CONDITION_OPTIONS, parentId: 'tpe-8', isBranchPath: true,
+    nodes: [
+      { id: 'tpe-8-r1', flowType: 'delay' as const, data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait before retrying.' } },
+      { id: 'tpe-8-r2', flowType: 'task'  as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up SMS with scheduling link.' } },
+    ],
+  },
+  'tpe-8-vc-missed': {
+    branchName: 'Call not answered', isVoiceCallBranch: true, isFallback: false,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'missed' }],
+    conditionOptions: VC_CONDITION_OPTIONS, parentId: 'tpe-8', isBranchPath: true,
+    nodes: [
+      { id: 'tpe-8-m1', flowType: 'task' as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up SMS with scheduling link.' } },
+    ],
+  },
+  'tpe-8-vc-voicemail': {
+    branchName: 'Voice mail', isVoiceCallBranch: true, isFallback: true,
+    conditions: [{ id: 1, fieldValue: 'call_status', operatorValue: 'equals', valueValue: 'voicemail' }],
+    conditionOptions: VC_CONDITION_OPTIONS, parentId: 'tpe-8', isBranchPath: true,
+    nodes: [
+      { id: 'tpe-8-v1', flowType: 'delay' as const, data: { title: 'Delay for 1 day', subtype: 'Delay', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Configure delay settings', descriptionPlaceholder: 'Wait after voicemail.' } },
+      { id: 'tpe-8-v2', flowType: 'task'  as const, data: { title: 'Send text', subtype: 'Integration', hasToggle: true, toggleEnabled: true, hasAiIcon: false, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Follow-up SMS with scheduling link.' } },
+    ],
+  },
+  'tpe-8-a1': { taskName: 'Send text', description: 'Send booking confirmation SMS.',        selectedTools: ['send-confirmation'] },
+  'tpe-8-r1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tpe-8-r2': { taskName: 'Send text', description: 'Follow-up SMS with scheduling link.',   selectedTools: ['send-confirmation'] },
+  'tpe-8-m1': { taskName: 'Send text', description: 'Follow-up SMS with scheduling link.',   selectedTools: ['send-confirmation'] },
+  'tpe-8-v1': { name: 'Delay for 1 day', duration: '1', unit: 'days' },
+  'tpe-8-v2': { taskName: 'Send text', description: 'Follow-up SMS with scheduling link.',   selectedTools: ['send-confirmation'] },
+}
+
 // Dental extends healthcare with three additional agent workflows
 export const DENTAL_AGENT_WORKFLOWS: Record<string, AgentWorkflow> = {
   ...HEALTHCARE_AGENT_WORKFLOWS,
   'Recall agent':         { nodes: RECALL_NODES,         nodeDetails: RECALL_NODE_DETAILS         },
   'Revenue agent':        { nodes: REVENUE_NODES,         nodeDetails: REVENUE_NODE_DETAILS         },
   'Treatment plan agent': { nodes: TREATMENT_PLAN_NODES,  nodeDetails: TREATMENT_PLAN_NODE_DETAILS  },
+  'Treatment plan agent — Schedule based':      { nodes: TPS_NODES, nodeDetails: TPS_NODE_DETAILS },
+  'Treatment plan agent — Event trigger based': { nodes: TPE_NODES, nodeDetails: TPE_NODE_DETAILS },
 }
 
 // Default export kept for backward compat

@@ -225,14 +225,14 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
   ],
   'Treatment plan agent': [
     {
-      id: 'tp-followup-call',
-      title: 'Treatment plan follow-up',
-      description: 'Outbound call flow for patients with unscheduled recommended treatment — introduces the care need at a high level, handles objections, and books the next appointment without clinical advising.',
+      id: 'tp-v1-scheduled',
+      title: 'Treatment plan agent — Schedule based',
+      description: 'Runs on a fixed 2-week cadence and batch-pulls every unscheduled plan matching the filters, then escalates email → text → wait → voice call.',
     },
     {
-      id: 'tp-case-acceptance',
-      title: 'Case acceptance accelerator',
-      description: 'Multi-channel sequence that pairs a personalized email with a follow-up voice call to move patients from "thinking about it" to a confirmed appointment, with warm transfer to the financial coordinator for cost questions.',
+      id: 'tp-v2-event',
+      title: 'Treatment plan agent — Event trigger based',
+      description: 'Fires per plan the moment a qualifying unscheduled plan is added, giving the patient time to self-schedule before each nudge.',
     },
   ],
   'Waitlist agent': [
@@ -544,6 +544,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     title: tpl.title,
     description: tpl.description,
     actionLabel: 'Use agent' as const,
+    onAction: () => onEditAgent?.(tpl.title),
   }))
 
   if (showSetupWizard && isFrontdesk) {
