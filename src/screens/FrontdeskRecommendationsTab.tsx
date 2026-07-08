@@ -9,12 +9,15 @@ import '../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 type GapType = 'procedure' | 'knowledge' | 'action'
 type Priority = 'High' | 'Medium' | 'Low'
 
-type DiffSegment = { text: string; type?: 'removed' | 'added' }
-type StepBullet = string | DiffSegment[]
-
 interface ProcedureStep {
   title: string
-  bullets: StepBullet[]
+  bullets: string[]
+}
+
+interface ManualUpdate {
+  icon: string
+  title: string
+  description: string
 }
 
 interface DiffChange {
@@ -44,14 +47,17 @@ interface Recommendation {
   conversationCount: number
   isNew: boolean
   whenToUse: string
+  originalWhenToUse?: string
   steps: ProcedureStep[]
+  originalSteps?: ProcedureStep[]
   tools: { label: string; icon: string }[]
   rationale: string
   changeType: string
   diff?: DiffChange
   conversations: ConversationItem[]
   sim?: { before: Turn[]; after: Turn[] }
-  changeSuggestions?: string[]
+  outcomes?: string[]
+  manualUpdates?: ManualUpdate[]
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -98,7 +104,11 @@ const RECOMMENDATIONS: Recommendation[] = [
       { label: 'DMS Integration', icon: 'storage' },
       { label: 'Send Confirmation', icon: 'send' },
     ],
-    rationale: '12 conversations in the past 7 days ended unresolved because the agent had no guidance on handling payment requests.',
+    rationale: "Based on the last 7 days of conversations, we identified that 12 customers couldn't complete a payment because the agent lacked the necessary guidance. We've generated the following recommendation:",
+    outcomes: [
+      'Added a Payment processing procedure to help the agent handle future payment requests more effectively.',
+      'Once accepted, the procedure will be added to this workflow and saved to your procedure library for reuse.',
+    ],
     changeType: 'New procedure added to the library.',
     conversations: [
       { name: 'Sarah Mitchell',  message: 'How do I make a payment for my service invoice?', channel: 'Voice', date: 'Jun 9', location: 'Mountain View' },
@@ -122,12 +132,6 @@ const RECOMMENDATIONS: Recommendation[] = [
     gapType: 'procedure',
     title: 'Update appointment rescheduling procedure',
     procedureTitle: 'Appointment rescheduling procedure',
-    changeSuggestions: [
-      'Add same-day reschedule confirmation flow',
-      'Add waitlist auto-notify option',
-      'Add technician availability check step',
-      'Add cancellation policy reminder',
-    ],
     summary: 'Same-day reschedule and waitlist paths are missing from the current procedure.',
     priority: 'High',
     timeAgo: '5h ago',
@@ -146,8 +150,8 @@ const RECOMMENDATIONS: Recommendation[] = [
         title: 'Check availability',
         bullets: [
           'Search for open slots on the requested date',
-          [{ text: 'For same-day: check technician availability in real time', type: 'added' }],
-          [{ text: 'If no slots — offer to add to the waitlist', type: 'added' }],
+          'For same-day: check technician availability in real time',
+          'If no slots — offer to add to the waitlist',
         ],
       },
       {
@@ -155,9 +159,37 @@ const RECOMMENDATIONS: Recommendation[] = [
         bullets: [
           'Book the new slot and cancel the old one',
           'Send updated confirmation to the customer',
-          [{ text: 'Notify the service advisor if technician assignment changes', type: 'added' }],
+          'Notify the service advisor if technician assignment changes',
         ],
       },
+    ],
+    originalSteps: [
+      {
+        title: 'Look up existing appointment',
+        bullets: [
+          "Retrieve the appointment using the customer's name, phone, or confirmation number",
+          'Confirm details with the customer',
+        ],
+      },
+      {
+        title: 'Check availability',
+        bullets: ['Search for open slots on the requested date'],
+      },
+      {
+        title: 'Confirm reschedule',
+        bullets: [
+          'Book the new slot and cancel the old one',
+          'Send updated confirmation to the customer',
+        ],
+      },
+    ],
+    outcomes: [
+      'Updated the Appointment rescheduling procedure to support same-day changes and a waitlist fallback.',
+      'Once accepted, the updated procedure will replace the existing version in this workflow and your procedure library.',
+    ],
+    manualUpdates: [
+      { icon: 'checklist', title: 'Confirm waitlist notification channel', description: 'Choose whether waitlisted customers are notified by text, email, or both.' },
+      { icon: 'schedule', title: 'Set same-day cutoff time', description: 'Define the latest time a same-day reschedule request can be accepted.' },
     ],
     tools: [
       { label: 'Schedule Appointment', icon: 'calendar_today' },
@@ -190,12 +222,6 @@ const RECOMMENDATIONS: Recommendation[] = [
     gapType: 'procedure',
     title: 'Update emergency escalation procedure',
     procedureTitle: 'Emergency escalation procedure',
-    changeSuggestions: [
-      'Add urgency keyword detection list',
-      'Add 30-second transfer target',
-      'Add fallback path to service manager',
-      'Add safety concern callback script',
-    ],
     summary: 'Safety-critical calls are taking 3+ minutes to reach a human agent.',
     priority: 'High',
     timeAgo: '3h ago',
@@ -206,21 +232,36 @@ const RECOMMENDATIONS: Recommendation[] = [
       {
         title: 'Detect urgency',
         bullets: [
-          [{ text: 'Listen for keywords: "not safe", "smoke", "brakes failed", "accident", "urgent"', type: 'added' }],
-          [{ text: 'If detected, skip standard intake questions immediately', type: 'added' }],
+          'Listen for keywords: "not safe", "smoke", "brakes failed", "accident", "urgent"',
+          'If detected, skip standard intake questions immediately',
         ],
       },
       {
         title: 'Transfer within 30 seconds',
         bullets: [
-          [
-            { text: 'Escalate to a live agent within 2 minutes.', type: 'removed' },
-            { text: ' Connect directly to the on-call service advisor.', type: 'added' },
-          ],
+          'Connect directly to the on-call service advisor.',
           'If unavailable, escalate to the service manager',
           "Relay the customer's name, callback number, and concern before transferring",
         ],
       },
+    ],
+    originalSteps: [
+      {
+        title: 'Transfer to a live agent',
+        bullets: [
+          'Escalate to a live agent within 2 minutes.',
+          'If unavailable, escalate to the service manager',
+          "Relay the customer's name, callback number, and concern before transferring",
+        ],
+      },
+    ],
+    outcomes: [
+      'Updated the Emergency escalation procedure to detect urgency signals and cut the transfer target from 2 minutes to 30 seconds.',
+      'Once accepted, the updated procedure will replace the existing version in this workflow and your procedure library.',
+    ],
+    manualUpdates: [
+      { icon: 'call', title: 'Confirm on-call advisor routing', description: 'Verify the phone number or queue that urgent transfers should ring first.' },
+      { icon: 'priority_high', title: 'Review urgency keyword list', description: 'Add or remove trigger phrases specific to your dealership.' },
     ],
     tools: [
       { label: 'Voice Call', icon: 'call' },
@@ -251,12 +292,6 @@ const RECOMMENDATIONS: Recommendation[] = [
     gapType: 'knowledge',
     title: 'Update business hours',
     procedureTitle: 'Business hours',
-    changeSuggestions: [
-      'Add weekend hours reference',
-      'Add holiday closure calendar',
-      'Add same-day hours lookup',
-      'Add appointment booking prompt after hours confirmation',
-    ],
     summary: 'Agent is saying "I don\'t have that information" for 19 business hours questions.',
     priority: 'High',
     timeAgo: '1h ago',
@@ -267,14 +302,28 @@ const RECOMMENDATIONS: Recommendation[] = [
       {
         title: 'Provide accurate hours',
         bullets: [
-          [
-            { text: 'Retrieve current hours from the knowledge base.', type: 'removed' },
-            { text: ' Retrieve current hours, weekend hours, and upcoming holiday closures from the knowledge base.', type: 'added' },
-          ],
-          [{ text: 'Confirm same-day hours if the customer asks', type: 'added' }],
+          'Retrieve current hours, weekend hours, and upcoming holiday closures from the knowledge base.',
+          'Confirm same-day hours if the customer asks',
           'Offer to schedule an appointment if the customer wants to come in',
         ],
       },
+    ],
+    originalSteps: [
+      {
+        title: 'Provide accurate hours',
+        bullets: [
+          'Retrieve current hours from the knowledge base.',
+          'Offer to schedule an appointment if the customer wants to come in',
+        ],
+      },
+    ],
+    outcomes: [
+      'Updated the Business hours procedure to include weekend hours, holiday closures, and same-day lookups.',
+      'Once accepted, the updated procedure will replace the existing version in this workflow and your procedure library.',
+    ],
+    manualUpdates: [
+      { icon: 'calendar_today', title: 'Upload holiday closure calendar', description: 'Provide the list of upcoming holiday closures so the agent can reference them.' },
+      { icon: 'schedule', title: 'Confirm weekend hours', description: 'Verify Saturday and Sunday hours are current for every location.' },
     ],
     tools: [
       { label: 'Check Business Hours', icon: 'schedule' },
@@ -306,7 +355,7 @@ const RECOMMENDATIONS: Recommendation[] = [
     priority: 'Medium',
     timeAgo: '6h ago',
     conversationCount: 7,
-    isNew: false,
+    isNew: true,
     whenToUse: 'During any service intake where vehicle identification is needed.',
     steps: [
       {
@@ -317,6 +366,10 @@ const RECOMMENDATIONS: Recommendation[] = [
           'Pre-populate the service record with decoded vehicle details',
         ],
       },
+    ],
+    outcomes: [
+      'Added a VIN lookup service intake procedure to help the agent capture and decode vehicle data automatically.',
+      'Once accepted, the procedure will be added to this workflow and saved to your procedure library for reuse.',
     ],
     tools: [
       { label: 'VIN Decode', icon: 'qr_code' },
@@ -710,22 +763,21 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
       {/* Thread body */}
       <div className="flex flex-1 flex-col overflow-y-auto bg-white px-[28px] py-lg">
 
-        {/* Warning banner */}
-        <div className="mb-[20px] flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
-          <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
-          <div className="flex min-w-0 flex-1 flex-col gap-[4px]">
-            <p className="text-[12px] leading-[18px] text-text-secondary">
-              The agent could not fully resolve this request. This conversation contributed to the recommendation.
-            </p>
-            <button
-              type="button"
-              onClick={() => setSimActive(v => !v)}
-              className="flex w-fit items-center gap-[4px] text-[12px] text-text-action"
-            >
-              <Icon name={simActive ? 'visibility_off' : 'auto_awesome'} size={13} />
-              {simActive ? 'Hide simulation' : 'Simulate with the new procedure'}
-            </button>
-          </div>
+        {/* Info banner */}
+        <div className="mb-[20px] flex items-center gap-sm rounded-sm border border-[#bfdbfe] bg-[#eff6ff] px-md py-sm">
+          <Icon name="info" size={14} className="shrink-0 text-[#2563eb]" />
+          <p className="min-w-0 flex-1 text-[12px] leading-[18px] text-text-secondary">
+            {simActive
+              ? 'Simulating how this conversation would go with the new procedure'
+              : 'The agent could not fully resolve this request. This conversation contributed to the recommendation.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setSimActive(v => !v)}
+            className="flex w-fit shrink-0 items-center gap-[4px] text-[12px] text-text-action"
+          >
+            {simActive ? 'Hide simulation' : 'Simulate with the new procedure'}
+          </button>
         </div>
 
         <p className="mb-[20px] text-center text-[13px] text-text-tertiary">{conv.date}</p>
@@ -1010,20 +1062,68 @@ function ToolbarEditNoteIcon({ className }: { className?: string }) {
   )
 }
 
-function renderBullet(bullet: StepBullet) {
-  if (typeof bullet === 'string') return bullet
-  return bullet.map((seg, i) =>
-    seg.type === 'removed' ? (
-      <span key={i} className="text-chip-danger-text line-through">{seg.text}</span>
-    ) : seg.type === 'added' ? (
-      <span key={i} className="text-chip-success-text">{seg.text}</span>
-    ) : (
-      <span key={i}>{seg.text}</span>
-    ),
+// ── Detail panel ──────────────────────────────────────────────────────────────
+
+function ConfirmAddProcedureModal({
+  isNew,
+  procedureTitle,
+  onCancel,
+  onConfirm,
+}: {
+  isNew: boolean
+  procedureTitle: string
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40">
+      <div className="w-[480px] rounded-md bg-surface p-xl shadow-modal">
+        <div className="flex items-center justify-between">
+          <h3 className="text-h3 text-text-primary">
+            {isNew ? 'Confirm adding procedure' : 'Confirm updating procedure'}
+          </h3>
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Close"
+            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+          >
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+        <p className="mt-lg text-body text-text-secondary">
+          {isNew ? (
+            <>
+              This will add "<span className="text-text-primary">{procedureTitle}</span>" to the current workflow
+              and save it to your shared procedure library, so it can be reused across other agents
+            </>
+          ) : (
+            <>
+              This will update "<span className="text-text-primary">{procedureTitle}</span>" in the current workflow
+              and save the changes to your shared procedure library, so other agents using it stay up to date
+            </>
+          )}
+        </p>
+        <div className="mt-xl flex items-center justify-end gap-md">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
-
-// ── Detail panel ──────────────────────────────────────────────────────────────
 
 function DetailPanel({
   rec,
@@ -1042,10 +1142,23 @@ function DetailPanel({
 }) {
   const [applyOpen, setApplyOpen] = useState(false)
   const [convsOpen, setConvsOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   return (
     <>
       <ConversationsDrawer rec={rec} open={convsOpen} onClose={() => setConvsOpen(false)} />
+      {confirmOpen && (
+        <ConfirmAddProcedureModal
+          isNew={rec.isNew}
+          procedureTitle={rec.procedureTitle}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => {
+            setConfirmOpen(false)
+            onAccept(rec.id)
+            onToast({ message: `${rec.procedureTitle} successfully ${rec.isNew ? 'added' : 'updated'}` })
+          }}
+        />
+      )}
       <DetailPanelInner
         rec={rec}
         recStatus={recStatus}
@@ -1054,7 +1167,7 @@ function DetailPanel({
         setConvsOpen={setConvsOpen}
         onPreviewOpen={onPreviewOpen}
         onReject={onReject}
-        onAccept={onAccept}
+        onRequestAccept={() => setConfirmOpen(true)}
         onToast={onToast}
       />
     </>
@@ -1069,7 +1182,7 @@ function DetailPanelInner({
   setConvsOpen,
   onPreviewOpen,
   onReject,
-  onAccept,
+  onRequestAccept,
   onToast,
 }: {
   rec: Recommendation
@@ -1079,7 +1192,7 @@ function DetailPanelInner({
   setConvsOpen: (v: boolean) => void
   onPreviewOpen: () => void
   onReject: (id: string) => void
-  onAccept: (id: string) => void
+  onRequestAccept: () => void
   onToast: (data: ToastData) => void
 })
 
@@ -1088,7 +1201,7 @@ function DetailPanelInner({
   const [whenToUseValue, setWhenToUseValue] = useState(rec.whenToUse)
   const [savedTitle, setSavedTitle] = useState(rec.procedureTitle)
   const [savedWhenToUse, setSavedWhenToUse] = useState(rec.whenToUse)
-  const [suggestionsOpen, setSuggestionsOpen] = useState(true)
+  const [showOriginal, setShowOriginal] = useState(false)
 
   const dirty = titleValue !== savedTitle || whenToUseValue !== savedWhenToUse
 
@@ -1107,6 +1220,12 @@ function DetailPanelInner({
             <div className="flex min-w-0 flex-1 items-center gap-sm">
               <h2 className="min-w-0 truncate text-h2 text-text-primary">{rec.title}</h2>
               {recStatus === 'open' && <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />}
+              {recStatus === 'open' && rec.manualUpdates && rec.manualUpdates.length > 0 && (
+                <Chip
+                  label={`${rec.manualUpdates.length} manual update${rec.manualUpdates.length > 1 ? 's' : ''} needed`}
+                  variant="warning"
+                />
+              )}
               {recStatus === 'accepted' && <Chip label="Accepted" variant="success" />}
               {recStatus === 'rejected' && <Chip label="Rejected" variant="danger" />}
             </div>
@@ -1175,8 +1294,7 @@ function DetailPanelInner({
                     className="flex h-9 items-center bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
                     onClick={() => {
                       setApplyOpen(false)
-                      onAccept(rec.id)
-                      onToast({ message: `${rec.procedureTitle} successfully added` })
+                      onRequestAccept()
                     }}
                   >
                     Accept
@@ -1198,8 +1316,7 @@ function DetailPanelInner({
                         type="button"
                         onClick={() => {
                           setApplyOpen(false)
-                          onAccept(rec.id)
-                          onToast({ message: `${rec.procedureTitle} successfully added to the library.` })
+                          onRequestAccept()
                         }}
                         className="block w-full px-lg py-sm text-left text-body text-text-primary hover:bg-surface-hover"
                       >
@@ -1228,6 +1345,23 @@ function DetailPanelInner({
             <Icon name="auto_awesome" size={14} className="mt-0.5 shrink-0 text-ai-brand" />
             <div className="flex min-w-0 flex-1 flex-col gap-xs">
               <p className="text-body text-text-secondary">{rec.rationale}</p>
+              {rec.outcomes && rec.outcomes.length > 0 && (
+                <ul className="flex flex-col gap-[4px] pl-md">
+                  {rec.outcomes.map((o, i) => (
+                    <li key={i} className="list-disc text-body text-text-secondary marker:text-text-tertiary">
+                      {o.includes(rec.procedureTitle) ? (
+                        <>
+                          {o.split(rec.procedureTitle)[0]}
+                          <span className="text-text-primary">{rec.procedureTitle}</span>
+                          {o.split(rec.procedureTitle)[1]}
+                        </>
+                      ) : (
+                        o
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <button
                 type="button"
                 onClick={() => setConvsOpen(true)}
@@ -1240,40 +1374,29 @@ function DetailPanelInner({
             </div>
           </div>
 
-          {/* Suggested changes — only for updates to an existing procedure */}
-          {rec.changeSuggestions && rec.changeSuggestions.length > 0 && (
-            <div className="mt-md rounded-[6px] border border-[#fef1cc] bg-[#fff9ea]">
-              <button
-                type="button"
-                onClick={() => setSuggestionsOpen((v) => !v)}
-                className="flex w-full items-center gap-sm px-[12px] py-[8px]"
-              >
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#fef1cc]">
-                  <Icon name="auto_awesome" size={11} className="text-[#8a6d1a]" />
-                </span>
-                <span className="text-small text-text-primary">Recommendations</span>
-                <span className="flex-1" />
-                <Icon name={suggestionsOpen ? 'expand_less' : 'expand_more'} size={14} className="text-text-icon" />
-              </button>
-              {suggestionsOpen && (
-                <div className="flex flex-col px-[12px] pb-[8px]">
-                  {rec.changeSuggestions.map((s, i) => (
-                    <div key={i} className="flex gap-[10px]">
-                      <div className="flex w-[14px] shrink-0 flex-col items-center">
-                        <span className="mt-[5.5px] size-[7px] shrink-0 rounded-full border-[1.5px] border-[#fbc123] bg-white" />
-                        {i < rec.changeSuggestions!.length - 1 && (
-                          <span className="my-[2px] w-px flex-1 bg-[#fee1a5]" style={{ minHeight: 8 }} />
-                        )}
-                      </div>
-                      <p className="pb-[5px] text-small text-[#555]">{s}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
         </div>
+
+        {/* Show original procedure toggle */}
+        {recStatus === 'open' && rec.originalSteps && rec.originalSteps.length > 0 && (
+          <div className="flex items-center gap-sm">
+            <span className="text-body text-text-primary">Show original procedure</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showOriginal}
+              onClick={() => setShowOriginal((v) => !v)}
+              className={`relative h-[16px] w-[32px] shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none ${
+                showOriginal ? 'bg-primary' : 'bg-surface-selected'
+              }`}
+            >
+              <span
+                className={`absolute top-[2px] size-3 rounded-full bg-white shadow-sm transition-[left] ${
+                  showOriginal ? 'left-[18px]' : 'left-[2px]'
+                }`}
+              />
+            </button>
+          </div>
+        )}
 
         {/* Procedure title */}
         <div className="flex flex-col gap-xs">
@@ -1281,6 +1404,7 @@ function DetailPanelInner({
           <input
             value={titleValue}
             onChange={(e) => setTitleValue(e.target.value)}
+            readOnly={showOriginal}
             className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary outline-none focus:border-border-strong"
           />
         </div>
@@ -1289,9 +1413,10 @@ function DetailPanelInner({
         <div className="flex flex-col gap-xs">
           <p className="text-small text-text-primary">When to use this procedure?</p>
           <textarea
-            value={whenToUseValue}
+            value={showOriginal ? rec.originalWhenToUse ?? whenToUseValue : whenToUseValue}
             onChange={(e) => setWhenToUseValue(e.target.value)}
             rows={2}
+            readOnly={showOriginal}
             className="min-h-9 resize-none rounded-sm border border-border-selected bg-surface px-md py-sm text-body text-text-primary outline-none focus:border-border-strong"
           />
         </div>
@@ -1318,7 +1443,7 @@ function DetailPanelInner({
           </div>
           <div className="flex min-h-[547px] flex-col rounded-sm border border-border-selected bg-surface p-md">
             <div className="flex flex-1 flex-col gap-xl">
-              {rec.steps.map((step, i) => (
+              {(showOriginal && rec.originalSteps ? rec.originalSteps : rec.steps).map((step, i) => (
                 <div key={i}>
                   <p className="mb-xs text-body text-text-primary">
                     {i + 1}. {step.title}
@@ -1326,7 +1451,7 @@ function DetailPanelInner({
                   <ul className="flex flex-col pl-lg">
                     {step.bullets.map((b, j) => (
                       <li key={j} className="list-disc text-body text-text-primary marker:text-text-primary">
-                        {renderBullet(b)}
+                        {b}
                       </li>
                     ))}
                   </ul>
@@ -1341,6 +1466,33 @@ function DetailPanelInner({
             </div>
           </div>
         </div>
+
+        {/* Manual updates needed */}
+        {recStatus === 'open' && rec.manualUpdates && rec.manualUpdates.length > 0 && (
+          <div className="flex flex-col gap-md">
+            <p className="text-small text-text-primary">Manual updates needed</p>
+            <div className="flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
+              <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
+              <p className="text-[12px] leading-[18px] text-text-secondary">
+                Complete these steps to finish setting up this procedure. They require your input and can't be
+                completed automatically.
+              </p>
+            </div>
+            <div className="flex flex-col gap-md">
+              {rec.manualUpdates.map((m, i) => (
+                <div key={i} className="flex items-start gap-md">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-l2">
+                    <Icon name={m.icon} size={16} className="text-text-icon" />
+                  </span>
+                  <div className="flex flex-col gap-[2px]">
+                    <p className="text-body text-text-primary">{m.title}</p>
+                    <p className="text-small text-text-secondary">{m.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
