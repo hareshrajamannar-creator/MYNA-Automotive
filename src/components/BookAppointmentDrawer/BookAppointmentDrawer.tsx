@@ -78,12 +78,12 @@ function DropdownButton({ value, open, onClick, placeholder = 'Select' }: {
 
 // ─── Accordion wrapper ────────────────────────────────────────────────────────
 
-function Accordion({ title, open, onToggle, children }: {
-  title: string; open: boolean; onToggle: () => void; children: React.ReactNode
+function Accordion({ title, open, onToggle, children, topDivider }: {
+  title: string; open: boolean; onToggle: () => void; children: React.ReactNode; topDivider?: boolean
 }) {
   return (
-    <div>
-      {/* Header row — full-width divider line style, no border box */}
+    <div className={`border-b border-border${topDivider ? ' border-t' : ''}`}>
+      {/* Header row */}
       <button
         type="button"
         onClick={onToggle}
@@ -92,9 +92,8 @@ function Accordion({ title, open, onToggle, children }: {
         <span className="text-body text-text-primary">{title}</span>
         <Icon name={open ? 'expand_less' : 'expand_more'} size={20} className="shrink-0 text-text-icon" />
       </button>
-      {/* Content — no box, just padding below the divider */}
       {open && (
-        <div className="pb-lg pt-md">
+        <div className="pb-[16px]">
           {children}
         </div>
       )}
@@ -294,7 +293,8 @@ export function BookAppointmentDrawer({ open, onClose }: BookAppointmentDrawerPr
                   title="Appointment details"
                   open={apptOpen}
                   onToggle={() => setApptOpen(o => !o)}
-                                  >
+                  topDivider
+                >
                   <div className="flex flex-col gap-[12px]">
                     {APPT_FIELDS.map(field => (
                       <div key={field.key} className="flex flex-col gap-xs">
