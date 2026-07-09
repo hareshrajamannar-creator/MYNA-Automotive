@@ -383,6 +383,84 @@ const _SEED_TOOLS = [
   },
   // ── Conversation tools (ported from agent-builder) ──────────────────────
   {
+    id: 'in-call-sms',
+    name: 'In-call SMS',
+    icon: 'sms',
+    description: 'Sends a text message to the caller during an active call, from the agent number or a configured number.',
+    category: 'Communication',
+    modules: ['Conversation'],
+    products: ['healthcare'],
+    entities: ['conversation'],
+    fields: [
+      {
+        id: 'ics-send-from',
+        label: 'Send from',
+        type: 'radio',
+        showInfoIcon: true,
+        defaultValue: "Agent's associated number",
+        options: [
+          "Agent's associated number",
+          { value: 'Different number', label: 'Different number', disabled: true },
+        ],
+      },
+      {
+        id: 'ics-message-mode',
+        label: 'Configure message',
+        type: 'radio',
+        layout: 'row',
+        defaultValue: 'Literal',
+        options: [
+          { value: 'Literal', label: 'Literal', infoIcon: true },
+          { value: 'Prompt', label: 'Prompt', infoIcon: true },
+        ],
+        conditionalFieldsMap: {
+          Literal: [
+            {
+              id: 'ics-literal-message',
+              label: 'Enter literal message',
+              type: 'textarea',
+              required: true,
+              showInfoIcon: true,
+              showVariableToolbar: true,
+              rows: 4,
+            },
+          ],
+          Prompt: [
+            {
+              id: 'ics-prompt-message',
+              label: 'Enter prompt',
+              type: 'textarea',
+              required: true,
+              showInfoIcon: true,
+              showVariableToolbar: true,
+              rows: 4,
+            },
+          ],
+        },
+      },
+      {
+        id: 'ics-send-to',
+        label: 'Send to',
+        type: 'radio',
+        showInfoIcon: true,
+        defaultValue: "Caller's number",
+        options: ["Caller's number", 'Different number'],
+        showWhenValue: 'Different number',
+        conditionalFields: [
+          {
+            id: 'ics-send-to-phone',
+            label: 'Phone number',
+            type: 'text',
+            icon: 'call',
+            placeholder: 'Enter input',
+          },
+        ],
+      },
+    ],
+    inputs: [{ name: 'sendFrom', type: 'string' }, { name: 'message', type: 'string' }, { name: 'sendTo', type: 'string' }],
+    outputs: [{ name: 'status', type: 'string', description: 'sent | failed' }],
+  },
+  {
     id: 'auto-follow-up',
     name: 'Auto follow-up',
     icon: 'replay',

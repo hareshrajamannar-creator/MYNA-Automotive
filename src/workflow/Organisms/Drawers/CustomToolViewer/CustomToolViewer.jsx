@@ -227,14 +227,14 @@ function isFieldVisible(field, snapshot) {
   return true;
 }
 
-function FieldLabel({ label, required, showInfoIcon }) {
+function FieldLabel({ label, required, showInfoIcon, infoText }) {
   return (
     <span className={styles.fieldLabelRow}>
       <span className={styles.fieldLabel}>
         {label}{required && <span className={styles.required}> *</span>}
       </span>
       {showInfoIcon && (
-        <span className={`material-symbols-outlined ${styles.fieldInfoIcon}`} title="Select the outbound caller ID for this call">
+        <span className={`material-symbols-outlined ${styles.fieldInfoIcon}`} title={infoText || label}>
           info
         </span>
       )}
@@ -242,10 +242,10 @@ function FieldLabel({ label, required, showInfoIcon }) {
   );
 }
 
-function FieldHeader({ label, required, helpText, showInfoIcon }) {
+function FieldHeader({ label, required, helpText, showInfoIcon, infoText }) {
   return (
     <>
-      <FieldLabel label={label} required={required} showInfoIcon={showInfoIcon} />
+      <FieldLabel label={label} required={required} showInfoIcon={showInfoIcon} infoText={infoText || helpText} />
       {helpText && <span className={styles.fieldHelp}>{helpText}</span>}
     </>
   );
@@ -334,6 +334,26 @@ function InteractiveField({ field, onValueChange }) {
     case 'text':
     case 'number':
     case 'date':
+      if (field.icon) {
+        return (
+          <div className={styles.fieldWrap}>
+            <span className={styles.fieldLabel}>
+              {label}{required && <span className={styles.required}> *</span>}
+            </span>
+            <div className={styles.iconInputRow}>
+              <span className={`material-symbols-outlined ${styles.iconInputLeading}`}>{field.icon}</span>
+              <input
+                name={`view_${field.id}`}
+                type={field.type}
+                className={styles.iconInput}
+                placeholder={field.placeholder || ''}
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+              />
+            </div>
+          </div>
+        );
+      }
       if (field.suffix || field.width === 'half') {
         return (
           <div className={styles.fieldWrap}>
@@ -374,9 +394,7 @@ function InteractiveField({ field, onValueChange }) {
       if (field.showVariableToolbar) {
         return (
           <div className={styles.fieldWrap}>
-            <span className={styles.fieldLabel}>
-              {label}{required && <span className={styles.required}> *</span>}
-            </span>
+            <FieldLabel label={label} required={required} showInfoIcon={field.showInfoIcon} />
             <div className={styles.promptBox}>
               <textarea
                 name={`view_${field.id}`}
@@ -483,26 +501,35 @@ function InteractiveField({ field, onValueChange }) {
         </div>
       );
 
-    case 'radio':
+    case 'radio': {
+      const conditionalForValue = field.conditionalFieldsMap?.[radioValue];
       return (
         <div className={styles.fieldWrap}>
-          <span className={styles.fieldLabel}>
-            {label}{required && <span className={styles.required}> *</span>}
-          </span>
-          <div className={styles.optionGroup}>
-            {field.options.map((opt) => (
-              <label key={opt} className={styles.optionLabel}>
-                <input
-                  type="radio"
-                  name={`view_radio_${field.id}`}
-                  value={opt}
-                  checked={radioValue === opt}
-                  onChange={() => setRadioValue(opt)}
-                  className={styles.optionInput}
-                />
-                <span>{opt}</span>
-              </label>
-            ))}
+          <FieldLabel label={label} required={required} showInfoIcon={field.showInfoIcon} />
+          <div className={field.layout === 'row' ? styles.checkboxRow : styles.optionGroup}>
+            {field.options.map((rawOpt) => {
+              const opt = typeof rawOpt === 'string' ? rawOpt : rawOpt.value;
+              const optLabel = typeof rawOpt === 'string' ? rawOpt : (rawOpt.label ?? rawOpt.value);
+              const optDisabled = typeof rawOpt === 'object' && rawOpt.disabled;
+              const optInfoIcon = typeof rawOpt === 'object' && rawOpt.infoIcon;
+              return (
+                <label key={opt} className={styles.optionLabel} style={optDisabled ? { opacity: 0.5, cursor: 'not-allowed', width: field.layout === 'row' ? 'auto' : undefined } : (field.layout === 'row' ? { width: 'auto' } : undefined)}>
+                  <input
+                    type="radio"
+                    name={`view_radio_${field.id}`}
+                    value={opt}
+                    checked={radioValue === opt}
+                    disabled={optDisabled}
+                    onChange={() => setRadioValue(opt)}
+                    className={styles.optionInput}
+                  />
+                  <span>{optLabel}</span>
+                  {optInfoIcon && (
+                    <span className={`material-symbols-outlined ${styles.fieldInfoIcon}`} title={optLabel}>info</span>
+                  )}
+                </label>
+              );
+            })}
           </div>
           {field.conditionalFields && radioValue === field.showWhenValue && (
             <div
@@ -517,8 +544,22 @@ function InteractiveField({ field, onValueChange }) {
               ))}
             </div>
           )}
+          {conditionalForValue && (
+            <div
+              className={
+                field.conditionalLayout === 'row'
+                  ? styles.conditionalFieldsRow
+                  : styles.conditionalFields
+              }
+            >
+              {conditionalForValue.map((sub) => (
+                <InteractiveField key={sub.id} field={sub} />
+              ))}
+            </div>
+          )}
         </div>
       );
+    }
 
     case 'checkbox':
       return (

@@ -136,6 +136,7 @@ function makeNodeDetails(type, label) {
 
 const TASK_DROP_DEFAULTS = {
   'Initiate voice call': { description: 'Call the customer' },
+  'In-call SMS': { description: 'Send a text message to the caller during the active call', selectedTools: ['in-call-sms'] },
   'Schedule appointment': { description: 'Book a new appointment for the customer' },
   'Reschedule appointment': { description: 'Change an existing appointment date or time' },
   'Cancel appointment': { description: 'Cancel a scheduled appointment' },
