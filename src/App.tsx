@@ -20,6 +20,7 @@ import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
 import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
 import { DentalRevenueScreen } from './screens/DentalRevenueScreen'
+import { ManageTreatmentPlansScreen } from './screens/ManageTreatmentPlansScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -186,9 +187,10 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     id: 'human-actions',
     label: 'Human actions',
     items: [
-      { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'review-waitlist',     label: 'Review waitlist'     },
-      { id: 'manage-intake',       label: 'Manage intake'       },
+      { id: 'manage-appointments',   label: 'Manage appointments'   },
+      { id: 'review-waitlist',       label: 'Review waitlist'       },
+      { id: 'manage-intake',         label: 'Manage intake'         },
+      { id: 'manage-treatment-plans', label: 'Manage treatment plans' },
     ],
   },
   {
@@ -362,6 +364,11 @@ export function App() {
                 }}
                 product={activeProduct}
                 wizardDraft={wizardAgentDraft}
+                agentStatus={
+                  editingAgentName?.includes('Schedule based') || editingAgentName?.includes('Event trigger based')
+                    ? 'Draft'
+                    : undefined
+                }
               />
             </div>
           </>
@@ -443,6 +450,8 @@ export function App() {
           <HCWaitlistFilledScreen isDental={navActive === 'dental-waitlist'} />
         ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
           <HCIntakesCompletedScreen isDental={navActive === 'dental-intakes'} />
+        ) : navActive === 'manage-treatment-plans' ? (
+          <ManageTreatmentPlansScreen />
         ) : navActive === 'dental-revenue' ? (
           <DentalRevenueScreen />
         ) : AGENT_NAMES[navActive] ? (

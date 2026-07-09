@@ -13,6 +13,7 @@ import { BookTestAppointmentModal } from '../../components/BookTestAppointmentMo
 import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
 import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import TransferToolDrawer from '../Organisms/Drawers/TransferToolDrawer/TransferToolDrawer';
+import QueryConfigDrawer from '../Organisms/Drawers/QueryConfigDrawer/QueryConfigDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
 import AddToolDrawer from '../Organisms/Drawers/AddToolDrawer/AddToolDrawer';
 import {
@@ -418,14 +419,56 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
     if (item.flowType === 'branch' || item.flowType === 'voiceCall') {
       const isVoiceCall = item.flowType === 'voiceCall';
       const branches = nodeDetails[nodeId]?.branches || [];
-      // Use wider spacing when any branch arm contains a nested voiceCall (which fans out further)
+
+      // Detect nesting depth to set spacing:
+      // level-1: voiceCall directly in a branch arm → 1100
+      // level-2: branch in a branch arm whose sub-arm contains a voiceCall → 2400
       const hasNestedVoiceCall = !isVoiceCall && branches.some(b =>
         (nodeDetails[b.id]?.nodes || []).some(n => n.flowType === 'voiceCall')
       );
-      const spacing = hasNestedVoiceCall ? 1100 : 480;
+      const hasDoublyNestedVoiceCall = !isVoiceCall && branches.some(b =>
+        (nodeDetails[b.id]?.nodes || []).some(n =>
+          n.flowType === 'branch' &&
+          (nodeDetails[n.id]?.branches || []).some(nb =>
+            (nodeDetails[nb.id]?.nodes || []).some(nn => nn.flowType === 'voiceCall')
+          )
+        )
+      );
+      const spacing = hasDoublyNestedVoiceCall ? 2400 : hasNestedVoiceCall ? 1100 : 480;
       const startX = -((branches.length - 1) * spacing) / 2;
       const branchChipY = y + 150;
       const branchNodeStartY = y + 260;
+
+      // Helper: fan out a voiceCall node's sub-branches
+      const renderVoiceCallBranches = (vcNodeId, baseX, baseY) => {
+        const vcBranches = nodeDetails[vcNodeId]?.branches || [];
+        const vcSpacing = 480;
+        const vcStartX = baseX - ((vcBranches.length - 1) * vcSpacing) / 2;
+        const vcChipY = baseY + 150;
+        const vcNodeStartY = baseY + 260;
+        vcBranches.forEach((vcBranch, vcBi) => {
+          const vcBranchX = vcStartX + vcBi * vcSpacing;
+          const vcBranchNodes = nodeDetails[vcBranch.id]?.nodes || [];
+          nodes.push({ id: vcBranch.id, type: 'branchPath', position: { x: vcBranchX, y: vcChipY }, data: { label: vcBranch.name, parentId: vcNodeId, isFallback: !!vcBranch.isFallback, isVoiceCallBranch: true } });
+          edges.push({ id: `e-${vcNodeId}-${vcBranch.id}`, source: vcNodeId, target: vcBranch.id, type: 'branchFan' });
+          let vcPrevId = vcBranch.id;
+          vcBranchNodes.forEach((vcChild, vcIdx) => {
+            const vcChildId = vcChild.id;
+            const vcChildDet = nodeDetails[vcChildId] || {};
+            let vcChildData = { ...vcChild.data, stepNumber: ++stepCounter };
+            if (vcChild.flowType !== 'delay' && vcChild.flowType !== 'branch') {
+              vcChildData = { ...vcChildData, title: vcChildDet.taskName ?? vcChildDet.triggerName ?? vcChildData.title, subtitle: vcChildDet.description ?? vcChildData.subtitle };
+            }
+            nodes.push({ id: vcChildId, type: vcChild.flowType, position: { x: vcBranchX, y: vcNodeStartY + vcIdx * 250 }, data: vcChildData });
+            edges.push({ id: `e-${vcPrevId}-${vcChildId}`, source: vcPrevId, target: vcChildId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+            vcPrevId = vcChildId;
+          });
+          const vcEndId = `${vcBranch.id}-end`;
+          nodes.push({ id: vcEndId, type: 'branchEnd', position: { x: vcBranchX, y: vcNodeStartY + vcBranchNodes.length * 250 }, data: { parentId: vcBranch.id } });
+          edges.push({ id: `e-${vcPrevId}-${vcEndId}`, source: vcPrevId, target: vcEndId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+        });
+      };
+
       branches.forEach((branch, bi) => {
         const branchX = startX + bi * spacing;
         const branchNodes = nodeDetails[branch.id]?.nodes || [];
@@ -435,181 +478,83 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           position: { x: branchX, y: branchChipY },
           data: { label: branch.name, parentId: nodeId, isFallback: !!branch.isFallback, isVoiceCallBranch: isVoiceCall || !!branch.isVoiceCallBranch },
         });
-        edges.push({
-          id: `e-${nodeId}-${branch.id}`,
-          source: nodeId,
-          target: branch.id,
-          type: 'branchFan',
-        });
+        edges.push({ id: `e-${nodeId}-${branch.id}`, source: nodeId, target: branch.id, type: 'branchFan' });
 
         let previousId = branch.id;
         let previousChildFlowType = null;
+        let childYOffset = 0;
         branchNodes.forEach((childNode, childIndex) => {
           const childId = childNode.id;
           const childDet = nodeDetails[childId] || {};
-          // Enrich child node data from nodeDetails — same logic as top-level nodes
           let childData = { ...childNode.data, stepNumber: ++stepCounter };
           if (childNode.flowType === 'procedures') {
-            childData = {
-              ...childData,
-              toggleEnabled: childNode.data?.toggleEnabled ?? true,
-              procedureItems: mapProcedureItems(
-                childDet.procedureIds,
-                nodeDetails,
-                childId,
-                product,
-              ),
-            };
+            childData = { ...childData, toggleEnabled: childNode.data?.toggleEnabled ?? true, procedureItems: mapProcedureItems(childDet.procedureIds, nodeDetails, childId, product) };
           } else if (childNode.flowType !== 'delay' && childNode.flowType !== 'branch') {
-            childData = {
-              ...childData,
-              title: childDet.taskName ?? childDet.triggerName ?? childData.title,
-              subtitle: childDet.description ?? childData.subtitle,
-            };
+            childData = { ...childData, title: childDet.taskName ?? childDet.triggerName ?? childData.title, subtitle: childDet.description ?? childData.subtitle };
           }
-          nodes.push({
-            id: childId,
-            type: childNode.flowType,
-            position: { x: branchX, y: branchNodeStartY + childIndex * 250 },
-            data: childData,
-          });
-          edges.push({
-            id: `e-${previousId}-${childNode.id}`,
-            source: previousId,
-            target: childNode.id,
-            type: 'addButton',
-            data: {
-              branchPathId: branch.id,
-              afterNodeId: previousId === branch.id ? null : previousId,
-              ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
-            },
-          });
+          const childY = branchNodeStartY + childYOffset;
+          nodes.push({ id: childId, type: childNode.flowType, position: { x: branchX, y: childY }, data: childData });
+          edges.push({ id: `e-${previousId}-${childNode.id}`, source: previousId, target: childNode.id, type: 'addButton', data: { branchPathId: branch.id, afterNodeId: previousId === branch.id ? null : previousId, ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}) } });
           previousId = childNode.id;
           previousChildFlowType = childNode.flowType;
+          childYOffset += 250;
 
-          // Recursively fan out nested branch nodes inside a branch path
-          if (childNode.flowType === 'branch') {
-            const nestedBranches = nodeDetails[childId]?.branches || [];
-            const nestedSpacing = 480;
-            const nestedStartX = branchX - ((nestedBranches.length - 1) * nestedSpacing) / 2;
-            const nestedChipY = branchNodeStartY + childIndex * 250 + 150;
-            const nestedNodeStartY = branchNodeStartY + childIndex * 250 + 260;
-            nestedBranches.forEach((nestedBranch, nbi) => {
-              const nestedBranchX = nestedStartX + nbi * nestedSpacing;
-              const nestedBranchNodes = nodeDetails[nestedBranch.id]?.nodes || [];
-              nodes.push({
-                id: nestedBranch.id,
-                type: 'branchPath',
-                position: { x: nestedBranchX, y: nestedChipY },
-                data: { label: nestedBranch.name, parentId: childId, isFallback: !!nestedBranch.isFallback, isVoiceCallBranch: false },
-              });
-              edges.push({ id: `e-${childId}-${nestedBranch.id}`, source: childId, target: nestedBranch.id, type: 'branchFan' });
-              let nestedPrevId = nestedBranch.id;
-              nestedBranchNodes.forEach((nestedChild, nci) => {
-                const nestedChildId = nestedChild.id;
-                const nestedChildDet = nodeDetails[nestedChildId] || {};
-                let nestedChildData = { ...nestedChild.data, stepNumber: ++stepCounter };
-                if (nestedChild.flowType === 'voiceCall') {
-                  // voiceCall inside nested branch — fan out its sub-branches
-                  const vcBranches2 = nodeDetails[nestedChildId]?.branches || [];
-                  const vcSpacing2 = 480;
-                  const vcStartX2 = nestedBranchX - ((vcBranches2.length - 1) * vcSpacing2) / 2;
-                  const vcChipY2 = nestedNodeStartY + nci * 250 + 150;
-                  const vcNodeStartY2 = nestedNodeStartY + nci * 250 + 260;
-                  nodes.push({ id: nestedChildId, type: nestedChild.flowType, position: { x: nestedBranchX, y: nestedNodeStartY + nci * 250 }, data: nestedChildData });
-                  edges.push({ id: `e-${nestedPrevId}-${nestedChildId}`, source: nestedPrevId, target: nestedChildId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
-                  vcBranches2.forEach((vcBranch2, vcBi2) => {
-                    const vcBranchX2 = vcStartX2 + vcBi2 * vcSpacing2;
-                    const vcBranchNodes2 = nodeDetails[vcBranch2.id]?.nodes || [];
-                    nodes.push({ id: vcBranch2.id, type: 'branchPath', position: { x: vcBranchX2, y: vcChipY2 }, data: { label: vcBranch2.name, parentId: nestedChildId, isFallback: !!vcBranch2.isFallback, isVoiceCallBranch: true } });
-                    edges.push({ id: `e-${nestedChildId}-${vcBranch2.id}`, source: nestedChildId, target: vcBranch2.id, type: 'branchFan' });
-                    let vcPrev2 = vcBranch2.id;
-                    vcBranchNodes2.forEach((vcChild2, vcIdx2) => {
-                      nodes.push({ id: vcChild2.id, type: vcChild2.flowType, position: { x: vcBranchX2, y: vcNodeStartY2 + vcIdx2 * 250 }, data: { ...vcChild2.data, stepNumber: ++stepCounter } });
-                      edges.push({ id: `e-${vcPrev2}-${vcChild2.id}`, source: vcPrev2, target: vcChild2.id, type: 'addButton', data: { branchPathId: vcBranch2.id, afterNodeId: vcPrev2 === vcBranch2.id ? null : vcPrev2 } });
-                      vcPrev2 = vcChild2.id;
-                    });
-                    const vcEnd2 = `${vcBranch2.id}-end`;
-                    nodes.push({ id: vcEnd2, type: 'branchEnd', position: { x: vcBranchX2, y: vcNodeStartY2 + vcBranchNodes2.length * 250 }, data: { parentId: vcBranch2.id } });
-                    edges.push({ id: `e-${vcPrev2}-${vcEnd2}`, source: vcPrev2, target: vcEnd2, type: 'addButton', data: { branchPathId: vcBranch2.id, afterNodeId: vcPrev2 === vcBranch2.id ? null : vcPrev2 } });
-                  });
-                  nestedPrevId = nestedChildId;
-                } else {
-                  if (nestedChild.flowType !== 'delay' && nestedChild.flowType !== 'branch') {
-                    nestedChildData = { ...nestedChildData, title: nestedChildDet.taskName ?? nestedChildDet.triggerName ?? nestedChildData.title, subtitle: nestedChildDet.description ?? nestedChildData.subtitle };
-                  }
-                  nodes.push({ id: nestedChildId, type: nestedChild.flowType, position: { x: nestedBranchX, y: nestedNodeStartY + nci * 250 }, data: nestedChildData });
-                  edges.push({ id: `e-${nestedPrevId}-${nestedChildId}`, source: nestedPrevId, target: nestedChildId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
-                  nestedPrevId = nestedChildId;
-                }
-              });
-              const lastNestedIsVoiceCall = nestedBranchNodes.length > 0 && nestedBranchNodes[nestedBranchNodes.length - 1].flowType === 'voiceCall';
-              if (!lastNestedIsVoiceCall) {
-                const nestedEndId = `${nestedBranch.id}-end`;
-                nodes.push({ id: nestedEndId, type: 'branchEnd', position: { x: nestedBranchX, y: nestedNodeStartY + nestedBranchNodes.length * 250 }, data: { parentId: nestedBranch.id } });
-                edges.push({ id: `e-${nestedPrevId}-${nestedEndId}`, source: nestedPrevId, target: nestedEndId, type: 'addButton', data: { branchPathId: nestedBranch.id, afterNodeId: nestedPrevId === nestedBranch.id ? null : nestedPrevId } });
-              }
-            });
+          // Fan out voiceCall sub-branches when voiceCall is nested inside a branch path
+          if (childNode.flowType === 'voiceCall') {
+            renderVoiceCallBranches(childId, branchX, childY);
           }
 
-          // Recursively fan out voiceCall sub-branches when voiceCall is nested inside a branch path
-          if (childNode.flowType === 'voiceCall') {
-            const vcBranches = nodeDetails[childId]?.branches || [];
-            const vcSpacing = 480;
-            const vcStartX = branchX - ((vcBranches.length - 1) * vcSpacing) / 2;
-            const vcChipY = branchNodeStartY + childIndex * 250 + 150;
-            const vcNodeStartY = branchNodeStartY + childIndex * 250 + 260;
-            vcBranches.forEach((vcBranch, vcBi) => {
-              const vcBranchX = vcStartX + vcBi * vcSpacing;
-              const vcBranchNodes = nodeDetails[vcBranch.id]?.nodes || [];
-              nodes.push({
-                id: vcBranch.id,
-                type: 'branchPath',
-                position: { x: vcBranchX, y: vcChipY },
-                data: { label: vcBranch.name, parentId: childId, isFallback: !!vcBranch.isFallback, isVoiceCallBranch: true },
-              });
-              edges.push({ id: `e-${childId}-${vcBranch.id}`, source: childId, target: vcBranch.id, type: 'branchFan' });
-              let vcPrevId = vcBranch.id;
-              vcBranchNodes.forEach((vcChild, vcIdx) => {
-                const vcChildId = vcChild.id;
-                const vcChildDet = nodeDetails[vcChildId] || {};
-                let vcChildData = { ...vcChild.data, stepNumber: ++stepCounter };
-                if (vcChild.flowType !== 'delay' && vcChild.flowType !== 'branch') {
-                  vcChildData = { ...vcChildData, title: vcChildDet.taskName ?? vcChildDet.triggerName ?? vcChildData.title, subtitle: vcChildDet.description ?? vcChildData.subtitle };
+          // Fan out a nested branch node inside this branch path
+          if (childNode.flowType === 'branch') {
+            const innerBranches = childDet.branches || [];
+            // Detect if any inner arm contains a voiceCall to size inner spacing
+            const innerHasVoiceCall = innerBranches.some(nb =>
+              (nodeDetails[nb.id]?.nodes || []).some(nn => nn.flowType === 'voiceCall')
+            );
+            const innerSpacing = innerHasVoiceCall ? 1100 : 480;
+            const innerStartX = branchX - ((innerBranches.length - 1) * innerSpacing) / 2;
+            const innerChipY = childY + 150;
+            const innerNodeStartY = childY + 260;
+            innerBranches.forEach((innerBranch, innerBi) => {
+              const innerBranchX = innerStartX + innerBi * innerSpacing;
+              const innerBranchNodes = nodeDetails[innerBranch.id]?.nodes || [];
+              nodes.push({ id: innerBranch.id, type: 'branchPath', position: { x: innerBranchX, y: innerChipY }, data: { label: innerBranch.name, parentId: childId, isFallback: !!innerBranch.isFallback, isVoiceCallBranch: false } });
+              edges.push({ id: `e-${childId}-${innerBranch.id}`, source: childId, target: innerBranch.id, type: 'branchFan' });
+              let innerPrevId = innerBranch.id;
+              let innerYOff = 0;
+              innerBranchNodes.forEach((innerChild) => {
+                const innerChildId = innerChild.id;
+                const innerChildDet = nodeDetails[innerChildId] || {};
+                let innerChildData = { ...innerChild.data, stepNumber: ++stepCounter };
+                if (innerChild.flowType !== 'delay' && innerChild.flowType !== 'branch') {
+                  innerChildData = { ...innerChildData, title: innerChildDet.taskName ?? innerChildDet.triggerName ?? innerChildData.title, subtitle: innerChildDet.description ?? innerChildData.subtitle };
                 }
-                nodes.push({ id: vcChildId, type: vcChild.flowType, position: { x: vcBranchX, y: vcNodeStartY + vcIdx * 250 }, data: vcChildData });
-                edges.push({ id: `e-${vcPrevId}-${vcChildId}`, source: vcPrevId, target: vcChildId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
-                vcPrevId = vcChildId;
+                const innerChildY = innerNodeStartY + innerYOff;
+                nodes.push({ id: innerChildId, type: innerChild.flowType, position: { x: innerBranchX, y: innerChildY }, data: innerChildData });
+                edges.push({ id: `e-${innerPrevId}-${innerChildId}`, source: innerPrevId, target: innerChildId, type: 'addButton', data: { branchPathId: innerBranch.id, afterNodeId: innerPrevId === innerBranch.id ? null : innerPrevId } });
+                innerPrevId = innerChildId;
+                innerYOff += 250;
+                if (innerChild.flowType === 'voiceCall') {
+                  renderVoiceCallBranches(innerChildId, innerBranchX, innerChildY);
+                }
               });
-              const vcEndId = `${vcBranch.id}-end`;
-              nodes.push({ id: vcEndId, type: 'branchEnd', position: { x: vcBranchX, y: vcNodeStartY + vcBranchNodes.length * 250 }, data: { parentId: vcBranch.id } });
-              edges.push({ id: `e-${vcPrevId}-${vcEndId}`, source: vcPrevId, target: vcEndId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+              const lastInnerIsVoiceCall = innerBranchNodes.length > 0 && innerBranchNodes[innerBranchNodes.length - 1].flowType === 'voiceCall';
+              if (!lastInnerIsVoiceCall) {
+                const innerEndId = `${innerBranch.id}-end`;
+                nodes.push({ id: innerEndId, type: 'branchEnd', position: { x: innerBranchX, y: innerNodeStartY + innerYOff }, data: { parentId: innerBranch.id } });
+                edges.push({ id: `e-${innerPrevId}-${innerEndId}`, source: innerPrevId, target: innerEndId, type: 'addButton', data: { branchPathId: innerBranch.id, afterNodeId: innerPrevId === innerBranch.id ? null : innerPrevId } });
+              }
             });
           }
         });
 
-        // Skip branchEnd when the last child is a voiceCall — it already has its own branch-end nodes
-        const lastChildIsVoiceCall = branchNodes.length > 0 && branchNodes[branchNodes.length - 1].flowType === 'voiceCall';
-        if (!lastChildIsVoiceCall) {
+        // Skip branchEnd when last child is a voiceCall or nested branch (they render their own ends)
+        const lastChild = branchNodes.length > 0 ? branchNodes[branchNodes.length - 1] : null;
+        const lastChildIsBranchLike = lastChild && (lastChild.flowType === 'voiceCall' || lastChild.flowType === 'branch');
+        if (!lastChildIsBranchLike) {
           const branchEndId = `${branch.id}-end`;
-          nodes.push({
-            id: branchEndId,
-            type: 'branchEnd',
-            position: { x: branchX, y: branchNodeStartY + branchNodes.length * 250 },
-            data: { parentId: branch.id },
-          });
-          edges.push({
-            id: `e-${previousId}-${branchEndId}`,
-            source: previousId,
-            target: branchEndId,
-            type: 'addButton',
-            data: {
-              branchPathId: branch.id,
-              afterNodeId: previousId === branch.id ? null : previousId,
-              viewOnly: !!branch.isFallback,
-              ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
-            },
-          });
+          nodes.push({ id: branchEndId, type: 'branchEnd', position: { x: branchX, y: branchNodeStartY + childYOffset }, data: { parentId: branch.id } });
+          edges.push({ id: `e-${previousId}-${branchEndId}`, source: previousId, target: branchEndId, type: 'addButton', data: { branchPathId: branch.id, afterNodeId: previousId === branch.id ? null : previousId, viewOnly: !!branch.isFallback, ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}) } });
         }
       });
       // Branch paths fan out to the side — do not inflate main-spine y or spine edges stretch.
@@ -708,6 +653,7 @@ export default function AgentBuilder({
   const [reminderToolOpen, setReminderToolOpen] = useState(false);
   const [voiceCallToolOpen, setVoiceCallToolOpen] = useState(false);
   const [transferToolOpen, setTransferToolOpen] = useState(false);
+  const [queryConfigOpen, setQueryConfigOpen] = useState(false);
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
@@ -1670,11 +1616,11 @@ export default function AgentBuilder({
           triggerName={currentDetails.triggerName ?? ''}
           description={currentDetails.description ?? ''}
           onFieldChange={activeFieldChange}
-          frequencyOptions={['Hourly', 'Daily', 'Weekly', 'Monthly']}
-          dayOptions={['1 day', '2 days', '3 days', '7 days', '14 days', '30 days']}
-          timeOptions={['9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM']}
-          defaultFrequency={currentDetails.frequency || 'Daily'}
-          defaultDay={currentDetails.day || '7 days'}
+          frequencyOptions={['Daily', 'Every 3 days', 'Weekly', 'Every 2 weeks', 'Monthly']}
+          dayOptions={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']}
+          timeOptions={['8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM']}
+          defaultFrequency={currentDetails.frequency || 'Every 2 weeks'}
+          defaultDay={currentDetails.day || 'Monday'}
           defaultTime={currentDetails.time || '9:00 AM'}
         />
       );
@@ -1910,6 +1856,7 @@ export default function AgentBuilder({
           onFieldChange: activeFieldChange,
           onOpenTool: (toolId) => {
             if (toolId === 'reminder-tool') { setReminderToolOpen(true); return; }
+            if (toolId === 'get-unscheduled-treatment-plans') { setQueryConfigOpen(true); return; }
             getCustomToolsByIds([toolId]).then((tools) => {
               if (tools[0]) setViewingTool(tools[0]);
             });
@@ -2118,6 +2065,9 @@ export default function AgentBuilder({
 
       {/* ─── Transfer tool drawer ─── */}
       <TransferToolDrawer isOpen={transferToolOpen} onClose={() => setTransferToolOpen(false)} />
+
+      {/* ─── Query config drawer (Get all unscheduled treatment plans) ─── */}
+      <QueryConfigDrawer isOpen={queryConfigOpen} onClose={() => setQueryConfigOpen(false)} />
 
       {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (
