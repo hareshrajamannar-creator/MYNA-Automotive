@@ -20,6 +20,7 @@ import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
 import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
 import { DentalRevenueScreen } from './screens/DentalRevenueScreen'
+import { ManageTreatmentPlansScreen } from './screens/ManageTreatmentPlansScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -186,9 +187,10 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     id: 'human-actions',
     label: 'Human actions',
     items: [
-      { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'review-waitlist',     label: 'Review waitlist'     },
-      { id: 'manage-intake',       label: 'Manage intake'       },
+      { id: 'manage-appointments',   label: 'Manage appointments'   },
+      { id: 'review-waitlist',       label: 'Review waitlist'       },
+      { id: 'manage-intake',         label: 'Manage intake'         },
+      { id: 'manage-treatment-plans', label: 'Manage treatment plans' },
     ],
   },
   {
@@ -271,6 +273,7 @@ export function App() {
   const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
   const [wizardAgentDraft, setWizardAgentDraft] = useState<WizardAgentDraft | null>(null)
+  const [isAgentSetupActive, setIsAgentSetupActive] = useState(false)
   const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
   const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
@@ -286,6 +289,7 @@ export function App() {
     setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
     setEditingAgentName(null)
     setWizardAgentDraft(null)
+    setIsAgentSetupActive(false)
   }
 
   function handleEditAgent(name: string, draft?: WizardAgentDraft) {
@@ -311,7 +315,7 @@ export function App() {
         activeProduct={activeProduct}
         onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && !isViewingDetail && railActive !== 'settings' && railActive !== 'inbox' && (
+      {!isEditingWorkflow && !isViewingDetail && !isAgentSetupActive && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
           title="Front desk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
@@ -360,6 +364,11 @@ export function App() {
                 }}
                 product={activeProduct}
                 wizardDraft={wizardAgentDraft}
+                agentStatus={
+                  editingAgentName?.includes('Schedule based') || editingAgentName?.includes('Event trigger based')
+                    ? 'Draft'
+                    : undefined
+                }
               />
             </div>
           </>
@@ -441,6 +450,8 @@ export function App() {
           <HCWaitlistFilledScreen isDental={navActive === 'dental-waitlist'} />
         ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
           <HCIntakesCompletedScreen isDental={navActive === 'dental-intakes'} />
+        ) : navActive === 'manage-treatment-plans' ? (
+          <ManageTreatmentPlansScreen />
         ) : navActive === 'dental-revenue' ? (
           <DentalRevenueScreen />
         ) : AGENT_NAMES[navActive] ? (
@@ -449,6 +460,7 @@ export function App() {
             agentName={AGENT_NAMES[navActive]}
             onEditAgent={handleEditAgent}
             onOpenIntegrationSettings={openIntegrationSettings}
+            onAgentSetupActiveChange={setIsAgentSetupActive}
             product={activeProduct}
           />
         ) : (

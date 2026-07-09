@@ -560,7 +560,7 @@ function ChipSection({
         viewOnly={viewOnly}
         moreCount={moreCount}
         chipsReadOnly={chipsReadOnly}
-        showContainerAdd={!viewOnly && (libraryContextStyle || !showContextAdd)}
+        showContainerAdd={!viewOnly && !chipsReadOnly && (libraryContextStyle || !showContextAdd)}
         libraryContextStyle={libraryContextStyle}
         addPickerOpen={addPickerOpen}
         onToggleAddPicker={() => setAddPickerOpen((open) => !open)}
@@ -586,6 +586,9 @@ export default function ProcedureDetailBody({
   showTitle = false,
   showLibraryCheckbox = false,
   contextEditable = false,
+  contextLibraryStyle = false,
+  showTypeField = false,
+  whenToUseLabel = 'When should this procedure be used?',
   onOpenToolDrawer = undefined,
 }) {
   const [title, setTitle] = useState(initialValues.name ?? '');
@@ -593,6 +596,7 @@ export default function ProcedureDetailBody({
   const [contextChips, setContextChips] = useState(normalizeChips(initialValues.contextChips ?? []));
   const [stepsText, setStepsText] = useState(initialValues.stepsText ?? '');
   const [addToLibrary, setAddToLibrary] = useState(initialValues.addToLibrary ?? false);
+  const procedureType = initialValues.procedureType ?? 'Inbound';
   const moreContextCount = initialValues.moreContextCount ?? 0;
 
   useEffect(() => {
@@ -645,7 +649,7 @@ export default function ProcedureDetailBody({
       <div className={styles.section}>
         <div className={etStyles.sectionLabelWrapper}>
           <span className={etStyles.sectionLabelText}>
-            When should this procedure be used?<span className={styles.required}> *</span>
+            {whenToUseLabel}<span className={styles.required}> *</span>
           </span>
         </div>
         {viewOnly ? (
@@ -712,8 +716,20 @@ export default function ProcedureDetailBody({
         moreCount={moreContextCount}
         chipsReadOnly={!contextEditable}
         showContextAdd={false}
-        libraryContextStyle={contextEditable}
+        libraryContextStyle={contextLibraryStyle || contextEditable}
       />
+
+      {showTypeField && (
+        <div className={styles.section}>
+          <div className={etStyles.sectionLabelWrapper}>
+            <span className={etStyles.sectionLabelText}>Type</span>
+          </div>
+          <div className="flex h-9 w-full cursor-not-allowed items-center rounded-sm border border-border-input bg-surface-selected px-md text-body text-text-tertiary">
+            <span className="min-w-0 flex-1 truncate">{procedureType}</span>
+            <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+          </div>
+        </div>
+      )}
 
       <div className={styles.section}>
         <div className={etStyles.sectionLabelWrapper}>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { TopNav, Icon } from '../components'
 
 // Uploaded procedure.svg icon
@@ -9,34 +10,48 @@ function ProcedureBookIcon({ size = 24, className = '' }: { size?: number; class
     </svg>
   )
 }
-function ThreeDotMenu({ onEdit, onDuplicate, onDelete }: { onEdit: () => void; onDuplicate: () => void; onDelete: () => void }) {
+function ThreeDotMenu({ onDuplicate, onDelete }: { onDuplicate: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState({ top: 0, right: 0 })
+  const btnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      if (!btnRef.current?.contains(target)) setOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  function handleOpen(e: React.MouseEvent) {
+    e.stopPropagation()
+    const rect = btnRef.current!.getBoundingClientRect()
+    setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    setOpen((v) => !v)
+  }
+
   return (
-    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+    <div onClick={(e) => e.stopPropagation()}>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleOpen}
         className="flex size-6 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-selected"
       >
         <Icon name="more_vert" size={16} />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full z-50 mt-xs min-w-[140px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-          <button type="button" className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => { setOpen(false); onEdit() }}>Edit</button>
+      {open && createPortal(
+        <div
+          style={{ position: 'fixed', top: pos.top, right: pos.right, zIndex: 99999 }}
+          className="min-w-[140px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <button type="button" className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => { setOpen(false); onDuplicate() }}>Duplicate</button>
           <button type="button" className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover" onClick={() => { setOpen(false); onDelete() }}>Delete</button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
@@ -45,6 +60,8 @@ function ThreeDotMenu({ onEdit, onDuplicate, onDelete }: { onEdit: () => void; o
 import { useProcedureStore } from '../data/ProcedureStoreContext'
 import { type Procedure } from '../data/procedureData'
 import { ProcedureDetailScreen } from './ProcedureDetailScreen'
+import { DataTable, FilterPanel } from '../components'
+import type { Column } from '../components/DataTable/DataTable.types'
 
 type ViewMode = 'grid' | 'list'
 
@@ -62,6 +79,8 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState<ViewMode>('grid')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterSelections, setFilterSelections] = useState<Record<string, string[]>>({})
   // null = list view; a Procedure = editing existing; 'new' = create flow.
   const [editing, setEditing] = useState<Procedure | 'new' | null>(null)
 
@@ -76,6 +95,24 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
   }
 
   const q = searchQuery.trim().toLowerCase()
+
+  // Parse "Mon YYYY" strings like "Jun 2025" → Date for time-period filtering
+  function parseLastEdited(s: string): Date {
+    const d = new Date(s)
+    return isNaN(d.getTime()) ? new Date(0) : d
+  }
+
+  const now = new Date()
+  const TIME_CUTOFFS: Record<string, Date> = {
+    'Last 7 days':  new Date(now.getTime() - 7  * 86400000),
+    'Last 30 days': new Date(now.getTime() - 30 * 86400000),
+    'Last 90 days': new Date(now.getTime() - 90 * 86400000),
+    'Last year':    new Date(now.getTime() - 365 * 86400000),
+  }
+
+  const selectedTypes   = filterSelections['type']   ?? []
+  const selectedPeriods = filterSelections['period'] ?? []
+
   const visibleProcedures = (!q
     ? allProcedures
     : allProcedures.filter(
@@ -83,13 +120,25 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
       )
-  ).slice().sort((a, b) => a.name.localeCompare(b.name))
+  ).filter((p) => {
+    if (selectedTypes.length > 0 && !selectedTypes.includes(p.queue)) return false
+    if (selectedPeriods.length > 0) {
+      const edited = parseLastEdited(p.lastEdited)
+      const matches = selectedPeriods.some((label) => {
+        const cutoff = TIME_CUTOFFS[label]
+        return cutoff ? edited >= cutoff : true
+      })
+      if (!matches) return false
+    }
+    return true
+  }).slice().sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex-1 overflow-auto bg-surface">
+      <div className="flex min-h-0 flex-1">
+      <div className="flex flex-1 flex-col overflow-auto bg-surface">
         {/* Header — matches the Human actions header bar */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
           <h1 className="text-h3 text-text-primary">Procedures</h1>
@@ -148,6 +197,15 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
             >
               Create new
             </button>
+
+            <button
+              type="button"
+              aria-label="Filter"
+              onClick={() => setFilterOpen((o) => !o)}
+              className={`flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2 ${filterOpen ? 'bg-surface-selected' : ''}`}
+            >
+              <Icon name="filter_list" size={20} />
+            </button>
           </div>
         </div>
 
@@ -170,20 +228,26 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
               ))}
             </div>
           ) : (
-            <div className="overflow-hidden rounded-md border border-border">
-              {visibleProcedures.map((p, i) => (
-                <ProcedureRow
-                  key={p.id}
-                  procedure={p}
-                  first={i === 0}
-                  onOpen={() => setEditing(p)}
-                  onDuplicate={() => addProcedure({ ...p, id: `${p.id}-copy-${Date.now()}`, name: `${p.name} (copy)` })}
-                  onDelete={() => deleteProcedure(p.id)}
-                />
-              ))}
-            </div>
+            <ProcedureTable
+              procedures={visibleProcedures}
+              onOpen={(p) => setEditing(p)}
+              onDuplicate={(p) => addProcedure({ ...p, id: `${p.id}-copy-${Date.now()}`, name: `${p.name} (copy)` })}
+              onDelete={(p) => deleteProcedure(p.id)}
+            />
           )}
         </div>
+      </div>
+
+      <FilterPanel
+        open={filterOpen}
+        fields={[
+          { id: 'type', label: 'Type', options: [{ value: 'Inbound', label: 'Inbound' }, { value: 'Outbound', label: 'Outbound' }], multi: false },
+          { id: 'period', label: 'Time period', options: ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last year'].map((t) => ({ value: t, label: t })), multi: false },
+        ]}
+        selections={filterSelections}
+        onSelectionsChange={setFilterSelections}
+        onClose={() => setFilterOpen(false)}
+      />
       </div>
     </div>
   )
@@ -201,51 +265,86 @@ function ProcedureCard({ procedure, onOpen, onDuplicate, onDelete }: CardProps) 
   return (
     <div
       onClick={onOpen}
-      className="group relative flex min-h-[160px] cursor-pointer flex-col rounded-md border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected"
+      className="group relative flex min-h-[192px] cursor-pointer flex-col rounded-md border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected"
     >
-      {/* Three-dot menu — top right */}
-      <div className="absolute right-sm top-sm">
-        <ThreeDotMenu onEdit={onOpen} onDuplicate={onDuplicate} onDelete={onDelete} />
-      </div>
-
       <div className="mb-md">
         <ProcedureBookIcon size={22} className="text-text-secondary" />
       </div>
 
       <h3 className="mb-xs text-body text-text-primary">{procedure.name}</h3>
-      <p className="line-clamp-2 text-body text-text-secondary">{procedure.description}</p>
+      <p className="line-clamp-2 text-small text-text-secondary">{procedure.description}</p>
 
-      <div className="mt-auto flex items-center justify-end gap-xs pt-lg text-small text-text-tertiary">
-        <Icon name="schedule" size={14} />
-        {procedure.lastEdited}
+      {/* Footer: queue (hidden on hover, replaced by CTA row) */}
+      <div className="mt-auto pt-lg">
+        <div className="flex items-center group-hover:hidden">
+          <span className="text-small text-text-tertiary">{procedure.queue}</span>
+        </div>
+
+        {/* Hover CTA row */}
+        <div className="hidden items-center gap-sm group-hover:flex" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="flex h-8 items-center rounded-sm bg-primary px-md text-small text-white transition-colors hover:bg-primary-hover"
+          >
+            Edit
+          </button>
+          <ThreeDotMenu onDuplicate={onDuplicate} onDelete={onDelete} />
+        </div>
       </div>
     </div>
   )
 }
 
-// ── List row ────────────────────────────────────────────────────
-interface RowProps extends CardProps {
-  first: boolean
+// ── List table (uses shared DataTable) ──────────────────────────
+interface TableProps {
+  procedures: Procedure[]
+  onOpen: (p: Procedure) => void
+  onDuplicate: (p: Procedure) => void
+  onDelete: (p: Procedure) => void
 }
 
-function ProcedureRow({ procedure, first, onOpen, onDuplicate, onDelete }: RowProps) {
+type ProcRow = { _proc: Procedure; name: string; description: string; queue: string; channels: string; lastEdited: string }
+
+const PROC_COLUMNS: Column<ProcRow>[] = [
+  {
+    key: 'name',
+    label: 'Name',
+    width: 480,
+    sortable: true,
+    render: (_v, row) => (
+      <div>
+        <div className="truncate text-body text-text-primary">{row.name}</div>
+        <div className="truncate text-small text-text-secondary">{row.description}</div>
+      </div>
+    ),
+  },
+  { key: 'queue',      label: 'Type',        width: 160, sortable: true },
+  { key: 'channels',   label: 'Channels',    width: 160, sortable: true },
+  { key: 'lastEdited', label: 'Last updated', width: 160, sortable: true },
+]
+
+function ProcedureTable({ procedures, onOpen, onDuplicate, onDelete }: TableProps) {
+  const rows: ProcRow[] = procedures.map((p) => ({
+    _proc: p,
+    name: p.name,
+    description: p.description,
+    queue: p.queue,
+    channels: p.channels.join(', '),
+    lastEdited: p.lastEdited,
+  }))
+
   return (
-    <div
-      className={`flex cursor-pointer items-center gap-lg px-lg py-md transition-colors hover:bg-surface-hover ${
-        first ? '' : 'border-t border-border'
-      }`}
-      onClick={onOpen}
-    >
-      <ProcedureBookIcon size={20} className="shrink-0 text-text-secondary" />
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-body text-text-primary">{procedure.name}</div>
-        <div className="truncate text-small text-text-secondary">{procedure.description}</div>
-      </div>
-      <div className="flex shrink-0 items-center gap-xs text-small text-text-tertiary">
-        <Icon name="schedule" size={14} />
-        {procedure.lastEdited}
-      </div>
-      <ThreeDotMenu onEdit={onOpen} onDuplicate={onDuplicate} onDelete={onDelete} />
-    </div>
+    <DataTable
+      columns={PROC_COLUMNS}
+      data={rows}
+      rowHeight={56}
+      onRowClick={(row) => onOpen(row._proc)}
+      rowAction={{ icon: 'edit', label: 'Edit', onClick: (row) => onOpen(row._proc) }}
+      rowMenuItems={[
+        { label: 'Duplicate', onClick: (row) => onDuplicate(row._proc) },
+        { label: 'Delete',    onClick: (row) => onDelete(row._proc), variant: 'danger' },
+      ]}
+    />
   )
 }

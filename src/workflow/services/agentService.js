@@ -247,6 +247,20 @@ const _SEED_TOOLS = [
     outputs: [{ name: 'recalls', type: 'array' }],
   },
   {
+    id: 'get-unscheduled-treatment-plans',
+    name: 'Get all unscheduled treatment plans',
+    icon: 'filter_alt',
+    description: 'Queries the DMS for all treatment plans that have been presented but not yet scheduled, with configurable filters for status, D-code, treating office, and schedule state.',
+    category: 'Dental',
+    inputs: [
+      { name: 'status',         type: 'array',  label: 'Status'          },
+      { name: 'dcode',          type: 'string', label: 'D-code'          },
+      { name: 'treatingOffice', type: 'string', label: 'Treating office' },
+      { name: 'scheduled',      type: 'string', label: 'Scheduled'       },
+    ],
+    outputs: [{ name: 'plans', type: 'array' }],
+  },
+  {
     id: 'reminder-tool',
     name: 'Reminder tool',
     icon: 'notifications',

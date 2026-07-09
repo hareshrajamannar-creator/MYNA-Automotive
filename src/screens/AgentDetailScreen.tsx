@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Chip,
   CustomizeColumnsDrawer,
@@ -25,12 +25,14 @@ interface AgentDetailScreenProps {
   agentName: string
   onEditAgent?: (agentName: string, draft?: WizardAgentDraft) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
+  onAgentSetupActiveChange?: (active: boolean) => void
   product?: string
 }
 
 interface AgentInstance {
   name: string
   status: string
+  channels: string
   locations: string
   interactions?: string
   fcr?: string
@@ -76,6 +78,7 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
 interface RegionRow {
   region: string
   status: string
+  channels: string
   locations: string
   interactions?: string
   fcr?: string
@@ -108,52 +111,52 @@ interface RegionRow {
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
   'Front desk agent': [
-    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '7,380', aht: '90%', escalation: '18h', locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '4,928', aht: '88%', escalation: '12h', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '2,494', aht: '86%', escalation: '6h',  locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '1,428', aht: '83%', escalation: '4h',  locations: '140' },
+    { region: 'North region', status: 'Running', channels: 'Voice call',        interactions: '8,200', fcr: '7,380', aht: '90%', escalation: '18h', locations: '358' },
+    { region: 'East region',  status: 'Running', channels: 'Web chat, Text',    interactions: '5,600', fcr: '4,928', aht: '88%', escalation: '12h', locations: '212' },
+    { region: 'South region', status: 'Paused',  channels: 'Text, Facebook',    interactions: '2,900', fcr: '2,494', aht: '86%', escalation: '6h',  locations: '180' },
+    { region: 'West region',  status: 'Draft',   channels: 'Voice call',        interactions: '1,720', fcr: '1,428', aht: '83%', escalation: '4h',  locations: '140' },
   ],
   'Reminder agent': [
-    { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
-    { region: 'East region',  status: 'Running', interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212', remindersSent: '820',  responseRate: '89%', avgResponseTime: '2 days', noshowRate: '13%' },
-    { region: 'South region', status: 'Paused',  interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180', remindersSent: '530',  responseRate: '85%', avgResponseTime: '3 days', noshowRate: '14%' },
-    { region: 'West region',  status: 'Draft',   interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140', remindersSent: '398',  responseRate: '82%', avgResponseTime: '3 days', noshowRate: '16%' },
+    { region: 'North region', status: 'Running', channels: 'Text, Email',       interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
+    { region: 'East region',  status: 'Running', channels: 'Text',              interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212', remindersSent: '820',  responseRate: '89%', avgResponseTime: '2 days', noshowRate: '13%' },
+    { region: 'South region', status: 'Paused',  channels: 'Email',             interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180', remindersSent: '530',  responseRate: '85%', avgResponseTime: '3 days', noshowRate: '14%' },
+    { region: 'West region',  status: 'Draft',   channels: 'Text, Email',       interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140', remindersSent: '398',  responseRate: '82%', avgResponseTime: '3 days', noshowRate: '16%' },
   ],
   'Outreach agent': [
-    { region: 'North region', status: 'Running', interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
+    { region: 'North region', status: 'Running', channels: 'Voice call',        interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
+    { region: 'East region',  status: 'Running', channels: 'Text, Email',       interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
+    { region: 'South region', status: 'Paused',  channels: 'Email',             interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
+    { region: 'West region',  status: 'Draft',   channels: 'Voice call, Text',  interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
   ],
   'Waitlist agent': [
-    { region: 'North region', status: 'Running', outreachSent: '800',  slotsFilled: '780',  fillRate: '34%', timeSaved: '1.8 hrs', locations: '500' },
-    { region: 'East region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '29%', timeSaved: '2.2 hrs', locations: '250' },
-    { region: 'South region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '26%', timeSaved: '2.8 hrs', locations: '200' },
-    { region: 'West region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '22%', timeSaved: '3.4 hrs', locations: '100' },
+    { region: 'North region', status: 'Running', channels: 'Text, Email',       outreachSent: '800',  slotsFilled: '780',  fillRate: '34%', timeSaved: '1.8 hrs', locations: '500' },
+    { region: 'East region',  status: 'Running', channels: 'Voice call',        outreachSent: '500',  slotsFilled: '400',  fillRate: '29%', timeSaved: '2.2 hrs', locations: '250' },
+    { region: 'South region', status: 'Paused',  channels: 'Text',              outreachSent: '500',  slotsFilled: '490',  fillRate: '26%', timeSaved: '2.8 hrs', locations: '200' },
+    { region: 'West region',  status: 'Draft',   channels: 'Email',             outreachSent: '1050', slotsFilled: '1000', fillRate: '22%', timeSaved: '3.4 hrs', locations: '100' },
   ],
   'Pre-visit agent': [
-    { region: 'North region', status: 'Running', interactions: '1,040', fcr: '962',   aht: '93%', escalation: '37h', locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '880',   fcr: '810',   aht: '92%', escalation: '31h', locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '760',   fcr: '694',   aht: '91%', escalation: '27h', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '620',   fcr: '556',   aht: '90%', escalation: '22h', locations: '140' },
+    { region: 'North region', status: 'Running', channels: 'Text, Email',       interactions: '1,040', fcr: '962',   aht: '93%', escalation: '37h', locations: '358' },
+    { region: 'East region',  status: 'Running', channels: 'Voice call',        interactions: '880',   fcr: '810',   aht: '92%', escalation: '31h', locations: '212' },
+    { region: 'South region', status: 'Paused',  channels: 'Web chat',          interactions: '760',   fcr: '694',   aht: '91%', escalation: '27h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   channels: 'Text',              interactions: '620',   fcr: '556',   aht: '90%', escalation: '22h', locations: '140' },
   ],
   'Recall agent': [
-    { region: 'North region', status: 'Running', patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
-    { region: 'East region',  status: 'Running', patientsContacted: '890',   recallConversionRate: '69%', avgTouchesToBook: '2.4', staffHoursSaved: '74h', revenueRecovered: '$32K', locations: '212' },
-    { region: 'South region', status: 'Paused',  patientsContacted: '820',   recallConversionRate: '66%', avgTouchesToBook: '2.6', staffHoursSaved: '62h', revenueRecovered: '$28K', locations: '180' },
-    { region: 'West region',  status: 'Draft',   patientsContacted: '580',   recallConversionRate: '62%', avgTouchesToBook: '2.8', staffHoursSaved: '44h', revenueRecovered: '$20K', locations: '140' },
+    { region: 'North region', status: 'Running', channels: 'Voice call, Text',  patientsContacted: '1,120', recallConversionRate: '71%', avgTouchesToBook: '2.2', staffHoursSaved: '94h', revenueRecovered: '$44K', locations: '358' },
+    { region: 'East region',  status: 'Running', channels: 'Text, Email',       patientsContacted: '890',   recallConversionRate: '69%', avgTouchesToBook: '2.4', staffHoursSaved: '74h', revenueRecovered: '$32K', locations: '212' },
+    { region: 'South region', status: 'Paused',  channels: 'Email',             patientsContacted: '820',   recallConversionRate: '66%', avgTouchesToBook: '2.6', staffHoursSaved: '62h', revenueRecovered: '$28K', locations: '180' },
+    { region: 'West region',  status: 'Draft',   channels: 'Voice call',        patientsContacted: '580',   recallConversionRate: '62%', avgTouchesToBook: '2.8', staffHoursSaved: '44h', revenueRecovered: '$20K', locations: '140' },
   ],
   'Revenue agent': [
-    { region: 'North region', status: 'Running', balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', staffHoursSaved: '62h', locations: '358' },
-    { region: 'East region',  status: 'Running', balancesContacted: '440', amountCollected: '$38K', arDaysReduced: '-28%', clickToPayRate: '74%', staffHoursSaved: '46h', locations: '212' },
-    { region: 'South region', status: 'Paused',  balancesContacted: '490', amountCollected: '$34K', arDaysReduced: '-26%', clickToPayRate: '72%', staffHoursSaved: '40h', locations: '180' },
-    { region: 'West region',  status: 'Draft',   balancesContacted: '300', amountCollected: '$22K', arDaysReduced: '-23%', clickToPayRate: '70%', staffHoursSaved: '28h', locations: '140' },
+    { region: 'North region', status: 'Running', channels: 'Text, Email',       balancesContacted: '590', amountCollected: '$48K', arDaysReduced: '-31%', clickToPayRate: '76%', staffHoursSaved: '62h', locations: '358' },
+    { region: 'East region',  status: 'Running', channels: 'Email',             balancesContacted: '440', amountCollected: '$38K', arDaysReduced: '-28%', clickToPayRate: '74%', staffHoursSaved: '46h', locations: '212' },
+    { region: 'South region', status: 'Paused',  channels: 'Text',              balancesContacted: '490', amountCollected: '$34K', arDaysReduced: '-26%', clickToPayRate: '72%', staffHoursSaved: '40h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   channels: 'Text, Email',       balancesContacted: '300', amountCollected: '$22K', arDaysReduced: '-23%', clickToPayRate: '70%', staffHoursSaved: '28h', locations: '140' },
   ],
   'Treatment plan agent': [
-    { region: 'North region', status: 'Running', plansFollowedUp: '680', acceptanceRate: '63%', revenueUnlocked: '$288K', callToBookingConversion: '48%', warmTransferRate: '9%', avgTouchesToAccept: '2.0', staffHoursSaved: '88h', locations: '358' },
-    { region: 'East region',  status: 'Running', plansFollowedUp: '530', acceptanceRate: '61%', revenueUnlocked: '$224K', callToBookingConversion: '44%', warmTransferRate: '11%', avgTouchesToAccept: '2.1', staffHoursSaved: '68h', locations: '212' },
-    { region: 'South region', status: 'Paused',  plansFollowedUp: '490', acceptanceRate: '59%', revenueUnlocked: '$204K', callToBookingConversion: '41%', warmTransferRate: '12%', avgTouchesToAccept: '2.2', staffHoursSaved: '58h', locations: '180' },
-    { region: 'West region',  status: 'Draft',   plansFollowedUp: '440', acceptanceRate: '57%', revenueUnlocked: '$176K', callToBookingConversion: '38%', warmTransferRate: '14%', avgTouchesToAccept: '2.4', staffHoursSaved: '48h', locations: '140' },
+    { region: 'North region', status: 'Running', channels: 'Voice call',        plansFollowedUp: '680', acceptanceRate: '63%', revenueUnlocked: '$288K', callToBookingConversion: '48%', warmTransferRate: '9%', avgTouchesToAccept: '2.0', staffHoursSaved: '88h', locations: '358' },
+    { region: 'East region',  status: 'Running', channels: 'Voice call, Text',  plansFollowedUp: '530', acceptanceRate: '61%', revenueUnlocked: '$224K', callToBookingConversion: '44%', warmTransferRate: '11%', avgTouchesToAccept: '2.1', staffHoursSaved: '68h', locations: '212' },
+    { region: 'South region', status: 'Paused',  channels: 'Text, Email',       plansFollowedUp: '490', acceptanceRate: '59%', revenueUnlocked: '$204K', callToBookingConversion: '41%', warmTransferRate: '12%', avgTouchesToAccept: '2.2', staffHoursSaved: '58h', locations: '180' },
+    { region: 'West region',  status: 'Draft',   channels: 'Email',             plansFollowedUp: '440', acceptanceRate: '57%', revenueUnlocked: '$176K', callToBookingConversion: '38%', warmTransferRate: '14%', avgTouchesToAccept: '2.4', staffHoursSaved: '48h', locations: '140' },
   ],
 }
 
@@ -222,14 +225,14 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
   ],
   'Treatment plan agent': [
     {
-      id: 'tp-followup-call',
-      title: 'Treatment plan follow-up',
-      description: 'Outbound call flow for patients with unscheduled recommended treatment — introduces the care need at a high level, handles objections, and books the next appointment without clinical advising.',
+      id: 'tp-v1-scheduled',
+      title: 'Treatment plan agent — Schedule based',
+      description: 'Runs on a fixed 2-week cadence and batch-pulls every unscheduled plan matching the filters, then escalates email → text → wait → voice call.',
     },
     {
-      id: 'tp-case-acceptance',
-      title: 'Case acceptance accelerator',
-      description: 'Multi-channel sequence that pairs a personalized email with a follow-up voice call to move patients from "thinking about it" to a confirmed appointment, with warm transfer to the financial coordinator for cost questions.',
+      id: 'tp-v2-event',
+      title: 'Treatment plan agent — Event trigger based',
+      description: 'Fires per plan the moment a qualifying unscheduled plan is added, giving the patient time to self-schedule before each nudge.',
     },
   ],
   'Waitlist agent': [
@@ -340,7 +343,7 @@ function CreateAgentEmptyState({
   )
 }
 
-export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, product }: AgentDetailScreenProps) {
+export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, onAgentSetupActiveChange, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
@@ -413,6 +416,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
   const data: AgentInstance[] = regions.map((r) => ({
     name: `${agentName} - ${r.region}`,
     status: r.status,
+    channels: r.channels,
     interactions: r.interactions,
     fcr: r.fcr,
     aht: r.aht,
@@ -450,6 +454,12 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
   const isRecall        = agentName === 'Recall agent'
   const isRevenue       = agentName === 'Revenue agent'
   const isTreatmentPlan = agentName === 'Treatment plan agent'
+
+  useEffect(() => {
+    const isAgentSetupActive = isFrontdesk && (showCreateFlow || showSetupWizard)
+    onAgentSetupActiveChange?.(isAgentSetupActive)
+    return () => onAgentSetupActiveChange?.(false)
+  }, [isFrontdesk, showCreateFlow, showSetupWizard, onAgentSetupActiveChange])
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -459,6 +469,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       sortable: true,
       render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
     },
+    { key: 'channels', label: 'Channels', width: 200, sortable: true },
     ...(isReminder ? [
       { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
       { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
@@ -523,6 +534,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
 
   const FILTER_FIELDS: FilterField[] = [
     { id: 'status', label: 'Status', options: opts('Running', 'Paused', 'Draft') },
+    { id: 'channels', label: 'Channels', options: opts('Voice call', 'Web chat', 'Text', 'Email', 'Facebook'), multi: true },
     { id: 'region', label: 'Region', options: opts('North region', 'East region', 'South region', 'West region') },
     { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
   ]
@@ -532,6 +544,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     title: tpl.title,
     description: tpl.description,
     actionLabel: 'Use agent' as const,
+    onAction: () => onEditAgent?.(tpl.title),
   }))
 
   if (showSetupWizard && isFrontdesk) {
@@ -547,7 +560,6 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
           setShowCreateFlow(false)
           onEditAgent?.(draft.agentName, draft)
         }}
-        onOpenIntegrationSettings={onOpenIntegrationSettings}
       />
     )
   }

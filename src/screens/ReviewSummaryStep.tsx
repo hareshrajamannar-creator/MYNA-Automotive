@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
-import { Icon, IntegrationSelectCard, ProcedureSelectCard } from '../components'
+import { useState, type ReactNode } from 'react'
+import { Icon } from '../components'
 import type { HealthcareProcedureCatalogItem } from '../data/healthcareProcedureCatalog'
-import type { HealthcareIntegration } from '../data/healthcareIntegrations'
+import type { WizardLocation } from '../data/wizardLocations'
 import PreviewPanel from '../workflow/Molecules/PreviewPanel/PreviewPanel'
 import '../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 import {
@@ -13,11 +13,19 @@ import {
   type WebChatChannelSettings,
 } from './channelSetupSettings.types'
 
-type ChannelId = 'voice' | 'webchat' | 'text'
+type ChannelId = 'voice' | 'webchat' | 'text' | 'email' | 'facebook' | 'instagram'
 type RecordingMode = 'off' | 'announced' | 'silent'
 
+const READONLY_LABEL_CLASS = 'mb-xs block text-small text-text-tertiary'
+
 const READONLY_FIELD_CLASS =
-  'w-full rounded-sm border border-border-input bg-surface px-md py-sm text-body text-text-primary'
+  'w-full cursor-default select-none rounded-sm border border-border bg-surface-l2 px-md text-body text-text-tertiary'
+
+const READONLY_LOCATIONS_CONTAINER_CLASS =
+  'flex min-h-[98px] flex-wrap content-start gap-sm rounded-sm border border-border bg-surface-l2 p-md'
+
+const READONLY_LOCATION_PILL_CLASS =
+  'rounded-sm border border-border bg-surface px-md py-xs text-small text-text-tertiary'
 
 
 function ReviewSectionHeader({
@@ -30,7 +38,7 @@ function ReviewSectionHeader({
   onEdit: () => void
 }) {
   return (
-    <div className="mb-md flex items-center gap-xs">
+    <div className="mb-lg flex items-center gap-xs">
       <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
       <button
         type="button"
@@ -40,6 +48,32 @@ function ReviewSectionHeader({
       >
         <Icon name="edit" size={16} />
       </button>
+    </div>
+  )
+}
+
+function ReviewAccordion({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string
+  children: ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-14 w-full items-center justify-between px-lg text-left hover:bg-surface-l2"
+      >
+        <span className="text-body text-text-primary">{title}</span>
+        <Icon name={open ? 'expand_less' : 'expand_more'} size={20} className="shrink-0 text-text-icon" />
+      </button>
+      {open && <div className="flex flex-col gap-lg px-lg pb-lg pt-md">{children}</div>}
     </div>
   )
 }
@@ -55,11 +89,13 @@ function ReviewField({
 }) {
   return (
     <div>
-      <label className="mb-xs block text-small text-text-secondary">{label}</label>
+      <label className={READONLY_LABEL_CLASS}>{label}</label>
       {multiline ? (
-        <div className={`${READONLY_FIELD_CLASS} min-h-[80px] whitespace-pre-wrap`}>{value}</div>
+        <div className={`${READONLY_FIELD_CLASS} min-h-[80px] whitespace-pre-wrap py-md leading-relaxed`}>
+          {value}
+        </div>
       ) : (
-        <div className={`${READONLY_FIELD_CLASS} h-9 flex items-center`}>{value}</div>
+        <div className={`${READONLY_FIELD_CLASS} flex h-9 items-center`}>{value}</div>
       )}
     </div>
   )
@@ -75,10 +111,48 @@ export interface ReviewSummaryStepProps {
   consent: string
   webchatSettings: WebChatChannelSettings
   textSettings: TextChannelSettings
+  locations: WizardLocation[]
+  selectedLocationIds: string[]
   procedures: HealthcareProcedureCatalogItem[]
   selectedProcedureIds: string[]
-  integration: HealthcareIntegration | null
   onEditStep: (step: number) => void
+  onViewProcedure: (id: string) => void
+}
+
+function ReviewProcedureCard({
+  title,
+  description,
+  onView,
+}: {
+  title: string
+  description: string
+  onView: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`relative flex min-h-[148px] flex-col rounded-md border p-xl transition-colors ${
+        hovered ? 'border-border-selected bg-surface-l2' : 'border-border-selected bg-surface'
+      }`}
+    >
+      {hovered && (
+        <button
+          type="button"
+          onClick={onView}
+          className="absolute right-xl top-xl text-body text-text-action hover:text-primary-hover"
+        >
+          View
+        </button>
+      )}
+
+      <Icon name="menu_book" size={20} className="mb-md shrink-0 text-text-icon" />
+      <h4 className="mb-xs pr-lg text-body text-text-primary">{title}</h4>
+      <p className="line-clamp-3 text-body text-text-secondary">{description}</p>
+    </div>
+  )
 }
 
 export function ReviewSummaryStep({
@@ -90,204 +164,192 @@ export function ReviewSummaryStep({
   consent,
   webchatSettings,
   textSettings,
+  locations,
+  selectedLocationIds,
   procedures,
   selectedProcedureIds,
-  integration,
   onEditStep,
+  onViewProcedure,
 }: ReviewSummaryStepProps) {
-  const channelTabs = useMemo(() => {
-    const tabs: { id: ChannelId; label: string }[] = []
-    if (selectedChannels.has('voice')) tabs.push({ id: 'voice', label: 'Voice' })
-    if (selectedChannels.has('webchat')) tabs.push({ id: 'webchat', label: 'Web chat' })
-    if (selectedChannels.has('text')) tabs.push({ id: 'text', label: 'Text' })
-    return tabs
-  }, [selectedChannels])
-
-  const [activeChannelTab, setActiveChannelTab] = useState<ChannelId>(
-    channelTabs[0]?.id ?? 'voice',
-  )
-
+  const selectedLocations = locations.filter((l) => selectedLocationIds.includes(l.id))
   const selectedProcedures = procedures.filter((p) => selectedProcedureIds.includes(p.id))
-
-  const activeTab = channelTabs.some((t) => t.id === activeChannelTab)
-    ? activeChannelTab
-    : channelTabs[0]?.id ?? 'voice'
 
   return (
     <div className="flex w-full gap-2xl">
-      <div className="min-w-0 flex-1 space-y-xl">
+      <div className="min-w-0 flex-1 space-y-2xl">
         <div>
           <h2 className="text-h3 text-text-primary">Review summary</h2>
-          <p className="mt-xs text-body text-text-secondary">
-            Review your setup before creating the agent.
+          <p className="mt-[2px] text-small text-text-tertiary">
+            Review your configurations before creating the agent.
           </p>
         </div>
 
         <section>
           <ReviewSectionHeader
-            title="Channel settings"
-            editAriaLabel="Edit channel settings"
+            title="Getting started"
+            editAriaLabel="Edit getting started"
             onEdit={() => onEditStep(1)}
           />
 
           <div className="space-y-lg">
             <div>
-              <label className="mb-xs block text-body text-text-primary">Agent name</label>
-              <div className={`${READONLY_FIELD_CLASS} h-9 flex items-center`}>
+              <label className={READONLY_LABEL_CLASS}>Name</label>
+              <div className={`${READONLY_FIELD_CLASS} flex h-9 items-center`}>
                 {agentName || '—'}
               </div>
-              <p className="mt-xs text-small text-text-secondary">
-                This is the name your agent uses when greeting patients
-              </p>
             </div>
 
-            {channelTabs.length > 0 && (
-              <>
-                <div className="flex items-end gap-xs">
-                  {channelTabs.map((tab, i) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveChannelTab(tab.id)}
-                      className="flex flex-col items-stretch"
-                    >
-                      <span
-                        className={`flex h-9 items-center rounded-sm text-body transition-colors ${i === 0 ? 'pr-sm' : 'px-sm'} ${
-                          activeTab === tab.id
-                            ? 'text-text-primary'
-                            : 'text-text-secondary hover:bg-surface-hover'
-                        }`}
-                      >
-                        {tab.label}
-                      </span>
-                      <span className={`h-[2px] w-full ${activeTab === tab.id ? 'bg-primary' : 'bg-transparent'}`} />
-                    </button>
+            <div>
+              <label className={READONLY_LABEL_CLASS}>Locations</label>
+              {selectedLocations.length === 0 ? (
+                <div className={`${READONLY_FIELD_CLASS} flex h-16 items-center justify-center text-text-tertiary`}>
+                  No locations selected.
+                </div>
+              ) : (
+                <div className={READONLY_LOCATIONS_CONTAINER_CLASS}>
+                  {selectedLocations.map((location) => (
+                    <span key={location.id} className={READONLY_LOCATION_PILL_CLASS}>
+                      {location.name}
+                    </span>
                   ))}
                 </div>
-
-                {activeTab === 'voice' && selectedChannels.has('voice') && (
-                  <div className="flex flex-col gap-lg pt-md">
-                    <ReviewField label="Voice" value={voice || '—'} />
-                    <ReviewField label="Greeting message" value={greeting || '—'} multiline />
-                    {recording === 'announced' && (
-                      <ReviewField
-                        label="Voice recording consent"
-                        value={consent || '—'}
-                        multiline
-                      />
-                    )}
-                    {recording === 'off' && (
-                      <ReviewField label="Recording" value="Off" />
-                    )}
-                    {recording === 'silent' && (
-                      <ReviewField label="Recording" value="Record silently" />
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'webchat' && selectedChannels.has('webchat') && (
-                  <div className="flex flex-col gap-lg pt-md">
-                    {webchatSettings.resolvedEnabled && (
-                      <ReviewField
-                        label="Resolve button"
-                        value={webchatSettings.resolvedName}
-                      />
-                    )}
-                    {webchatSettings.escalationEnabled && (
-                      <ReviewField
-                        label="Escalation button"
-                        value={webchatSettings.escalationName}
-                      />
-                    )}
-                    {webchatSettings.duringEnabled && (
-                      <ReviewField
-                        label="Fallback message (during business hours)"
-                        value={WEBCHAT_FALLBACK_DURING}
-                        multiline
-                      />
-                    )}
-                    {webchatSettings.afterEnabled && (
-                      <ReviewField
-                        label="Fallback message (after business hours)"
-                        value={WEBCHAT_FALLBACK_AFTER}
-                        multiline
-                      />
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'text' && selectedChannels.has('text') && (
-                  <div className="flex flex-col gap-lg pt-md">
-                    <ReviewField
-                      label="Unsubscribe text"
-                      value={textSettings.unsubscribeEnabled ? 'Enabled' : 'Disabled'}
-                    />
-                    {textSettings.beforeEnabled && (
-                      <ReviewField
-                        label="Fallback message (before business hours)"
-                        value={TEXT_FALLBACK_BEFORE}
-                        multiline
-                      />
-                    )}
-                    {textSettings.afterEnabled && (
-                      <ReviewField
-                        label="Fallback message (after business hours)"
-                        value={TEXT_FALLBACK_AFTER}
-                        multiline
-                      />
-                    )}
-                  </div>
-                )}
-              </>
-            )}
+              )}
+            </div>
           </div>
         </section>
 
         <section>
           <ReviewSectionHeader
-            title="Procedures"
-            editAriaLabel="Edit procedures"
+            title="Channel configuration"
+            editAriaLabel="Edit channel configuration"
             onEdit={() => onEditStep(2)}
           />
-          {selectedProcedures.length === 0 ? (
-            <div className="flex h-32 items-center justify-center rounded-md border border-border-selected bg-surface text-body text-text-tertiary">
-              No procedures selected.
+
+          {selectedChannels.size === 0 ? (
+            <div className={`${READONLY_FIELD_CLASS} flex h-16 items-center justify-center text-text-tertiary`}>
+              No channels selected.
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-lg">
-              {selectedProcedures.map((procedure) => (
-                <ProcedureSelectCard
-                  key={procedure.id}
-                  title={procedure.title}
-                  description={procedure.description}
-                  selected
-                  onToggle={() => {}}
-                />
-              ))}
+            <div className="flex flex-col gap-lg">
+              {selectedChannels.has('voice') && (
+                <>
+                  <ReviewField label="Voice" value={voice || '—'} />
+                  <ReviewField label="Greeting message" value={greeting || '—'} multiline />
+                  {recording === 'announced' && (
+                    <ReviewField
+                      label="Voice recording consent"
+                      value={consent || '—'}
+                      multiline
+                    />
+                  )}
+                  {recording === 'off' && <ReviewField label="Recording" value="Off" />}
+                  {recording === 'silent' && (
+                    <ReviewField label="Recording" value="Record silently" />
+                  )}
+                </>
+              )}
+
+              {selectedChannels.has('webchat') && (
+                <ReviewAccordion title="Web chat settings">
+                  <ReviewField label="Chat agent name" value={webchatSettings.aiAgentName || '—'} />
+                  {webchatSettings.resolvedEnabled && (
+                    <ReviewField label="Resolve button" value={webchatSettings.resolvedName} />
+                  )}
+                  {webchatSettings.escalationEnabled && (
+                    <ReviewField label="Escalation button" value={webchatSettings.escalationName} />
+                  )}
+                  {webchatSettings.duringEnabled && (
+                    <ReviewField
+                      label="Fallback message (during business hours)"
+                      value={WEBCHAT_FALLBACK_DURING}
+                      multiline
+                    />
+                  )}
+                  {webchatSettings.afterEnabled && (
+                    <ReviewField
+                      label="Fallback message (after business hours)"
+                      value={WEBCHAT_FALLBACK_AFTER}
+                      multiline
+                    />
+                  )}
+                </ReviewAccordion>
+              )}
+
+              {selectedChannels.has('text') && (
+                <ReviewAccordion title="Text settings">
+                  <ReviewField
+                    label="Unsubscribe text"
+                    value={textSettings.unsubscribeEnabled ? 'Enabled' : 'Disabled'}
+                  />
+                  {textSettings.beforeEnabled && (
+                    <ReviewField
+                      label="Fallback message (before business hours)"
+                      value={TEXT_FALLBACK_BEFORE}
+                      multiline
+                    />
+                  )}
+                  {textSettings.afterEnabled && (
+                    <ReviewField
+                      label="Fallback message (after business hours)"
+                      value={TEXT_FALLBACK_AFTER}
+                      multiline
+                    />
+                  )}
+                </ReviewAccordion>
+              )}
+
+              {selectedChannels.has('email') && (
+                <div className="overflow-hidden rounded-md border border-border bg-surface">
+                  <div className="flex h-14 items-center px-lg">
+                    <span className="text-body text-text-primary">Email settings</span>
+                  </div>
+                  <div className="px-lg pb-lg pt-md">
+                    <p className="text-body text-text-secondary">
+                      No additional configuration required for this channel yet.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedChannels.has('facebook') && (
+                <ReviewAccordion title="Facebook settings">
+                  <p className="text-body text-text-secondary">
+                    No additional configuration required for this channel yet.
+                  </p>
+                </ReviewAccordion>
+              )}
+
+              {selectedChannels.has('instagram') && (
+                <ReviewAccordion title="Instagram settings">
+                  <p className="text-body text-text-secondary">
+                    No additional configuration required for this channel yet.
+                  </p>
+                </ReviewAccordion>
+              )}
             </div>
           )}
         </section>
 
         <section>
           <ReviewSectionHeader
-            title="Integrations"
-            editAriaLabel="Edit integrations"
+            title="Procedures"
+            editAriaLabel="Edit procedures"
             onEdit={() => onEditStep(3)}
           />
-          {integration ? (
-            <div className="grid grid-cols-3 gap-lg">
-              <IntegrationSelectCard
-                name={integration.name}
-                description={integration.description}
-                iconBg={integration.iconBg}
-                iconLabel={integration.iconLabel}
-                selected
-                connected
-              />
+          {selectedProcedures.length === 0 ? (
+            <div className={`${READONLY_FIELD_CLASS} flex h-32 items-center justify-center text-text-tertiary`}>
+              No procedures selected.
             </div>
           ) : (
-            <div className="flex h-32 items-center justify-center rounded-md border border-border-selected bg-surface text-body text-text-tertiary">
-              No integration selected.
+            <div className="grid grid-cols-3 gap-lg">
+              {selectedProcedures.map((procedure) => (
+                <ReviewProcedureCard
+                  key={procedure.id}
+                  title={procedure.title}
+                  description={procedure.description}
+                  onView={() => onViewProcedure(procedure.id)}
+                />
+              ))}
             </div>
           )}
         </section>

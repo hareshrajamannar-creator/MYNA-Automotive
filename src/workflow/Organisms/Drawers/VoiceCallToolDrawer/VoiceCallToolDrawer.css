@@ -70,10 +70,20 @@
   padding: 24px 24px 48px;
 }
 
+.vctd__body--procedure-detail {
+  gap: 0;
+  padding: 16px 24px 48px;
+  max-width: 700px;
+}
+
 .vctd__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.vctd__field--toggle {
+  gap: 4px;
 }
 
 .vctd__label-row {
@@ -121,6 +131,10 @@
   font-family: 'Roboto', sans-serif;
   text-align: left;
   box-sizing: border-box;
+}
+
+.vctd__routed-field--disabled {
+  opacity: 0.55;
 }
 
 .vctd__routed-icon {
@@ -222,6 +236,50 @@
   font-size: 12px;
   line-height: 18px;
   color: #757575;
+}
+
+.vctd__toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vctd__helper {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: #757575;
+}
+
+.vctd__switch {
+  width: 40px;
+  height: 22px;
+  border: none;
+  border-radius: 999px;
+  background: #cfd8dc;
+  padding: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.vctd__switch--on {
+  background: #1976d2;
+}
+
+.vctd__switch-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.vctd__switch--on .vctd__switch-thumb {
+  transform: translateX(18px);
 }
 
 .vctd__checkbox-row {
@@ -376,6 +434,202 @@
   transition: transform 0.2s;
   display: block;
   pointer-events: none;
+}
+
+/* Info tooltip */
+.vctd__info-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.vctd__tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  transform: translateY(-8px);
+  background: #212121;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  width: 220px;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Starting procedure — selected chip field */
+.vctd__procedure-field-wrap {
+  position: relative;
+}
+
+.vctd__procedure-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid #c5cad3;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.vctd__procedure-pill {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.vctd__procedure-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vctd__procedure-value {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #212121;
+}
+
+.vctd__procedure-value:hover {
+  text-decoration: underline;
+}
+
+.vctd__procedure-remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #757575;
+}
+
+.vctd__procedure-remove .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.vctd__procedure-divider {
+  width: 1px;
+  height: 20px;
+  background: #e0e0e0;
+  flex-shrink: 0;
+}
+
+.vctd__procedure-chevron {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #757575;
+}
+
+.vctd__procedure-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+}
+
+.vctd__procedure-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 16;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 4px 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.vctd__procedure-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #212121;
+}
+
+.vctd__procedure-menu-item:hover {
+  background: #f2f4f7;
+}
+
+/* Procedure detail header actions (back/Cancel/Save split button) */
+.vctd__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.vctd__cancel {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1976d2;
+  font-family: 'Roboto', sans-serif;
+}
+
+.vctd__cancel:hover {
+  color: #1565c0;
+}
+
+.vctd__save-split {
+  display: flex;
+  align-items: stretch;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vctd__save--split {
+  border-radius: 4px 0 0 4px;
+}
+
+.vctd__save-chevron {
+  border-radius: 0 4px 4px 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .vctd__toggle--on .vctd__toggle-thumb {

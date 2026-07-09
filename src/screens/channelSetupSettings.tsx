@@ -172,11 +172,14 @@ export function ChannelSettingsPanel({
 export function WebChatSetupSettings({
   settings,
   onSettingsChange,
+  chatAgentNameError = false,
 }: {
   settings: WebChatChannelSettings
   onSettingsChange: (patch: Partial<WebChatChannelSettings>) => void
+  chatAgentNameError?: boolean
 }) {
   const {
+    aiAgentName,
     resolvedEnabled,
     resolvedName,
     escalationEnabled,
@@ -187,6 +190,27 @@ export function WebChatSetupSettings({
 
   return (
     <div className="flex flex-col gap-[40px]">
+      <div className="flex flex-col gap-sm">
+        <div>
+          <label className="text-body text-text-primary">Chat agent name</label>
+          <p className="mt-[2px] text-small text-text-secondary">
+            Name shown to patients in the chat
+          </p>
+        </div>
+        <input
+          type="text"
+          value={aiAgentName}
+          onChange={(e) => onSettingsChange({ aiAgentName: e.target.value })}
+          placeholder="e.g. Robin"
+          className={`${INPUT_CLASS} h-9 placeholder:text-text-tertiary ${
+            chatAgentNameError ? 'border-chip-danger-text focus:border-chip-danger-text focus-visible:border-chip-danger-text' : ''
+          }`}
+        />
+        {chatAgentNameError && (
+          <p className="text-small text-chip-danger-text">Enter a chat agent name</p>
+        )}
+      </div>
+
       <div className="flex flex-col gap-sm">
         <CheckboxRow
           label="Resolve button"
@@ -239,7 +263,7 @@ export function WebChatSetupSettings({
           {duringEnabled && (
             <CheckboxRowField>
               <FallbackField
-                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                prefix="We're not available right now. Our team will follow up during business hours. You can also reach us at"
                 chipLabel="business.phone"
               />
             </CheckboxRowField>
@@ -296,7 +320,7 @@ export function TextSetupSettings({
           {beforeEnabled && (
             <CheckboxRowField>
               <FallbackField
-                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                prefix="We're not available right now. Our team will follow up during business hours. You can also reach us at"
                 chipLabel="business.phone"
               />
             </CheckboxRowField>

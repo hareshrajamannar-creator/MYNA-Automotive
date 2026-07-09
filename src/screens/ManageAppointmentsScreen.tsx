@@ -18,6 +18,7 @@ import {
   TopNav,
   QuickViewDrawer,
   PatientCell,
+  BookAppointmentDrawer,
   type AppointmentTimescale,
   type AppointmentView,
   type ChipVariant,
@@ -174,6 +175,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?:
   const [toastVisible, setToastVisible] = useState(false)
   const [activityRow, setActivityRow] = useState<Appointment | null>(null)
   const [quickViewRow, setQuickViewRow] = useState<QuickViewAppointment | null>(null)
+  const [bookApptOpen, setBookApptOpen] = useState(false)
 
 
   const isToday = date.toDateString() === BASE_DATE.toDateString()
@@ -287,19 +289,22 @@ export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?:
 
               <button
                 type="button"
+                onClick={() => setBookApptOpen(true)}
                 className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
                 Book an appointment
               </button>
 
-              <button
-                type="button"
-                aria-label="Customize columns"
-                onClick={() => setCustomizeOpen(true)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-              >
-                <Icon name="view_column" size={20} />
-              </button>
+              {view !== 'calendar' && (
+                <button
+                  type="button"
+                  aria-label="Customize columns"
+                  onClick={() => setCustomizeOpen(true)}
+                  className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                >
+                  <Icon name="view_column" size={20} />
+                </button>
+              )}
 
               <button
                 type="button"
@@ -398,6 +403,11 @@ export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?:
         open={quickViewRow !== null}
         appointment={quickViewRow}
         onClose={() => setQuickViewRow(null)}
+      />
+
+      <BookAppointmentDrawer
+        open={bookApptOpen}
+        onClose={() => setBookApptOpen(false)}
       />
 
       <Toast
