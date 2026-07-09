@@ -422,7 +422,7 @@ export function ManageTreatmentPlansScreen() {
             {groups.length === 0 ? (
               <div className="flex h-48 items-center justify-center text-body text-text-tertiary">No treatment plans found.</div>
             ) : (
-              <div className="overflow-x-auto rounded-sm border border-border">
+              <div className="overflow-x-auto">
                 <table className="border-collapse text-body" style={{ minWidth: '100%', width: 'max-content' }}>
                   <thead>
                     <tr className="border-b border-border bg-surface text-left text-small text-text-secondary">
