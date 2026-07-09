@@ -5,7 +5,6 @@ import {
   Icon,
   MetricTiles,
   Tabs,
-  TestCallModal,
   TopNav,
   type ChipVariant,
   type Column,
@@ -284,7 +283,6 @@ export function AgentInstanceScreen({
   const [activeTab, setActiveTab] = useState('outcomes')
   const [actionsOpen, setActionsOpen] = useState(false)
   const [instanceStatus, setInstanceStatus] = useState(status)
-  const [testCallOpen, setTestCallOpen] = useState(false)
 
   // Derive agent name from instance name (e.g. "Front desk agent - North region" → "Front desk agent")
   const agentName = instanceName.replace(/ - .+$/, '')
@@ -395,19 +393,12 @@ export function AgentInstanceScreen({
         <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
-      <TestCallModal
-        open={testCallOpen}
-        agentName={agentName}
-        onClose={() => setTestCallOpen(false)}
-      />
-
       {/* Tab content — workflow and recommendation tabs fill remaining height, others scroll */}
       {isWorkflowTab ? (
         <WorkflowViewerTab
           instanceName={instanceName}
           onEdit={() => onEditAgent?.(instanceName)}
           product={product}
-          onTestCall={() => setTestCallOpen(true)}
         />
       ) : isRecommendationTab ? (
         <div className="flex min-h-0 flex-1 overflow-hidden">

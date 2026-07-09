@@ -38,8 +38,7 @@ export function RefChip({ kind, label, onRemove, className = '' }: RefChipProps)
           type="button"
           className={styles.deleteBtn}
           aria-label={`Remove ${label}`}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={onRemove}
+          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
         >
           <Icon name="close" size={14} className="text-text-icon" />
         </button>

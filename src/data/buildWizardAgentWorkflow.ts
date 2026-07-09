@@ -1,5 +1,6 @@
 import type { AgentWorkflow } from './agentWorkflows'
 import type { WizardAgentDraft } from './wizardAgentConfig.types'
+import { WIZARD_LOCATIONS } from './wizardLocations'
 
 const WIZARD_NODES: AgentWorkflow['nodes'] = [
   {
@@ -49,6 +50,13 @@ export function buildWizardAgentWorkflow(draft: WizardAgentDraft): AgentWorkflow
 
   const channels = channelDescription(draft)
 
+  const locations = draft.selectedLocationIds
+    .map((id) => {
+      const loc = WIZARD_LOCATIONS.find((l) => l.id === id)
+      return loc ? { id: loc.id, name: loc.name } : null
+    })
+    .filter((loc): loc is { id: string; name: string } => loc !== null)
+
   return {
     nodes: WIZARD_NODES,
     nodeDetails: {
@@ -62,7 +70,7 @@ export function buildWizardAgentWorkflow(draft: WizardAgentDraft): AgentWorkflow
           '3. No patient is left waiting without a response or a clear next step',
           '4. Escalations include a full summary of the conversation and identified intent',
         ].join('\n'),
-        locations: [],
+        locations,
       },
       'fd-1': {
         triggerName: 'Conversation trigger',

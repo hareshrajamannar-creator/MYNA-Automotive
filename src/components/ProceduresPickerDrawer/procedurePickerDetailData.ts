@@ -12,6 +12,8 @@ export interface ProcedureDetailDraft {
   contextChips: { value: string; type: string }[]
   moreContextCount: number
   stepsText: string
+  procedureType: 'Inbound' | 'Outbound'
+  addToLibrary?: boolean
 }
 
 export const NEW_PROCEDURE_ID = '__new__'
@@ -24,6 +26,7 @@ export function createNewProcedureDraft(): ProcedureDetailDraft {
     contextChips: [],
     moreContextCount: 0,
     stepsText: '',
+    procedureType: 'Inbound',
   }
 }
 
@@ -415,5 +418,6 @@ export function buildProcedureDetailDraft(catalogId: string, displayTitle: strin
     contextChips: hcContext.length ? hcContext : (base.contextChips ?? []) as { value: string; type: string }[],
     moreContextCount: hcContext.length ? 0 : (base.moreContextCount ?? 0),
     stepsText: overrides.stepsText ?? resolveStepsText(catalogId, displayTitle),
+    procedureType: hc?.queue ?? 'Inbound',
   }
 }

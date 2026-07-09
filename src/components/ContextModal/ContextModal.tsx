@@ -14,10 +14,6 @@ import type {
 
 const TABS: ContextModalTab[] = ['Fields', 'Knowledge', 'Brand', 'Industry']
 
-const ANONYMIZE_TOOLTIP =
-  'Mask sensitive data before sending it to LLM. Example: +11234568998 → +16*9'
-const SHOW_OUTPUT_TOOLTIP = 'When enabled, the LLM may include this field in its response.'
-
 function CheckBox({
   checked,
   onChange,
@@ -40,24 +36,6 @@ function CheckBox({
     >
       {checked && <Icon name="check" size={14} weight={500} className="text-white" />}
     </button>
-  )
-}
-
-function InfoTooltip({ text }: { text: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <span
-      className="relative inline-flex"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <Icon name="info" size={16} className="text-text-tertiary" />
-      {open && (
-        <span className="absolute bottom-full left-1/2 z-30 mb-xs w-[240px] -translate-x-1/2 rounded-sm bg-text-primary px-md py-sm text-small text-white shadow-dropdown">
-          {text}
-        </span>
-      )}
-    </span>
   )
 }
 
@@ -99,14 +77,12 @@ function FieldGroup({
   fields,
   totalInGroup,
   onToggleEnabled,
-  onToggleField,
   defaultOpen = true,
 }: {
   groupName: string
   fields: ContextField[]
   totalInGroup: number
   onToggleEnabled: (id: number) => void
-  onToggleField: (id: number, key: 'anonymize' | 'showInOutput') => void
   defaultOpen?: boolean
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -150,20 +126,6 @@ function FieldGroup({
             </div>
             <div className="w-[120px] shrink-0 text-body text-text-secondary">{field.source}</div>
             <div className="w-[200px] shrink-0 text-body text-text-secondary">{field.sampleData}</div>
-            <div className="flex w-[140px] shrink-0 justify-center">
-              <CheckBox
-                checked={field.anonymize}
-                onChange={() => onToggleField(field.id, 'anonymize')}
-                ariaLabel={`Anonymize ${field.name}`}
-              />
-            </div>
-            <div className="flex w-[140px] shrink-0 justify-center">
-              <CheckBox
-                checked={field.showInOutput}
-                onChange={() => onToggleField(field.id, 'showInOutput')}
-                ariaLabel={`Show ${field.name} in output`}
-              />
-            </div>
           </div>
         ))}
     </div>
@@ -203,9 +165,6 @@ function FieldsTab({
   const toggleEnabled = (id: number) =>
     setFields((prev) => prev.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f)))
 
-  const toggleField = (id: number, key: 'anonymize' | 'showInOutput') =>
-    setFields((prev) => prev.map((f) => (f.id === id ? { ...f, [key]: !f[key] } : f)))
-
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-2xl py-sm">
@@ -238,14 +197,6 @@ function FieldsTab({
             <Icon name="expand_more" size={16} className="text-text-icon" />
           </div>
           <div className="w-[200px] shrink-0 text-small text-text-secondary">Sample data</div>
-          <div className="flex w-[140px] shrink-0 items-center justify-center gap-xs text-small text-text-secondary">
-            Anonymize
-            <InfoTooltip text={ANONYMIZE_TOOLTIP} />
-          </div>
-          <div className="flex w-[140px] shrink-0 items-center justify-center gap-xs text-small text-text-secondary">
-            Show in output
-            <InfoTooltip text={SHOW_OUTPUT_TOOLTIP} />
-          </div>
         </div>
 
         {groups.map(([groupName, groupFields], idx) => (
@@ -255,7 +206,6 @@ function FieldsTab({
             fields={groupFields}
             totalInGroup={groupName === 'Business' ? 100 : groupFields.length}
             onToggleEnabled={toggleEnabled}
-            onToggleField={toggleField}
             defaultOpen={idx === 0}
           />
         ))}

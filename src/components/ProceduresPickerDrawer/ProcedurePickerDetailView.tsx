@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { BackArrowIcon } from '../../assets/BackArrowIcon'
+import { Icon } from '../Icon/Icon'
 import ProcedureDetailBody from '../../workflow/Organisms/Panels/RHS/ProcedureDetailBody.jsx'
 import type { ProcedureDetailDraft } from './procedurePickerDetailData'
 import styles from './ProceduresPickerDrawer.module.css'
@@ -20,6 +21,7 @@ export function ProcedurePickerDetailView({
   onCancel,
 }: ProcedurePickerDetailViewProps) {
   const [local, setLocal] = useState(draft)
+  const [saveMenuOpen, setSaveMenuOpen] = useState(false)
 
   const handleFieldChange = useCallback((field: string, value: unknown) => {
     setLocal((current) => ({ ...current, [field]: value }))
@@ -30,6 +32,12 @@ export function ProcedurePickerDetailView({
     : true
 
   const headerTitle = isNew ? 'New procedure' : local.name
+
+  const commitSave = (addToLibrary = false) => {
+    if (!canSave) return
+    onSave({ ...local, addToLibrary })
+    setSaveMenuOpen(false)
+  }
 
   return (
     <>
@@ -50,44 +58,84 @@ export function ProcedurePickerDetailView({
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-sm">
-          <button
-            type="button"
-            onClick={onCancel ?? onBack}
-            className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={!canSave}
-            onClick={() => canSave && onSave(local)}
-            className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
-              canSave
-                ? 'bg-primary text-white hover:bg-primary-hover'
-                : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
-            }`}
-          >
-            Save
-          </button>
+          {isNew && (
+            <button
+              type="button"
+              onClick={onCancel ?? onBack}
+              className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
+            >
+              Cancel
+            </button>
+          )}
+          <div className="relative">
+            <div className="flex h-9 overflow-hidden rounded-sm">
+              <button
+                type="button"
+                disabled={!canSave}
+                onClick={() => commitSave(false)}
+                className={`flex h-9 items-center px-lg text-body transition-colors ${
+                  canSave
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
+                }`}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                disabled={!canSave}
+                aria-label="More save options"
+                aria-expanded={saveMenuOpen}
+                onClick={() => canSave && setSaveMenuOpen((open) => !open)}
+                className={`flex h-9 items-center border-l border-white/30 px-sm transition-colors ${
+                  canSave
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
+                }`}
+              >
+                <Icon name="expand_more" size={16} />
+              </button>
+            </div>
+            {saveMenuOpen && canSave && (
+              <>
+                <div
+                  className="fixed inset-0 z-[105]"
+                  onClick={() => setSaveMenuOpen(false)}
+                  aria-hidden
+                />
+                <div className="absolute right-0 top-full z-[110] mt-xs min-w-[220px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+                  <button
+                    type="button"
+                    onClick={() => commitSave(true)}
+                    className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+                  >
+                    Save and add to library
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       <div className={`${styles.detailBody} flex-1 overflow-y-auto px-2xl pb-2xl`}>
         <div className="w-full max-w-[700px]">
           <ProcedureDetailBody
-          initialValues={{
-            id: local.id,
-            name: local.name,
-            whenToUse: local.whenToUse,
-            contextChips: local.contextChips,
-            moreContextCount: local.moreContextCount,
-            stepsText: local.stepsText,
-          }}
-          onFieldChange={handleFieldChange}
-          viewOnly={false}
-          showTitle={isNew}
-          contextEditable={isNew}
-        />
+            initialValues={{
+              id: local.id,
+              name: local.name,
+              whenToUse: local.whenToUse,
+              contextChips: local.contextChips,
+              moreContextCount: local.moreContextCount,
+              stepsText: local.stepsText,
+              procedureType: local.procedureType,
+            }}
+            onFieldChange={handleFieldChange}
+            viewOnly={false}
+            showTitle={isNew}
+            showTypeField
+            contextEditable={isNew}
+          />
         </div>
       </div>
     </>
