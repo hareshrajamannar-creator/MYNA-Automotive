@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Chip, DataTable, MetricTiles, type ChipVariant, type Column } from '../components'
 import {
   HEALTHCARE_LOGS_METRICS,
@@ -7,7 +6,6 @@ import {
   type HealthcareLogRow,
   type PrevisitLogRow,
 } from '../data/healthcareAgentLogs'
-import { RunDetailView } from './RunDetailView'
 
 const STATUS_VARIANT: Record<string, ChipVariant> = {
   Resolved: 'success',
@@ -31,8 +29,8 @@ const LOG_COLUMNS: Column<HealthcareLogRow>[] = [
 ]
 
 const PREVISIT_STATUS_VARIANT: Record<string, ChipVariant> = {
-  Complete:      'success',
-  Failed:        'danger',
+  Complete: 'success',
+  Failed: 'danger',
   'In progress': 'warning',
 }
 
@@ -43,24 +41,22 @@ const PREVISIT_COLUMNS: Column<PrevisitLogRow>[] = [
     label: 'Status',
     width: 140,
     sortable: true,
-    render: (v) => <Chip label={String(v)} variant={PREVISIT_STATUS_VARIANT[String(v)] ?? 'neutral'} />,
+    render: (v) => (
+      <Chip label={String(v)} variant={PREVISIT_STATUS_VARIANT[String(v)] ?? 'neutral'} />
+    ),
   },
-  { key: 'contact',  label: 'Contact',  width: 200, sortable: true },
-  { key: 'channel',  label: 'Channel',  width: 120, sortable: true },
+  { key: 'contact', label: 'Contact', width: 200, sortable: true },
+  { key: 'channel', label: 'Channel', width: 120, sortable: true },
   { key: 'duration', label: 'Duration', width: 110, sortable: true },
 ]
 
 interface AgentLogsTabProps {
   agentName?: string
+  onNavigateToInbox?: () => void
+  onViewRun?: (row: HealthcareLogRow) => void
 }
 
-export function AgentLogsTab({ agentName }: AgentLogsTabProps) {
-  const [selectedRun, setSelectedRun] = useState<HealthcareLogRow | null>(null)
-
-  if (selectedRun) {
-    return <RunDetailView row={selectedRun} onBack={() => setSelectedRun(null)} />
-  }
-
+export function AgentLogsTab({ agentName, onViewRun }: AgentLogsTabProps) {
   if (agentName === 'Pre-visit agent' || agentName === 'Waitlist agent') {
     return (
       <div className="px-lg py-lg">
@@ -85,7 +81,7 @@ export function AgentLogsTab({ agentName }: AgentLogsTabProps) {
           rowAction={{
             icon: 'visibility',
             label: 'View run',
-            onClick: (row) => setSelectedRun(row as HealthcareLogRow),
+            onClick: (row) => onViewRun?.(row as HealthcareLogRow),
           }}
         />
       </div>

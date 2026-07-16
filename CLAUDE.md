@@ -149,6 +149,7 @@ If a component exists here, import it — do not recreate it.
 | CustomizeColumnsDrawer | components/CustomizeColumnsDrawer/CustomizeColumnsDrawer.tsx | open, options[] (key,label,locked?), visibleKeys[], onClose, onSave, onRestoreDefault |
 | FilterPanel | components/FilterPanel/FilterPanel.tsx | open, fields[] (id,label,options?,multi?), onClose?, onSaveView?, onAdvancedFilters? — 280px right push-panel; opens SelectMenu per field |
 | SelectMenu | components/SelectMenu/SelectMenu.tsx | options[] (value,label), value[], multi?, searchable?, onChange, onApply? — single/multi-select dropdown menu (no redundant field label inside) |
+| LanguageSelectMenu | components/LanguageSelectMenu/LanguageSelectMenu.tsx | options[] (id,label,countryCode), value?/values?, multi?, onSelect?/onChange? — searchable language picker with circular flags; multi uses checkboxes; always opens below the field (LanguageFlag exported too) |
 | StatusFilterDropdown | components/StatusFilterDropdown/StatusFilterDropdown.tsx | value[] (status ids), onChange, onApply — 256px calendar status filter panel (checkboxes + status icons + Apply footer); use with fixed anchor positioning |
 | ChartCard | components/charts/ChartCard.tsx | title, toolbar?, showActions?, children — titled card shell for charts |
 | SummaryStats | components/charts/SummaryStats.tsx | title?, stats[] ({id,value,label,delta?,trend?}) — KPI row with up/down deltas |
@@ -161,6 +162,7 @@ If a component exists here, import it — do not recreate it.
 | InfoCardListItem | components/InfoCard/InfoCardListItem.tsx | title, description, actionLabel?, onAction?, first? — library list row; title text-text-primary, description line-clamp-2, three-dot menu + "Use agent" on row hover (`INFO_CARD_LIST_ITEM_LAYOUT`) |
 | RefChip | components/RefChip/RefChip.tsx | kind ('tool'\|'context'\|'subagent'\|'procedure'\|'file'\|'link'), label, onRemove?, className? — reference chip that **reuses the workflow editor's `VariableChip.module.css`** (left colored swatch + divider, white body, per-type border) so procedure Tools/Context chips match the workflow variable fields. Maps kind→workflow chip type: context→variable (blue brackets), tool→Tool, file→Attachment, link→Link, subagent→Address, procedure→Product. Used inline in the Steps editor and in the Tools/Context side panels |
 | ContextModal | components/ContextModal/ContextModal.tsx | open, onClose, onSave(result) — centered 1200px modal for adding LLM context: Fields (search + Business accordion with Name/Source/Sample/Anonymize/Show-in-output), Knowledge (files/links), Brand (checkbox list), Industry (toggle); Save commits enabled selections |
+| LogDetailsPanel | components/LogDetailsPanel/LogDetailsPanel.tsx | row (HealthcareLogRow), callerNumber?, sidNumber?, languageDetected?, callEndReason?, routedVia?, summary?, transcript?, durationSecs?, onViewConversation? — conversation details side panel (meta card, collapsible AI summary, call recording, call transcript) |
 
 ### How to add a component to this registry
 

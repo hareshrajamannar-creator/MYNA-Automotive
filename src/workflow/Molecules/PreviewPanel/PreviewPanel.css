@@ -38,6 +38,16 @@
   pointer-events: auto;
 }
 
+/* Wider float wrap for healthcare log-details panel */
+.preview-panel-float-wrap--log-details {
+  width: 500px;
+}
+
+.preview-panel-float-wrap--log-details .log-details-panel,
+.preview-panel-float-wrap--log-details .preview-panel {
+  width: 480px;
+}
+
 /* ── Header ── */
 .preview-panel__header {
   display: flex;

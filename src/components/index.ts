@@ -28,6 +28,13 @@ export { IntakeFormPreviewDrawer } from './IntakeFormPreviewDrawer/IntakeFormPre
 export { InfoCard } from './InfoCard/InfoCard'
 export { InfoCardListItem } from './InfoCard/InfoCardListItem'
 export { Link } from './Link/Link'
+export { LogDetailsPanel } from './LogDetailsPanel/LogDetailsPanel'
+export type {
+  LogDetailsPanelProps,
+  LogDetailsMetric,
+  LogTranscriptEntry,
+  LogToolCall,
+} from './LogDetailsPanel/LogDetailsPanel.types'
 export { Icon } from './Icon/Icon'
 export { IconRail } from './IconRail/IconRail'
 export { SideNav } from './SideNav/SideNav'
@@ -35,6 +42,7 @@ export { TopNav } from './TopNav/TopNav'
 export { PageHeader } from './PageHeader/PageHeader'
 export { RefChip } from './RefChip/RefChip'
 export { SelectMenu } from './SelectMenu/SelectMenu'
+export { LanguageSelectMenu, LanguageFlag } from './LanguageSelectMenu/LanguageSelectMenu'
 export { StatusFilterDropdown } from './StatusFilterDropdown/StatusFilterDropdown'
 export { SetupAppointmentDrawer } from './SetupAppointmentDrawer/SetupAppointmentDrawer'
 export { BookAppointmentDrawer } from './BookAppointmentDrawer/BookAppointmentDrawer'

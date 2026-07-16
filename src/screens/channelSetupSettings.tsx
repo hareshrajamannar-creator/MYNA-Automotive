@@ -1,5 +1,5 @@
-import { useRef, useState, type ReactNode } from 'react'
-import { Icon, RefChip } from '../components'
+import { useRef, type ReactNode } from 'react'
+import { Icon } from '../components'
 import type { TextChannelSettings, WebChatChannelSettings } from './channelSetupSettings.types'
 
 const FIELD_BORDER_CLASS =
@@ -86,6 +86,14 @@ function CheckboxRowField({ children }: { children: ReactNode }) {
   )
 }
 
+function formatFallbackChipLabel(label: string): string {
+  return label
+    .split(/[._\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('')
+}
+
 function FallbackField({
   prefix,
   chipLabel,
@@ -95,7 +103,6 @@ function FallbackField({
   chipLabel: string
   suffix?: string
 }) {
-  const [showChip, setShowChip] = useState(true)
   const bodyRef = useRef<HTMLDivElement>(null)
 
   return (
@@ -108,30 +115,13 @@ function FallbackField({
         onMouseDown={() => bodyRef.current?.focus()}
         className="min-h-[80px] cursor-text px-md pt-sm pb-xs text-body leading-[1.7] text-text-primary outline-none"
       >
-        <span>{prefix}</span>
-        {showChip && (
-          <>
-            {' '}
-            <RefChip kind="context" label={chipLabel} onRemove={() => setShowChip(false)} />
-          </>
-        )}
+        <span>{prefix}</span>{' '}
+        <span className="mx-[2px] inline-flex h-7 items-center rounded-sm bg-chip-neutral-bg px-sm align-middle text-small text-chip-neutral-text">
+          {formatFallbackChipLabel(chipLabel)}
+        </span>
         {suffix && <span>{suffix}</span>}
       </div>
       <div className="flex items-center gap-[2px] bg-surface px-sm py-[6px]">
-        <button
-          type="button"
-          title="AI personalise"
-          className="flex h-7 items-center gap-[3px] rounded-sm px-[6px] text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-            <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.25" />
-            <text x="8" y="11.5" textAnchor="middle" fontSize="7.5" fill="currentColor" fontFamily="sans-serif">
-              Ai
-            </text>
-            <path d="M12 1.5 L13 3 L14 1.5 L13 0 Z" fill="#7C3AED" />
-          </svg>
-          <span className="sr-only">AI</span>
-        </button>
         <button
           type="button"
           title="Emoji"
@@ -180,8 +170,6 @@ export function WebChatSetupSettings({
 }) {
   const {
     aiAgentName,
-    resolvedEnabled,
-    resolvedName,
     escalationEnabled,
     escalationName,
     duringEnabled,
@@ -189,10 +177,10 @@ export function WebChatSetupSettings({
   } = settings
 
   return (
-    <div className="flex flex-col gap-[40px]">
+    <div className="flex flex-col gap-xl">
       <div className="flex flex-col gap-sm">
         <div>
-          <label className="text-body text-text-primary">Chat agent name</label>
+          <label className="text-body text-text-primary">AI agent name</label>
           <p className="mt-[2px] text-small text-text-secondary">
             Name shown to patients in the chat
           </p>
@@ -207,27 +195,7 @@ export function WebChatSetupSettings({
           }`}
         />
         {chatAgentNameError && (
-          <p className="text-small text-chip-danger-text">Enter a chat agent name</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-sm">
-        <CheckboxRow
-          label="Resolve button"
-          description="A quick reply button patients can tap when their question is answered"
-          checked={resolvedEnabled}
-          onChange={(v) => onSettingsChange({ resolvedEnabled: v })}
-        />
-        {resolvedEnabled && (
-          <CheckboxRowField>
-            <label className="mb-xs block text-small text-text-secondary">Button name</label>
-            <input
-              type="text"
-              value={resolvedName}
-              onChange={(e) => onSettingsChange({ resolvedName: e.target.value })}
-              className={`${INPUT_CLASS} h-9`}
-            />
-          </CheckboxRowField>
+          <p className="text-small text-chip-danger-text">Enter an AI agent name</p>
         )}
       </div>
 

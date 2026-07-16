@@ -1,9 +1,7 @@
-import { useState, type ReactNode } from 'react'
-import { Icon } from '../components'
+import { type ReactNode } from 'react'
+import { Icon, LanguageFlag } from '../components'
 import type { HealthcareProcedureCatalogItem } from '../data/healthcareProcedureCatalog'
 import type { WizardLocation } from '../data/wizardLocations'
-import PreviewPanel from '../workflow/Molecules/PreviewPanel/PreviewPanel'
-import '../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 import {
   TEXT_FALLBACK_AFTER,
   TEXT_FALLBACK_BEFORE,
@@ -12,34 +10,37 @@ import {
   type TextChannelSettings,
   type WebChatChannelSettings,
 } from './channelSetupSettings.types'
+import { getAgentLanguage } from '../data/agentLanguages'
+import type { AgentLanguageId } from '../data/agentLanguages'
 
 type ChannelId = 'voice' | 'webchat' | 'text' | 'email' | 'facebook' | 'instagram'
 type RecordingMode = 'off' | 'announced' | 'silent'
 
-const READONLY_LABEL_CLASS = 'mb-xs block text-small text-text-tertiary'
+interface AdditionalVoiceConfig {
+  label: string
+  voice: string
+  language: AgentLanguageId
+  whenToUse: string
+  speed: number
+}
 
-const READONLY_FIELD_CLASS =
-  'w-full cursor-default select-none rounded-sm border border-border bg-surface-l2 px-md text-body text-text-tertiary'
+const LABEL_CLASS = 'text-small text-text-secondary'
 
-const READONLY_LOCATIONS_CONTAINER_CLASS =
-  'flex min-h-[98px] flex-wrap content-start gap-sm rounded-sm border border-border bg-surface-l2 p-md'
+const FIELD_CLASS =
+  'w-full rounded-sm border border-border bg-surface px-md text-body text-text-primary'
 
-const READONLY_LOCATION_PILL_CLASS =
-  'rounded-sm border border-border bg-surface px-md py-xs text-small text-text-tertiary'
-
-
-function ReviewSectionHeader({
+function SectionHeader({
   title,
-  editAriaLabel,
   onEdit,
+  editAriaLabel,
 }: {
   title: string
-  editAriaLabel: string
   onEdit: () => void
+  editAriaLabel: string
 }) {
   return (
     <div className="mb-lg flex items-center gap-xs">
-      <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+      <h3 className="text-h3 text-text-primary">{title}</h3>
       <button
         type="button"
         onClick={onEdit}
@@ -52,60 +53,66 @@ function ReviewSectionHeader({
   )
 }
 
-function ReviewAccordion({
-  title,
-  children,
-  defaultOpen = true,
-}: {
-  title: string
-  children: ReactNode
-  defaultOpen?: boolean
-}) {
-  const [open, setOpen] = useState(defaultOpen)
+function FieldGroup({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-lg">{children}</div>
+}
 
+function ReadField({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-surface">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-14 w-full items-center justify-between px-lg text-left hover:bg-surface-l2"
-      >
-        <span className="text-body text-text-primary">{title}</span>
-        <Icon name={open ? 'expand_less' : 'expand_more'} size={20} className="shrink-0 text-text-icon" />
-      </button>
-      {open && <div className="flex flex-col gap-lg px-lg pb-lg pt-md">{children}</div>}
+    <div className="flex flex-col gap-xs">
+      <label className={LABEL_CLASS}>{label}</label>
+      {children}
     </div>
   )
 }
 
-function ReviewField({
-  label,
-  value,
-  multiline = false,
-}: {
-  label: string
-  value: string
-  multiline?: boolean
-}) {
+function TextBox({ value, multiline = false }: { value: string; multiline?: boolean }) {
+  if (multiline) {
+    return (
+      <div className={`${FIELD_CLASS} min-h-[160px] whitespace-pre-wrap py-sm leading-relaxed`}>
+        {value || '—'}
+      </div>
+    )
+  }
+  return <div className={`${FIELD_CLASS} flex h-9 items-center`}>{value || '—'}</div>
+}
+
+function ChipBox({ children }: { children: ReactNode }) {
   return (
-    <div>
-      <label className={READONLY_LABEL_CLASS}>{label}</label>
-      {multiline ? (
-        <div className={`${READONLY_FIELD_CLASS} min-h-[80px] whitespace-pre-wrap py-md leading-relaxed`}>
-          {value}
-        </div>
-      ) : (
-        <div className={`${READONLY_FIELD_CLASS} flex h-9 items-center`}>{value}</div>
-      )}
+    <div className="flex min-h-[52px] flex-wrap items-start gap-sm rounded-sm border border-border bg-surface px-md py-sm">
+      {children}
     </div>
   )
 }
 
+function Pill({ label }: { label: string }) {
+  return (
+    <span className="flex h-7 items-center rounded-sm border border-border bg-surface px-md text-small text-text-secondary">
+      {label}
+    </span>
+  )
+}
+
+function LanguageChip({ id }: { id: string }) {
+  const lang = getAgentLanguage(id as AgentLanguageId)
+  return (
+    <span className="flex h-7 items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm text-body text-text-primary">
+      <LanguageFlag countryCode={lang.countryCode} label={lang.label} size="sm" />
+      {lang.label}
+    </span>
+  )
+}
 
 export interface ReviewSummaryStepProps {
   agentName: string
+  systemPrompt: string
+  language: string
+  additionalLanguages: string[]
   selectedChannels: Set<ChannelId>
   voice: string
+  additionalVoices: string[]
+  additionalVoiceConfigs?: AdditionalVoiceConfig[]
+  voiceSpeed?: number
   greeting: string
   recording: RecordingMode
   consent: string
@@ -119,46 +126,14 @@ export interface ReviewSummaryStepProps {
   onViewProcedure: (id: string) => void
 }
 
-function ReviewProcedureCard({
-  title,
-  description,
-  onView,
-}: {
-  title: string
-  description: string
-  onView: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`relative flex min-h-[148px] flex-col rounded-md border p-xl transition-colors ${
-        hovered ? 'border-border-selected bg-surface-l2' : 'border-border-selected bg-surface'
-      }`}
-    >
-      {hovered && (
-        <button
-          type="button"
-          onClick={onView}
-          className="absolute right-xl top-xl text-body text-text-action hover:text-primary-hover"
-        >
-          View
-        </button>
-      )}
-
-      <Icon name="menu_book" size={20} className="mb-md shrink-0 text-text-icon" />
-      <h4 className="mb-xs pr-lg text-body text-text-primary">{title}</h4>
-      <p className="line-clamp-3 text-body text-text-secondary">{description}</p>
-    </div>
-  )
-}
-
 export function ReviewSummaryStep({
   agentName,
+  systemPrompt,
+  language,
+  additionalLanguages,
   selectedChannels,
   voice,
+  additionalVoiceConfigs = [],
   greeting,
   recording,
   consent,
@@ -173,199 +148,221 @@ export function ReviewSummaryStep({
 }: ReviewSummaryStepProps) {
   const selectedLocations = locations.filter((l) => selectedLocationIds.includes(l.id))
   const selectedProcedures = procedures.filter((p) => selectedProcedureIds.includes(p.id))
+  const primaryLang = getAgentLanguage(language as AgentLanguageId)
 
   return (
-    <div className="flex w-full gap-2xl">
-      <div className="min-w-0 flex-1 space-y-2xl">
-        <div>
-          <h2 className="text-h3 text-text-primary">Review summary</h2>
-          <p className="mt-[2px] text-small text-text-tertiary">
-            Review your configurations before creating the agent.
-          </p>
-        </div>
+    <div className="w-full max-w-[700px] flex flex-col gap-2xl">
+      <div>
+        <h2 className="text-h3 text-text-primary">Review summary</h2>
+        <p className="mt-[2px] text-small text-text-tertiary">
+          Review your configurations before creating the agent
+        </p>
+      </div>
 
-        <section>
-          <ReviewSectionHeader
-            title="Getting started"
-            editAriaLabel="Edit getting started"
-            onEdit={() => onEditStep(1)}
-          />
+      {/* Getting started */}
+      <section className="flex flex-col gap-0">
+        <SectionHeader title="Getting started" editAriaLabel="Edit getting started" onEdit={() => onEditStep(1)} />
+        <FieldGroup>
+          <ReadField label="Name">
+            <TextBox value={agentName} />
+          </ReadField>
 
-          <div className="space-y-lg">
-            <div>
-              <label className={READONLY_LABEL_CLASS}>Name</label>
-              <div className={`${READONLY_FIELD_CLASS} flex h-9 items-center`}>
-                {agentName || '—'}
-              </div>
+          <ReadField label="Locations">
+            {selectedLocations.length === 0 ? (
+              <ChipBox><span className="text-body text-text-tertiary">No locations selected</span></ChipBox>
+            ) : (
+              <ChipBox>
+                {selectedLocations.map((loc) => (
+                  <Pill key={loc.id} label={loc.name} />
+                ))}
+              </ChipBox>
+            )}
+          </ReadField>
+        </FieldGroup>
+      </section>
+
+      {/* Configure agent */}
+      <section className="flex flex-col gap-0">
+        <SectionHeader title="Configure agent" editAriaLabel="Edit configure agent" onEdit={() => onEditStep(2)} />
+        <FieldGroup>
+          <ReadField label="System prompt *">
+            <TextBox value={systemPrompt} multiline />
+          </ReadField>
+
+          <ReadField label="Language">
+            <p className="-mt-[2px] text-small text-text-tertiary">
+              Choose the default and additional languages the agent will communicate in.
+            </p>
+            <div className={`${FIELD_CLASS} flex h-9 items-center gap-sm`}>
+              <LanguageFlag countryCode={primaryLang.countryCode} label={primaryLang.label} />
+              <span className="flex-1">{primaryLang.label}</span>
+              <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
             </div>
+          </ReadField>
 
-            <div>
-              <label className={READONLY_LABEL_CLASS}>Locations</label>
-              {selectedLocations.length === 0 ? (
-                <div className={`${READONLY_FIELD_CLASS} flex h-16 items-center justify-center text-text-tertiary`}>
-                  No locations selected.
-                </div>
-              ) : (
-                <div className={READONLY_LOCATIONS_CONTAINER_CLASS}>
-                  {selectedLocations.map((location) => (
-                    <span key={location.id} className={READONLY_LOCATION_PILL_CLASS}>
-                      {location.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+          {additionalLanguages.length > 0 && (
+            <ReadField label="Additional language">
+              <ChipBox>
+                {additionalLanguages.map((id) => (
+                  <LanguageChip key={id} id={id} />
+                ))}
+                <Icon name="expand_more" size={18} className="ml-auto shrink-0 self-center text-text-icon" />
+              </ChipBox>
+            </ReadField>
+          )}
+        </FieldGroup>
+      </section>
+
+      {/* Channel configuration */}
+      <section className="flex flex-col gap-0">
+        <SectionHeader title="Channel configuration" editAriaLabel="Edit channel configuration" onEdit={() => onEditStep(3)} />
+
+        {selectedChannels.size === 0 ? (
+          <div className={`${FIELD_CLASS} flex h-16 items-center justify-center text-text-tertiary`}>
+            No channels selected.
           </div>
-        </section>
+        ) : (
+          <FieldGroup>
+            {selectedChannels.has('voice') && (
+              <>
+                <ReadField label="Default voice *">
+                  <div className={`${FIELD_CLASS} flex h-9 items-center gap-sm`}>
+                    <span className="flex-1">{voice || '—'}</span>
+                    <Icon name="chevron_right" size={20} className="shrink-0 text-text-icon" />
+                  </div>
+                </ReadField>
 
-        <section>
-          <ReviewSectionHeader
-            title="Channel configuration"
-            editAriaLabel="Edit channel configuration"
-            onEdit={() => onEditStep(2)}
-          />
+                {additionalVoiceConfigs.length > 0 && (
+                  <ReadField label="Additional voice">
+                    <ChipBox>
+                      {additionalVoiceConfigs.map((cfg) => {
+                        const lang = getAgentLanguage(cfg.language)
+                        return (
+                          <span
+                            key={cfg.label}
+                            className="flex h-7 items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm text-body text-text-primary"
+                          >
+                            <LanguageFlag countryCode={lang.countryCode} label={lang.label} size="sm" />
+                            {cfg.label}
+                          </span>
+                        )
+                      })}
+                    </ChipBox>
+                  </ReadField>
+                )}
 
-          {selectedChannels.size === 0 ? (
-            <div className={`${READONLY_FIELD_CLASS} flex h-16 items-center justify-center text-text-tertiary`}>
-              No channels selected.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-lg">
-              {selectedChannels.has('voice') && (
-                <>
-                  <ReviewField label="Voice" value={voice || '—'} />
-                  <ReviewField label="Greeting message" value={greeting || '—'} multiline />
-                  {recording === 'announced' && (
-                    <ReviewField
-                      label="Voice recording consent"
-                      value={consent || '—'}
-                      multiline
-                    />
-                  )}
-                  {recording === 'off' && <ReviewField label="Recording" value="Off" />}
-                  {recording === 'silent' && (
-                    <ReviewField label="Recording" value="Record silently" />
-                  )}
-                </>
-              )}
+                <ReadField label="Greeting message">
+                  <TextBox value={greeting} multiline />
+                </ReadField>
 
-              {selectedChannels.has('webchat') && (
-                <ReviewAccordion title="Web chat settings">
-                  <ReviewField label="Chat agent name" value={webchatSettings.aiAgentName || '—'} />
-                  {webchatSettings.resolvedEnabled && (
-                    <ReviewField label="Resolve button" value={webchatSettings.resolvedName} />
-                  )}
-                  {webchatSettings.escalationEnabled && (
-                    <ReviewField label="Escalation button" value={webchatSettings.escalationName} />
-                  )}
+                <ReadField label="Recording">
+                  <TextBox
+                    value={
+                      recording === 'off'
+                        ? 'Off'
+                        : recording === 'announced'
+                          ? 'Record with announced consent'
+                          : 'Record silently'
+                    }
+                  />
+                </ReadField>
+
+                {recording === 'announced' && consent && (
+                  <ReadField label="Consent message">
+                    <TextBox value={consent} multiline />
+                  </ReadField>
+                )}
+              </>
+            )}
+
+            {selectedChannels.has('webchat') && (
+              <ReadField label="Web chat settings">
+                <FieldGroup>
+                  <ReadField label="AI agent name">
+                    <TextBox value={webchatSettings.aiAgentName || '—'} />
+                  </ReadField>
                   {webchatSettings.duringEnabled && (
-                    <ReviewField
-                      label="Fallback message (during business hours)"
-                      value={WEBCHAT_FALLBACK_DURING}
-                      multiline
-                    />
+                    <ReadField label="Fallback message (during business hours)">
+                      <TextBox value={WEBCHAT_FALLBACK_DURING} multiline />
+                    </ReadField>
                   )}
                   {webchatSettings.afterEnabled && (
-                    <ReviewField
-                      label="Fallback message (after business hours)"
-                      value={WEBCHAT_FALLBACK_AFTER}
-                      multiline
-                    />
+                    <ReadField label="Fallback message (after business hours)">
+                      <TextBox value={WEBCHAT_FALLBACK_AFTER} multiline />
+                    </ReadField>
                   )}
-                </ReviewAccordion>
-              )}
+                </FieldGroup>
+              </ReadField>
+            )}
 
-              {selectedChannels.has('text') && (
-                <ReviewAccordion title="Text settings">
-                  <ReviewField
-                    label="Unsubscribe text"
-                    value={textSettings.unsubscribeEnabled ? 'Enabled' : 'Disabled'}
-                  />
+            {selectedChannels.has('text') && (
+              <ReadField label="Text settings">
+                <FieldGroup>
+                  <ReadField label="Unsubscribe text">
+                    <TextBox value={textSettings.unsubscribeEnabled ? 'Enabled' : 'Disabled'} />
+                  </ReadField>
                   {textSettings.beforeEnabled && (
-                    <ReviewField
-                      label="Fallback message (before business hours)"
-                      value={TEXT_FALLBACK_BEFORE}
-                      multiline
-                    />
+                    <ReadField label="Fallback message (before business hours)">
+                      <TextBox value={TEXT_FALLBACK_BEFORE} multiline />
+                    </ReadField>
                   )}
                   {textSettings.afterEnabled && (
-                    <ReviewField
-                      label="Fallback message (after business hours)"
-                      value={TEXT_FALLBACK_AFTER}
-                      multiline
-                    />
+                    <ReadField label="Fallback message (after business hours)">
+                      <TextBox value={TEXT_FALLBACK_AFTER} multiline />
+                    </ReadField>
                   )}
-                </ReviewAccordion>
-              )}
+                </FieldGroup>
+              </ReadField>
+            )}
+          </FieldGroup>
+        )}
+      </section>
 
-              {selectedChannels.has('email') && (
-                <div className="overflow-hidden rounded-md border border-border bg-surface">
-                  <div className="flex h-14 items-center px-lg">
-                    <span className="text-body text-text-primary">Email settings</span>
-                  </div>
-                  <div className="px-lg pb-lg pt-md">
-                    <p className="text-body text-text-secondary">
-                      No additional configuration required for this channel yet.
-                    </p>
-                  </div>
-                </div>
-              )}
+      {/* Procedures */}
+      <section className="flex flex-col gap-0">
+        <SectionHeader title="Procedures" editAriaLabel="Edit procedures" onEdit={() => onEditStep(4)} />
+        {selectedProcedures.length === 0 ? (
+          <div className={`${FIELD_CLASS} flex h-16 items-center justify-center text-text-tertiary`}>
+            No procedures selected.
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-lg">
+            {selectedProcedures.map((procedure) => (
+              <ProcedureCard
+                key={procedure.id}
+                title={procedure.title}
+                description={procedure.description}
+                onView={() => onViewProcedure(procedure.id)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
 
-              {selectedChannels.has('facebook') && (
-                <ReviewAccordion title="Facebook settings">
-                  <p className="text-body text-text-secondary">
-                    No additional configuration required for this channel yet.
-                  </p>
-                </ReviewAccordion>
-              )}
-
-              {selectedChannels.has('instagram') && (
-                <ReviewAccordion title="Instagram settings">
-                  <p className="text-body text-text-secondary">
-                    No additional configuration required for this channel yet.
-                  </p>
-                </ReviewAccordion>
-              )}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <ReviewSectionHeader
-            title="Procedures"
-            editAriaLabel="Edit procedures"
-            onEdit={() => onEditStep(3)}
-          />
-          {selectedProcedures.length === 0 ? (
-            <div className={`${READONLY_FIELD_CLASS} flex h-32 items-center justify-center text-text-tertiary`}>
-              No procedures selected.
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-lg">
-              {selectedProcedures.map((procedure) => (
-                <ReviewProcedureCard
-                  key={procedure.id}
-                  title={procedure.title}
-                  description={procedure.description}
-                  onView={() => onViewProcedure(procedure.id)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-
-      <div className="sticky top-0 w-[375px] shrink-0 self-start">
-        <div className="preview-panel preview-panel--embedded h-[calc(100vh-9rem)] min-h-[600px]">
-          <PreviewPanel
-            onClose={() => {}}
-            onPreviewActiveChange={() => {}}
-            showClose={false}
-            showViewDetails={false}
-            showViewLogs={false}
-          />
-        </div>
-      </div>
+function ProcedureCard({
+  title,
+  description,
+  onView,
+}: {
+  title: string
+  description: string
+  onView: () => void
+}) {
+  return (
+    <div className="group relative flex min-h-[148px] flex-col rounded-md border border-border bg-surface p-xl transition-colors hover:border-border-selected hover:bg-surface-l2">
+      <button
+        type="button"
+        onClick={onView}
+        className="absolute right-xl top-xl hidden text-body text-text-action hover:text-primary-hover group-hover:block"
+      >
+        View
+      </button>
+      <Icon name="menu_book" size={20} className="mb-md shrink-0 text-text-icon" />
+      <h4 className="mb-xs pr-lg text-body text-text-primary">{title}</h4>
+      <p className="line-clamp-3 text-body text-text-secondary">{description}</p>
     </div>
   )
 }

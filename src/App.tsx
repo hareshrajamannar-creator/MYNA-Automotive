@@ -461,6 +461,7 @@ export function App() {
             onEditAgent={handleEditAgent}
             onOpenIntegrationSettings={openIntegrationSettings}
             onAgentSetupActiveChange={setIsAgentSetupActive}
+            onNavigateToInbox={() => setRailActive('inbox')}
             product={activeProduct}
           />
         ) : (

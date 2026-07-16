@@ -19,6 +19,8 @@ import { AgentSettingsTab } from './AgentSettingsTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 import { RecommendationsTab } from './RecommendationsTab'
 import { FrontdeskRecommendationsTab } from './FrontdeskRecommendationsTab'
+import { RunDetailView } from './RunDetailView'
+import type { HealthcareLogRow } from '../data/healthcareAgentLogs'
 
 interface AgentInstanceScreenProps {
   instanceName: string
@@ -26,6 +28,7 @@ interface AgentInstanceScreenProps {
   onBack: () => void
   onEditAgent?: (agentName: string) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
+  onNavigateToInbox?: () => void
   product?: string
 }
 
@@ -278,11 +281,13 @@ export function AgentInstanceScreen({
   onBack,
   onEditAgent,
   onOpenIntegrationSettings,
+  onNavigateToInbox,
   product,
 }: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
   const [actionsOpen, setActionsOpen] = useState(false)
   const [instanceStatus, setInstanceStatus] = useState(status)
+  const [selectedRun, setSelectedRun] = useState<HealthcareLogRow | null>(null)
 
   // Derive agent name from instance name (e.g. "Front desk agent - North region" → "Front desk agent")
   const agentName = instanceName.replace(/ - .+$/, '')
@@ -305,6 +310,21 @@ export function AgentInstanceScreen({
   const dentalOutboundLogRows = DENTAL_OUTBOUND_LOGS[agentName]
   const showDentalOutboundLogs =
     activeTab === 'logs' && product === 'dental' && Boolean(dentalOutboundLogRows)
+
+  if (selectedRun) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopNav initials="S" />
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <RunDetailView
+            row={selectedRun}
+            onBack={() => setSelectedRun(null)}
+            onViewConversation={onNavigateToInbox}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -416,7 +436,11 @@ export function AgentInstanceScreen({
               </div>
             </>
           ) : showHealthcareLogs ? (
-            <AgentLogsTab agentName={agentName} />
+            <AgentLogsTab
+              agentName={agentName}
+              onNavigateToInbox={onNavigateToInbox}
+              onViewRun={setSelectedRun}
+            />
           ) : showDentalOutboundLogs ? (
             <OutboundAgentLogsTab rows={dentalOutboundLogRows!} />
           ) : activeTab === 'settings' ? (

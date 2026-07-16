@@ -26,6 +26,7 @@ interface AgentDetailScreenProps {
   onEditAgent?: (agentName: string, draft?: WizardAgentDraft) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
   onAgentSetupActiveChange?: (active: boolean) => void
+  onNavigateToInbox?: () => void
   product?: string
 }
 
@@ -343,7 +344,7 @@ function CreateAgentEmptyState({
   )
 }
 
-export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, onAgentSetupActiveChange, product }: AgentDetailScreenProps) {
+export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, onAgentSetupActiveChange, onNavigateToInbox, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
@@ -602,6 +603,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
         onBack={() => setSelectedInstance(null)}
         onEditAgent={onEditAgent}
         onOpenIntegrationSettings={onOpenIntegrationSettings}
+        onNavigateToInbox={onNavigateToInbox}
         product={product}
       />
     )

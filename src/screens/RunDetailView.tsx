@@ -1,18 +1,11 @@
-import { useMemo, useState } from 'react'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
-import { Chip } from '../components'
+import { Chip, LogDetailsPanel } from '../components'
 import type { HealthcareLogRow } from '../data/healthcareAgentLogs'
 import StartNode from '../workflow/Molecules/Canvas/StartNode/StartNode'
 import CanvasNode from '../workflow/Molecules/Canvas/CanvasNode/CanvasNode'
 import ProceduresNode from '../workflow/Molecules/Canvas/ProceduresNode/ProceduresNode'
 import EndNode from '../workflow/Molecules/Canvas/EndNode/EndNode'
 import GraphControls from '../workflow/Modules/FlowCanvas/GraphControls/GraphControls'
-import {
-  buildStaticPreviewMessages,
-  PreviewLogsView,
-  PreviewSidePanelHeader,
-  PreviewStaticTranscript,
-} from '../workflow/Molecules/PreviewPanel/PreviewPanelViews'
 import {
   FLOW_CONNECTOR_GAP,
   FLOW_START_GAP,
@@ -23,6 +16,7 @@ import '../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 interface RunDetailViewProps {
   row: HealthcareLogRow
   onBack: () => void
+  onViewConversation?: () => void
 }
 
 const PROCEDURE_CHIPS = [
@@ -130,34 +124,11 @@ function WorkflowCanvas({ instanceName }: { instanceName: string }) {
   )
 }
 
-/* ── read-only logs / preview side panel (matches workflow preview panel) ── */
-function RunDetailSidePanel() {
-  const [panel, setPanel] = useState<'logs' | 'preview'>('preview')
-  const previewMessages = useMemo(
-    () => buildStaticPreviewMessages(),
-    [],
-  )
-
-  return (
-    <div className="preview-panel">
-      <PreviewSidePanelHeader
-        panel={panel}
-        onToggle={() => setPanel((p) => (p === 'logs' ? 'preview' : 'logs'))}
-      />
-      <div className="preview-panel__body">
-        {panel === 'logs' ? (
-          <PreviewLogsView />
-        ) : (
-          <PreviewStaticTranscript messages={previewMessages} />
-        )}
-      </div>
-    </div>
-  )
-}
-
 /* ── main export ── */
-export function RunDetailView({ row, onBack }: RunDetailViewProps) {
+export function RunDetailView({ row, onBack, onViewConversation }: RunDetailViewProps) {
   const instanceName = 'Front desk agent north region'
+  const statusVariant =
+    row.status === 'Resolved' ? 'success' : row.status === 'Abandoned' ? 'danger' : 'warning'
 
   return (
     <div className="relative flex h-full flex-col bg-surface">
@@ -171,19 +142,17 @@ export function RunDetailView({ row, onBack }: RunDetailViewProps) {
         >
           <BackArrowIcon />
         </button>
-        <span className="text-body text-text-primary">
-          Run – {row.timestamp}
-        </span>
-        <Chip label={row.status} variant="success" />
-        <span className="text-small text-text-secondary">{row.duration}s</span>
+        <h1 className="text-h3 text-text-primary">Run - {row.timestamp}</h1>
+        <Chip label={row.status} variant={statusVariant} />
+        <span className="text-small text-text-secondary">{row.duration}</span>
       </div>
 
       {/* Body */}
       <div className="relative flex flex-1 overflow-hidden">
         <WorkflowCanvas instanceName={instanceName} />
 
-        <div className="preview-panel-float-wrap">
-          <RunDetailSidePanel />
+        <div className="preview-panel-float-wrap preview-panel-float-wrap--log-details">
+          <LogDetailsPanel row={row} onViewConversation={onViewConversation} />
         </div>
       </div>
     </div>
