@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { FormInput, TextArea, Toggle } from '../../../elemental-stubs';
 function NativeDrawer({ isOpen, onClose, children, width = 960 }) {
   React.useEffect(() => {
@@ -1034,6 +1034,10 @@ export function ToolViewerContent({ tool, onClose, onSave, initialValues, clearD
     return buildInitialSnapshot(tool?.fields);
   }, [fieldSnapshot, tool?.fields]);
 
+  const handleValueChange = useCallback((id, val) => {
+    setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
+  }, []);
+
   if (!tool) return null;
 
   const handleSave = () => {
@@ -1064,9 +1068,7 @@ export function ToolViewerContent({ tool, onClose, onSave, initialValues, clearD
             <InteractiveField
               key={f.id}
               field={clearDefaults ? { ...f, defaultValue: undefined, defaultChecked: undefined } : f}
-              onValueChange={(id, val) => {
-                setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
-              }}
+              onValueChange={handleValueChange}
             />
           ))}
       </div>

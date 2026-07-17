@@ -61,6 +61,9 @@ interface AgentInstance {
   avgTouchesToAccept?: string
   callToBookingConversion?: string
   warmTransferRate?: string
+  statusUpdated?: string
+  conversationsAssigned?: string
+  conversationsManaged?: string
   [key: string]: string | undefined
 }
 
@@ -106,6 +109,9 @@ interface RegionRow {
   avgTouchesToAccept?: string
   callToBookingConversion?: string
   warmTransferRate?: string
+  statusUpdated?: string
+  conversationsAssigned?: string
+  conversationsManaged?: string
 }
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
@@ -156,6 +162,12 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'East region',  status: 'Running', channels: 'Voice call, Text',  plansFollowedUp: '530', acceptanceRate: '61%', revenueUnlocked: '$224K', callToBookingConversion: '44%', warmTransferRate: '11%', avgTouchesToAccept: '2.1', staffHoursSaved: '68h', locations: '212' },
     { region: 'South region', status: 'Paused',  channels: 'Text, Email',       plansFollowedUp: '490', acceptanceRate: '59%', revenueUnlocked: '$204K', callToBookingConversion: '41%', warmTransferRate: '12%', avgTouchesToAccept: '2.2', staffHoursSaved: '58h', locations: '180' },
     { region: 'West region',  status: 'Draft',   channels: 'Email',             plansFollowedUp: '440', acceptanceRate: '57%', revenueUnlocked: '$176K', callToBookingConversion: '38%', warmTransferRate: '14%', avgTouchesToAccept: '2.4', staffHoursSaved: '48h', locations: '140' },
+  ],
+  'Tagging & routing agent': [
+    { region: 'North region', status: 'Running', channels: 'Voice call, Text, Chat', statusUpdated: '1000', conversationsAssigned: '900', conversationsManaged: '950', timeSaved: '20m', locations: '500' },
+    { region: 'East Region',  status: 'Running', channels: 'Text, Chat',             statusUpdated: '1000', conversationsAssigned: '800', conversationsManaged: '900', timeSaved: '15m', locations: '250' },
+    { region: 'South Region', status: 'Paused',  channels: 'Voice call, Text',       statusUpdated: '450',  conversationsAssigned: '400', conversationsManaged: '400', timeSaved: '3m',  locations: '200' },
+    { region: 'West Region',  status: 'Draft',   channels: 'Chat',                   statusUpdated: '400',  conversationsAssigned: '350', conversationsManaged: '380', timeSaved: '2m',  locations: '100' },
   ],
 }
 
@@ -246,6 +258,13 @@ const DENTAL_AGENT_LIBRARY: Record<string, { id: string; title: string; descript
       id: 'previsit-checkin-outreach',
       title: 'Pre-visit agent',
       description: 'The Pre-Visit Agent automates pre-appointment check-in form outreach.',
+    },
+  ],
+  'Tagging & routing agent': [
+    {
+      id: 'tagging-routing',
+      title: 'Tagging & routing',
+      description: 'Analyze conversations to assign the right contact status, route messages to the appropriate team or user, and manage when conversations stay open or closed.',
     },
   ],
 }
@@ -402,6 +421,12 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'revenueUnlocked', value: '$892K', label: 'Revenue unlocked', delta: '7.1%', trend: 'up', info: true, tooltip: 'Estimated value of accepted + booked plans attributable to the agent.' },
       { id: 'staffHoursSaved', value: '262h', label: 'Staff hours saved', delta: '7.8%', trend: 'up', info: true, tooltip: 'Staff follow-up time avoided by automating outreach.' },
     ],
+    'Tagging & routing agent': [
+      { id: 'statusUpdated', value: '2,850', label: 'Statuses updated', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total conversations that received an updated contact status in the selected period.' },
+      { id: 'conversationsAssigned', value: '2000', label: 'Conversations assigned', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total conversations assigned to a team or user by the agent.' },
+      { id: 'conversationsManaged', value: '2500', label: 'Conversations managed', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total conversations tagged and routed end-to-end by the agent.' },
+      { id: 'timeSaved', value: '40m', label: 'Time saved', delta: '1.3%', trend: 'up', info: true, tooltip: 'Estimated staff time saved by automating conversation tagging and routing.' },
+    ],
   }
 
   const DEFAULT_METRICS: Metric[] = [
@@ -445,15 +470,19 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     callToBookingConversion: r.callToBookingConversion,
     warmTransferRate: r.warmTransferRate,
     avgTouchesToAccept: r.avgTouchesToAccept,
+    statusUpdated: r.statusUpdated,
+    conversationsAssigned: r.conversationsAssigned,
+    conversationsManaged: r.conversationsManaged,
   }))
 
-  const isReminder      = agentName === 'Reminder agent'
-  const isFrontdesk     = agentName === 'Front desk agent'
-  const isWaitlist      = agentName === 'Waitlist agent'
-  const isPreVisit      = agentName === 'Pre-visit agent'
-  const isRecall        = agentName === 'Recall agent'
-  const isRevenue       = agentName === 'Revenue agent'
-  const isTreatmentPlan = agentName === 'Treatment plan agent'
+  const isReminder        = agentName === 'Reminder agent'
+  const isFrontdesk       = agentName === 'Front desk agent'
+  const isWaitlist        = agentName === 'Waitlist agent'
+  const isPreVisit        = agentName === 'Pre-visit agent'
+  const isRecall          = agentName === 'Recall agent'
+  const isRevenue         = agentName === 'Revenue agent'
+  const isTreatmentPlan   = agentName === 'Treatment plan agent'
+  const isTaggingRouting  = agentName === 'Tagging & routing agent'
 
   useEffect(() => {
     const isAgentSetupActive = isFrontdesk && (showCreateFlow || showSetupWizard)
@@ -469,7 +498,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       sortable: true,
       render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
     },
-    { key: 'channels', label: 'Channels', width: 140, sortable: true },
+    ...(isTaggingRouting ? [] : [{ key: 'channels' as keyof AgentInstance, label: 'Channels', width: 140, sortable: true }]),
     ...(isReminder ? [
       { key: 'bookings' as keyof AgentInstance, label: 'Total bookings', width: 110, sortable: true },
       { key: 'confirmed' as keyof AgentInstance, label: 'Appointments confirmed', width: 145, sortable: true },
@@ -509,6 +538,11 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'callToBookingConversion' as keyof AgentInstance, label: 'Call-to-booking conversion', width: 210, sortable: true },
       { key: 'avgTouchesToAccept' as keyof AgentInstance, label: 'Avg touches to accept', width: 185, sortable: true },
       { key: 'staffHoursSaved' as keyof AgentInstance, label: 'Staff hours saved', width: 160, sortable: true },
+    ] : isTaggingRouting ? [
+      { key: 'statusUpdated' as keyof AgentInstance, label: 'Statuses updated', width: 140, sortable: true },
+      { key: 'conversationsAssigned' as keyof AgentInstance, label: 'Conversations assigned', width: 180, sortable: true },
+      { key: 'conversationsManaged' as keyof AgentInstance, label: 'Conversations managed', width: 180, sortable: true },
+      { key: 'timeSaved' as keyof AgentInstance, label: 'Time saved', width: 110, sortable: true },
     ] : [
       { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution rate', width: 220, sortable: true },
@@ -523,9 +557,9 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
   // Front desk, Pre-visit, Waitlist, and Reminder each report exactly 4 metrics, so all 4
   // are shown by default. Agents with more metrics (Recall, Revenue, Treatment plan, etc.)
   // still default to the first two, with the rest available via Customize columns.
-  const metricKeys = COLUMN_DEFS.slice(3, -1).map((c) => String(c.key))
-  const showAllMetrics = isFrontdesk || isPreVisit || isWaitlist || isReminder
-  const DEFAULT_VISIBLE = ['name', 'status', 'channels', ...(showAllMetrics ? metricKeys : metricKeys.slice(0, 2)), 'locations']
+  const metricKeys = COLUMN_DEFS.slice(isTaggingRouting ? 2 : 3, -1).map((c) => String(c.key))
+  const showAllMetrics = isFrontdesk || isPreVisit || isWaitlist || isReminder || isTaggingRouting
+  const DEFAULT_VISIBLE = ['name', 'status', ...(isTaggingRouting ? [] : ['channels']), ...(showAllMetrics ? metricKeys : metricKeys.slice(0, 2)), 'locations']
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER)
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
 

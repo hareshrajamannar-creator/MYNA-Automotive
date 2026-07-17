@@ -50,6 +50,18 @@ const PREVISIT_COLUMNS: Column<PrevisitLogRow>[] = [
   { key: 'duration', label: 'Duration', width: 110, sortable: true },
 ]
 
+const TAGGING_ROUTING_LOG_COLUMNS: Column<PrevisitLogRow>[] = [
+  { key: 'timestamp', label: 'Timestamp', width: 240, sortable: true },
+  {
+    key: 'status',
+    label: 'Status',
+    width: 140,
+    sortable: true,
+    render: (v) => <Chip label={String(v)} variant={PREVISIT_STATUS_VARIANT[String(v)] ?? 'neutral'} />,
+  },
+  { key: 'contact', label: 'Contact', width: 220, sortable: true },
+]
+
 interface AgentLogsTabProps {
   agentName?: string
 }
@@ -68,6 +80,18 @@ export function AgentLogsTab({ agentName }: AgentLogsTabProps) {
           columns={PREVISIT_COLUMNS}
           data={PREVISIT_LOGS_ROWS}
           rowAction={{ icon: 'visibility', label: 'View run', onClick: () => {} }}
+        />
+      </div>
+    )
+  }
+
+  if (agentName === 'Tagging & routing agent') {
+    return (
+      <div className="px-lg py-lg">
+        <DataTable
+          columns={TAGGING_ROUTING_LOG_COLUMNS}
+          data={PREVISIT_LOGS_ROWS}
+          rowAction={{ icon: 'visibility', label: 'View details', onClick: () => {} }}
         />
       </div>
     )

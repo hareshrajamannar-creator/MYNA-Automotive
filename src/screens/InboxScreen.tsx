@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
 import voicemailSample from '../assets/voicemail_sample.mp3'
+import { AgentDetailScreen } from './AgentDetailScreen'
+import { WorkflowEditorScreen } from './WorkflowEditorScreen'
 
 interface Conversation {
   id: string
@@ -62,16 +64,16 @@ const INBOX_NAV_SECTIONS: NavSection[] = [
       { id: 'tagging-routing-agent', label: 'Tagging & routing agent' },
     ],
   },
-  {
-    id: 'outcomes',
-    label: 'Outcomes',
-    defaultExpanded: true,
-    items: [
-      // { id: 'responses',              label: 'Responses' },
-      { id: 'conversation-managed',   label: 'Conversation managed' },
-      { id: 'all-reports',            label: 'All reports', external: true },
-    ],
-  },
+  // 'Outcomes' section (Conversation managed / All reports) hidden for now — keep for future re-enablement.
+  // {
+  //   id: 'outcomes',
+  //   label: 'Outcomes',
+  //   defaultExpanded: true,
+  //   items: [
+  //     { id: 'conversation-managed',   label: 'Conversation managed' },
+  //     { id: 'all-reports',            label: 'All reports', external: true },
+  //   ],
+  // },
 ]
 
 const NAV_LABELS: Record<string, string> = Object.fromEntries(
@@ -622,6 +624,7 @@ export function InboxScreen() {
   const [message, setMessage] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
 
   const isInternalChat = activeNav === 'chat-internal-team'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
@@ -642,11 +645,21 @@ export function InboxScreen() {
 
   return (
     <div className="flex h-full">
-      {/* L2 Nav — full height */}
-      <InboxSideNav activeId={activeNav} onSelect={handleNavSelect} />
+      {/* L2 Nav — full height; collapsed while the agent workflow editor is open */}
+      {!editingAgentName && <InboxSideNav activeId={activeNav} onSelect={handleNavSelect} />}
 
       {/* Right side: TopNav on top, then conversation list + chat below */}
       <div className="flex flex-1 flex-col overflow-hidden">
+        {editingAgentName ? (
+          <WorkflowEditorScreen
+            agentName={editingAgentName}
+            product="healthcare"
+            onClose={() => setEditingAgentName(null)}
+          />
+        ) : activeNav === 'tagging-routing-agent' ? (
+          <AgentDetailScreen agentName="Tagging & routing agent" product="healthcare" onEditAgent={setEditingAgentName} />
+        ) : (
+        <>
         <TopNav initials="S" />
 
         {activeNav === 'conversation-managed' ? (
@@ -902,6 +915,8 @@ export function InboxScreen() {
             </div>
           </div>
         </div>
+        )}
+        </>
         )}
       </div>
     </div>

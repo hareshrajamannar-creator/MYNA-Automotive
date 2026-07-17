@@ -3,6 +3,7 @@
  * No Firebase / Firestore. All operations work on an in-memory store
  * so the agent builder canvas is fully interactive without a backend.
  */
+import chronoLogo from '../../assets/logo-chrono.svg';
 
 /* ─── In-memory store ─── */
 const _agents = new Map();
@@ -341,6 +342,45 @@ const _SEED_TOOLS = [
     outputs: [{ name: 'status', type: 'string', description: 'sent | failed' }],
   },
   {
+    id: 'assign-contact-status',
+    name: 'Assign contact status',
+    icon: 'how_to_reg',
+    isBirdeye: true,
+    description: 'Analyzes the incoming message and updates the conversation contact status (e.g. Scheduling, Callback requested, Rescheduling).',
+    category: 'Communication',
+    modules: ['Inbox'],
+    products: ['healthcare', 'dental'],
+    entities: ['conversation'],
+    inputs: [{ name: 'message', type: 'string' }],
+    outputs: [{ name: 'contactStatus', type: 'string' }],
+  },
+  {
+    id: 'assign-conversation',
+    name: 'Assign conversation',
+    icon: 'assignment_ind',
+    isBirdeye: true,
+    description: 'Analyzes the incoming messages and assigns the conversation to a team or agent.',
+    category: 'Communication',
+    modules: ['Inbox'],
+    products: ['healthcare', 'dental'],
+    entities: ['conversation'],
+    inputs: [{ name: 'message', type: 'string' }],
+    outputs: [{ name: 'assignedTo', type: 'string' }],
+  },
+  {
+    id: 'assign-conversation-status',
+    name: 'Assign conversation status',
+    icon: 'label',
+    isBirdeye: true,
+    description: 'Marks the conversation with a status so the right team knows it needs follow-up.',
+    category: 'Communication',
+    modules: ['Inbox'],
+    products: ['healthcare', 'dental'],
+    entities: ['conversation'],
+    inputs: [{ name: 'message', type: 'string' }],
+    outputs: [{ name: 'conversationStatus', type: 'string' }],
+  },
+  {
     id: 'initiate-voice-call-hc',
     name: 'Initiate voice call',
     icon: 'call',
@@ -394,6 +434,24 @@ const _SEED_TOOLS = [
     ],
     inputs: [{ name: 'patientId', type: 'string' }, { name: 'message', type: 'string' }],
     outputs: [{ name: 'status', type: 'string' }],
+  },
+  {
+    id: 'fetch-waitlist-hc',
+    name: 'Fetch waitlist',
+    iconDataUrl: chronoLogo,
+    description: 'Retrieves patients currently on the waitlist, including relevant details such as requested service, preferred time, and current status.',
+    category: 'Healthcare',
+    modules: ['Front desk'],
+    products: ['healthcare', 'dental'],
+    entities: ['frontdesk'],
+    fields: [
+      { id: 'fwl-batch',      type: 'number',   label: 'Waitlist outbound batch', placeholder: 'No. of patients' },
+      { id: 'fwl-provider',   type: 'radio',    label: 'If no preferred provider, offer slots of', options: ['Last seen / scheduled provider', 'Any provider (matching appointment type)'], defaultValue: 'Last seen / scheduled provider' },
+      { id: 'fwl-ai',         type: 'checkbox', label: 'AI consideration',    showInfoIcon: true, options: ['Best day to send', 'Best time to send'], defaultValue: [] },
+      { id: 'fwl-additional', type: 'checkbox', label: 'Additional config',   showInfoIcon: true, options: ['Do not carry over unfilled slots to the next working day.'], defaultValue: [] },
+    ],
+    inputs: [],
+    outputs: [{ name: 'waitlist', type: 'array' }],
   },
   // ── Conversation tools (ported from agent-builder) ──────────────────────
   {
