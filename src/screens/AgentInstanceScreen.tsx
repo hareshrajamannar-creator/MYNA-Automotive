@@ -36,10 +36,10 @@ interface LocationRow {
   aht?: string
   escalation?: string
   count: string
-  remindersSent?: string
-  responseRate?: string
-  avgResponseTime?: string
-  noshowRate?: string
+  bookings?: string
+  confirmed?: string
+  confirmRate?: string
+  timeSaved?: string
   patientsContacted?: string
   recallConversionRate?: string
   avgTouchesToBook?: string
@@ -86,10 +86,10 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'timeSaved', value: '2.5 hrs', label: 'Time saved', delta: '20%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating waitlist outreach instead of manually calling through the list.' },
   ],
   'Pre-visit agent': [
-    { id: 'outreach',   value: '1,000', label: 'Outreach sent',     delta: '+1.3%', trend: 'up', info: true },
-    { id: 'intakes',    value: '900',   label: 'Intakes completed',  delta: '+1.3%', trend: 'up', info: true },
-    { id: 'completion', value: '95%',   label: 'Completion rate',    delta: '+1.3%', trend: 'up', info: true },
-    { id: 'timeSaved',  value: '32m',   label: 'Time saved',         delta: '+1.3%', trend: 'up', info: true },
+    { id: 'outreach',   value: '1,000', label: 'Outreach sent',     delta: '1.3%', trend: 'up', info: true, tooltip: 'Total intake reminder outreach sent by the agent at this location in the selected period.' },
+    { id: 'intakes',    value: '900',   label: 'Intakes completed',  delta: '1.3%', trend: 'up', info: true, tooltip: 'Number of patient intake forms fully completed following agent outreach at this location.' },
+    { id: 'completion', value: '95%',   label: 'Completion rate',    delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of outreach that resulted in a completed intake. Calculated as intakes completed ÷ outreach sent.' },
+    { id: 'timeSaved',  value: '32m',   label: 'Time saved',         delta: '1.3%', trend: 'up', info: true, tooltip: 'Estimated staff time saved by automating intake collection instead of manual follow-up calls.' },
   ],
   'Outreach agent': [
     { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true, tooltip: 'Total leads the agent reached out to at this location in the selected period.' },
@@ -132,10 +132,10 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Philadelphia, PA', interactions: '1,590', fcr: '1,431', aht: '90%', escalation: '3h', count: '60'  },
   ],
   'Reminder agent': [
-    { location: 'Atlanta, GA',      interactions: '590', fcr: '79%', aht: '1m 08s', escalation: '9%',  count: '124', remindersSent: '410', responseRate: '93%', avgResponseTime: '1 day',  noshowRate: '10%' },
-    { location: 'Chicago, IL',      interactions: '440', fcr: '77%', aht: '1m 15s', escalation: '10%', count: '98',  remindersSent: '298', responseRate: '91%', avgResponseTime: '2 days', noshowRate: '11%' },
-    { location: 'Boston, MA',       interactions: '360', fcr: '76%', aht: '1m 20s', escalation: '11%', count: '76',  remindersSent: '240', responseRate: '89%', avgResponseTime: '2 days', noshowRate: '12%' },
-    { location: 'Philadelphia, PA', interactions: '290', fcr: '75%', aht: '1m 24s', escalation: '11%', count: '60',  remindersSent: '154', responseRate: '87%', avgResponseTime: '3 days', noshowRate: '13%' },
+    { location: 'Atlanta, GA',      interactions: '590', fcr: '79%', aht: '1m 08s', escalation: '9%',  count: '124', bookings: '44', confirmed: '11', confirmRate: '25.0%', timeSaved: '8 min' },
+    { location: 'Chicago, IL',      interactions: '440', fcr: '77%', aht: '1m 15s', escalation: '10%', count: '98',  bookings: '32', confirmed: '8',  confirmRate: '25.0%', timeSaved: '8 min' },
+    { location: 'Boston, MA',       interactions: '360', fcr: '76%', aht: '1m 20s', escalation: '11%', count: '76',  bookings: '22', confirmed: '5',  confirmRate: '22.7%', timeSaved: '7 min' },
+    { location: 'Philadelphia, PA', interactions: '290', fcr: '75%', aht: '1m 24s', escalation: '11%', count: '60',  bookings: '14', confirmed: '3',  confirmRate: '21.4%', timeSaved: '7 min' },
   ],
   'Outreach agent': [
     { location: 'Atlanta, GA',      interactions: '320', fcr: '44%', aht: '2m 40s', escalation: '8%',  count: '124' },
@@ -222,11 +222,11 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
 }
 
 const REMINDER_COLUMNS: Column<LocationRow>[] = [
-  { key: 'location',         label: 'Locations',              width: 240, sortable: true },
-  { key: 'remindersSent',    label: 'Reminders sent',         width: 170, sortable: true },
-  { key: 'responseRate',     label: 'Reminder response rate', width: 210, sortable: true },
-  { key: 'avgResponseTime',  label: 'Average response time',  width: 200, sortable: true },
-  { key: 'noshowRate',       label: 'No-show rate',           width: 160, sortable: true },
+  { key: 'location',    label: 'Locations',             width: 240, sortable: true },
+  { key: 'bookings',    label: 'Total bookings',        width: 160, sortable: true },
+  { key: 'confirmed',   label: 'Appointments confirmed',width: 200, sortable: true },
+  { key: 'confirmRate', label: 'Confirmation rate',     width: 170, sortable: true },
+  { key: 'timeSaved',   label: 'Time saved',            width: 140, sortable: true },
 ]
 
 const WAITLIST_COLUMNS: Column<LocationRow>[] = [

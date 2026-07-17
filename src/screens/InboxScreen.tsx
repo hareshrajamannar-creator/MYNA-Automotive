@@ -74,6 +74,10 @@ const INBOX_NAV_SECTIONS: NavSection[] = [
   },
 ]
 
+const NAV_LABELS: Record<string, string> = Object.fromEntries(
+  INBOX_NAV_SECTIONS.flatMap((section) => section.items?.map((item) => [item.id, item.label]) ?? [])
+)
+
 interface TabSet {
   visible: { id: string; label: string }[]
   more: { id: string; label: string }[]
@@ -344,7 +348,7 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
 //           </div>
 //           <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={520} />
 //         </ChartCard>
-//         <ChartCard title="Conversations overtime" className="h-[556px]">
+//         <ChartCard title="Conversations over time" className="h-[556px]">
 //           <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={430} showBarLabels />
 //         </ChartCard>
 //         <ChartCard title="Conversation by channel" className="h-[556px]" showActions={false} toolbar={<div className="flex items-center gap-xs text-text-icon"><button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="tune" size={20} /></button><button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button></div>}>
@@ -616,9 +620,19 @@ export function InboxScreen() {
   const [selectedConvo, setSelectedConvo] = useState(CONVERSATIONS[0])
   const [activeTab, setActiveTab] = useState('all')
   const [message, setMessage] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const isInternalChat = activeNav === 'chat-internal-team'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
+  const listTitle = NAV_LABELS[activeNav] ?? 'Inbox'
+
+  const searchQ = searchQuery.trim().toLowerCase()
+  const visibleConversations = searchQ
+    ? CONVERSATIONS.filter(
+        (c) => c.name.toLowerCase().includes(searchQ) || c.message.toLowerCase().includes(searchQ),
+      )
+    : CONVERSATIONS
 
   function handleNavSelect(id: string) {
     setActiveNav(id)
@@ -641,42 +655,62 @@ export function InboxScreen() {
         <div className="flex flex-1 overflow-hidden">
           {/* Middle panel — conversation list */}
           <div className="flex w-[370px] shrink-0 flex-col border-r border-border">
-            {isInternalChat ? (
-              <div className="flex items-center justify-end gap-sm px-lg pt-lg">
-                <button type="button" className="flex size-8 items-center justify-center text-text-icon hover:text-text-primary"><Icon name="search" size={20} /></button>
-                <button type="button" className="flex h-8 items-center rounded-sm bg-[#4CAE3D] px-lg text-body text-white hover:opacity-90">
-                  New
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="px-lg pt-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex flex-col gap-xs">
-                      <div className="flex items-center gap-xs">
-                        <span className="text-body text-text-primary">OPEN</span>
-                        <Icon name="expand_more" size={16} className="text-text-icon" />
-                      </div>
-                      <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
-                    </div>
-                    <div className="flex items-center gap-md">
-                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="search" size={20} /></button>
-                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="filter_list" size={20} /></button>
-                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="swap_vert" size={20} /></button>
-                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="more_vert" size={20} /></button>
-                    </div>
+            <div className="flex h-[52px] shrink-0 items-center border-b border-border bg-surface px-lg transition-colors focus-within:border-primary">
+              {searchOpen ? (
+                <div className="flex h-9 flex-1 items-center gap-xs">
+                  <Icon name="search" size={20} className="shrink-0 text-text-icon" />
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="min-w-0 flex-1 bg-transparent text-body text-text-primary caret-primary outline-none placeholder:text-text-tertiary"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Clear search"
+                    onClick={() => {
+                      setSearchOpen(false)
+                      setSearchQuery('')
+                    }}
+                    className="shrink-0 text-text-icon hover:text-text-primary"
+                  >
+                    <Icon name="close" size={20} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex w-full items-center justify-between gap-sm">
+                  <h1 className="text-h3 text-text-primary">{listTitle}</h1>
+                  <div className="flex shrink-0 items-center gap-md">
+                    <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="text-text-icon hover:text-text-primary">
+                      <Icon name="search" size={20} />
+                    </button>
+                    <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="filter_list" size={20} /></button>
+                    <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="swap_vert" size={20} /></button>
+                    <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="more_vert" size={20} /></button>
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="px-lg">
-                  <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
-                </div>
-              </>
+            <div className="flex flex-col gap-xs px-lg pt-lg">
+              <div className="flex items-center gap-xs">
+                <span className="text-body text-text-primary">OPEN</span>
+                <Icon name="expand_more" size={16} className="text-text-icon" />
+              </div>
+              <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
+            </div>
+
+            {!isInternalChat && (
+              <div className="px-lg pt-sm">
+                <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
+              </div>
             )}
 
             {/* Conversation list */}
             <div className="flex-1 overflow-y-auto px-sm py-sm">
-              {CONVERSATIONS.map((convo) => (
+              {visibleConversations.map((convo) => (
                 <button
                   key={convo.id}
                   type="button"

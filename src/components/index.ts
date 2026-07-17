@@ -1,5 +1,9 @@
 export { Chip } from './Chip/Chip'
+export { EmptyState } from './EmptyState/EmptyState'
+export type { EmptyStateProps } from './EmptyState/EmptyState.types'
 export { InfoTooltip } from './InfoTooltip/InfoTooltip'
+export { Tooltip } from './Tooltip/Tooltip'
+export type { TooltipProps, TooltipVariant } from './Tooltip/Tooltip.types'
 export { TestCallModal } from './TestCallModal/TestCallModal'
 export type { TestCallModalProps } from './TestCallModal/TestCallModal.types'
 export { BookTestAppointmentModal } from './BookTestAppointmentModal/BookTestAppointmentModal'
@@ -14,6 +18,7 @@ export { DateChange } from './DateChange/DateChange'
 export { DateRangeSelector } from './DateRangeSelector/DateRangeSelector'
 export { ReportHeader } from './ReportHeader/ReportHeader'
 export { FilterPanel } from './FilterPanel/FilterPanel'
+export { HeaderSearchField } from './HeaderSearchField/HeaderSearchField'
 export { FormDrawer } from './FormDrawer/FormDrawer'
 export { ProceduresPickerDrawer } from './ProceduresPickerDrawer/ProceduresPickerDrawer'
 export { IntegrationsPickerDrawer } from './IntegrationsPickerDrawer/IntegrationsPickerDrawer'
@@ -52,6 +57,13 @@ export { Tabs } from './Tabs/Tabs'
 export { TabCountPill } from './Tabs/TabCountPill'
 export { DataTable } from './DataTable/DataTable'
 export { PatientCell } from './PatientCell/PatientCell'
+export { RecordDetailScreen } from './RecordDetailScreen/RecordDetailScreen'
+export type {
+  RecordDetailScreenProps,
+  RecordDetailAccordion,
+  RecordDetailField,
+  RecordDetailMetric,
+} from './RecordDetailScreen/RecordDetailScreen.types'
 
 // Charts (Recharts-based + CSS heatmap) — reusable across report pages
 export { ChartCard } from './charts/ChartCard'

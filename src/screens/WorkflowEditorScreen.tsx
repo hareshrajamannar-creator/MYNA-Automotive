@@ -136,15 +136,6 @@ export function WorkflowEditorScreen({
     })
   }
 
-  const HC_FRONTDESK_FD2 = {
-    procedureIds: [
-      'General inquiry',
-      'Talk to human',
-      'Book, cancel, reschedule appointment',
-      'Verify insurance',
-    ],
-  }
-
   const workflow = wizardDraft
     ? buildWizardAgentWorkflow(wizardDraft)
     : isHC && agentBaseName === 'Front desk agent'
@@ -153,7 +144,6 @@ export function WorkflowEditorScreen({
           nodeDetails: {
             ...baseWorkflow.nodeDetails,
             '__start__': HC_FRONTDESK_START,
-            'fd-2': HC_FRONTDESK_FD2,
           },
         }
       : {

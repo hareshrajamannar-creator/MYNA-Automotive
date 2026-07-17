@@ -120,7 +120,7 @@ function FallbackField({
       <div className="flex items-center gap-[2px] bg-surface px-sm py-[6px]">
         <button
           type="button"
-          title="AI personalise"
+          title="AI personalize"
           className="flex h-7 items-center gap-[3px] rounded-sm px-[6px] text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
