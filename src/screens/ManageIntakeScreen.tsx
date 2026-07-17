@@ -122,7 +122,7 @@ const COLUMN_DEFS: Array<Column<IntakeRow> & { locked?: boolean }> = [
     locked: true,
     render: (_v, row) => <PatientCell name={row.patient} location={row.location} />,
   },
-  { key: 'appointmentDate', label: 'Date & time',      width: 180, sortable: true },
+  { key: 'appointmentDate', label: 'Appointment time', width: 180, sortable: true },
   { key: 'formType',        label: 'Form type',        width: 160, sortable: true },
   {
     key: 'sentVia',

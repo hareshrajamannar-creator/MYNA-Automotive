@@ -30,7 +30,7 @@ const APPT_FIELDS: { key: ApptKey; label: string; isDatePicker?: boolean; option
   { key: 'location',        label: 'Location',         options: LOCATION_OPTIONS },
   { key: 'appointmentType', label: 'Appointment type', options: APPT_TYPE_OPTIONS },
   { key: 'provider',        label: 'Provider',         options: PROVIDER_OPTIONS },
-  { key: 'dateTime',        label: 'Date & time',      isDatePicker: true },
+  { key: 'dateTime',        label: 'Appointment time', isDatePicker: true },
 ]
 
 const PATIENT_REQUIRED: PatientKey[] = ['bookFor', 'firstName', 'phone', 'email', 'dob', 'address', 'zipcode', 'city', 'state']
@@ -583,7 +583,7 @@ export function BookAppointmentDrawer({ open, onClose }: BookAppointmentDrawerPr
                     </div>
                   </div>
                   <div className="pl-[48px]">
-                    <p className="text-body text-text-primary">{appt.dateTime || 'Date & time'}</p>
+                    <p className="text-body text-text-primary">{appt.dateTime || 'Appointment time'}</p>
                   </div>
                 </div>
               </div>

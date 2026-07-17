@@ -28,6 +28,7 @@ interface WeekCalendarProps {
   weekStart: Date
   visibleColumns?: string[]
   searchQuery?: string
+  onViewDetails?: (event: CalendarEvent) => void
 }
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -62,7 +63,7 @@ function parseHour(t: string): number {
   return h + min / 60
 }
 
-function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: TooltipPos; onClose: () => void }) {
+function EventTooltip({ event, pos, onClose, onViewDetails }: { event: CalendarEvent; pos: TooltipPos; onClose: () => void; onViewDetails?: (event: CalendarEvent) => void }) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -100,7 +101,7 @@ function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: Tool
           ))}
         </div>
         <div className="h-px w-full bg-border" />
-        <Link as="button" onClick={onClose} className="text-left text-body text-primary hover:text-primary-hover">
+        <Link as="button" onClick={() => { onViewDetails?.(event); onClose() }} className="text-left text-body text-primary hover:text-primary-hover">
           View details
         </Link>
       </div>
@@ -116,7 +117,7 @@ const COLUMN_FIELD_MAP: Record<string, (evt: CalendarEvent) => string> = {
   email:           (e) => e.email,
 }
 
-export function WeekCalendar({ weekStart, visibleColumns = ['name', 'dateTime'], searchQuery = '' }: WeekCalendarProps) {
+export function WeekCalendar({ weekStart, visibleColumns = ['name', 'dateTime'], searchQuery = '', onViewDetails }: WeekCalendarProps) {
   const startHour = 7
   const rowHeight = 80
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null)
@@ -254,6 +255,7 @@ export function WeekCalendar({ weekStart, visibleColumns = ['name', 'dateTime'],
           event={activeEvent}
           pos={tooltipPos}
           onClose={() => setActiveEvent(null)}
+          onViewDetails={onViewDetails}
         />
       )}
     </div>

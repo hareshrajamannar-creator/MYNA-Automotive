@@ -106,7 +106,7 @@ const COLUMN_DEFS: ColumnDef[] = [
   },
   {
     key: 'appointmentDate',
-    label: 'Date & time',
+    label: 'Appointment time',
     width: 200,
     sortable: true,
     render: (val, row) => {

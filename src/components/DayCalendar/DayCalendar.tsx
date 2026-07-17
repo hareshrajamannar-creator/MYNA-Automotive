@@ -26,6 +26,7 @@ interface DayCalendarProps {
   day: Date
   visibleColumns?: string[]
   searchQuery?: string
+  onViewDetails?: (event: CalendarEvent) => void
 }
 
 function buildSlots() {
@@ -83,7 +84,7 @@ function parseHour(t: string): number {
   return h + min / 60
 }
 
-function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: TooltipPos; onClose: () => void }) {
+function EventTooltip({ event, pos, onClose, onViewDetails }: { event: CalendarEvent; pos: TooltipPos; onClose: () => void; onViewDetails?: (event: CalendarEvent) => void }) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -137,7 +138,7 @@ function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: Tool
         {/* View details */}
         <Link
           as="button"
-          onClick={onClose}
+          onClick={() => { onViewDetails?.(event); onClose() }}
           className="text-left text-body text-primary hover:text-primary-hover"
         >
           View details
@@ -155,7 +156,7 @@ const COLUMN_FIELD_MAP: Record<string, (evt: CalendarEvent) => string> = {
   email:           (e) => e.email,
 }
 
-export function DayCalendar({ day: _day, visibleColumns = ['name', 'dateTime'], searchQuery = '' }: DayCalendarProps) {
+export function DayCalendar({ day: _day, visibleColumns = ['name', 'dateTime'], searchQuery = '', onViewDetails }: DayCalendarProps) {
   const pxPerHour = SLOT_HEIGHT * 2
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null)
   const [tooltipPos, setTooltipPos] = useState<TooltipPos>({ x: 0, y: 0 })
@@ -262,6 +263,7 @@ export function DayCalendar({ day: _day, visibleColumns = ['name', 'dateTime'], 
           event={activeEvent}
           pos={tooltipPos}
           onClose={() => setActiveEvent(null)}
+          onViewDetails={onViewDetails}
         />
       )}
     </div>

@@ -51,6 +51,33 @@ export interface AppointmentDetailArgs {
   fromTabLabel?: string
 }
 
+interface CalendarAppointmentEvent {
+  name: string
+  phone: string
+  email: string
+  provider: string
+  apptType: string
+  insuranceStatus: string
+  start: string
+  end: string
+  checks: string[]
+}
+
+function calendarEventToAppointment(evt: CalendarAppointmentEvent): Appointment {
+  return {
+    name: evt.name,
+    location: '',
+    status: evt.checks.includes('Appointment confirmed') ? 'Confirmed' : 'Unconfirmed',
+    staff: evt.provider,
+    apptType: evt.apptType,
+    insuranceStatus: evt.insuranceStatus,
+    dateTime: `${evt.start} - ${evt.end}`,
+    opCode: '',
+    phone: evt.phone,
+    email: evt.email,
+  }
+}
+
 function toAppointmentDetailArgs(row: Appointment, fromTabLabel?: string): AppointmentDetailArgs {
   return {
     detail: {
@@ -183,7 +210,7 @@ const AUTO_COLUMN_DEFS: ColumnDef[] = [
   { key: 'apptType',        label: 'Appointment type', sortable: true },
   { key: 'opCode',          label: 'Operation code',   sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
-  { key: 'dateTime',        label: 'Date & time',      sortable: true },
+  { key: 'dateTime',        label: 'Appointment time', sortable: true },
   { key: 'phone',           label: 'Phone',            sortable: true },
   { key: 'email',           label: 'Email',            sortable: true },
 ]
@@ -195,7 +222,7 @@ const HC_COLUMN_DEFS: ColumnDef[] = [
   { key: 'staff',           label: 'Provider',         sortable: true },
   { key: 'apptType',        label: 'Appointment type', sortable: true },
   { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
-  { key: 'dateTime',        label: 'Date & time',      sortable: true },
+  { key: 'dateTime',        label: 'Appointment time', sortable: true },
   { key: 'phone',           label: 'Phone',            sortable: true },
   { key: 'email',           label: 'Email',            sortable: true },
 ]
@@ -411,9 +438,19 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
             <div className="flex flex-1 overflow-hidden px-2xl py-lg">
               <div className="flex flex-1 flex-col overflow-hidden rounded-sm border border-border">
                 {timescale === 'day' ? (
-                  <DayCalendar day={date} visibleColumns={visible} searchQuery={searchQuery} />
+                  <DayCalendar
+                    day={date}
+                    visibleColumns={visible}
+                    searchQuery={searchQuery}
+                    onViewDetails={(evt) => onViewDetail?.(toAppointmentDetailArgs(calendarEventToAppointment(evt)))}
+                  />
                 ) : (
-                  <WeekCalendar weekStart={date} visibleColumns={visible} searchQuery={searchQuery} />
+                  <WeekCalendar
+                    weekStart={date}
+                    visibleColumns={visible}
+                    searchQuery={searchQuery}
+                    onViewDetails={(evt) => onViewDetail?.(toAppointmentDetailArgs(calendarEventToAppointment(evt)))}
+                  />
                 )}
               </div>
             </div>
