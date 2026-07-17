@@ -441,6 +441,10 @@ const _SEED_TOOLS = [
     iconDataUrl: chronoLogo,
     description: 'Retrieves patients currently on the waitlist, including relevant details such as requested service, preferred time, and current status.',
     category: 'Healthcare',
+    // Already offered under External tools (EHR_TOOLS in AddToolDrawer) — keep the
+    // metadata here only so already-selected tool chips (e.g. Waitlist agent nodes)
+    // still resolve; hide it from the Internal tools picker so it isn't duplicated.
+    hideFromInternalPicker: true,
     modules: ['Front desk'],
     products: ['healthcare', 'dental'],
     entities: ['frontdesk'],
