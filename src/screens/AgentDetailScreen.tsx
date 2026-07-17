@@ -4,6 +4,7 @@ import {
   CustomizeColumnsDrawer,
   DataTable,
   FilterPanel,
+  HeaderSearchField,
   Icon,
   InfoCard,
   InfoCardListItem,
@@ -38,10 +39,9 @@ interface AgentInstance {
   fcr?: string
   aht?: string
   escalation?: string
-  remindersSent?: string
-  responseRate?: string
-  avgResponseTime?: string
-  noshowRate?: string
+  bookings?: string
+  confirmed?: string
+  confirmRate?: string
   outreachSent?: string
   slotsFilled?: string
   fillRate?: string
@@ -84,10 +84,9 @@ interface RegionRow {
   fcr?: string
   aht?: string
   escalation?: string
-  remindersSent?: string
-  responseRate?: string
-  avgResponseTime?: string
-  noshowRate?: string
+  bookings?: string
+  confirmed?: string
+  confirmRate?: string
   outreachSent?: string
   slotsFilled?: string
   fillRate?: string
@@ -117,10 +116,10 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'West region',  status: 'Draft',   channels: 'Voice call',        interactions: '1,720', fcr: '1,428', aht: '83%', escalation: '4h',  locations: '140' },
   ],
   'Reminder agent': [
-    { region: 'North region', status: 'Running', channels: 'Text, Email',       interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
-    { region: 'East region',  status: 'Running', channels: 'Text',              interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212', remindersSent: '820',  responseRate: '89%', avgResponseTime: '2 days', noshowRate: '13%' },
-    { region: 'South region', status: 'Paused',  channels: 'Email',             interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180', remindersSent: '530',  responseRate: '85%', avgResponseTime: '3 days', noshowRate: '14%' },
-    { region: 'West region',  status: 'Draft',   channels: 'Text, Email',       interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140', remindersSent: '398',  responseRate: '82%', avgResponseTime: '3 days', noshowRate: '16%' },
+    { region: 'North region', status: 'Running', channels: 'Text, Email',       interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', bookings: '180', confirmed: '42', confirmRate: '23.3%', timeSaved: '8 min' },
+    { region: 'East region',  status: 'Running', channels: 'Text',              interactions: '1,120', fcr: '75%', aht: '1m 25s', escalation: '12%', locations: '212', bookings: '120', confirmed: '28', confirmRate: '23.3%', timeSaved: '8 min' },
+    { region: 'South region', status: 'Paused',  channels: 'Email',             interactions: '640',  fcr: '73%', aht: '1m 38s', escalation: '14%', locations: '180', bookings: '90',  confirmed: '20', confirmRate: '22.2%', timeSaved: '7 min' },
+    { region: 'West region',  status: 'Draft',   channels: 'Text, Email',       interactions: '407',  fcr: '68%', aht: '1m 55s', escalation: '15%', locations: '140', bookings: '60',  confirmed: '10', confirmRate: '16.7%', timeSaved: '6 min' },
   ],
   'Outreach agent': [
     { region: 'North region', status: 'Running', channels: 'Voice call',        interactions: '920', fcr: '42%', aht: '2m 45s', escalation: '9%',  locations: '358' },
@@ -348,6 +347,8 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
   const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
   const [showCreateFlow, setShowCreateFlow] = useState(false)
   const [showSetupWizard, setShowSetupWizard] = useState(false)
@@ -372,10 +373,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { id: 'timeSaved', value: '2.5 hrs', label: 'Time saved', delta: '20%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved by automating waitlist outreach instead of manually calling through the list.' },
     ],
     'Pre-visit agent': [
-      { id: 'outreach',   value: '463',   label: 'Outreach sent',    delta: '+1.3%', trend: 'up' as const, info: true },
-      { id: 'intakes',    value: '2,700', label: 'Intakes completed', delta: '+1.3%', trend: 'up' as const, info: true },
-      { id: 'completion', value: '90%',   label: 'Completion rate',   delta: '+1.3%', trend: 'up' as const, info: true },
-      { id: 'timeSaved',  value: '1h',    label: 'Time saved',        delta: '+1.3%', trend: 'up' as const, info: true },
+      { id: 'outreach',   value: '463',   label: 'Outreach sent',    delta: '1.3%', trend: 'up' as const, info: true, tooltip: 'Total intake reminder outreach sent by the agent across all channels in the selected period.' },
+      { id: 'intakes',    value: '2,700', label: 'Intakes completed', delta: '1.3%', trend: 'up' as const, info: true, tooltip: 'Number of patient intake forms fully completed following agent outreach.' },
+      { id: 'completion', value: '90%',   label: 'Completion rate',   delta: '1.3%', trend: 'up' as const, info: true, tooltip: 'Percentage of outreach that resulted in a completed intake. Calculated as intakes completed ÷ outreach sent.' },
+      { id: 'timeSaved',  value: '1h',    label: 'Time saved',        delta: '1.3%', trend: 'up' as const, info: true, tooltip: 'Estimated staff hours saved by automating intake collection instead of manual follow-up calls.' },
     ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted', info: true, tooltip: 'Total leads the agent reached out to via call or message in the selected period.' },
@@ -422,10 +423,9 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     aht: r.aht,
     escalation: r.escalation,
     locations: r.locations,
-    remindersSent: r.remindersSent,
-    responseRate: r.responseRate,
-    avgResponseTime: r.avgResponseTime,
-    noshowRate: r.noshowRate,
+    bookings: r.bookings,
+    confirmed: r.confirmed,
+    confirmRate: r.confirmRate,
     outreachSent: r.outreachSent,
     slotsFilled: r.slotsFilled,
     fillRate: r.fillRate,
@@ -461,35 +461,35 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     return () => onAgentSetupActiveChange?.(false)
   }, [isFrontdesk, showCreateFlow, showSetupWizard, onAgentSetupActiveChange])
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
-    { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
+    { key: 'name', label: 'Agent name', width: 230, sortable: true, locked: true },
     {
       key: 'status',
       label: 'Status',
-      width: 140,
+      width: 110,
       sortable: true,
       render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
     },
-    { key: 'channels', label: 'Channels', width: 200, sortable: true },
+    { key: 'channels', label: 'Channels', width: 140, sortable: true },
     ...(isReminder ? [
-      { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
-      { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
-      { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
-      { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
+      { key: 'bookings' as keyof AgentInstance, label: 'Total bookings', width: 110, sortable: true },
+      { key: 'confirmed' as keyof AgentInstance, label: 'Appointments confirmed', width: 145, sortable: true },
+      { key: 'confirmRate' as keyof AgentInstance, label: 'Confirmation rate', width: 135, sortable: true },
+      { key: 'timeSaved' as keyof AgentInstance, label: 'Time saved', width: 90, sortable: true },
     ] : isWaitlist ? [
-      { key: 'outreachSent' as keyof AgentInstance, label: 'Outreach sent', width: 180, sortable: true },
-      { key: 'slotsFilled' as keyof AgentInstance, label: 'Slots filled', width: 150, sortable: true },
-      { key: 'fillRate' as keyof AgentInstance, label: 'Fill rate', width: 130, sortable: true },
-      { key: 'timeSaved' as keyof AgentInstance, label: 'Time saved', width: 150, sortable: true },
+      { key: 'outreachSent' as keyof AgentInstance, label: 'Outreach sent', width: 120, sortable: true },
+      { key: 'slotsFilled' as keyof AgentInstance, label: 'Slots filled', width: 110, sortable: true },
+      { key: 'fillRate' as keyof AgentInstance, label: 'Fill rate', width: 90, sortable: true },
+      { key: 'timeSaved' as keyof AgentInstance, label: 'Time saved', width: 90, sortable: true },
     ] : isPreVisit ? [
-      { key: 'interactions' as keyof AgentInstance, label: 'Outreach sent',     width: 160, sortable: true },
-      { key: 'fcr' as keyof AgentInstance,          label: 'Intakes completed',  width: 180, sortable: true },
-      { key: 'aht' as keyof AgentInstance,          label: 'Completion rate',    width: 160, sortable: true },
-      { key: 'escalation' as keyof AgentInstance,   label: 'Time saved',         width: 140, sortable: true },
+      { key: 'interactions' as keyof AgentInstance, label: 'Outreach sent',     width: 115, sortable: true },
+      { key: 'fcr' as keyof AgentInstance,          label: 'Intakes completed',  width: 135, sortable: true },
+      { key: 'aht' as keyof AgentInstance,          label: 'Completion rate',    width: 110, sortable: true },
+      { key: 'escalation' as keyof AgentInstance,   label: 'Time saved',         width: 90, sortable: true },
     ] : isFrontdesk ? [
-      { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
-      { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },
-      { key: 'aht' as keyof AgentInstance, label: 'Resolution rate', width: 150, sortable: true },
-      { key: 'escalation' as keyof AgentInstance, label: 'Time saved', width: 130, sortable: true },
+      { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 145, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 145, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Resolution rate', width: 105, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Time saved', width: 90, sortable: true },
     ] : isRecall ? [
       { key: 'patientsContacted' as keyof AgentInstance, label: 'Patients contacted', width: 180, sortable: true },
       { key: 'recallConversionRate' as keyof AgentInstance, label: 'Recall conversion rate', width: 200, sortable: true },
@@ -515,13 +515,19 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
       { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
       { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
     ]),
-    { key: 'locations', label: 'Locations', width: 130, sortable: true },
+    { key: 'locations', label: 'Locations', width: 120, sortable: true },
   ]
 
   const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
   const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
+  // Front desk, Pre-visit, Waitlist, and Reminder each report exactly 4 metrics, so all 4
+  // are shown by default. Agents with more metrics (Recall, Revenue, Treatment plan, etc.)
+  // still default to the first two, with the rest available via Customize columns.
+  const metricKeys = COLUMN_DEFS.slice(3, -1).map((c) => String(c.key))
+  const showAllMetrics = isFrontdesk || isPreVisit || isWaitlist || isReminder
+  const DEFAULT_VISIBLE = ['name', 'status', 'channels', ...(showAllMetrics ? metricKeys : metricKeys.slice(0, 2)), 'locations']
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER)
-  const [visible, setVisible] = useState<string[]>(DEFAULT_ORDER)
+  const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
 
   const columns = useMemo<Column<AgentInstance>[]>(
     () => order.filter((k) => visible.includes(k)).map((k) => DEF_BY_KEY.get(k)!).filter(Boolean),
@@ -546,6 +552,14 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     actionLabel: 'Use agent' as const,
     onAction: () => onEditAgent?.(tpl.title),
   }))
+
+  const searchQ = searchQuery.trim().toLowerCase()
+  const visibleData = searchQ ? data.filter((row) => row.name.toLowerCase().includes(searchQ)) : data
+  const visibleLibraryCards = searchQ
+    ? libraryCards.filter(
+        (card) => card.title.toLowerCase().includes(searchQ) || card.description.toLowerCase().includes(searchQ),
+      )
+    : libraryCards
 
   if (showSetupWizard && isFrontdesk) {
     return (
@@ -617,9 +631,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
           <div className="flex h-16 items-center justify-between bg-surface px-2xl">
             <h1 className="text-h3 text-text-primary">{agentName}</h1>
             <div className="flex items-center gap-sm">
-              <button type="button" aria-label="Search" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-                <Icon name="search" size={20} />
-              </button>
+              <HeaderSearchField open={searchOpen} value={searchQuery} onOpenChange={setSearchOpen} onChange={setSearchQuery} />
               {activeTab === 'agents' ? (
                 <>
                   <button
@@ -683,7 +695,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
               <div className="px-lg py-lg">
                 <DataTable
                   columns={columns}
-                  data={data}
+                  data={visibleData}
                   scrollOnHover
                   onRowClick={(row) => setSelectedInstance(row.name)}
                   rowMenuItems={[
@@ -703,13 +715,13 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
             </>
           ) : libraryView === 'grid' ? (
             <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-4">
-              {libraryCards.map((card) => (
+              {visibleLibraryCards.map((card) => (
                 <InfoCard key={card.title} {...card} />
               ))}
             </div>
           ) : (
             <div className="px-2xl py-lg">
-              {libraryCards.map((card, i) => (
+              {visibleLibraryCards.map((card, i) => (
                 <InfoCardListItem key={card.title} first={i === 0} {...card} />
               ))}
             </div>
@@ -730,7 +742,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
         }}
         onRestoreDefault={() => {
           setOrder(DEFAULT_ORDER)
-          setVisible(DEFAULT_ORDER)
+          setVisible(DEFAULT_VISIBLE)
         }}
       />
 

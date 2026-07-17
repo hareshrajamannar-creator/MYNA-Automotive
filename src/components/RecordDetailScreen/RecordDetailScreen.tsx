@@ -1,60 +1,16 @@
 import { useState } from 'react'
-import { Icon } from '../components/Icon/Icon'
-import { Tabs } from '../components'
-import { PatientDetail } from '../components/QuickViewDrawer/QuickViewDrawer.types'
-import {
-  AccordionSection,
-  BasicDetailsSection,
-  InsuranceSection,
-  ConsentSection,
-  MedicalHistorySection,
-  SocialHistorySection,
-} from '../components/QuickViewDrawer/patientSections'
-import { buildActivities, ActivityRow } from '../components/ViewActivityDrawer/activityUtils'
-import { ViewActivityDrawerProps } from '../components/ViewActivityDrawer/ViewActivityDrawer.types'
-import aiIcon from '../assets/ai-icon.svg'
-import iconInbox from '../assets/icon-inbox.svg'
-import iconMail from '../assets/icon-mail.svg'
-import iconWhatsapp from '../assets/icon-whatsapp.svg'
-import iconSparkle from '../assets/icon-sparkle.svg'
+import { Icon } from '../Icon/Icon'
+import { Tabs } from '../Tabs/Tabs'
+import { AccordionSection, FieldRow } from '../QuickViewDrawer/patientSections'
+import { ActivityRow } from '../ViewActivityDrawer/activityUtils'
+import { RecordDetailScreenProps } from './RecordDetailScreen.types'
+import aiIcon from '../../assets/ai-icon.svg'
+import iconInbox from '../../assets/icon-inbox.svg'
+import iconMail from '../../assets/icon-mail.svg'
+import iconWhatsapp from '../../assets/icon-whatsapp.svg'
+import iconSparkle from '../../assets/icon-sparkle.svg'
 
-interface IntakePatientDetailScreenProps {
-  patient: PatientDetail
-  appointmentTime?: string
-  appointmentType?: string
-  formType?: string
-  status?: string
-  bookedOn?: string
-  insuranceProvider?: string
-  sentVia?: string
-  onBack: () => void
-}
-
-export function IntakePatientDetailScreen({
-  patient,
-  appointmentTime,
-  appointmentType,
-  formType,
-  status,
-  bookedOn,
-  insuranceProvider,
-  sentVia,
-  onBack,
-}: IntakePatientDetailScreenProps) {
-  const activityProps: ViewActivityDrawerProps = {
-    open: true,
-    patient: patient.patient,
-    onClose: onBack,
-    appointmentDate: patient.appointmentDate,
-    appointmentTime: appointmentTime ?? patient.appointmentTime,
-    appointmentType: appointmentType ?? patient.appointmentType,
-    formType,
-    status,
-    bookedOn: bookedOn ?? patient.bookedOn,
-    insuranceProvider: insuranceProvider ?? patient.insuranceProvider,
-    sentVia,
-  }
-  const activities = buildActivities(activityProps)
+export function RecordDetailScreen({ name, accordions, metrics, activities }: RecordDetailScreenProps) {
   const [activeActivityTab, setActiveActivityTab] = useState('all-activity')
   const [activitySearch, setActivitySearch] = useState('')
 
@@ -65,7 +21,7 @@ export function IntakePatientDetailScreen({
       )
     : activities
 
-  const initials = patient.patient
+  const initials = name
     .split(' ')
     .map((n) => n[0])
     .join('')
@@ -74,18 +30,17 @@ export function IntakePatientDetailScreen({
 
   return (
     <div className="flex h-full flex-col bg-surface">
-      {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel — floating card */}
         <div className="w-[30%] shrink-0 overflow-y-auto bg-white p-lg">
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
 
-            {/* Patient header — avatar + name + actions */}
+            {/* Header — avatar + name + actions */}
             <div className="flex flex-col items-center px-lg py-xl">
               <div className="flex size-16 items-center justify-center rounded-full bg-chip-success-bg text-lg text-chip-success-text">
                 {initials}
               </div>
-              <span className="mt-sm text-h3 text-text-primary">{patient.patient}</span>
+              <span className="mt-sm text-h3 text-text-primary">{name}</span>
               <div className="mt-sm flex items-center gap-xs">
                 <button type="button" className="flex size-8 items-center justify-center rounded-sm border border-border hover:bg-surface-hover" style={{ color: '#303030' }}>
                   <Icon name="send" size={18} />
@@ -106,21 +61,13 @@ export function IntakePatientDetailScreen({
             </div>
 
             {/* Collapsible accordions */}
-            <AccordionSection title="Basic details" defaultOpen>
-              <BasicDetailsSection p={patient} />
-            </AccordionSection>
-            <AccordionSection title="Insurance">
-              <InsuranceSection p={patient} />
-            </AccordionSection>
-            <AccordionSection title="Consent">
-              <ConsentSection p={patient} />
-            </AccordionSection>
-            <AccordionSection title="Medical history">
-              <MedicalHistorySection p={patient} />
-            </AccordionSection>
-            <AccordionSection title="Social history">
-              <SocialHistorySection p={patient} />
-            </AccordionSection>
+            {accordions.map((accordion, i) => (
+              <AccordionSection key={accordion.title} title={accordion.title} defaultOpen={accordion.defaultOpen} isFirst={i === 0}>
+                {accordion.fields.map((field) => (
+                  <FieldRow key={field.label} label={field.label} value={field.value} />
+                ))}
+              </AccordionSection>
+            ))}
           </div>
         </div>
 
@@ -131,7 +78,7 @@ export function IntakePatientDetailScreen({
           <div className="mx-lg mt-lg flex items-center justify-between rounded-sm border border-[#c5b3f5] bg-[#f5f0ff] px-lg py-[10px]">
             <div className="flex items-center gap-sm">
               <img src={aiIcon} alt="AI" className="size-5 shrink-0" />
-              <span className="text-body text-text-primary">Get insights and actions for {patient.patient}</span>
+              <span className="text-body text-text-primary">Get insights and actions for {name}</span>
             </div>
             <button
               type="button"
@@ -158,14 +105,9 @@ export function IntakePatientDetailScreen({
 
           {/* Metric tiles */}
           <div className="mx-lg mt-lg grid grid-cols-4 gap-sm">
-            {[
-              { value: patient.appointmentDate ?? '—', label: 'Appointment date' },
-              { value: bookedOn ? `${bookedOn}, 2026` : '—', label: 'Created on' },
-              { value: status ?? 'Not started', label: 'Form status' },
-              { value: patient.sentOn ? `${patient.sentOn}, 2026` : '—', label: 'Last activity' },
-            ].map((m, i) => (
+            {metrics.map((m, i) => (
               <div key={i} className="rounded-sm border border-border px-lg py-md">
-                <p className="text-xl text-text-primary">{m.value}</p>
+                <p className="text-xl text-text-primary">{m.value || '—'}</p>
                 <p className="mt-xs text-small text-text-secondary">{m.label}</p>
               </div>
             ))}
@@ -211,9 +153,13 @@ export function IntakePatientDetailScreen({
 
           {/* Activity timeline */}
           <div className="mx-lg mt-lg pb-xl">
-            {visibleActivities.map((activity, i) => (
-              <ActivityRow key={activity.id} activity={activity} isLast={i === visibleActivities.length - 1} />
-            ))}
+            {visibleActivities.length ? (
+              visibleActivities.map((activity, i) => (
+                <ActivityRow key={activity.id} activity={activity} isLast={i === visibleActivities.length - 1} />
+              ))
+            ) : (
+              <p className="text-body text-text-secondary">No activity yet.</p>
+            )}
           </div>
 
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { TopNav, Icon, RefChip, ContextModal, EmptyHintField, SelectMenu } from '../components'
+import { TopNav, Icon, InfoTooltip, RefChip, ContextModal, EmptyHintField, SelectMenu } from '../components'
 import StepsEditorToolbar from '../workflow/Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar'
 import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
@@ -271,7 +271,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               </div>
             </Field>
 
-            <Field label="Steps" info>
+            <Field label="Steps" info tooltip="The ordered actions the agent follows to complete this procedure. Use the toolbar below to insert variables, tools, or links inline.">
               <ProcedureStepsPanel
                 initialSteps={procedure?.steps ?? []}
                 value={stepsText}
@@ -284,7 +284,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
 
           {/* Right — fixed 400px context sidebar (auto-fills space freed from left) */}
           <div className="w-[400px] shrink-0">
-            <Field label="Context" info>
+            <Field label="Context" info tooltip="Reference material — files, links, or variables — the agent can pull from while running this procedure.">
               <div className="rounded-sm border border-border-input bg-surface">
                 {context.length === 0 ? (
                   <p className="px-lg py-md text-body text-text-tertiary">No context added</p>
@@ -344,12 +344,12 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
 }
 
 // ── Field label wrapper ─────────────────────────────────────────
-function Field({ label, info = false, children }: { label: string; info?: boolean; children: React.ReactNode }) {
+function Field({ label, info = false, tooltip, children }: { label: string; info?: boolean; tooltip?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-xs">
       <div className="flex h-[18px] items-center gap-xs">
         <span className="text-small text-text-primary">{label}</span>
-        {info && <Icon name="info" size={16} className="text-text-tertiary" />}
+        {info && tooltip && <InfoTooltip text={tooltip} />}
       </div>
       {children}
     </div>
