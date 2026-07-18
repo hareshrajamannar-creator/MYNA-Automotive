@@ -47,6 +47,7 @@ export default {
           danger: { bg: '#fef6f5', text: '#de1b0c' }, // Red/10 · negative
           neutral: { bg: '#eaeaea', text: '#555555' }, // Gray/40 · Gray/300
         },
+        tooltip: { DEFAULT: '#252525' }, // Gray/800 — Tooltip / Web (Aero DS, node 2180:72)
       },
       spacing: {
         xs: '4px', // Spacing/xs
@@ -68,6 +69,7 @@ export default {
       boxShadow: {
         dropdown: '0 4px 16px rgba(0,0,0,0.12)',
         modal: '0 8px 40px rgba(0,0,0,0.22)',
+        tooltip: '0px 4px 8px rgba(33,33,33,0.18)', // Shadow/sm — Tooltip / Web (Aero DS, node 2180:72)
       },
       fontFamily: {
         sans: ['Roboto', 'sans-serif'],

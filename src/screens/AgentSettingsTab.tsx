@@ -76,7 +76,7 @@ function FallbackField({ prefix, chipLabel, suffix }: FallbackFieldProps) {
         {/* AI icon */}
         <button
           type="button"
-          title="AI personalise"
+          title="AI personalize"
           className="flex h-7 items-center gap-[3px] rounded-sm px-[6px] text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

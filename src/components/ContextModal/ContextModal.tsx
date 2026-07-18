@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '../Icon/Icon'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import {
   DEFAULT_CONTEXT_BRAND,
   DEFAULT_CONTEXT_FIELDS,
@@ -115,7 +116,7 @@ function FieldGroup({
   const enabledCount = fields.filter((f) => f.enabled).length
 
   return (
-    <div className="border-b border-border">
+    <div className="border-b border-border last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -256,13 +257,13 @@ function KnowledgeTab({
       <div className="mb-2xl">
         <div className="mb-sm flex items-center gap-xs">
           <span className="text-body text-text-primary">Files</span>
-          <Icon name="info" size={16} className="text-text-tertiary" />
+          <InfoTooltip text="Upload files the agent can reference — PDFs, docs, or images relevant to this context." />
         </div>
         <div className="flex flex-col gap-sm">
           {files.map((file) => (
             <div key={file.id} className="flex items-center gap-sm">
               <span className="flex size-8 items-center justify-center rounded-sm bg-surface-selected text-text-icon">
-                <Icon name="draft" size={18} />
+                <Icon name="description" size={18} />
               </span>
               <span className="min-w-0 flex-1 truncate text-body text-text-primary">{file.name}</span>
               <button type="button" onClick={() => onRemoveFile(file.id)} aria-label="Remove file">

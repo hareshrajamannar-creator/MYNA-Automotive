@@ -14,6 +14,9 @@ import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/Reminder
 import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import TransferToolDrawer from '../Organisms/Drawers/TransferToolDrawer/TransferToolDrawer';
 import QueryConfigDrawer from '../Organisms/Drawers/QueryConfigDrawer/QueryConfigDrawer';
+import AssignContactStatusDrawer from '../Organisms/Drawers/AssignContactStatusDrawer/AssignContactStatusDrawer';
+import AssignConversationDrawer from '../Organisms/Drawers/AssignConversationDrawer/AssignConversationDrawer';
+import AssignConversationStatusDrawer from '../Organisms/Drawers/AssignConversationStatusDrawer/AssignConversationStatusDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
 import AddToolDrawer from '../Organisms/Drawers/AddToolDrawer/AddToolDrawer';
 import {
@@ -138,6 +141,7 @@ function makeNodeDetails(type, label) {
 
 const TASK_DROP_DEFAULTS = {
   'Initiate voice call': { description: 'Call the customer' },
+  'In-call SMS': { description: 'Send a text message to the caller during the active call', selectedTools: ['in-call-sms'] },
   'Schedule appointment': { description: 'Book a new appointment for the customer' },
   'Reschedule appointment': { description: 'Change an existing appointment date or time' },
   'Cancel appointment': { description: 'Cancel a scheduled appointment' },
@@ -654,6 +658,9 @@ export default function AgentBuilder({
   const [voiceCallToolOpen, setVoiceCallToolOpen] = useState(false);
   const [transferToolOpen, setTransferToolOpen] = useState(false);
   const [queryConfigOpen, setQueryConfigOpen] = useState(false);
+  const [assignContactStatusToolOpen, setAssignContactStatusToolOpen] = useState(false);
+  const [assignConversationToolOpen, setAssignConversationToolOpen] = useState(false);
+  const [assignConversationStatusToolOpen, setAssignConversationStatusToolOpen] = useState(false);
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
@@ -1857,10 +1864,14 @@ export default function AgentBuilder({
           onOpenTool: (toolId) => {
             if (toolId === 'reminder-tool') { setReminderToolOpen(true); return; }
             if (toolId === 'get-unscheduled-treatment-plans') { setQueryConfigOpen(true); return; }
+            if (toolId === 'assign-contact-status') { setAssignContactStatusToolOpen(true); return; }
+            if (toolId === 'assign-conversation') { setAssignConversationToolOpen(true); return; }
+            if (toolId === 'assign-conversation-status') { setAssignConversationStatusToolOpen(true); return; }
             getCustomToolsByIds([toolId]).then((tools) => {
               if (tools[0]) setViewingTool(tools[0]);
             });
           },
+          onSwapTool: () => setToolPickerOpen(true),
         }}
         onClose={handleCloseDrawer}
         onSave={handleCloseDrawer}
@@ -2068,6 +2079,15 @@ export default function AgentBuilder({
 
       {/* ─── Query config drawer (Get all unscheduled treatment plans) ─── */}
       <QueryConfigDrawer isOpen={queryConfigOpen} onClose={() => setQueryConfigOpen(false)} />
+
+      {/* ─── Assign contact status tool drawer ─── */}
+      <AssignContactStatusDrawer isOpen={assignContactStatusToolOpen} onClose={() => setAssignContactStatusToolOpen(false)} />
+
+      {/* ─── Assign conversation tool drawer ─── */}
+      <AssignConversationDrawer isOpen={assignConversationToolOpen} onClose={() => setAssignConversationToolOpen(false)} />
+
+      {/* ─── Assign conversation status tool drawer ─── */}
+      <AssignConversationStatusDrawer isOpen={assignConversationStatusToolOpen} onClose={() => setAssignConversationStatusToolOpen(false)} />
 
       {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (

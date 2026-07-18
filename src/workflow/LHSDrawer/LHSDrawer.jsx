@@ -186,7 +186,7 @@ const HEALTHCARE_TASK_SUB_ITEMS = {
     title: 'Conversation tasks',
     items: [
       'Initiate voice call',
-      'In call text',
+      'In-call SMS',
     ],
   },
   Appointment: {

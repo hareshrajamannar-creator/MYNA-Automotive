@@ -529,6 +529,20 @@ function FallbackField({
         />
       </div>
       <div className="flex items-center gap-[2px] bg-surface px-sm py-[6px]">
+        <button
+          type="button"
+          title="AI personalize"
+          className="flex h-7 items-center gap-[3px] rounded-sm px-[6px] text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.25" />
+            <text x="8" y="11.5" textAnchor="middle" fontSize="7.5" fill="currentColor" fontFamily="sans-serif">
+              Ai
+            </text>
+            <path d="M12 1.5 L13 3 L14 1.5 L13 0 Z" fill="#7C3AED" />
+          </svg>
+          <span className="sr-only">AI</span>
+        </button>
         <div className="relative">
           <button
             ref={emojiButtonRef}
