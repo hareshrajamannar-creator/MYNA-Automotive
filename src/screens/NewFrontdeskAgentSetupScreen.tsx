@@ -8,6 +8,7 @@ import {
   LanguageSelectMenu,
   ProcedureSelectCard,
   ProceduresPickerDrawer,
+  Toast,
   TopNav,
 } from '../components'
 import {
@@ -42,6 +43,7 @@ import {
   ExpandIcon,
   VariableIcon,
 } from '../workflow/Molecules/Inputs/PromptToolbarIcons.jsx'
+import FieldPickerModal from '../workflow/Organisms/Modals/FieldPickerModal/FieldPickerModal.jsx'
 
 interface NewFrontdeskAgentSetupScreenProps {
   onBack: () => void
@@ -174,7 +176,8 @@ function StepIndicator({
       <ol className="flex flex-col">
         {STEPS.map((step, index) => {
           const isActive = step.id === currentStep
-          const isComplete = step.id < currentStep
+          // Once a later step is reached, earlier steps stay complete even when revisiting.
+          const isComplete = step.id < maxStepReached
           const isLast = index === STEPS.length - 1
           const canNavigate = step.id <= maxStepReached
 
@@ -544,8 +547,10 @@ function DefaultVoiceDrawer({
             <VoiceDropdown value={draftVoice} onChange={setDraftVoice} />
           </div>
 
+          <div className="h-px shrink-0 bg-border" />
+
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Speed</label>
+            <label className="text-body text-text-primary">Speed</label>
             <div className="flex items-start gap-md">
               <div className="min-w-0 flex-1">
                 <div className="relative flex h-10 items-center">
@@ -597,18 +602,20 @@ const SAME_AS_AGENT_LANGUAGE = '__same_as_agent__'
 
 function AdditionalVoiceDrawer({
   open,
+  initialConfig = null,
   defaultLanguage,
   defaultSpeed,
   defaultVoice,
   onClose,
-  onAdd,
+  onSave,
 }: {
   open: boolean
+  initialConfig?: AdditionalVoiceConfig | null
   defaultLanguage: AgentLanguageId
   defaultSpeed: number
   defaultVoice: string
   onClose: () => void
-  onAdd: (config: AdditionalVoiceConfig) => void
+  onSave: (config: AdditionalVoiceConfig) => void
 }) {
   const [draftLabel, setDraftLabel] = useState('')
   const [draftVoice, setDraftVoice] = useState('')
@@ -620,17 +627,26 @@ function AdditionalVoiceDrawer({
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [langQuery, setLangQuery] = useState('')
   const langRef = useRef<HTMLDivElement>(null)
+  const isEditing = initialConfig != null
 
   useEffect(() => {
     if (!open) return
-    setDraftVoice('')
-    setDraftLanguage(SAME_AS_AGENT_LANGUAGE)
-    setWhenToUse('')
-    setDraftSpeed(defaultSpeed)
-    setDraftLabel('')
+    if (initialConfig) {
+      setDraftLabel(initialConfig.label)
+      setDraftVoice(initialConfig.voice)
+      setDraftLanguage(initialConfig.language)
+      setWhenToUse(initialConfig.whenToUse)
+      setDraftSpeed(initialConfig.speed)
+    } else {
+      setDraftVoice('')
+      setDraftLanguage(SAME_AS_AGENT_LANGUAGE)
+      setWhenToUse('')
+      setDraftSpeed(defaultSpeed)
+      setDraftLabel('')
+    }
     setLangMenuOpen(false)
     setLangQuery('')
-  }, [open, defaultLanguage, defaultSpeed])
+  }, [open, initialConfig, defaultLanguage, defaultSpeed])
 
   useEffect(() => {
     if (!open) return
@@ -650,11 +666,11 @@ function AdditionalVoiceDrawer({
   )
   const speedPct =
     ((draftSpeed - VOICE_SPEED_MIN) / (VOICE_SPEED_MAX - VOICE_SPEED_MIN)) * 100
-  const canAdd = draftLabel.trim().length > 0 && draftVoice.length > 0
+  const canSave = draftLabel.trim().length > 0 && draftVoice.length > 0
 
-  function handleAdd() {
-    if (!canAdd) return
-    onAdd({
+  function handleSave() {
+    if (!canSave) return
+    onSave({
       label: draftLabel.trim(),
       voice: draftVoice,
       language: draftLanguage === SAME_AS_AGENT_LANGUAGE ? defaultLanguage : draftLanguage,
@@ -687,19 +703,21 @@ function AdditionalVoiceDrawer({
             >
               <BackArrowIcon />
             </button>
-            <h2 className="text-h3 text-text-primary">Add additional voice</h2>
+            <h2 className="text-h3 text-text-primary">
+              {isEditing ? 'Additional voice' : 'Add additional voice'}
+            </h2>
           </div>
           <button
             type="button"
-            onClick={handleAdd}
-            disabled={!canAdd}
+            onClick={handleSave}
+            disabled={!canSave}
             className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
-              canAdd
+              canSave
                 ? 'bg-primary text-white hover:bg-primary-hover'
                 : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
             }`}
           >
-            Add
+            {isEditing ? 'Save' : 'Add'}
           </button>
         </div>
 
@@ -823,15 +841,17 @@ function AdditionalVoiceDrawer({
             <textarea
               value={whenToUse}
               onChange={(e) => setWhenToUse(e.target.value)}
-              rows={6}
-              placeholder="E.g. for any Spanish words"
+              rows={4}
+              placeholder="E.g. use this voice when the caller speaks Spanish or starts the conversation in Spanish"
               className={`${INPUT_CLASS} resize-none py-sm placeholder:text-text-tertiary`}
             />
           </div>
 
+          <div className="h-px shrink-0 bg-border" />
+
           <div className="flex flex-col gap-xs">
             <div className="flex items-center justify-between">
-              <label className="text-small text-text-secondary">Speed</label>
+              <label className="text-body text-text-primary">Speed</label>
               {draftSpeed !== defaultSpeed && (
                 <button
                   type="button"
@@ -916,6 +936,9 @@ function VoiceChannelSettings({
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [additionalDrawerOpen, setAdditionalDrawerOpen] = useState(false)
+  const [editingAdditionalVoice, setEditingAdditionalVoice] = useState<AdditionalVoiceConfig | null>(
+    null,
+  )
 
   function handleDefaultVoiceSave(next: { voice: string; speed: number }) {
     onVoiceChange(next.voice)
@@ -927,10 +950,33 @@ function VoiceChannelSettings({
     setDrawerOpen(false)
   }
 
-  function handleAddAdditionalVoice(config: AdditionalVoiceConfig) {
-    onAdditionalVoiceConfigsChange([...additionalVoiceConfigs, config])
-    onAdditionalVoicesChange([...additionalVoices, config.label])
+  function openAddAdditionalVoice() {
+    setEditingAdditionalVoice(null)
+    setAdditionalDrawerOpen(true)
+  }
+
+  function openEditAdditionalVoice(config: AdditionalVoiceConfig) {
+    setEditingAdditionalVoice(config)
+    setAdditionalDrawerOpen(true)
+  }
+
+  function closeAdditionalDrawer() {
     setAdditionalDrawerOpen(false)
+    setEditingAdditionalVoice(null)
+  }
+
+  function handleSaveAdditionalVoice(config: AdditionalVoiceConfig) {
+    if (editingAdditionalVoice) {
+      const nextConfigs = additionalVoiceConfigs.map((cfg) =>
+        cfg.label === editingAdditionalVoice.label ? config : cfg,
+      )
+      onAdditionalVoiceConfigsChange(nextConfigs)
+      onAdditionalVoicesChange(nextConfigs.map((cfg) => cfg.label))
+    } else {
+      onAdditionalVoiceConfigsChange([...additionalVoiceConfigs, config])
+      onAdditionalVoicesChange([...additionalVoices, config.label])
+    }
+    closeAdditionalDrawer()
   }
 
   function handleRemoveAdditionalVoice(label: string) {
@@ -969,47 +1015,71 @@ function VoiceChannelSettings({
 
       <div className="flex flex-col gap-xs">
         {additionalVoiceConfigs.length > 0 && (
-          <>
-            <label className="text-small text-text-secondary">Additional voice</label>
-            <div className="flex flex-wrap gap-sm rounded-sm border border-border-input bg-surface px-md py-sm">
+          <label className="text-small text-text-secondary">Additional voice</label>
+        )}
+        {additionalVoiceConfigs.length > 0 && (
+        <div className="flex flex-col gap-lg rounded-sm border border-border-input bg-surface px-[10px] py-sm">
+          <div className="flex flex-wrap gap-sm">
               {additionalVoiceConfigs.map((cfg) => {
                 const lang = getAgentLanguage(cfg.language)
                 return (
-                  <span
+                  <button
                     key={cfg.label}
-                    className="flex h-7 max-w-full items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm text-body text-text-primary"
+                    type="button"
+                    onClick={() => openEditAdditionalVoice(cfg)}
+                    className="flex h-7 max-w-full items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm text-body text-text-primary hover:bg-surface-hover"
                   >
                     <LanguageFlag countryCode={lang.countryCode} label={lang.label} size="sm" />
                     <span className="truncate">{cfg.label}</span>
-                    <button
-                      type="button"
+                    <span
+                      role="button"
+                      tabIndex={0}
                       aria-label={`Remove ${cfg.label}`}
-                      onClick={() => handleRemoveAdditionalVoice(cfg.label)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRemoveAdditionalVoice(cfg.label)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleRemoveAdditionalVoice(cfg.label)
+                        }
+                      }}
                       className="flex size-4 shrink-0 items-center justify-center text-text-icon hover:text-text-primary"
                     >
                       <Icon name="close" size={14} />
-                    </button>
-                  </span>
+                    </span>
+                  </button>
                 )
               })}
             </div>
-          </>
+          <button
+            type="button"
+            onClick={openAddAdditionalVoice}
+            className="flex items-center gap-sm self-start text-body text-text-action hover:text-primary-hover"
+          >
+            <Icon name="add_circle" size={18} className="text-primary" />
+            Add
+          </button>
+        </div>
         )}
         <button
           type="button"
-          onClick={() => setAdditionalDrawerOpen(true)}
-          className="mt-xs flex items-center gap-sm self-start text-body text-text-action hover:text-primary-hover"
+          onClick={openAddAdditionalVoice}
+          className={`flex items-center gap-sm self-start text-body text-text-action hover:text-primary-hover ${additionalVoiceConfigs.length > 0 ? 'hidden' : ''}`}
         >
           <Icon name="add_circle" size={18} className="text-primary" />
           Add additional voice
         </button>
         <AdditionalVoiceDrawer
           open={additionalDrawerOpen}
+          initialConfig={editingAdditionalVoice}
           defaultLanguage={language}
           defaultSpeed={voiceSpeed}
           defaultVoice={voice}
-          onClose={() => setAdditionalDrawerOpen(false)}
-          onAdd={handleAddAdditionalVoice}
+          onClose={closeAdditionalDrawer}
+          onSave={handleSaveAdditionalVoice}
         />
       </div>
 
@@ -1026,9 +1096,6 @@ function VoiceChannelSettings({
 
       <div>
         <p className="text-small text-text-secondary">Recording</p>
-        <p className="mt-[2px] text-small text-text-tertiary">
-          Configure consent wording in each channel settings below
-        </p>
         <div className="mt-sm flex flex-col gap-sm">
           <label className="flex cursor-pointer items-center gap-sm">
             <input
@@ -1092,12 +1159,12 @@ function ChannelAccordion({
           onClick={() => setOpen((v) => !v)}
           className="flex h-14 w-full items-center justify-between px-lg text-left hover:bg-surface-l2"
         >
-          <span className="text-body font-medium text-text-primary">{title}</span>
+          <span className="text-body text-text-primary">{title}</span>
           <Icon name={open ? 'expand_less' : 'expand_more'} size={20} className="shrink-0 text-text-icon" />
         </button>
       ) : (
         <div className="flex h-14 items-center px-lg">
-          <span className="text-body font-medium text-text-primary">{title}</span>
+          <span className="text-body text-text-primary">{title}</span>
         </div>
       )}
       {isOpen && <div className="px-lg pb-lg pt-md">{children}</div>}
@@ -1127,7 +1194,7 @@ function GettingStartedStep({
   }, [])
 
   return (
-    <div className="flex w-full max-w-[1200px] flex-col gap-xl">
+    <div className="flex w-full flex-col gap-xl">
       <div>
         <h2 className="text-h3 text-text-primary">Getting started</h2>
       </div>
@@ -1174,8 +1241,37 @@ function ConfigureAgentStep({
     additionalLanguages.length > 0,
   )
   const [additionalMenuOpen, setAdditionalMenuOpen] = useState(false)
+  const [fieldPickerOpen, setFieldPickerOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
   const additionalRef = useRef<HTMLDivElement>(null)
+  const fieldsBtnRef = useRef<HTMLButtonElement>(null)
+  const promptRef = useRef<HTMLTextAreaElement>(null)
+  const savedSelectionRef = useRef<{ start: number; end: number } | null>(null)
+
+  function savePromptSelection() {
+    const el = promptRef.current
+    if (!el) return
+    savedSelectionRef.current = { start: el.selectionStart, end: el.selectionEnd }
+  }
+
+  function insertFieldIntoPrompt(fieldValue: string) {
+    const el = promptRef.current
+    if (!el) {
+      onSystemPromptChange(`${systemPrompt}{{${fieldValue}}}`)
+      return
+    }
+    const token = `{{${fieldValue}}}`
+    const start = savedSelectionRef.current?.start ?? el.selectionStart
+    const end = savedSelectionRef.current?.end ?? el.selectionEnd
+    const next = `${systemPrompt.slice(0, start)}${token}${systemPrompt.slice(end)}`
+    onSystemPromptChange(next)
+    const caret = start + token.length
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(caret, caret)
+    })
+    savedSelectionRef.current = null
+  }
 
   useEffect(() => {
     function handleClick(e: Event) {
@@ -1229,17 +1325,27 @@ function ConfigureAgentStep({
           className={`flex flex-col overflow-hidden bg-surface ${FIELD_BORDER_CLASS} focus-within:border-primary`}
         >
           <textarea
+            ref={promptRef}
             value={systemPrompt}
             onChange={(e) => onSystemPromptChange(e.target.value)}
+            onSelect={savePromptSelection}
+            onBlur={savePromptSelection}
             rows={12}
             className="h-[360px] w-full resize-y bg-transparent px-md py-sm text-body leading-[1.55] text-text-primary outline-none"
             aria-required
           />
           <div className="flex items-center gap-xs px-sm py-[6px]">
             <button
+              ref={fieldsBtnRef}
               type="button"
               title="Insert variable"
               aria-label="Insert variable"
+              aria-expanded={fieldPickerOpen}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                savePromptSelection()
+                setFieldPickerOpen(true)
+              }}
               className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
             >
               <VariableIcon />
@@ -1254,6 +1360,16 @@ function ConfigureAgentStep({
             </button>
           </div>
         </div>
+        {fieldPickerOpen && (
+          <FieldPickerModal
+            onClose={() => setFieldPickerOpen(false)}
+            onSelectField={(value: string) => {
+              insertFieldIntoPrompt(value)
+              setFieldPickerOpen(false)
+            }}
+            anchorEl={fieldsBtnRef.current}
+          />
+        )}
       </div>
 
       {/* Language */}
@@ -1432,30 +1548,25 @@ function ConfigureChannelsStep({
 
       <div className="flex flex-col gap-lg">
         {selectedChannels.has('voice') && (
-          <div className="overflow-hidden rounded-md border border-border bg-surface">
-            <div className="flex h-14 items-center px-lg">
-              <span className="text-body font-medium text-text-primary">Voice call settings</span>
-            </div>
-            <div className="px-lg pb-lg pt-md">
-              <VoiceChannelSettings
-                language={language}
-                voice={voice}
-                onVoiceChange={onVoiceChange}
-                voiceSpeed={voiceSpeed}
-                onVoiceSpeedChange={onVoiceSpeedChange}
-                additionalVoices={additionalVoices}
-                onAdditionalVoicesChange={onAdditionalVoicesChange}
-                additionalVoiceConfigs={additionalVoiceConfigs}
-                onAdditionalVoiceConfigsChange={onAdditionalVoiceConfigsChange}
-                greeting={greeting}
-                onGreetingChange={onGreetingChange}
-                recording={recording}
-                onRecordingChange={onRecordingChange}
-                consent={consent}
-                onConsentChange={onConsentChange}
-              />
-            </div>
-          </div>
+          <ChannelAccordion title="Voice call settings" collapsible={false}>
+            <VoiceChannelSettings
+              language={language}
+              voice={voice}
+              onVoiceChange={onVoiceChange}
+              voiceSpeed={voiceSpeed}
+              onVoiceSpeedChange={onVoiceSpeedChange}
+              additionalVoices={additionalVoices}
+              onAdditionalVoicesChange={onAdditionalVoicesChange}
+              additionalVoiceConfigs={additionalVoiceConfigs}
+              onAdditionalVoiceConfigsChange={onAdditionalVoiceConfigsChange}
+              greeting={greeting}
+              onGreetingChange={onGreetingChange}
+              recording={recording}
+              onRecordingChange={onRecordingChange}
+              consent={consent}
+              onConsentChange={onConsentChange}
+            />
+          </ChannelAccordion>
         )}
 
         {selectedChannels.has('webchat') && (
@@ -1478,16 +1589,11 @@ function ConfigureChannelsStep({
         )}
 
         {selectedChannels.has('email') && (
-          <div className="overflow-hidden rounded-md border border-border bg-surface">
-            <div className="flex h-14 items-center px-lg">
-              <span className="text-body font-medium text-text-primary">Email settings</span>
-            </div>
-            <div className="px-lg pb-lg pt-md">
-              <p className="text-body text-text-secondary">
-                No additional configuration required for this channel yet.
-              </p>
-            </div>
-          </div>
+          <ChannelAccordion title="Email settings" collapsible={false}>
+            <p className="text-body text-text-secondary">
+              No additional configuration required for this channel yet.
+            </p>
+          </ChannelAccordion>
         )}
 
         {selectedChannels.has('facebook') && (
@@ -1613,7 +1719,7 @@ function SelectLocationsStep({
   )
 
   return (
-    <div className="mt-xl flex w-full max-w-[1200px] flex-col gap-sm">
+    <div className="mt-xl flex w-full flex-col gap-sm">
       <div className="flex items-start justify-between gap-xl">
         <div>
           <label className="text-body text-text-primary">Select locations</label>
@@ -1696,7 +1802,7 @@ function SelectProceduresStep({
   onViewProcedure: (id: string) => void
 }) {
   return (
-    <div className="flex w-full max-w-[960px] flex-col">
+    <div className="flex w-full flex-col">
       <div className="mb-xl">
         <h2 className="text-h3 text-text-primary">Select procedures</h2>
         <p className="mt-xs text-small text-text-tertiary">
@@ -1711,7 +1817,7 @@ function SelectProceduresStep({
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-lg">
+      <div className="grid w-full grid-cols-3 gap-lg">
         {procedures.map((procedure) => (
           <ProcedureSelectCard
             key={procedure.id}
@@ -1757,9 +1863,9 @@ export function NewFrontdeskAgentSetupScreen({
   )
   const [procedureDrawerOpen, setProcedureDrawerOpen] = useState(false)
   const [procedureDrawerDetailId, setProcedureDrawerDetailId] = useState<string | null>(null)
-  const [procedureDrawerInitialView, setProcedureDrawerInitialView] = useState<'list' | 'create'>(
-    'list',
-  )
+  const [procedureDrawerReadOnly, setProcedureDrawerReadOnly] = useState(false)
+  const [procedureToastMessage, setProcedureToastMessage] = useState('')
+  const [procedureToastVisible, setProcedureToastVisible] = useState(false)
   const [selectedIntegrationId] = useState<string | null>(
     DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
   )
@@ -1806,21 +1912,21 @@ export function NewFrontdeskAgentSetupScreen({
   }
 
   const openProcedureCreate = () => {
+    setProcedureDrawerReadOnly(false)
     setProcedureDrawerDetailId(null)
-    setProcedureDrawerInitialView('create')
     setProcedureDrawerOpen(true)
   }
 
-  const openProcedureView = (id: string) => {
+  const openProcedureView = (id: string, readOnly = false) => {
+    setProcedureDrawerReadOnly(readOnly)
     setProcedureDrawerDetailId(id)
-    setProcedureDrawerInitialView('list')
     setProcedureDrawerOpen(true)
   }
 
   const closeProcedureDrawer = () => {
     setProcedureDrawerOpen(false)
     setProcedureDrawerDetailId(null)
-    setProcedureDrawerInitialView('list')
+    setProcedureDrawerReadOnly(false)
   }
 
   const handleCreateProcedure = (procedure: ProcedurePickerItem) => {
@@ -1828,6 +1934,15 @@ export function NewFrontdeskAgentSetupScreen({
       ...current,
       { ...procedure, lastEdited: 'Just now' },
     ])
+  }
+
+  const handleProcedureCreated = (title: string, addToLibrary: boolean) => {
+    setProcedureToastMessage(
+      addToLibrary
+        ? `${title} created successfully and added to library`
+        : `${title} created successfully`,
+    )
+    setProcedureToastVisible(true)
   }
 
   const goToStep = (step: number) => {
@@ -1846,8 +1961,13 @@ export function NewFrontdeskAgentSetupScreen({
   const isStep2Complete = systemPrompt.trim().length > 0
   const isWebchatNameMissing =
     selectedChannels.has('webchat') && webchatSettings.aiAgentName.trim().length === 0
+  const isVoiceDefaultMissing = selectedChannels.has('voice') && voice.trim().length === 0
+  const isStep3Complete =
+    selectedChannels.size > 0 && !isWebchatNameMissing && !isVoiceDefaultMissing
   const isNextDisabled =
-    (currentStep === 1 && !isStep1Complete) || (currentStep === 2 && !isStep2Complete)
+    (currentStep === 1 && !isStep1Complete) ||
+    (currentStep === 2 && !isStep2Complete) ||
+    (currentStep === 3 && !isStep3Complete)
   const showChatAgentNameError = webchatNameValidationAttempted && isWebchatNameMissing
 
   const handleNext = () => {
@@ -1886,7 +2006,7 @@ export function NewFrontdeskAgentSetupScreen({
     })
   }
 
-  const progress = PROGRESS_BY_STEP[currentStep] ?? 0
+  const progress = PROGRESS_BY_STEP[maxStepReached] ?? 0
   const isFirstStep = currentStep === 1
   const isLastStep = currentStep === STEPS.length
 
@@ -1946,7 +2066,7 @@ export function NewFrontdeskAgentSetupScreen({
 
           <div className="mt-auto pt-xl">
             <div className="mb-sm text-small text-text-secondary">
-              <span>Step {currentStep} of {STEPS.length}</span>
+              <span>Step {maxStepReached} of {STEPS.length}</span>
             </div>
             <div className="h-1 w-full overflow-hidden rounded-full bg-surface-selected">
               <div
@@ -2043,7 +2163,7 @@ export function NewFrontdeskAgentSetupScreen({
               procedures={procedureCatalog}
               selectedProcedureIds={selectedProcedureIds}
               onEditStep={goToStep}
-              onViewProcedure={openProcedureView}
+              onViewProcedure={(id) => openProcedureView(id, true)}
             />
           )}
         </div>
@@ -2054,11 +2174,18 @@ export function NewFrontdeskAgentSetupScreen({
         procedures={procedureCatalog}
         selectedIds={selectedProcedureIds}
         initialDetailId={procedureDrawerDetailId}
-        initialView={procedureDrawerInitialView}
+        readOnly={procedureDrawerReadOnly}
         onClose={closeProcedureDrawer}
         onSave={setSelectedProcedureIds}
         onCreateProcedure={handleCreateProcedure}
+        onProcedureCreated={handleProcedureCreated}
         closeOnCreateCancel
+      />
+
+      <Toast
+        message={procedureToastMessage}
+        visible={procedureToastVisible}
+        onClose={() => setProcedureToastVisible(false)}
       />
     </div>
   )

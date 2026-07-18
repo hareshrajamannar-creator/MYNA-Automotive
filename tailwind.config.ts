@@ -3,7 +3,7 @@ import type { Config } from 'tailwindcss'
 // Design tokens extracted from Figma (MYNA — Automotive · Frontdesk)
 // via get_variable_defs. Do not hardcode raw hex/px in components — use these.
 export default {
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
   theme: {
     extend: {
       colors: {
@@ -55,6 +55,8 @@ export default {
         lg: '16px', // Spacing/lg
         xl: '20px', // Spacing/xl
         '2xl': '24px', // Spacing/2xl
+        '3xl': '32px', // Spacing/3xl — section rhythm
+        '4xl': '40px', // Spacing/4xl — page section gaps
       },
       borderRadius: {
         sm: '4px', // Corner Radius/sm (Default-Web)

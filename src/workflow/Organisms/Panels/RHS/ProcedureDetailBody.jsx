@@ -1,17 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { EmptyHintField } from '../../../../components/EmptyHintField/EmptyHintField';
 import { Icon } from '../../../../components/Icon/Icon';
 import { serializeFrom, deserializeIntoTyped } from '../../../Molecules/Inputs/promptChipHelpers.js';
 import '../../../Molecules/Inputs/prompt-chip.css';
 import StepsEditorToolbar from '../../../Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar.jsx';
+import UserPromptInput from '../../../Molecules/Inputs/UserPromptInput/UserPromptInput.jsx';
 import VariableChip, { CHIP_TYPES, DataTypeIcon, ProcedureBookIcon } from '../../../Molecules/Inputs/VariableChip/VariableChip';
 import chipStyles from '../../../Molecules/Inputs/VariableChip/VariableChip.module.css';
 import etStyles from './EntityTaskBody.module.css';
 import llmStyles from './LLMTaskBody.module.css';
 import styles from './ProcedureDetailBody.module.css';
 
-const FIELD_SHELL = 'rounded-sm border border-border-input bg-surface transition-colors hover:border-border focus-within:border-primary';
+const FIELD_SHELL = 'rounded-sm border border-border-input bg-surface transition-colors hover:border-border focus-within:!border-primary';
 const TITLE_SHELL = `h-10 ${FIELD_SHELL}`;
+const STEPS_CREATE_PLACEHOLDER = 'Start writing steps. Type / to insert a tool, or add fields and procedures.';
+const STEPS_CREATE_MIN_HEIGHT = 214;
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -20,6 +24,10 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 // 'variable' = default (blue bracket DataTypeIcon, no suffix).
 const KNOWN_TOKENS = {
   'agent_turn':                  'tool',
+  'Intent identifier':           'tool',
+  'Transfer_call':               'tool',
+  'Initiate voice call':         'tool',
+  'End_conversation':            'tool',
   'Escalate_to_staff':           'tool',
   'escalate_to_staff':           'tool',
   'End conversation':            'product',   // procedure
@@ -39,6 +47,33 @@ function resolveTokenType(label) {
   if (label.includes('=')) return 'variable';
   // Default → variable (blue bracket)
   return 'variable';
+}
+
+/* ── Hover tooltip for section-label info icons ── */
+function SectionInfoIcon({ tooltip }) {
+  const [pos, setPos] = useState(null);
+  const ref = useRef(null);
+
+  function show() {
+    if (!tooltip || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    setPos({ x: rect.left + rect.width / 2, y: rect.top - 8 });
+  }
+
+  return (
+    <span ref={ref} className="inline-flex items-center" onMouseEnter={show} onMouseLeave={() => setPos(null)}>
+      <span className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}>info</span>
+      {pos && tooltip && createPortal(
+        <div
+          className="pointer-events-none fixed z-[120] w-max max-w-[280px] rounded-sm bg-[#212121] px-sm py-xs text-small text-white shadow-dropdown"
+          style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -100%)' }}
+        >
+          {tooltip}
+        </div>,
+        document.body,
+      )}
+    </span>
+  );
 }
 
 /* ── Inline chip renderer — uses exact VariableChip.module.css classes ── */
@@ -146,25 +181,68 @@ function serializeStepsList(rootEl) {
     const titleEl = titleWrapper
       ? titleWrapper.querySelector('[contenteditable]:not([contenteditable="false"])')
       : Array.from(stepEl.querySelectorAll('[contenteditable]:not([contenteditable="false"])'))[0];
-    if (titleEl) lines.push(`${num}.${serializeFrom(titleEl)}`);
+    const titleText = titleEl ? serializeFrom(titleEl).trim() : '';
 
+    const bulletLines = [];
     const bulletWrappers = stepEl.querySelectorAll('[data-step-bullet]');
     if (bulletWrappers.length) {
       bulletWrappers.forEach((bw) => {
         const bulletEl = bw.querySelector('[contenteditable]:not([contenteditable="false"])');
-        if (bulletEl) lines.push(`• ${serializeFrom(bulletEl)}`);
+        const bulletText = bulletEl ? serializeFrom(bulletEl).trim() : '';
+        if (bulletText) bulletLines.push(`• ${bulletText}`);
       });
     } else {
       // Fallback: all editables after the first are bullets
       const all = Array.from(stepEl.querySelectorAll('[contenteditable]:not([contenteditable="false"])'));
-      all.slice(1).forEach((el) => lines.push(`• ${serializeFrom(el)}`));
+      all.slice(1).forEach((el) => {
+        const bulletText = serializeFrom(el).trim();
+        if (bulletText) bulletLines.push(`• ${bulletText}`);
+      });
     }
+
+    // Skip fully empty steps so clearing content returns to zero-state
+    if (!titleText && bulletLines.length === 0) return;
+    lines.push(`${num}. ${titleText}`);
+    lines.push(...bulletLines);
   });
   return lines.join('\n');
 }
 
+/* ── Create-mode steps: freeform paragraph field (matches ProcedureDetailScreen) ── */
+function CreateStepsField({ text, onChange, onOpenToolDrawer }) {
+  const [isFocused, setIsFocused] = useState(false);
+  const shellRef = useRef(null);
+
+  return (
+    <div
+      ref={shellRef}
+      className={`${styles.stepsEditorShell} ${styles.stepsEditorShellCreate} ${isFocused ? styles.stepsEditorShellFocused : ''}`}
+      onFocusCapture={() => setIsFocused(true)}
+      onBlurCapture={() => {
+        requestAnimationFrame(() => {
+          if (!shellRef.current?.contains(document.activeElement)) setIsFocused(false);
+        });
+      }}
+    >
+      <div className={`${styles.stepsEditorBody} ${styles.stepsEditorBodyCreate} ${styles.stepsCreatePrompt}`}>
+        <UserPromptInput
+          hideLabel
+          autoHeight
+          value={text}
+          onChange={onChange}
+          resolveType={resolveTokenType}
+          minEditorHeight={STEPS_CREATE_MIN_HEIGHT}
+          placeholder={STEPS_CREATE_PLACEHOLDER}
+          onOpenToolDrawer={onOpenToolDrawer}
+          showProcedureButton
+        />
+      </div>
+    </div>
+  );
+}
+
 /* ── Editable steps — identical layout to StepsRenderer ── */
-function EditableStepsRenderer({ text, onChange, createMode = false, onOpenToolDrawer }) {
+function EditableStepsRenderer({ text, onChange, onOpenToolDrawer }) {
   const rootRef = useRef(null);
   const shellRef = useRef(null);
   const activeEditableRef = useRef(null);
@@ -207,18 +285,36 @@ function EditableStepsRenderer({ text, onChange, createMode = false, onOpenToolD
     setIsFocused(true);
   }, []);
 
-  const handleShellBlur = useCallback((e) => {
-    if (!shellRef.current?.contains(e.relatedTarget)) {
-      setIsFocused(false);
-    }
+  const handleShellFocus = useCallback(() => {
+    setIsFocused(true);
   }, []);
 
-  const STEPS_EMPTY_HINT = 'Start writing instructions…\nType "/" to insert a tool, field, or procedure.';
+  const handleShellBlur = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (!shellRef.current?.contains(document.activeElement)) {
+        setIsFocused(false);
+      }
+    });
+  }, []);
+
+  const handleShellMouseDown = useCallback((e) => {
+    const shell = shellRef.current;
+    const root = rootRef.current;
+    if (!shell || !root) return;
+    if (e.target === shell || e.target === root || root.contains(e.target) && e.target.getAttribute?.('aria-hidden') === 'true') {
+      const active = document.activeElement;
+      if (root.contains(active) && active?.getAttribute?.('contenteditable') === 'true') return;
+      const el = root.querySelector('[contenteditable="true"]');
+      if (el) {
+        e.preventDefault();
+        el.focus();
+      }
+    }
+  }, []);
 
   const nestedListClass = [
     styles.stepsList,
     styles.stepsListNested,
-    createMode && styles.stepsListNestedCreate,
     !steps.length && styles.stepsListNestedEmpty,
     !steps.length && styles.stepsListWithHint,
   ].filter(Boolean).join(' ');
@@ -227,7 +323,7 @@ function EditableStepsRenderer({ text, onChange, createMode = false, onOpenToolD
     <div className={nestedListClass}>
       {!text.trim() && (
         <div className={styles.stepsEmptyHint} aria-hidden>
-          {STEPS_EMPTY_HINT}
+          {STEPS_CREATE_PLACEHOLDER}
         </div>
       )}
       <EditableLine
@@ -282,11 +378,13 @@ function EditableStepsRenderer({ text, onChange, createMode = false, onOpenToolD
   return (
     <div
       ref={shellRef}
-      className={`${styles.stepsEditorShell} ${createMode ? styles.stepsEditorShellCreate : ''} ${isFocused ? styles.stepsEditorShellFocused : ''}`}
+      className={`${styles.stepsEditorShell} ${isFocused ? styles.stepsEditorShellFocused : ''}`}
+      onFocusCapture={handleShellFocus}
       onBlurCapture={handleShellBlur}
+      onMouseDown={handleShellMouseDown}
     >
       <div
-        className={`${styles.stepsEditorBody} ${createMode ? styles.stepsEditorBodyCreate : ''}`}
+        className={styles.stepsEditorBody}
         ref={rootRef}
       >
         {stepsInner}
@@ -295,6 +393,7 @@ function EditableStepsRenderer({ text, onChange, createMode = false, onOpenToolD
         getActiveEditable={getActiveEditable}
         onAfterInsert={emitChange}
         onOpenToolDrawer={onOpenToolDrawer}
+        hasContent={Boolean(text?.trim())}
       />
     </div>
   );
@@ -378,14 +477,13 @@ function ChipContainer({
   };
 
   const hasChips = chips.length > 0 || addingNew;
-  const containerClass = libraryContextStyle ? styles.libraryContextBox : llmStyles.chipContainer;
+  const containerClass = libraryContextStyle
+    ? `${styles.libraryContextBox}${viewOnly ? ` ${styles.libraryContextBoxReadOnly}` : ''}`
+    : llmStyles.chipContainer;
   const chipWrapClass = libraryContextStyle ? styles.libraryContextChips : llmStyles.chipWrap;
 
   return (
     <div className={containerClass}>
-      {libraryContextStyle && !hasChips && (
-        <p className={styles.libraryContextEmpty}>No context added</p>
-      )}
       {hasChips && (
         <div className={chipWrapClass}>
           {chips.map((chip, i) => (
@@ -395,7 +493,7 @@ function ChipContainer({
               type={chip.type}
               readOnly={chipsReadOnly}
               onChange={chipsReadOnly || viewOnly ? undefined : (v) => onChipChange(i, v)}
-              onDelete={viewOnly ? undefined : () => onChipDelete(i)}
+              onDelete={viewOnly || chipsReadOnly ? undefined : () => onChipDelete(i)}
               onSwatchClick={chipsReadOnly || viewOnly ? undefined : () => openForChip(i)}
             />
           ))}
@@ -484,6 +582,8 @@ function ChipSection({
   chipsReadOnly = false,
   showContextAdd = false,
   libraryContextStyle = false,
+  tooltip,
+  onAddContext,
 }) {
   const [adding, setAdding] = useState(false);
   const [addPickerOpen, setAddPickerOpen] = useState(false);
@@ -510,23 +610,35 @@ function ChipSection({
     setAdding(true);
   };
 
+  const handleAddClick = () => {
+    if (onAddContext) {
+      onAddContext();
+      return;
+    }
+    setAddPickerOpen((open) => !open);
+  };
+
+  const showAdd = !viewOnly && (
+    Boolean(onAddContext) || (!chipsReadOnly && (libraryContextStyle || !showContextAdd))
+  );
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionLabelRow}>
         <div className={etStyles.sectionLabelWrapper}>
           <span className={etStyles.sectionLabelText}>{label}</span>
-          <span className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}>info</span>
+          <SectionInfoIcon tooltip={tooltip} />
         </div>
         {!viewOnly && showContextAdd && (
           <div className={styles.contextAddRow} ref={addPickerRef}>
             <button
               className={styles.contextAddBtn}
               type="button"
-              onClick={() => setAddPickerOpen((open) => !open)}
+              onClick={handleAddClick}
             >
               + Add
             </button>
-            {addPickerOpen && (
+            {addPickerOpen && !onAddContext && (
               <div className={llmStyles.typePicker}>
                 {CHIP_TYPES.map((ct) => (
                   <button
@@ -552,18 +664,18 @@ function ChipSection({
         chips={chips}
         onChipChange={changeChip}
         onChipDelete={deleteChip}
-        addingNew={adding}
+        addingNew={adding && !onAddContext}
         onCancelAdd={() => setAdding(false)}
         onCommitAdd={commitAdd}
         onChangeChipType={changeType}
         pendingAddType={pendingAddType}
         viewOnly={viewOnly}
         moreCount={moreCount}
-        chipsReadOnly={chipsReadOnly}
-        showContainerAdd={!viewOnly && !chipsReadOnly && (libraryContextStyle || !showContextAdd)}
+        chipsReadOnly={chipsReadOnly && !onAddContext}
+        showContainerAdd={showAdd && !showContextAdd}
         libraryContextStyle={libraryContextStyle}
-        addPickerOpen={addPickerOpen}
-        onToggleAddPicker={() => setAddPickerOpen((open) => !open)}
+        addPickerOpen={addPickerOpen && !onAddContext}
+        onToggleAddPicker={handleAddClick}
         onSelectAddType={selectAddType}
         addPickerRef={addPickerRef}
       />
@@ -571,13 +683,11 @@ function ChipSection({
   );
 }
 
-const TITLE_PLACEHOLDER = 'Enter procedure title';
-const WHEN_CREATE_PLACEHOLDER = `Describe the trigger that should activate this procedure.
-
-Examples:
-• Customer wants to reschedule an appointment
-• User reports a payment issue`;
+const TITLE_PLACEHOLDER = 'e.g. "Appointment rescheduling"';
+const WHEN_CREATE_PLACEHOLDER = 'Describe the trigger that should activate this procedure, e.g. "Customer wants to reschedule an appointment."';
 const WHEN_EDIT_PLACEHOLDER = 'Describe when this procedure should be triggered...';
+const EXIT_CREATE_PLACEHOLDER = 'Describe when this procedure is complete. e.g. when customer ends the conversation.';
+const EXIT_EDIT_PLACEHOLDER = 'Describe when this procedure is complete. e.g. when customer ends the conversation.';
 
 export default function ProcedureDetailBody({
   initialValues = {},
@@ -590,22 +700,41 @@ export default function ProcedureDetailBody({
   showTypeField = false,
   whenToUseLabel = 'When should this procedure be used?',
   onOpenToolDrawer = undefined,
+  onAddContext,
 }) {
   const [title, setTitle] = useState(initialValues.name ?? '');
   const [whenToUse, setWhenToUse] = useState(initialValues.whenToUse ?? '');
+  const [whenToExit, setWhenToExit] = useState(initialValues.whenToExit ?? '');
   const [contextChips, setContextChips] = useState(normalizeChips(initialValues.contextChips ?? []));
   const [stepsText, setStepsText] = useState(initialValues.stepsText ?? '');
   const [addToLibrary, setAddToLibrary] = useState(initialValues.addToLibrary ?? false);
   const procedureType = initialValues.procedureType ?? 'Inbound';
   const moreContextCount = initialValues.moreContextCount ?? 0;
+  const whenToUseRef = useRef(null);
+  const whenToExitRef = useRef(null);
 
   useEffect(() => {
     setTitle(initialValues.name ?? '');
     setWhenToUse(initialValues.whenToUse ?? '');
+    setWhenToExit(initialValues.whenToExit ?? '');
     setContextChips(normalizeChips(initialValues.contextChips ?? []));
     setStepsText(initialValues.stepsText ?? '');
     setAddToLibrary(initialValues.addToLibrary ?? false);
-  }, [initialValues.name, initialValues.whenToUse, initialValues.contextChips, initialValues.stepsText, initialValues.addToLibrary, initialValues.id]);
+  }, [initialValues.name, initialValues.whenToUse, initialValues.whenToExit, initialValues.contextChips, initialValues.stepsText, initialValues.addToLibrary, initialValues.id]);
+
+  useEffect(() => {
+    const el = whenToUseRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [whenToUse]);
+
+  useEffect(() => {
+    const el = whenToExitRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [whenToExit]);
 
   return (
     <div
@@ -615,7 +744,9 @@ export default function ProcedureDetailBody({
       {showTitle && (
         <div className={styles.section}>
           <div className={etStyles.sectionLabelWrapper}>
-            <span className={etStyles.sectionLabelText}>Procedure title</span>
+            <span className={etStyles.sectionLabelText}>
+              Procedure title<span className={styles.required}> *</span>
+            </span>
           </div>
           {viewOnly ? (
             <input
@@ -623,6 +754,8 @@ export default function ProcedureDetailBody({
               className={styles.readOnlyField}
               value={title}
               readOnly
+              tabIndex={-1}
+              aria-readonly="true"
             />
           ) : (
             <EmptyHintField
@@ -658,6 +791,8 @@ export default function ProcedureDetailBody({
               className={`${styles.readOnlyField} ${styles.readOnlyTextarea}`}
               value={whenToUse}
               readOnly
+              tabIndex={-1}
+              aria-readonly="true"
               rows={5}
             />
           ) : (
@@ -666,6 +801,8 @@ export default function ProcedureDetailBody({
               className={styles.readOnlyField}
               value={whenToUse}
               readOnly
+              tabIndex={-1}
+              aria-readonly="true"
             />
           )
         ) : showTitle ? (
@@ -676,9 +813,10 @@ export default function ProcedureDetailBody({
             hintClassName="p-md"
           >
             <textarea
-              className="w-full resize-y bg-transparent p-md text-body leading-relaxed text-text-primary outline-none"
+              ref={whenToUseRef}
+              className="min-h-[80px] w-full resize-none overflow-hidden bg-transparent p-md text-body leading-relaxed text-text-primary outline-none"
               value={whenToUse}
-              rows={5}
+              rows={1}
               onChange={(e) => {
                 const val = e.target.value;
                 setWhenToUse(val);
@@ -714,9 +852,13 @@ export default function ProcedureDetailBody({
         defaultType="variable"
         viewOnly={viewOnly}
         moreCount={moreContextCount}
-        chipsReadOnly={!contextEditable}
+        chipsReadOnly={viewOnly || (!contextEditable && !onAddContext)}
         showContextAdd={false}
-        libraryContextStyle={contextLibraryStyle || contextEditable}
+        libraryContextStyle={
+          viewOnly || contextLibraryStyle || contextEditable || Boolean(onAddContext)
+        }
+        tooltip="Uses your brand voice, industry knowledge, to generate accurate responses"
+        onAddContext={viewOnly ? undefined : onAddContext}
       />
 
       {showTypeField && (
@@ -724,27 +866,107 @@ export default function ProcedureDetailBody({
           <div className={etStyles.sectionLabelWrapper}>
             <span className={etStyles.sectionLabelText}>Type</span>
           </div>
-          <div className="flex h-9 w-full cursor-not-allowed items-center rounded-sm border border-border-input bg-surface-selected px-md text-body text-text-tertiary">
+          <div
+            className={`flex h-9 w-full cursor-default items-center gap-sm rounded-sm border border-border-input bg-surface-l2 px-md text-body text-text-primary ${
+              viewOnly ? 'pointer-events-none' : ''
+            }`}
+            aria-disabled={viewOnly || undefined}
+          >
             <span className="min-w-0 flex-1 truncate">{procedureType}</span>
-            <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+            {!viewOnly && (
+              <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+            )}
           </div>
         </div>
       )}
 
       <div className={styles.section}>
         <div className={etStyles.sectionLabelWrapper}>
-          <span className={etStyles.sectionLabelText}>Steps</span>
-          <span className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}>info</span>
+          <span className={etStyles.sectionLabelText}>
+            Steps<span className={styles.required}> *</span>
+          </span>
+          <SectionInfoIcon tooltip="Information your agent can refer to during a conversation, like your location details, knowledge base, and connected files" />
         </div>
         {viewOnly ? (
-          <StepsRenderer text={stepsText} />
-        ) : (
-          <EditableStepsRenderer
+          <div className={`${styles.readOnlyField} ${styles.readOnlySteps}`}>
+            <StepsRenderer text={stepsText} />
+          </div>
+        ) : showTitle ? (
+          <CreateStepsField
             text={stepsText}
-            createMode={showTitle}
             onOpenToolDrawer={onOpenToolDrawer}
             onChange={(val) => { setStepsText(val); onFieldChange?.('stepsText', val); }}
           />
+        ) : (
+          <EditableStepsRenderer
+            text={stepsText}
+            onOpenToolDrawer={onOpenToolDrawer}
+            onChange={(val) => { setStepsText(val); onFieldChange?.('stepsText', val); }}
+          />
+        )}
+      </div>
+
+      <div className={styles.section}>
+        <div className={etStyles.sectionLabelWrapper}>
+          <span className={etStyles.sectionLabelText}>When to exit this procedure?</span>
+        </div>
+        {viewOnly ? (
+          showTitle ? (
+            <textarea
+              className={`${styles.readOnlyField} ${styles.readOnlyTextarea}`}
+              value={whenToExit}
+              readOnly
+              tabIndex={-1}
+              aria-readonly="true"
+              rows={5}
+            />
+          ) : (
+            <input
+              type="text"
+              className={styles.readOnlyField}
+              value={whenToExit}
+              readOnly
+              tabIndex={-1}
+              aria-readonly="true"
+            />
+          )
+        ) : showTitle ? (
+          <EmptyHintField
+            hint={EXIT_CREATE_PLACEHOLDER}
+            isEmpty={!whenToExit.trim()}
+            className={FIELD_SHELL}
+            hintClassName="p-md"
+          >
+            <textarea
+              ref={whenToExitRef}
+              className="min-h-[80px] w-full resize-none overflow-hidden bg-transparent p-md text-body leading-relaxed text-text-primary outline-none"
+              value={whenToExit}
+              rows={1}
+              onChange={(e) => {
+                const val = e.target.value;
+                setWhenToExit(val);
+                onFieldChange?.('whenToExit', val);
+              }}
+            />
+          </EmptyHintField>
+        ) : (
+          <EmptyHintField
+            hint={EXIT_EDIT_PLACEHOLDER}
+            isEmpty={!whenToExit.trim()}
+            className={TITLE_SHELL}
+            hintClassName="flex items-center px-md"
+          >
+            <input
+              type="text"
+              className="h-10 w-full bg-transparent px-md text-body text-text-primary outline-none"
+              value={whenToExit}
+              onChange={(e) => {
+                const val = e.target.value;
+                setWhenToExit(val);
+                onFieldChange?.('whenToExit', val);
+              }}
+            />
+          </EmptyHintField>
         )}
       </div>
 

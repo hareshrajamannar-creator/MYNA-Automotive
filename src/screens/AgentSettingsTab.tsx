@@ -730,7 +730,7 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
                 <div>
                   <p className="text-small text-text-secondary">Recording</p>
                   <SettingSubtext tone="tertiary">
-                    Configure consent wording in each channel settings below
+                    Applies to voice calls only
                   </SettingSubtext>
                   <div className="mt-sm flex flex-col gap-sm">
                     <label className="flex cursor-pointer items-center gap-sm">

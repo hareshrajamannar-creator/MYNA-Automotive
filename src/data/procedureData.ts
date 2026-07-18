@@ -53,6 +53,8 @@ export interface Procedure {
   lastEdited: string
   /** Trigger description shown in the "When to use this procedure?" field. */
   whenToUse: string
+  /** Completion condition shown in the "When to exit this procedure?" field. */
+  whenToExit?: string
   steps: ProcedureStep[]
   tools: string[]
   context: ContextItem[]

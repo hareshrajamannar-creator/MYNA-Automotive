@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { insertChipAt } from '../promptChipHelpers.js';
-import { VariableIcon, BuildIcon, ExpandIcon } from '../PromptToolbarIcons.jsx';
+import { VariableIcon, BuildIcon, ProcedureIcon, ExpandIcon } from '../PromptToolbarIcons.jsx';
 import { CHIP_TYPES, DataTypeIcon } from '../VariableChip/VariableChip.jsx';
+import ToolbarButton from '../ToolbarButton.jsx';
 import toolbarStyles from '../UserPromptInput/UserPromptInput.module.css';
 import styles from './StepsEditorToolbar.module.css';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
- * Bottom toolbar for procedure step editors: Fields, Tools, Rephrase.
+ * Bottom toolbar for procedure step editors: Fields, Tools, Procedures, Rephrase.
  */
-export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert, onOpenToolDrawer }) {
+export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert, onOpenToolDrawer, hasContent = false }) {
   const pickerRef = useRef(null);
   const savedRangeRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -26,7 +27,7 @@ export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert, o
     return () => document.removeEventListener('mousedown', handler);
   }, [pickerOpen]);
 
-  const handleOpenPicker = useCallback(() => {
+  const saveActiveRange = useCallback(() => {
     const el = getActiveEditable?.();
     if (el) {
       const sel = window.getSelection();
@@ -34,8 +35,12 @@ export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert, o
         savedRangeRef.current = sel.getRangeAt(0).cloneRange();
       }
     }
-    setPickerOpen((p) => !p);
   }, [getActiveEditable]);
+
+  const handleOpenPicker = useCallback(() => {
+    saveActiveRange();
+    setPickerOpen((p) => !p);
+  }, [saveActiveRange]);
 
   const handleTypeSelect = useCallback((type) => {
     setPickerOpen(false);
@@ -47,38 +52,35 @@ export default function StepsEditorToolbar({ getActiveEditable, onAfterInsert, o
     }, type);
   }, [getActiveEditable, onAfterInsert]);
 
+  const handleInsertProcedure = useCallback(() => {
+    saveActiveRange();
+    handleTypeSelect('product');
+  }, [saveActiveRange, handleTypeSelect]);
+
   return (
     <div className={styles.row}>
       <div className={`${toolbarStyles.toolbar} ${styles.toolbar}`} ref={pickerRef}>
-        <button
-          type="button"
-          className={`${toolbarStyles.toolbarBtn} ${pickerOpen ? toolbarStyles.toolbarBtnActive : ''}`}
-          onMouseDown={(e) => e.preventDefault()}
+        <ToolbarButton
+          icon={<VariableIcon />}
+          tooltip="Fields"
+          active={pickerOpen}
           onClick={handleOpenPicker}
-          title="Fields"
-          aria-label="Fields"
-        >
-          <VariableIcon />
-        </button>
-        <button
-          type="button"
-          className={toolbarStyles.toolbarBtn}
-          onMouseDown={(e) => e.preventDefault()}
+        />
+        <ToolbarButton
+          icon={<BuildIcon />}
+          tooltip="Tools"
           onClick={onOpenToolDrawer}
-          title="Tools"
-          aria-label="Tools"
-        >
-          <BuildIcon />
-        </button>
-        <button
-          type="button"
-          className={toolbarStyles.toolbarBtn}
-          onMouseDown={(e) => e.preventDefault()}
-          title="Rephrase"
-          aria-label="Rephrase"
-        >
-          <ExpandIcon />
-        </button>
+        />
+        <ToolbarButton
+          icon={<ProcedureIcon />}
+          tooltip="Procedures"
+          onClick={handleInsertProcedure}
+        />
+        <ToolbarButton
+          icon={<ExpandIcon />}
+          tooltip="Rephrase"
+          disabled={!hasContent}
+        />
         {pickerOpen && (
           <div className={toolbarStyles.typePicker}>
             {CHIP_TYPES.map((ct) => (

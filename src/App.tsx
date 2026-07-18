@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
 import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
-import { Icon, IconRail, Link, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
+import { Icon, IconRail, Link, SideNav, Toast, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
@@ -277,6 +277,8 @@ export function App() {
   const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
   const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
+  const [agentToastMessage, setAgentToastMessage] = useState('')
+  const [agentToastVisible, setAgentToastVisible] = useState(false)
 
   function openIntegrationSettings(integrationId: string) {
     setRailActive('settings')
@@ -295,6 +297,10 @@ export function App() {
   function handleEditAgent(name: string, draft?: WizardAgentDraft) {
     setWizardAgentDraft(draft ?? null)
     setEditingAgentName(name)
+    if (draft) {
+      setAgentToastMessage(`${draft.agentName} created successfully`)
+      setAgentToastVisible(true)
+    }
   }
 
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
@@ -468,6 +474,12 @@ export function App() {
           <ManageAppointmentsScreen product={activeProduct} />
         )}
       </main>
+
+      <Toast
+        message={agentToastMessage}
+        visible={agentToastVisible}
+        onClose={() => setAgentToastVisible(false)}
+      />
     </div>
     </ProcedureStoreProvider>
   )
