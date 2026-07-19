@@ -357,7 +357,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
                       setSelectedStatuses(appliedStatuses)
                       setStatusDropdownOpen(true)
                     }}
-                    className={`flex h-[34px] items-center gap-sm rounded-md border bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2 ${
+                    className={`flex h-9 items-center gap-sm rounded-md border bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2 ${
                       statusDropdownOpen ? 'border-primary' : 'border-border-selected'
                     }`}
                   >
@@ -365,7 +365,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
                     <ChevronDown className="size-5 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
                   </button>
 
-                  <div className="flex h-[34px] items-center gap-xs rounded-md border border-border-selected bg-surface px-xs">
+                  <div className="flex h-9 items-center gap-xs rounded-md border border-border-selected bg-surface px-xs">
                     <button
                       type="button"
                       onClick={() => setTimescale('day')}
@@ -385,7 +385,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
               )}
 
               {/* Table / Calendar toggle */}
-              <div className="flex h-[34px] items-center gap-xs rounded-md border border-border-selected bg-surface px-sm">
+              <div className="flex h-9 items-center gap-xs rounded-md border border-border-selected bg-surface px-sm">
                 <button
                   type="button"
                   aria-label="Table view"
@@ -407,7 +407,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
               <button
                 type="button"
                 onClick={() => setBookApptOpen(true)}
-                className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                className="flex h-9 items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
                 Book appointment
               </button>
@@ -417,7 +417,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
                   type="button"
                   aria-label="Customize columns"
                   onClick={() => setCustomizeOpen(true)}
-                  className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                  className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                 >
                   <Columns2 className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
                 </button>
@@ -427,7 +427,7 @@ export function ManageAppointmentsScreen({ product = 'healthcare', onViewDetail 
                 type="button"
                 aria-label="Filters"
                 onClick={() => setFilterOpen((o) => !o)}
-                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
                 <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>

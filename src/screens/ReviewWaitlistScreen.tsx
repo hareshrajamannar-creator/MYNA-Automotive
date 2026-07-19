@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { type LucideIcon, ListFilter, MessageSquare, Phone } from 'lucide-react'
+import { type LucideIcon, Columns2, ListFilter, MessageSquare, Phone } from 'lucide-react'
 import { Chip, CustomizeColumnsDrawer, DataTable, FilterPanel, FormDrawer, HeaderSearchField, Icon, MessageDrawer, PatientCell, QuickSendModal, QuickViewDrawer, Tabs, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type ColumnOption, type FilterField, type PatientDetail, type QuickViewWaitlist, type RecordDetailScreenProps } from '../components'
 
 type WaitlistStatus = 'Waitlisted' | 'Slot offered' | 'Slot filled'
@@ -166,7 +166,7 @@ function AddToWaitlistButton({ onSelect }: { onSelect: (mode: 'existing' | 'new'
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+        className="flex h-9 items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
       >
         Add to waitlist
       </button>
@@ -359,14 +359,14 @@ export function ReviewWaitlistScreen({ onViewDetail }: { onViewDetail?: (args: W
               type="button"
               aria-label="Customize columns"
               onClick={() => setCustomizeOpen(true)}
-              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
             >
-              <Icon name="view_column" size={20} />
+              <Columns2 className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
             </button>
             <button
               type="button"
               onClick={() => setFilterOpen((o) => !o)}
-              className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
             >
               <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
             </button>

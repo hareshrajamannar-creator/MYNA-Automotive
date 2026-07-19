@@ -383,21 +383,21 @@ export function ManageTreatmentPlansScreen() {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search patients, codes…"
-                  className="h-[34px] w-56 rounded-md border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
+                  className="h-9 w-56 rounded-md border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
                 />
               )}
               <button
                 type="button"
                 aria-label="Search"
                 onClick={() => { setSearchOpen(o => !o); if (searchOpen) setSearch('') }}
-                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
                 <Search className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
-              <button type="button" onClick={() => setColumnsOpen(true)} className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <button type="button" onClick={() => setColumnsOpen(true)} className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                 <Columns2 className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
-<button type="button" onClick={() => setFilterOpen(true)} className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+<button type="button" onClick={() => setFilterOpen(true)} className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                 <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
             </div>
@@ -529,7 +529,7 @@ export function ManageTreatmentPlansScreen() {
                                         const r = e.currentTarget.getBoundingClientRect()
                                         setRowMenu(menuOpen ? null : { procId: proc.id, top: r.bottom + 4, left: r.right - 168 })
                                       }}
-                                      className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                                      className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                                     >
                                       <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
                                     </button>

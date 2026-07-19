@@ -6,6 +6,7 @@ import {
   DataTable,
   FilterPanel,
   FormDrawer,
+  HeaderSearchField,
   Icon,
   // MetricTiles,
   Tabs,
@@ -243,50 +244,11 @@ export function ServiceRequestsScreen({ onViewDetail }: { onViewDetail?: (args: 
           <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
             <h1 className="text-h3 text-text-primary">Service requests</h1>
             <div className="flex items-center gap-sm">
-              <div
-                className={`flex h-9 shrink-0 items-center gap-sm rounded-sm border border-border-selected bg-surface transition-all ${
-                  searchOpen ? 'w-56 px-md' : 'w-9 justify-center'
-                }`}
-              >
-                <button
-                  type="button"
-                  aria-label="Search"
-                  onClick={() => {
-                    if (searchOpen) return
-                    setSearchOpen(true)
-                  }}
-                  className="flex shrink-0 items-center justify-center text-text-icon"
-                >
-                  <Icon name="search" size={20} />
-                </button>
-                {searchOpen && (
-                  <>
-                    <input
-                      autoFocus
-                      type="text"
-                      placeholder="Search"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Clear search"
-                      onClick={() => {
-                        setSearchOpen(false)
-                        setSearchQuery('')
-                      }}
-                      className="flex shrink-0 items-center justify-center text-text-icon hover:text-text-primary"
-                    >
-                      <Icon name="close" size={18} />
-                    </button>
-                  </>
-                )}
-              </div>
+              <HeaderSearchField open={searchOpen} value={searchQuery} onOpenChange={setSearchOpen} onChange={setSearchQuery} />
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
-                className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                className="flex h-9 items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
                 New request
               </button>
@@ -294,7 +256,7 @@ export function ServiceRequestsScreen({ onViewDetail }: { onViewDetail?: (args: 
                 type="button"
                 aria-label="Customize columns"
                 onClick={() => setCustomizeOpen(true)}
-                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
                 <Columns2 className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
@@ -302,7 +264,7 @@ export function ServiceRequestsScreen({ onViewDetail }: { onViewDetail?: (args: 
                 type="button"
                 aria-label="Filters"
                 onClick={() => setFilterOpen((o) => !o)}
-                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
                 <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>

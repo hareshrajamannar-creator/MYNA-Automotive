@@ -8,7 +8,7 @@ import {
   Search, ListFilter, Calendar, Clock, RefreshCw, Send,
   Paperclip, Headphones, AlertCircle, AlertTriangle, Info,
   BookOpen, FileText, Star, Tag, Link, ExternalLink,
-  MessageSquare, CalendarPlus,
+  MessageSquare, CalendarPlus, Wrench,
 } from 'lucide-react'
 import { Column, DataTableProps, SortDir } from './DataTable.types'
 
@@ -59,6 +59,8 @@ const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
   chat_bubble: MessageSquare,
   chat_bubble_outline: MessageSquare,
   calendar_add_on: CalendarPlus,
+  sms: MessageSquare,
+  build: Wrench,
 }
 
 /** Renders a Lucide icon looked up by Material Symbols name. Returns null for unmapped names. */
@@ -258,7 +260,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               onClick={(e) => { e.stopPropagation(); rowAction.onClick(row) }}
                               onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
                               onMouseLeave={() => setTooltip(null)}
-                              className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                             >
                               {rowAction.iconElement ?? (rowAction.icon && <DynamicIcon name={rowAction.icon} />)}
                             </button>
@@ -275,7 +277,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
                               onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tip, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
                               onMouseLeave={() => setTooltip(null)}
-                              className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                             >
                               {action.iconElement ?? (action.icon && <DynamicIcon name={action.icon} />)}
                             </button>
@@ -294,7 +296,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                   : { rowIndex: i, top: r.bottom + 4, left: r.right - 216 },
                               )
                             }}
-                            className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                            className="flex size-9 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                           >
                             <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
                           </button>
