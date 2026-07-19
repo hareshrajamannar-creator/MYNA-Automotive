@@ -1,0 +1,147 @@
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+} from "@/contenthub-ui/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
+import { Badge } from "@/contenthub-ui/badge";
+import { Button } from "@/contenthub-ui/button";
+import { ScrollArea } from "@/contenthub-ui/scroll-area";
+import { MODAL_OVERLAY_VISUAL_CLASS } from "@/contenthub-ui/modalOverlayClasses";
+import { cn } from "@/contenthub-ui/utils";
+import { L1_STRIP_ICON_STROKE_PX } from "@/content-hub/l1StripIconTokens";
+import type { SearchAIRecommendation } from "@/search-ai/SearchAIRecommendationsPanel";
+
+interface SearchAIBlogPreviewModalProps {
+  rec: SearchAIRecommendation | null;
+  open: boolean;
+  onClose: () => void;
+}
+
+export function SearchAIBlogPreviewModal({ rec, open, onClose }: SearchAIBlogPreviewModalProps) {
+  const blog = rec?.blogContent;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogPortal>
+        <DialogOverlay />
+        <DialogPrimitive.Content
+          className={cn(
+            "fixed top-[50%] left-[50%] z-50 flex max-h-[90vh] w-[calc(100vw-48px)] max-w-[900px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-background shadow-modal",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          )}
+        >
+          {rec && blog ? (
+            <>
+              {/* Header */}
+              <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm text-foreground">{rec.title}</span>
+                  <Badge variant="outline" className="shrink-0 text-[11px]">Blog</Badge>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-[34px] shrink-0 text-muted-foreground"
+                  onClick={onClose}
+                  aria-label="Close preview"
+                >
+                  <X size={16} strokeWidth={L1_STRIP_ICON_STROKE_PX} absoluteStrokeWidth />
+                </Button>
+              </div>
+
+              {/* Scrollable body */}
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="flex flex-col">
+                  <div className="px-8 pb-8 pt-6">
+                    {/* Article title */}
+                    <h1 className="mb-4 text-xl leading-snug tracking-tight text-foreground">
+                      {rec.title}
+                    </h1>
+
+                    {/* Article meta */}
+                    <div className="mb-5 flex flex-wrap items-center gap-2">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] text-primary">
+                        AI
+                      </div>
+                      <span className="text-xs text-foreground">Birdeye AI</span>
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">15 min read</span>
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <Badge variant="secondary" className="text-[11px]">AI generated</Badge>
+                    </div>
+
+                    {/* Hero image */}
+                    <img
+                      src={blog.heroImage}
+                      alt={rec.title}
+                      className="mb-6 h-[220px] w-full rounded-xl object-cover"
+                    />
+
+                    {/* Sections */}
+                    <div className="flex flex-col">
+                      {blog.sections.map((section, i) => (
+                        <div key={i} className={section.heading ? "mt-6" : "mt-2"}>
+                          {section.heading && (
+                            <h2 className="mb-2 text-base text-foreground">
+                              {section.heading}
+                            </h2>
+                          )}
+                          {section.body && (
+                            <p className="text-sm leading-relaxed text-foreground">
+                              {section.body}
+                            </p>
+                          )}
+                          {section.listItems && section.listItems.length > 0 && (
+                            <ul className="mt-2 flex flex-col gap-1 pl-4">
+                              {section.listItems.map((item, j) => (
+                                <li key={j} className="list-disc text-sm leading-relaxed text-foreground">
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {section.image && (
+                            <img
+                              src={section.image}
+                              alt={section.imageAlt ?? section.heading ?? ""}
+                              className="mt-4 h-[200px] w-full rounded-lg object-cover"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* SEO metadata footer */}
+                    <div className="mt-8 rounded-lg border border-border bg-muted/40 px-4 py-4">
+                      <p className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                        SEO metadata
+                      </p>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex gap-2 text-xs">
+                          <span className="w-28 shrink-0 text-muted-foreground">Meta title</span>
+                          <span className="text-foreground">{blog.metaTitle}</span>
+                        </div>
+                        <div className="flex gap-2 text-xs">
+                          <span className="w-28 shrink-0 text-muted-foreground">Slug</span>
+                          <span className="font-mono text-foreground">/{blog.slug}</span>
+                        </div>
+                        <div className="flex gap-2 text-xs">
+                          <span className="w-28 shrink-0 text-muted-foreground">Meta description</span>
+                          <span className="text-foreground">{blog.metaDescription}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            </>
+          ) : null}
+        </DialogPrimitive.Content>
+      </DialogPortal>
+    </Dialog>
+  );
+}

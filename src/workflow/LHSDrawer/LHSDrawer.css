@@ -18,7 +18,7 @@
 /* ─── Root panel ─── */
 .lhs-drawer {
   background: #fff;
-  border-radius: 10px;
+  border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
   border: none;
   width: 360px;

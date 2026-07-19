@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Chip, Icon, TopNav } from '../components'
+import { type LucideIcon, AlertCircle, BookOpen, Calendar, Check, ChevronDown, Clock, FileText, Flag, HardDrive, ListFilter, Pencil, Phone, Play, PlusCircle, QrCode, Rocket, Send, Sparkles, Star, Wrench } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -8,7 +9,7 @@ type Priority = 'High' | 'Medium' | 'Low'
 
 interface ToolChip {
   label: string
-  icon: string
+  icon: LucideIcon
 }
 
 interface ProcedureStep {
@@ -79,8 +80,8 @@ const RECOMMENDATIONS: Recommendation[] = [
       },
     ],
     tools: [
-      { label: 'DMS Integration', icon: 'storage' },
-      { label: 'Send Confirmation', icon: 'send' },
+      { label: 'DMS Integration', icon: HardDrive },
+      { label: 'Send Confirmation', icon: Send },
     ],
     whyCameUp: '12 conversations in the past 7 days ended without resolution because the agent had no guidance on handling payment requests.',
     changesSummary: 'A new procedure will be added to the procedure library so the agent knows how to handle payment inquiries end-to-end.',
@@ -121,8 +122,8 @@ const RECOMMENDATIONS: Recommendation[] = [
       },
     ],
     tools: [
-      { label: 'Schedule Appointment', icon: 'calendar_today' },
-      { label: 'Send Confirmation', icon: 'send' },
+      { label: 'Schedule Appointment', icon: Calendar },
+      { label: 'Send Confirmation', icon: Send },
     ],
     whyCameUp: "8 conversations flagged because customers were told \"that's not possible\" for same-day reschedule requests, causing escalations.",
     changesSummary: 'The existing rescheduling procedure will be updated to include a same-day path and a waitlist fallback.',
@@ -162,8 +163,8 @@ const RECOMMENDATIONS: Recommendation[] = [
       },
     ],
     tools: [
-      { label: 'Voice Call', icon: 'call' },
-      { label: 'Trigger Escalation', icon: 'priority_high' },
+      { label: 'Voice Call', icon: Phone },
+      { label: 'Trigger Escalation', icon: AlertCircle },
     ],
     whyCameUp: '5 conversations where customers described safety concerns were handled with the standard intake flow, causing 3+ minute delays before a human responded.',
     changesSummary: 'The escalation procedure will add an urgency-detection step at the start and reduce the transfer time target from 2 minutes to 30 seconds.',
@@ -196,7 +197,7 @@ const RECOMMENDATIONS: Recommendation[] = [
       },
     ],
     tools: [
-      { label: 'Check Business Hours', icon: 'schedule' },
+      { label: 'Check Business Hours', icon: Clock },
     ],
     whyCameUp: '19 conversations ended with the agent saying "I don\'t have that information" when customers asked about hours — the knowledge record is missing or outdated.',
     changesSummary: 'Business hours, weekend availability, and holiday closures will be added to the knowledge base so the agent can answer accurately.',
@@ -222,8 +223,8 @@ const RECOMMENDATIONS: Recommendation[] = [
       },
     ],
     tools: [
-      { label: 'VIN Decode', icon: 'qr_code' },
-      { label: 'DMS Integration', icon: 'storage' },
+      { label: 'VIN Decode', icon: QrCode },
+      { label: 'DMS Integration', icon: HardDrive },
     ],
     whyCameUp: 'Service advisors flagged 7 conversations where they had to manually re-enter vehicle data because the agent did not capture the VIN during the call.',
     changesSummary: 'A VIN capture step will be added to the service intake procedure, with automatic decode and DMS pre-fill.',
@@ -249,10 +250,10 @@ const GAP_TEXT: Record<GapType, string> = {
   action:     'text-[#10B981]',
 }
 
-const GAP_ICON: Record<GapType, string> = {
-  procedure: 'description',
-  knowledge:  'menu_book',
-  action:     'build',
+const GAP_ICON: Record<GapType, LucideIcon> = {
+  procedure: FileText,
+  knowledge:  BookOpen,
+  action:     Wrench,
 }
 
 const PRIORITY_VARIANT: Record<Priority, 'danger' | 'warning' | 'neutral'> = {
@@ -302,7 +303,7 @@ function FilterCheckbox({ checked }: { checked: boolean }) {
         checked ? 'border-primary bg-primary' : 'border-control-border bg-surface'
       }`}
     >
-      {checked && <Icon name="check" size={14} weight={500} className="text-white" />}
+      {checked && <Check className="size-4 text-white" strokeWidth={1.6} absoluteStrokeWidth />}
     </span>
   )
 }
@@ -322,10 +323,10 @@ function SortDropdown({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm py-xs text-small text-text-secondary hover:bg-surface-l2"
+        className="flex items-center gap-xs rounded-md border border-border-selected bg-surface px-sm py-xs text-small text-text-secondary hover:bg-surface-l2"
       >
         {selectedLabel}
-        <Icon name="expand_more" size={14} className="text-text-icon" />
+        <ChevronDown className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
       </button>
       {open && (
         <>
@@ -377,9 +378,9 @@ function FilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm py-xs text-small text-text-secondary hover:bg-surface-l2"
+        className="flex items-center gap-xs rounded-md border border-border-selected bg-surface px-sm py-xs text-small text-text-secondary hover:bg-surface-l2"
       >
-        <Icon name="filter_list" size={14} className="text-text-icon" />
+        <ListFilter className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
         Filters {filterCount}
       </button>
       {open && (
@@ -462,7 +463,7 @@ function RecommendationCard({
     >
       <div className="flex flex-col gap-xs p-md">
         <div className="flex items-center gap-xs">
-          <Icon name={GAP_ICON[rec.gapType]} size={14} className={GAP_TEXT[rec.gapType]} />
+          {(() => { const GapIc = GAP_ICON[rec.gapType]; return <GapIc className={`size-4 ${GAP_TEXT[rec.gapType]}`} strokeWidth={1.6} absoluteStrokeWidth /> })()}
           <span className={`text-small uppercase tracking-wide ${GAP_TEXT[rec.gapType]}`}>
             {GAP_LABEL[rec.gapType]}
           </span>
@@ -505,7 +506,7 @@ function DetailPanel({ rec }: { rec: Recommendation }) {
       <div className="border-b border-border px-2xl py-lg">
         <div className="flex items-start gap-md rounded-sm border border-border bg-surface p-md shadow-card">
           <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center">
-            <Icon name="auto_awesome" size={18} className="text-primary" />
+            <Sparkles className="size-4 text-primary" strokeWidth={1.6} absoluteStrokeWidth />
           </div>
           <div className="flex flex-1 flex-col gap-xs">
             <div className="flex items-center justify-between gap-md">
@@ -521,16 +522,16 @@ function DetailPanel({ rec }: { rec: Recommendation }) {
         </div>
         {/* Action row */}
         <div className="mt-md flex items-center justify-end gap-sm">
-          <button className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
+          <button className="flex h-[34px] items-center rounded-md border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
             Reject
           </button>
-          <button className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
-            <Icon name="play_arrow" size={16} className="text-text-icon" />
+          <button className="flex h-[34px] items-center gap-xs rounded-md border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
+            <Play className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
             Test
           </button>
-          <button className="flex h-9 items-center gap-xs rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+          <button className="flex h-[34px] items-center gap-xs rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
             Add
-            <Icon name="expand_more" size={16} />
+            <ChevronDown className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
           </button>
         </div>
       </div>
@@ -541,7 +542,7 @@ function DetailPanel({ rec }: { rec: Recommendation }) {
         <div className="flex flex-col gap-xs">
           <h2 className="text-h2 text-text-primary">{rec.title}</h2>
           <div className="flex items-center gap-xs text-small text-text-secondary">
-            <Icon name={rec.isNew ? 'add_circle' : 'edit'} size={14} className="text-text-icon" />
+            {rec.isNew ? <PlusCircle className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> : <Pencil className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />}
             <span>{rec.isNew ? 'Adds new procedure' : 'Modifies existing procedure'}</span>
           </div>
         </div>
@@ -581,7 +582,7 @@ function DetailPanel({ rec }: { rec: Recommendation }) {
                   key={t.label}
                   className="flex items-center gap-xs rounded-sm border border-border bg-surface px-sm py-xs text-small text-text-secondary"
                 >
-                  <Icon name={t.icon} size={14} className="text-text-icon" />
+                  {(() => { const ToolIc = t.icon; return <ToolIc className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> })()}
                   {t.label}
                 </div>
               ))}
@@ -630,7 +631,7 @@ export function RecommendationsScreen() {
 
       {/* Flagged banner */}
       <div className="flex shrink-0 items-center gap-sm border-b border-border bg-chip-warning-bg px-2xl py-sm">
-        <Icon name="flag" size={16} className="text-chip-warning-text" />
+        <Flag className="size-4 text-chip-warning-text" strokeWidth={1.6} absoluteStrokeWidth />
         <span className="text-body text-chip-warning-text">
           Improve agent&apos;s response
         </span>

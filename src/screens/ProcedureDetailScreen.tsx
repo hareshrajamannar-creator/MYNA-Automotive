@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { TopNav, Icon, InfoTooltip, RefChip, ContextModal, EmptyHintField, SelectMenu } from '../components'
+import { ChevronDown, MoreVertical, PlusCircle } from 'lucide-react'
+import { TopNav, InfoTooltip, RefChip, ContextModal, EmptyHintField, SelectMenu } from '../components'
 import StepsEditorToolbar from '../workflow/Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar'
 import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
@@ -138,7 +139,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               type="button"
               aria-label="Back"
               onClick={onBack}
-              className="flex size-8 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-hover"
+              className="flex size-8 items-center justify-center rounded-md text-text-icon transition-colors hover:bg-surface-hover"
             >
               <BackArrowIcon color="#555" />
             </button>
@@ -163,9 +164,9 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
                   aria-label="More actions"
                   aria-expanded={actionsOpen}
                   onClick={() => setActionsOpen((o) => !o)}
-                  className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon transition-colors hover:bg-surface-l2"
+                  className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon transition-colors hover:bg-surface-l2"
                 >
-                  <Icon name="more_vert" size={20} />
+                  <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
                 </button>
                 {actionsOpen && (
                   <>
@@ -188,7 +189,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               type="button"
               disabled={!dirty}
               onClick={dirty ? handleSave : undefined}
-              className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
+              className={`flex h-[34px] items-center rounded-md px-lg text-body transition-colors ${
                 dirty
                   ? 'bg-primary text-white hover:bg-primary-hover'
                   : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
@@ -245,12 +246,12 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
                     setQueueAnchor({ top: rect.bottom, left: rect.left, width: rect.width })
                     setQueueMenuOpen((v) => !v)
                   }}
-                  className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
+                  className={`flex h-[34px] w-full items-center gap-sm rounded-md border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
                     queueMenuOpen ? 'border-primary' : 'border-border-input'
                   }`}
                 >
                   <span className="min-w-0 flex-1 truncate text-left text-body text-text-primary">{queue}</span>
-                  <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+                  <ChevronDown className="size-5 shrink-0 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
                 </button>
                 {queueMenuOpen && queueAnchor && (
                   <>
@@ -315,7 +316,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
                     onClick={() => setContextModalOpen(true)}
                     className="flex items-center gap-xs text-body text-text-action transition-colors hover:text-primary-hover"
                   >
-                    <Icon name="add_circle" size={16} />
+                    <PlusCircle className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
                     Add
                   </button>
                 </div>

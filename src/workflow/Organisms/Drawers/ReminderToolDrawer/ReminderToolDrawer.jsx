@@ -9,14 +9,14 @@ const subtxt   = { ...F, fontSize: 12, color: '#757575' };
 function NativeDrawer({ isOpen, onClose, children }) {
   if (!isOpen) return null;
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }} />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)' }} />
       {/* Panel scrolls as a whole; header is sticky inside */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          position: 'relative', width: 650, maxWidth: '95vw',
-          height: '100%', overflowY: 'auto',
+          position: 'absolute', right: 8, top: 8, width: 650, maxWidth: 'calc(92vw - 8px)',
+          height: 'calc(100% - 16px)', borderRadius: 16, overflowY: 'auto',
           background: '#fff', boxShadow: '-4px 0 24px rgba(0,0,0,0.14)',
         }}
       >

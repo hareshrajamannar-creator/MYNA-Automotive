@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
+import { ChartCard, DataTable, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
+import { Calendar, ChevronDown, ChevronUp, DollarSign, ExternalLink, Flame, LayoutList, ListFilter, MoreVertical, Paperclip, Play, Plus, Search, SlidersHorizontal, ArrowUpDown, Smile, Users } from 'lucide-react'
 import voicemailSample from '../assets/voicemail_sample.mp3'
-import { AgentDetailScreen } from './AgentDetailScreen'
-import { WorkflowEditorScreen } from './WorkflowEditorScreen'
 
 interface Conversation {
   id: string
@@ -64,21 +63,17 @@ const INBOX_NAV_SECTIONS: NavSection[] = [
       { id: 'tagging-routing-agent', label: 'Tagging & routing agent' },
     ],
   },
-  // 'Outcomes' section (Conversation managed / All reports) hidden for now — keep for future re-enablement.
-  // {
-  //   id: 'outcomes',
-  //   label: 'Outcomes',
-  //   defaultExpanded: true,
-  //   items: [
-  //     { id: 'conversation-managed',   label: 'Conversation managed' },
-  //     { id: 'all-reports',            label: 'All reports', external: true },
-  //   ],
-  // },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      // { id: 'responses',              label: 'Responses' },
+      { id: 'conversation-managed',   label: 'Conversation managed' },
+      { id: 'all-reports',            label: 'All reports', external: true },
+    ],
+  },
 ]
-
-const NAV_LABELS: Record<string, string> = Object.fromEntries(
-  INBOX_NAV_SECTIONS.flatMap((section) => section.items?.map((item) => [item.id, item.label]) ?? [])
-)
 
 interface TabSet {
   visible: { id: string; label: string }[]
@@ -199,7 +194,7 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
             className="flex shrink-0 flex-col items-stretch"
           >
             <span
-              className={`flex h-9 items-center gap-xs whitespace-nowrap rounded-sm px-sm text-body transition-colors ${
+              className={`flex h-[34px] items-center gap-xs whitespace-nowrap rounded-sm px-sm text-body transition-colors ${
                 active ? 'text-text-primary' : 'text-text-secondary hover:bg-surface-selected'
               }`}
             >
@@ -217,9 +212,9 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
             onClick={() => setMoreOpen((o) => !o)}
             className="flex flex-col items-stretch"
           >
-            <span className="flex h-9 items-center gap-xs whitespace-nowrap rounded-sm px-sm text-body text-text-secondary transition-colors hover:bg-surface-selected">
+            <span className="flex h-[34px] items-center gap-xs whitespace-nowrap rounded-sm px-sm text-body text-text-secondary transition-colors hover:bg-surface-selected">
               More
-              <Icon name="expand_more" size={14} />
+              <ChevronDown className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
             </span>
             <span className="h-[2px] w-full bg-transparent" />
           </button>
@@ -331,18 +326,18 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
 //           <p className="mt-xs text-body text-text-secondary">Customer response handling and resolution outcomes across channels and locations</p>
 //         </div>
 //         <div className="flex items-center gap-sm">
-//           <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
-//             <Icon name="calendar_today" size={16} className="text-text-icon" />
+//           <button type="button" className="flex h-[34px] items-center gap-sm rounded-md border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
+//             <Calendar className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
 //             Last 3 months
 //           </button>
-//           <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-//             <Icon name="filter_list" size={20} />
+//           <button type="button" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+//             <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
 //           </button>
 //         </div>
 //       </div>
 //       <div className="flex flex-col gap-lg px-2xl pb-2xl">
 //         <SummaryStats title="Summary" stats={SUMMARY_STATS} />
-//         <ChartCard title="Performance funnel" showActions={false} toolbar={<button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button>}>
+//         <ChartCard title="Performance funnel" showActions={false} toolbar={<button type="button" aria-label="More" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>}>
 //           <div className="relative mb-sm h-5 text-small text-text-secondary">
 //             <span className="absolute left-0">Channel</span>
 //             <span className="absolute" style={{ left: '50%', transform: 'translateX(-50%)' }}>Handler</span>
@@ -350,14 +345,14 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
 //           </div>
 //           <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={520} />
 //         </ChartCard>
-//         <ChartCard title="Conversations over time" className="h-[556px]">
+//         <ChartCard title="Conversations overtime" className="h-[556px]">
 //           <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={430} showBarLabels />
 //         </ChartCard>
-//         <ChartCard title="Conversation by channel" className="h-[556px]" showActions={false} toolbar={<div className="flex items-center gap-xs text-text-icon"><button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="tune" size={20} /></button><button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button></div>}>
+//         <ChartCard title="Conversation by channel" className="h-[556px]" showActions={false} toolbar={<div className="flex items-center gap-xs text-text-icon"><button type="button" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="tune" size={20} /></button><button type="button" aria-label="More" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button></div>}>
 //           <div className="mb-lg flex items-center gap-2xl">{CHANNEL_STATS.map((s) => (<div key={s.id} className="flex flex-col"><div className="flex items-center gap-xs"><span className="text-h3 text-text-primary">{s.value}</span>{s.delta && (<span className={`text-small ${s.trend === 'up' ? 'text-success' : 'text-chip-danger-text'}`}>{s.delta}</span>)}</div><span className="text-small text-text-secondary">{s.label}</span></div>))}</div>
 //           <DonutChart data={DONUT_DATA} centerValue="10.3k" centerLabel="Total conversations" height={380} />
 //         </ChartCard>
-//         <ChartCard title="Conversation across locations" showActions={false} toolbar={<button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><Icon name="more_vert" size={20} /></button>}>
+//         <ChartCard title="Conversation across locations" showActions={false} toolbar={<button type="button" aria-label="More" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"><MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>}>
 //           <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
 //         </ChartCard>
 //       </div>
@@ -482,12 +477,12 @@ function ConversationManagedPanel() {
           <p className="mt-xs text-body text-text-secondary">Insights into conversation management outcomes across different channels and locations</p>
         </div>
         <div className="flex items-center gap-sm">
-          <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
-            <Icon name="calendar_today" size={16} className="text-text-icon" />
+          <button type="button" className="flex h-[34px] items-center gap-sm rounded-md border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
+            <Calendar className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
             Last 3 months
           </button>
-          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-            <Icon name="filter_list" size={20} />
+          <button type="button" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+            <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
           </button>
         </div>
       </div>
@@ -501,8 +496,8 @@ function ConversationManagedPanel() {
           title="Performance funnel"
           showActions={false}
           toolbar={
-            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="more_vert" size={20} />
+            <button type="button" aria-label="More" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
             </button>
           }
         >
@@ -547,8 +542,8 @@ function ConversationManagedPanel() {
           title="Conversation across locations"
           showActions={false}
           toolbar={
-            <button type="button" aria-label="More" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="more_vert" size={20} />
+            <button type="button" aria-label="More" className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
             </button>
           }
         >
@@ -569,15 +564,11 @@ function InboxSideNav({ activeId, onSelect }: { activeId: string; onSelect: (id:
 
   return (
     <aside className="flex h-full w-[222px] shrink-0 flex-col border-r border-border bg-surface-l2">
-      <div className="flex h-[52px] shrink-0 flex-col justify-center px-2xl">
-        <h1 className="text-h3 text-text-primary">Inbox</h1>
-      </div>
-
       {/* New message row */}
-      <div className="flex items-center justify-between px-2xl py-sm">
+      <div className="flex items-center justify-between px-2xl pt-lg pb-sm">
         <span className="text-body text-text-primary">New message</span>
-        <button type="button" className="flex size-6 items-center justify-center rounded-full bg-primary text-white">
-          <Icon name="add" size={16} />
+        <button type="button" className="flex size-5 items-center justify-center rounded-full bg-primary text-white">
+          <Plus className="size-3" strokeWidth={1.6} absoluteStrokeWidth />
         </button>
       </div>
 
@@ -592,7 +583,7 @@ function InboxSideNav({ activeId, onSelect }: { activeId: string; onSelect: (id:
                 className="flex h-7 w-full items-center justify-between gap-sm rounded-sm px-sm py-[6px] hover:bg-surface-selected"
               >
                 <span className="text-body text-text-primary">{section.label}</span>
-                <Icon name={expanded ? 'expand_less' : 'expand_more'} size={20} className="text-text-icon" />
+                {expanded ? <ChevronUp className="size-5 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> : <ChevronDown className="size-5 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />}
               </button>
               {expanded && section.items?.map((leaf) => (
                 <button
@@ -606,7 +597,7 @@ function InboxSideNav({ activeId, onSelect }: { activeId: string; onSelect: (id:
                   <span className="min-w-0 flex-1 truncate text-body font-light text-text-primary">
                     {leaf.label}
                   </span>
-                  {leaf.external && <Icon name="open_in_new" size={16} className="shrink-0 text-text-icon" />}
+                  {leaf.external && <ExternalLink className="size-4 shrink-0 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />}
                 </button>
               ))}
             </div>
@@ -622,20 +613,9 @@ export function InboxScreen() {
   const [selectedConvo, setSelectedConvo] = useState(CONVERSATIONS[0])
   const [activeTab, setActiveTab] = useState('all')
   const [message, setMessage] = useState('')
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
 
   const isInternalChat = activeNav === 'chat-internal-team'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
-  const listTitle = NAV_LABELS[activeNav] ?? 'Inbox'
-
-  const searchQ = searchQuery.trim().toLowerCase()
-  const visibleConversations = searchQ
-    ? CONVERSATIONS.filter(
-        (c) => c.name.toLowerCase().includes(searchQ) || c.message.toLowerCase().includes(searchQ),
-      )
-    : CONVERSATIONS
 
   function handleNavSelect(id: string) {
     setActiveNav(id)
@@ -645,21 +625,11 @@ export function InboxScreen() {
 
   return (
     <div className="flex h-full">
-      {/* L2 Nav — full height; collapsed while the agent workflow editor is open */}
-      {!editingAgentName && <InboxSideNav activeId={activeNav} onSelect={handleNavSelect} />}
+      {/* L2 Nav — full height */}
+      <InboxSideNav activeId={activeNav} onSelect={handleNavSelect} />
 
       {/* Right side: TopNav on top, then conversation list + chat below */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {editingAgentName ? (
-          <WorkflowEditorScreen
-            agentName={editingAgentName}
-            product="healthcare"
-            onClose={() => setEditingAgentName(null)}
-          />
-        ) : activeNav === 'tagging-routing-agent' ? (
-          <AgentDetailScreen agentName="Tagging & routing agent" product="healthcare" onEditAgent={setEditingAgentName} />
-        ) : (
-        <>
         <TopNav initials="S" />
 
         {activeNav === 'conversation-managed' ? (
@@ -668,75 +638,55 @@ export function InboxScreen() {
         <div className="flex flex-1 overflow-hidden">
           {/* Middle panel — conversation list */}
           <div className="flex w-[370px] shrink-0 flex-col border-r border-border">
-            <div className="flex h-[52px] shrink-0 items-center border-b border-border bg-surface px-lg transition-colors focus-within:border-primary">
-              {searchOpen ? (
-                <div className="flex h-9 flex-1 items-center gap-xs">
-                  <Icon name="search" size={20} className="shrink-0 text-text-icon" />
-                  <input
-                    autoFocus
-                    type="text"
-                    placeholder="Search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-body text-text-primary caret-primary outline-none placeholder:text-text-tertiary"
-                  />
-                  <button
-                    type="button"
-                    aria-label="Clear search"
-                    onClick={() => {
-                      setSearchOpen(false)
-                      setSearchQuery('')
-                    }}
-                    className="shrink-0 text-text-icon hover:text-text-primary"
-                  >
-                    <Icon name="close" size={20} />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex w-full items-center justify-between gap-sm">
-                  <h1 className="text-h3 text-text-primary">{listTitle}</h1>
-                  <div className="flex shrink-0 items-center gap-md">
-                    <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="text-text-icon hover:text-text-primary">
-                      <Icon name="search" size={20} />
-                    </button>
-                    <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="filter_list" size={20} /></button>
-                    <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="swap_vert" size={20} /></button>
-                    <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="more_vert" size={20} /></button>
+            {isInternalChat ? (
+              <div className="flex items-center justify-end gap-sm px-lg pt-lg">
+                <button type="button" className="flex size-8 items-center justify-center text-text-icon hover:text-text-primary"><Search className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                <button type="button" className="flex h-8 items-center rounded-md bg-[#4CAE3D] px-lg text-body text-white hover:opacity-90">
+                  New
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="px-lg pt-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-xs">
+                      <div className="flex items-center gap-xs">
+                        <span className="text-body text-text-primary">OPEN</span>
+                        <ChevronDown className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
+                      </div>
+                      <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
+                    </div>
+                    <div className="flex items-center gap-md">
+                      <button type="button" className="text-text-icon hover:text-text-primary"><Search className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                      <button type="button" className="text-text-icon hover:text-text-primary"><ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                      <button type="button" className="text-text-icon hover:text-text-primary"><ArrowUpDown className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                      <button type="button" className="text-text-icon hover:text-text-primary"><MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex flex-col gap-xs px-lg pt-lg">
-              <div className="flex items-center gap-xs">
-                <span className="text-body text-text-primary">OPEN</span>
-                <Icon name="expand_more" size={16} className="text-text-icon" />
-              </div>
-              <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
-            </div>
-
-            {!isInternalChat && (
-              <div className="px-lg pt-sm">
-                <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
-              </div>
+                <div className="px-lg">
+                  <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
+                </div>
+              </>
             )}
 
             {/* Conversation list */}
             <div className="flex-1 overflow-y-auto px-sm py-sm">
-              {visibleConversations.map((convo) => (
+              {CONVERSATIONS.map((convo) => (
                 <button
                   key={convo.id}
                   type="button"
                   onClick={() => setSelectedConvo(convo)}
                   className={`flex w-full flex-col gap-xs rounded-md px-md py-md text-left transition-colors ${
-                    selectedConvo.id === convo.id ? 'bg-[#dbeafe]' : 'hover:bg-surface-hover'
+                    selectedConvo.id === convo.id ? 'bg-surface-selected' : 'hover:bg-surface-hover'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-xs">
                       {convo.unread && <span className="size-[6px] rounded-full bg-primary" />}
                       <span className="text-body text-text-primary">{convo.name}</span>
-                      {convo.verified && <Icon name="mode_heat" size={14} className="text-text-icon" />}
+                      {convo.verified && <Flame className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />}
                     </div>
                     <span className="text-small text-text-secondary">{convo.date}</span>
                   </div>
@@ -752,7 +702,7 @@ export function InboxScreen() {
                     {convo.assignee && (
                       <>
                         <span>•</span>
-                        <Icon name="group" size={12} />
+                        <Users className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
                         <span>{convo.assignee}</span>
                       </>
                     )}
@@ -768,7 +718,7 @@ export function InboxScreen() {
             <div className="flex items-center justify-between px-2xl py-md">
               <div className="flex items-center gap-sm">
                 <span className="text-h3 text-text-primary">{selectedConvo.name}</span>
-                {selectedConvo.verified && <Icon name="mode_heat" size={16} className="text-text-icon" />}
+                {selectedConvo.verified && <Flame className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />}
               </div>
               <div className="flex items-center gap-md">
                 <button type="button" className="flex items-center gap-sm">
@@ -778,10 +728,10 @@ export function InboxScreen() {
                     className="size-7 rounded-full object-cover"
                   />
                   <span className="text-body text-text-primary">{selectedConvo.sublocation ?? 'Savannah'}</span>
-                  <Icon name="expand_more" size={14} className="text-text-icon" />
+                  <ChevronDown className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
                 </button>
                 <button type="button" className="flex size-7 items-center justify-center text-text-icon hover:text-text-primary">
-                  <Icon name="more_vert" size={20} />
+                  <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
                 </button>
               </div>
             </div>
@@ -829,7 +779,7 @@ export function InboxScreen() {
                   const isAgent = event.sender === 'agent'
                   return (
                     <div key={event.id} className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[70%] rounded-lg px-md py-sm text-body text-text-primary ${isAgent ? 'bg-[#dbeafe]' : 'bg-[#f0f0f0]'}`}>
+                      <div className={`max-w-[70%] rounded-lg px-md py-sm text-body text-text-primary ${isAgent ? 'bg-surface-selected' : 'bg-surface-l2'}`}>
                         {event.text}
                       </div>
                       <span className="mt-xs text-small text-text-tertiary">
@@ -842,14 +792,14 @@ export function InboxScreen() {
                 if (event.kind === 'recording') {
                   return (
                     <div key={event.id} className="flex flex-col items-end">
-                      <div className="flex w-[220px] flex-col gap-sm rounded-lg border border-border bg-[#dbeafe] px-md py-sm">
+                      <div className="flex w-[220px] flex-col gap-sm rounded-lg border border-border bg-surface-selected px-md py-sm">
                         <div className="flex items-center justify-between">
                           <span className="text-body text-text-primary">Call recording</span>
                           <span className="text-small text-text-secondary">{event.time}</span>
                         </div>
                         <button type="button" className="flex items-center gap-sm">
-                          <div className="flex size-9 items-center justify-center rounded-full bg-[#1f1f1f]">
-                            <Icon name="play_arrow" size={20} fill className="text-white" />
+                          <div className="flex size-[34px] items-center justify-center rounded-full bg-[#1f1f1f]">
+                            <Play className="size-5 text-white" strokeWidth={1.6} absoluteStrokeWidth />
                           </div>
                           <span className="text-body text-text-primary">Play recording</span>
                         </button>
@@ -867,7 +817,7 @@ export function InboxScreen() {
               <div className="rounded-md border border-border p-md">
                 <button type="button" className="mb-sm flex items-center gap-xs text-body text-text-action">
                   Text
-                  <Icon name="expand_more" size={16} />
+                  <ChevronDown className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
                 </button>
 
                 <div className="mb-md min-h-[48px]">
@@ -882,10 +832,10 @@ export function InboxScreen() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-md text-text-icon">
-                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><Icon name="table_rows" size={20} /></button>
-                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><Icon name="attach_money" size={20} /></button>
-                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><Icon name="attach_file" size={20} /></button>
-                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><Icon name="sentiment_satisfied" size={20} /></button>
+                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><LayoutList className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><DollarSign className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><Paperclip className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
+                    <button type="button" className="flex size-5 items-center justify-center hover:text-text-primary"><Smile className="size-5" strokeWidth={1.6} absoluteStrokeWidth /></button>
                     <button type="button" className="flex size-5 items-center justify-center hover:opacity-80">
                       <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6.51931 10.0887H4.57118L4.24883 11.0207H3.2187L4.97763 6.12236H6.11988L7.8788 11.0207H6.84167L6.51931 10.0887ZM6.25302 9.30384L5.54525 7.25761L4.83747 9.30384H6.25302Z" fill="#6834B7"/>
@@ -897,16 +847,16 @@ export function InboxScreen() {
                     </button>
                   </div>
                   {isInternalChat ? (
-                    <button type="button" className="flex h-9 items-center rounded-sm bg-[#4CAE3D] px-lg text-body text-white hover:opacity-90">
+                    <button type="button" className="flex h-[34px] items-center rounded-md bg-[#4CAE3D] px-lg text-body text-white hover:opacity-90">
                       Send
                     </button>
                   ) : (
                     <div className="flex items-center">
-                      <button type="button" className="flex h-9 items-center rounded-l-sm bg-primary px-lg text-body text-white hover:bg-primary-hover">
+                      <button type="button" className="flex h-[34px] items-center rounded-l-sm bg-primary px-lg text-body text-white hover:bg-primary-hover">
                         Send
                       </button>
-                      <button type="button" className="flex h-9 items-center justify-center rounded-r-sm border-l border-white/30 bg-primary px-sm text-white hover:bg-primary-hover">
-                        <Icon name="expand_more" size={16} />
+                      <button type="button" className="flex h-[34px] items-center justify-center rounded-r-sm border-l border-white/30 bg-primary px-sm text-white hover:bg-primary-hover">
+                        <ChevronDown className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
                       </button>
                     </div>
                   )}
@@ -915,8 +865,6 @@ export function InboxScreen() {
             </div>
           </div>
         </div>
-        )}
-        </>
         )}
       </div>
     </div>

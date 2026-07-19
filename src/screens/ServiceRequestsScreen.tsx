@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Columns2, ListFilter } from 'lucide-react'
 import {
   // Chip,
   CustomizeColumnsDrawer,
@@ -285,7 +286,7 @@ export function ServiceRequestsScreen({ onViewDetail }: { onViewDetail?: (args: 
               <button
                 type="button"
                 onClick={() => setCreateOpen(true)}
-                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body font-medium text-white transition-colors hover:bg-primary-hover"
+                className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
                 New request
               </button>
@@ -293,17 +294,17 @@ export function ServiceRequestsScreen({ onViewDetail }: { onViewDetail?: (args: 
                 type="button"
                 aria-label="Customize columns"
                 onClick={() => setCustomizeOpen(true)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
-                <Icon name="view_column" size={20} />
+                <Columns2 className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
               <button
                 type="button"
                 aria-label="Filters"
                 onClick={() => setFilterOpen((o) => !o)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
-                <Icon name="filter_list" size={20} />
+                <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
             </div>
           </div>

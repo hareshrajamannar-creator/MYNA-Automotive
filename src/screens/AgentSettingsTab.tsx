@@ -1,5 +1,6 @@
 import { useState, useRef, type MouseEvent } from 'react'
-import { Icon, IntegrationsPickerDrawer, RefChip } from '../components'
+import { Check, ChevronDown, ChevronUp, MoreVertical, Pencil, Smile, Square, Volume2 } from 'lucide-react'
+import { IntegrationsPickerDrawer, RefChip } from '../components'
 import {
   DEFAULT_AUTO_ACCOUNT_CONNECTED_INTEGRATION_IDS,
   DEFAULT_AUTO_AGENT_SELECTED_INTEGRATION_ID,
@@ -90,9 +91,9 @@ function FallbackField({ prefix, chipLabel, suffix }: FallbackFieldProps) {
         <button
           type="button"
           title="Emoji"
-          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          className="flex size-7 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
         >
-          <Icon name="sentiment_satisfied" size={18} />
+          <Smile className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
         </button>
         {/* Personalize */}
         <button
@@ -100,7 +101,7 @@ function FallbackField({ prefix, chipLabel, suffix }: FallbackFieldProps) {
           className="flex items-center gap-[3px] rounded-sm px-[6px] py-[3px] text-body text-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
         >
           Personalize
-          <Icon name="expand_more" size={16} className="text-primary" />
+          <ChevronDown className="size-4 text-primary" strokeWidth={1.6} absoluteStrokeWidth />
         </button>
       </div>
     </div>
@@ -135,13 +136,7 @@ function SettingsCheckboxBox({ checked }: { checked: boolean }) {
       }`}
     >
       {checked && (
-        <Icon
-          name="check"
-          size={11}
-          fill
-          weight={600}
-          className="text-white"
-        />
+        <Check className="size-4 text-white" strokeWidth={1.6} absoluteStrokeWidth />
       )}
     </span>
   )
@@ -261,14 +256,14 @@ function VoiceSelect({ value, options, onChange }: VoiceSelectProps) {
       <button
         type="button"
         onClick={openMenu}
-        className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm transition-colors hover:bg-surface-l2 focus:border-primary focus:outline-none focus-visible:border-primary ${
+        className={`flex h-[34px] w-full items-center gap-sm rounded-md border bg-surface pl-md pr-sm transition-colors hover:bg-surface-l2 focus:border-primary focus:outline-none focus-visible:border-primary ${
           open ? 'border-primary' : 'border-border-input'
         }`}
       >
         <span className={`min-w-0 flex-1 truncate text-left text-body ${value ? 'text-text-primary' : 'text-text-tertiary'}`}>
           {value || 'Select voice'}
         </span>
-        <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+        <ChevronDown className="size-5 shrink-0 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
       </button>
       {open && anchor && (
         <>
@@ -291,9 +286,9 @@ function VoiceSelect({ value, options, onChange }: VoiceSelectProps) {
                     type="button"
                     onClick={(e) => togglePreview(opt, e)}
                     title={isPlaying ? 'Stop preview' : 'Preview voice'}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2 hover:text-primary"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2 hover:text-primary"
                   >
-                    <Icon name={isPlaying ? 'stop' : 'volume_up'} size={16} />
+                    {isPlaying ? <Square className="size-4" strokeWidth={1.6} absoluteStrokeWidth /> : <Volume2 className="size-4" strokeWidth={1.6} absoluteStrokeWidth />}
                   </button>
                 </div>
               )
@@ -494,10 +489,7 @@ function ChannelAccordion({
             className="flex items-center justify-center text-text-icon"
             aria-label={open ? 'Collapse' : 'Expand'}
           >
-            <Icon
-              name={open ? 'expand_less' : 'expand_more'}
-              size={20}
-            />
+            {open ? <ChevronUp className="size-5" strokeWidth={1.6} absoluteStrokeWidth /> : <ChevronDown className="size-5" strokeWidth={1.6} absoluteStrokeWidth />}
           </button>
         </div>
       </div>
@@ -532,7 +524,7 @@ function SettingsSectionHeader({
         aria-label={addAriaLabel}
         className="flex size-6 shrink-0 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-hover hover:text-primary focus:outline-none disabled:cursor-not-allowed disabled:text-text-tertiary"
       >
-        <Icon name="edit" size={16} />
+        <Pencil className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
       </button>
     </div>
   )
@@ -562,9 +554,9 @@ function CardMenu({ itemLabel, onEdit, onDelete, inline = false }: CardMenuProps
           e.stopPropagation()
           setOpen((v) => !v)
         }}
-        className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+        className="flex size-7 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
       >
-        <Icon name="more_vert" size={20} />
+        <MoreVertical className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
       </button>
       {open && (
         <>

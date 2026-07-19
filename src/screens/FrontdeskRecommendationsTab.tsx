@@ -604,7 +604,7 @@ function TypingDots() {
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className="size-[7px] rounded-full bg-[#6b9fd4]"
+          className="size-[7px] rounded-full bg-primary"
           style={{ animation: 'sim-bounce 1.2s ease-in-out infinite', animationDelay: `${i * 0.2}s` }}
         />
       ))}
@@ -749,7 +749,7 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
         <button
           type="button"
           onClick={onBack}
-          className="mr-sm flex size-7 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+          className="mr-sm flex size-7 shrink-0 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
           aria-label="Back"
         >
           <Icon name="arrow_back" size={18} />
@@ -764,8 +764,8 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
       <div className="flex flex-1 flex-col overflow-y-auto bg-white px-[28px] py-lg">
 
         {/* Info banner */}
-        <div className="mb-[20px] flex items-center gap-sm rounded-sm border border-[#bfdbfe] bg-[#eff6ff] px-md py-sm">
-          <Icon name="info" size={14} className="shrink-0 text-[#2563eb]" />
+        <div className="mb-[20px] flex items-center gap-sm rounded-md border border-[#bfdbfe] bg-[#eff6ff] px-md py-sm">
+          <Icon name="info" size={14} className="shrink-0 text-text-action" />
           <p className="min-w-0 flex-1 text-[12px] leading-[18px] text-text-secondary">
             {simActive
               ? 'Simulating how this conversation would go with the new procedure'
@@ -800,11 +800,11 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
             return (
               <div key={i} className={`mb-[16px] flex max-w-[72%] flex-col gap-[6px] self-start ${fadeClass}`}>
                 <div className="rounded-[18px] rounded-tl-[4px] bg-[#f1f3f4] px-[16px] py-[10px]">
-                  <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+                  <p className="text-[15px] leading-[22px] text-text-primary">{turn.text}</p>
                 </div>
                 <div className="flex items-center gap-[6px]">
-                  <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
-                  <Icon name="link" size={12} className="text-[#9aa0a6]" />
+                  <span className="text-[12px] text-text-tertiary">{turn.time}</span>
+                  <Icon name="link" size={12} className="text-text-tertiary" />
                 </div>
               </div>
             )
@@ -824,9 +824,9 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
                   >
                     <span className="text-[11px] text-text-tertiary">Previous reply</span>
                     <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
-                      <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+                      <p className="text-[15px] leading-[22px] text-text-primary">{turn.text}</p>
                     </div>
-                    <span className="text-[11px] text-[#9aa0a6]">{turn.time}</span>
+                    <span className="text-[11px] text-text-tertiary">{turn.time}</span>
                   </div>
                 )}
 
@@ -840,17 +840,17 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
                 {/* Connector + After */}
                 {divPhase === 'improved' && (
                   <>
-                    <div className="sim-msg-in flex shrink-0 items-center gap-[6px] rounded-full bg-[#f9f7fd] px-[12px] py-[5px]">
+                    <div className="sim-msg-in flex shrink-0 items-center gap-[6px] rounded-full bg-ai-summary px-[12px] py-[5px]">
                       <Icon name="auto_awesome" size={12} className="sim-sparkle-pulse text-ai-brand" />
                       <span className="text-[11px] text-ai-brand">Recommendation applied</span>
                     </div>
                     <div ref={afterCardRef} className="sim-msg-in flex flex-col items-end gap-[6px]">
                       <div className="sim-glow-pulse rounded-[18px]">
                         <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
-                          <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{improvedText}</p>
+                          <p className="text-[15px] leading-[22px] text-text-primary">{improvedText}</p>
                         </div>
                       </div>
-                      <span className="text-[11px] text-[#9aa0a6]">{turn.time}</span>
+                      <span className="text-[11px] text-text-tertiary">{turn.time}</span>
                     </div>
                   </>
                 )}
@@ -862,9 +862,9 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
           return (
             <div key={i} className={`mb-[16px] flex max-w-[72%] flex-col items-end gap-[6px] self-end ${fadeClass}`}>
               <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
-                <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+                <p className="text-[15px] leading-[22px] text-text-primary">{turn.text}</p>
               </div>
-              <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
+              <span className="text-[12px] text-text-tertiary">{turn.time}</span>
             </div>
           )
         })}
@@ -910,7 +910,7 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+                className="flex size-7 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
               >
                 <Icon name="close" size={18} />
               </button>
@@ -937,17 +937,17 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
                       <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
                         {/* Row 1: name + date */}
                         <div className="flex items-baseline justify-between gap-sm">
-                          <span className="truncate text-[15px] leading-[20px] text-[#3c3c3c]">
+                          <span className="truncate text-[15px] leading-[20px] text-text-primary">
                             {c.name}
                           </span>
-                          <span className="shrink-0 text-[13px] text-[#9aa0a6]">{c.date}</span>
+                          <span className="shrink-0 text-[13px] text-text-tertiary">{c.date}</span>
                         </div>
                         {/* Row 2: agent: message */}
-                        <span className="truncate text-[13px] leading-[18px] text-[#5f6368]">
+                        <span className="truncate text-[13px] leading-[18px] text-text-secondary">
                           {agentName}: {c.message}
                         </span>
                         {/* Row 3: location */}
-                        <div className="flex items-center gap-[4px] text-[12px] text-[#9aa0a6]">
+                        <div className="flex items-center gap-[4px] text-[12px] text-text-tertiary">
                           <span>{c.location}</span>
                         </div>
                       </div>
@@ -975,24 +975,24 @@ function Toast({ data, onDismiss }: { data: ToastData; onDismiss: () => void }) 
       style={{ minWidth: 360, maxWidth: 520, boxShadow: '0 4px 16px 0 rgba(0,0,0,0.14), 0 1px 4px 0 rgba(0,0,0,0.08)' }}
     >
       {isDanger ? (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
-          <circle cx="10" cy="10" r="8" stroke="#DE1B0C" strokeWidth="1.5" />
-          <path d="M10 5.5v5" stroke="#DE1B0C" strokeWidth="1.5" strokeLinecap="round" />
-          <circle cx="10" cy="13.5" r="1" fill="#DE1B0C" />
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 text-chip-danger-text">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M10 5.5v5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <circle cx="10" cy="13.5" r="1" fill="currentColor" />
         </svg>
       ) : (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
-          <path d="M4 10.5l4.5 4.5 7.5-9" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 text-accent-positive">
+          <path d="M4 10.5l4.5 4.5 7.5-9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
 
-      <span className="flex-1 text-[13px] leading-[20px] text-[#111827]">{data.message}</span>
+      <span className="flex-1 text-[13px] leading-[20px] text-text-primary">{data.message}</span>
 
       {data.onUndo && (
         <button
           type="button"
           onClick={() => { data.onUndo?.(); onDismiss() }}
-          className="shrink-0 text-[13px] leading-[20px] text-[#2563EB]"
+          className="shrink-0 text-[13px] leading-[20px] text-text-action"
         >
           Undo
         </button>
@@ -1001,7 +1001,7 @@ function Toast({ data, onDismiss }: { data: ToastData; onDismiss: () => void }) 
       <button
         type="button"
         onClick={onDismiss}
-        className="ml-[4px] flex size-[20px] shrink-0 items-center justify-center text-[#6B7280] hover:text-[#111827]"
+        className="ml-[4px] flex size-[20px] shrink-0 items-center justify-center text-text-secondary hover:text-text-primary"
       >
         <Icon name="close" size={16} />
       </button>
@@ -1086,7 +1086,7 @@ function ConfirmAddProcedureModal({
             type="button"
             onClick={onCancel}
             aria-label="Close"
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            className="flex size-7 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
           >
             <Icon name="close" size={18} />
           </button>
@@ -1108,14 +1108,14 @@ function ConfirmAddProcedureModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
+            className="rounded-md px-md py-xs text-body text-text-action hover:bg-surface-hover"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+            className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
           >
             Confirm
           </button>
@@ -1233,19 +1233,19 @@ function DetailPanelInner({
               <button
                 type="button"
                 onClick={onPreviewOpen}
-                className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+                className="flex h-[34px] items-center gap-xs rounded-md border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
               >
                 <Icon name="play_arrow" size={16} className="text-text-icon" />
                 Test
               </button>
               {recStatus === 'accepted' ? (
                 <div className="relative">
-                  <div className="flex h-9 overflow-hidden rounded-sm">
+                  <div className="flex h-[34px] overflow-hidden rounded-md">
                     <button
                       type="button"
                       disabled={!dirty}
                       onClick={handleSave}
-                      className={`flex h-9 items-center px-lg text-body transition-colors ${
+                      className={`flex h-[34px] items-center px-lg text-body transition-colors ${
                         dirty
                           ? 'bg-primary text-white hover:bg-primary-hover'
                           : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
@@ -1259,7 +1259,7 @@ function DetailPanelInner({
                       disabled={!dirty}
                       onClick={() => setApplyOpen((v) => !v)}
                       aria-label="More save options"
-                      className={`flex h-9 items-center px-sm transition-colors ${
+                      className={`flex h-[34px] items-center px-sm transition-colors ${
                         dirty
                           ? 'bg-primary text-white hover:bg-primary-hover'
                           : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
@@ -1289,9 +1289,9 @@ function DetailPanelInner({
                 </div>
               ) : (
               <div className="relative">
-                <div className="flex h-9 overflow-hidden rounded-sm">
+                <div className="flex h-[34px] overflow-hidden rounded-md">
                   <button
-                    className="flex h-9 items-center bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                    className="flex h-[34px] items-center bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
                     onClick={() => {
                       setApplyOpen(false)
                       onRequestAccept()
@@ -1301,7 +1301,7 @@ function DetailPanelInner({
                   </button>
                   <div className="w-px bg-white/30" />
                   <button
-                    className="flex h-9 items-center bg-primary px-sm text-white transition-colors hover:bg-primary-hover"
+                    className="flex h-[34px] items-center bg-primary px-sm text-white transition-colors hover:bg-primary-hover"
                     onClick={() => setApplyOpen((v) => !v)}
                     aria-label="More apply options"
                   >
@@ -1341,7 +1341,7 @@ function DetailPanelInner({
           </div>
 
           {/* AI insight callout */}
-          <div className="mt-md flex items-start gap-sm rounded-sm border border-[#b090e0] bg-[#f9f7fd] px-lg py-md">
+          <div className="mt-md flex items-start gap-sm rounded-md border border-ai-summary-border bg-ai-summary px-lg py-md">
             <Icon name="auto_awesome" size={14} className="mt-0.5 shrink-0 text-ai-brand" />
             <div className="flex min-w-0 flex-1 flex-col gap-xs">
               <p className="text-body text-text-secondary">{rec.rationale}</p>
@@ -1405,7 +1405,7 @@ function DetailPanelInner({
             value={titleValue}
             onChange={(e) => setTitleValue(e.target.value)}
             readOnly={showOriginal}
-            className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary outline-none focus:border-border-strong"
+            className="flex h-[34px] items-center rounded-md border border-border-selected bg-surface px-md text-body text-text-primary outline-none focus:border-border-strong"
           />
         </div>
 
@@ -1417,7 +1417,7 @@ function DetailPanelInner({
             onChange={(e) => setWhenToUseValue(e.target.value)}
             rows={2}
             readOnly={showOriginal}
-            className="min-h-9 resize-none rounded-sm border border-border-selected bg-surface px-md py-sm text-body text-text-primary outline-none focus:border-border-strong"
+            className="min-h-[34px] resize-none rounded-md border border-border-selected bg-surface px-md py-sm text-body text-text-primary outline-none focus:border-border-strong"
           />
         </div>
 
@@ -1427,7 +1427,7 @@ function DetailPanelInner({
             <p className="text-small text-text-primary">Context</p>
             <Icon name="info" size={16} className="text-text-icon" />
           </div>
-          <div className="flex min-h-9 items-center rounded-sm border border-border-selected bg-surface px-md py-sm">
+          <div className="flex min-h-[34px] items-center rounded-md border border-border-selected bg-surface px-md py-sm">
             <button type="button" className="flex items-center gap-xs text-small text-text-action">
               <Icon name="add_circle" size={20} />
               Add
@@ -1441,7 +1441,7 @@ function DetailPanelInner({
             <p className="text-small text-text-primary">Steps</p>
             <Icon name="info" size={16} className="text-text-icon" />
           </div>
-          <div className="flex min-h-[547px] flex-col rounded-sm border border-border-selected bg-surface p-md">
+          <div className="flex min-h-[547px] flex-col rounded-md border border-border-selected bg-surface p-md">
             <div className="flex flex-1 flex-col gap-xl">
               {(showOriginal && rec.originalSteps ? rec.originalSteps : rec.steps).map((step, i) => (
                 <div key={i}>
@@ -1471,7 +1471,7 @@ function DetailPanelInner({
         {recStatus === 'open' && rec.manualUpdates && rec.manualUpdates.length > 0 && (
           <div className="flex flex-col gap-md">
             <p className="text-small text-text-primary">Manual updates needed</p>
-            <div className="flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
+            <div className="flex items-start gap-sm rounded-md border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
               <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
               <p className="text-[12px] leading-[18px] text-text-secondary">
                 Complete these steps to finish setting up this procedure. They require your input and can't be

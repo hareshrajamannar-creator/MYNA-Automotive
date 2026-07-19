@@ -167,7 +167,7 @@ export function RunDetailView({ row, onBack }: RunDetailViewProps) {
           type="button"
           aria-label="Back to logs"
           onClick={onBack}
-          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+          className="flex size-8 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
         >
           <BackArrowIcon />
         </button>

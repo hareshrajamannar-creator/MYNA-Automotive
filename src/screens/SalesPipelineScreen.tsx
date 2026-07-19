@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { type LucideIcon, Columns2, ListFilter, Mail, MessageSquare, Phone } from 'lucide-react'
 import {
   // Chip,
   CustomizeColumnsDrawer,
@@ -62,7 +63,7 @@ const TAB_STATUS_MAP: Record<string, string> = {
 //   Won:                    'success',
 // }
 
-const CHANNEL_ICON: Record<string, string> = { sms: 'sms', call: 'call', mail: 'mail' }
+const CHANNEL_ICON: Record<string, LucideIcon> = { sms: MessageSquare, call: Phone, mail: Mail }
 
 export interface LeadDetailArgs {
   row: Lead
@@ -150,7 +151,7 @@ const COLUMN_DEFS: ColumnDef[] = [
     width: 150,
     sortable: true,
     render: (value) => (
-      <Icon name={CHANNEL_ICON[String(value)] ?? 'sms'} size={20} className="text-text-icon" />
+      (() => { const C = CHANNEL_ICON[String(value)] ?? MessageSquare; return <C className="size-5 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> })()
     ),
   },
   { key: 'dateTime',   label: 'Appointment time', width: 200, sortable: true },
@@ -275,7 +276,7 @@ export function SalesPipelineScreen({ onViewDetail }: { onViewDetail?: (args: Le
               <button
                 type="button"
                 onClick={() => setAddProspectOpen(true)}
-                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body font-medium text-white transition-colors hover:bg-primary-hover"
+                className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
               >
                 Add prospect
               </button>
@@ -283,17 +284,17 @@ export function SalesPipelineScreen({ onViewDetail }: { onViewDetail?: (args: Le
                 type="button"
                 aria-label="Customize columns"
                 onClick={() => setCustomizeOpen(true)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
-                <Icon name="view_column" size={20} />
+                <Columns2 className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
               <button
                 type="button"
                 aria-label="Filters"
                 onClick={() => setFilterOpen((o) => !o)}
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                className="flex size-[34px] items-center justify-center rounded-md border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
               >
-                <Icon name="filter_list" size={20} />
+                <ListFilter className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
             </div>
           </div>

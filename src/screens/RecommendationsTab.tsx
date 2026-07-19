@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Chip, FilterPanel, Icon, RefChip, type FilterField } from '../components'
+import { type LucideIcon, AlertTriangle, ArrowLeft, BookOpen, Check, ChevronDown, ChevronRight, ChevronUp, EyeOff, FileText, Link, ListFilter, MessageCircle, MessageSquare, Phone, Pencil, Play, PlusCircle, Sparkles, UserRound, Wrench, X } from 'lucide-react'
 import PreviewPanel from '../workflow/Molecules/PreviewPanel/PreviewPanel'
 import '../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 
@@ -326,10 +327,10 @@ const GAP_LABEL: Record<GapType, string> = {
   action: 'Action gap',
 }
 
-const GAP_ICON: Record<GapType, string> = {
-  procedure: 'description',
-  knowledge: 'menu_book',
-  action: 'build',
+const GAP_ICON: Record<GapType, LucideIcon> = {
+  procedure: FileText,
+  knowledge: BookOpen,
+  action: Wrench,
 }
 
 const PRIORITY_VARIANT: Record<Priority, 'danger' | 'warning' | 'neutral'> = {
@@ -405,7 +406,7 @@ function StatusDropdown({
         className="flex items-center gap-xs rounded-sm text-body text-text-primary hover:bg-surface-hover"
       >
         {selectedLabel}
-        <Icon name="expand_more" size={16} className="text-text-icon" />
+        <ChevronDown className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
       </button>
       {open && (
         <>
@@ -458,7 +459,7 @@ function RecCard({
     >
       <div className="mb-sm flex items-center justify-between gap-sm">
         <div className="flex min-w-0 items-center gap-xs">
-          <Icon name={GAP_ICON[rec.gapType]} size={14} className="shrink-0 text-text-icon" />
+          {(() => { const GapIc = GAP_ICON[rec.gapType]; return <GapIc className="size-4 shrink-0 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> })()}
           <span className="truncate text-small text-text-tertiary">{GAP_LABEL[rec.gapType]}</span>
         </div>
         <div className="flex items-center gap-xs">
@@ -529,8 +530,8 @@ function GapLegend() {
 
 // ── Conversations drawer ──────────────────────────────────────────────────────
 
-function channelIcon(ch: Channel) {
-  return ch === 'Voice' ? 'call' : ch === 'Chat' ? 'chat_bubble_outline' : 'sms'
+function channelIcon(ch: Channel): LucideIcon {
+  return ch === 'Voice' ? Phone : ch === 'Chat' ? MessageCircle : MessageSquare
 }
 
 // Multi-turn conversation threads keyed by the customer's opening message.
@@ -792,14 +793,14 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
         <button
           type="button"
           onClick={onBack}
-          className="mr-sm flex size-7 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+          className="mr-sm flex size-8 shrink-0 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
           aria-label="Back"
         >
-          <Icon name="arrow_back" size={18} />
+          <ArrowLeft className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
         </button>
         <div className="flex min-w-0 flex-1 items-center gap-sm">
           <span className="truncate text-[15px] text-text-primary">{conv.name}</span>
-          <Icon name={channelIcon(conv.channel)} size={15} className="shrink-0 text-text-tertiary" />
+          {(() => { const ChanIc = channelIcon(conv.channel); return <ChanIc className="size-4 shrink-0 text-text-tertiary" strokeWidth={1.6} absoluteStrokeWidth /> })()}
         </div>
       </div>
 
@@ -808,7 +809,7 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
 
         {/* Warning banner */}
         <div className="mb-[20px] flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
-          <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
+          <AlertTriangle className="size-4 mt-[2px] shrink-0 text-warning" strokeWidth={1.6} absoluteStrokeWidth />
           <div className="flex min-w-0 flex-1 flex-col gap-[4px]">
             <p className="text-[12px] leading-[18px] text-text-secondary">
               The agent could not fully resolve this request. This conversation contributed to the recommendation.
@@ -818,7 +819,7 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
               onClick={() => setSimActive(v => !v)}
               className="flex w-fit items-center gap-[4px] text-[12px] text-text-action"
             >
-              <Icon name={simActive ? 'visibility_off' : 'auto_awesome'} size={13} />
+              {simActive ? <EyeOff className="size-4" strokeWidth={1.6} absoluteStrokeWidth /> : <Sparkles className="size-4" strokeWidth={1.6} absoluteStrokeWidth />}
               {simActive ? 'Hide simulation' : 'Simulate with the new procedure'}
             </button>
           </div>
@@ -848,7 +849,7 @@ function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim
                 </div>
                 <div className="flex items-center gap-[6px]">
                   <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
-                  <Icon name="link" size={12} className="text-[#9aa0a6]" />
+                  <Link className="size-4 text-[#9aa0a6]" strokeWidth={1.6} absoluteStrokeWidth />
                 </div>
               </div>
             )
@@ -940,10 +941,10 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
   return createPortal(
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 z-[200] bg-black/30" onClick={handleClose} aria-hidden />
+      <div className="fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm" onClick={handleClose} aria-hidden />
 
       {/* Drawer */}
-      <div className="fixed bottom-0 right-0 top-0 z-[210] flex w-[650px] flex-col bg-surface shadow-modal">
+      <div className="fixed bottom-2 right-2 top-2 z-[210] flex w-[650px] flex-col overflow-hidden rounded-2xl bg-surface shadow-modal">
 
         {selected ? (
           <ConversationThread conv={selected} sim={rec.sim} onBack={() => setSelected(null)} />
@@ -955,9 +956,9 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+                className="flex size-8 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
               >
-                <Icon name="close" size={18} />
+                <X className="size-5" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
             </div>
 
@@ -995,7 +996,7 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
                         <div className="flex items-center gap-[4px] text-[12px] text-[#9aa0a6]">
                           <span>{c.location}</span>
                           <span>·</span>
-                          <Icon name="person" size={12} className="text-[#9aa0a6]" />
+                          <UserRound className="size-4 text-[#9aa0a6]" strokeWidth={1.6} absoluteStrokeWidth />
                           <span>{agentName}</span>
                         </div>
                       </div>
@@ -1043,7 +1044,7 @@ function Toast({ data, onDismiss }: { data: ToastData; onDismiss: () => void }) 
         onClick={onDismiss}
         className="ml-[4px] flex size-[20px] shrink-0 items-center justify-center text-[#6B7280] hover:text-[#111827]"
       >
-        <Icon name="close" size={16} />
+        <X className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
       </button>
     </div>,
     document.body
@@ -1135,7 +1136,7 @@ function DetailPanelInner({
         <div>
           <div className="flex items-start justify-between gap-md">
             <div className="flex min-w-0 flex-wrap items-center gap-sm">
-              <Icon name={GAP_ICON[rec.gapType]} size={20} className="mt-0.5 shrink-0 text-text-icon" />
+              {(() => { const GapIc = GAP_ICON[rec.gapType]; return <GapIc className="size-5 mt-0.5 shrink-0 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> })()}
               <h2 className="text-h2 text-text-primary">
                 {rec.title}
                 <span className="text-text-tertiary"> · {rec.isNew ? 'New' : 'Modified'}</span>
@@ -1146,22 +1147,22 @@ function DetailPanelInner({
               <button
                 type="button"
                 onClick={onPreviewOpen}
-                className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+                className="flex h-[34px] items-center gap-xs rounded-md border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
               >
-                <Icon name="play_arrow" size={16} className="text-text-icon" />
+                <Play className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
                 Test
               </button>
               {recStatus === 'accepted' ? (
                 <button
                   type="button"
                   onClick={() => onToast({ message: `"${rec.title}" has been added to the procedure library.` })}
-                  className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+                  className="flex h-[34px] items-center gap-xs rounded-md border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
                 >
                   Add to library
                 </button>
               ) : (
               <div className="relative">
-                <div className="flex h-9 overflow-hidden rounded-sm">
+                <div className="flex h-[34px] overflow-hidden rounded-md">
                   <button
                     className="flex h-9 items-center bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
                     onClick={() => {
@@ -1178,7 +1179,7 @@ function DetailPanelInner({
                     onClick={() => setApplyOpen((v) => !v)}
                     aria-label="More apply options"
                   >
-                    <Icon name="expand_more" size={16} />
+                    <ChevronDown className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
                   </button>
                 </div>
                 {applyOpen && (
@@ -1228,7 +1229,7 @@ function DetailPanelInner({
 
           {/* Rationale — why this came up */}
           <div className="mt-md flex items-start gap-sm rounded-sm border border-ai-summary-border bg-ai-summary px-lg py-md">
-            <Icon name="auto_awesome" size={18} className="mt-0.5 shrink-0 text-ai-brand" />
+            <Sparkles className="size-4 mt-0.5 shrink-0 text-ai-brand" strokeWidth={1.6} absoluteStrokeWidth />
             <div className="flex min-w-0 flex-1 flex-col gap-xs">
               <p className="text-body text-text-secondary">{rec.rationale}</p>
               <button
@@ -1238,7 +1239,7 @@ function DetailPanelInner({
               >
                 <Icon name="sms" size={13} />
                 View {rec.conversationCount} conversations
-                <Icon name="chevron_right" size={13} />
+                <ChevronRight className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
               </button>
             </div>
           </div>
@@ -1289,7 +1290,7 @@ function DetailPanelInner({
               onClick={() => setExpanded(!expanded)}
               className="flex items-center gap-xs text-small text-text-action "
             >
-              <Icon name={expanded ? 'expand_less' : 'expand_more'} size={14} />
+              {expanded ? <ChevronUp className="size-4" strokeWidth={1.6} absoluteStrokeWidth /> : <ChevronDown className="size-4" strokeWidth={1.6} absoluteStrokeWidth />}
               {expanded ? 'Hide' : 'Show'} what changes
             </button>
             {expanded && (
@@ -1402,7 +1403,7 @@ export function RecommendationsTab() {
               onClick={() => setFilterOpen((open) => !open)}
               className="flex items-center gap-xs rounded-sm px-sm py-xs text-small text-text-secondary hover:bg-surface-hover"
             >
-              <Icon name="filter_list" size={13} className="text-text-icon" />
+              <ListFilter className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
               Filter
             </button>
           </div>

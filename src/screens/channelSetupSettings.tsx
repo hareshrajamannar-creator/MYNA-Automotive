@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { Icon, RefChip } from '../components'
+import { RefChip } from '../components'
+import { Check, ChevronDown, Smile } from 'lucide-react'
 import type { TextChannelSettings, WebChatChannelSettings } from './channelSetupSettings.types'
 
 const FIELD_BORDER_CLASS =
@@ -17,7 +18,7 @@ function SettingsCheckboxBox({ checked }: { checked: boolean }) {
         checked ? 'border-primary bg-primary' : 'border-control-border bg-surface'
       }`}
     >
-      {checked && <Icon name="check" size={11} fill weight={600} className="text-white" />}
+      {checked && <Check className="size-4 text-white" strokeWidth={1.6} absoluteStrokeWidth />}
     </span>
   )
 }
@@ -135,16 +136,16 @@ function FallbackField({
         <button
           type="button"
           title="Emoji"
-          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          className="flex size-8 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
         >
-          <Icon name="sentiment_satisfied" size={18} />
+          <Smile className="size-4" strokeWidth={1.6} absoluteStrokeWidth />
         </button>
         <button
           type="button"
           className="flex items-center gap-[3px] rounded-sm px-[6px] py-[3px] text-body text-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
         >
           Personalize
-          <Icon name="expand_more" size={16} className="text-primary" />
+          <ChevronDown className="size-4 text-primary" strokeWidth={1.6} absoluteStrokeWidth />
         </button>
       </div>
     </div>

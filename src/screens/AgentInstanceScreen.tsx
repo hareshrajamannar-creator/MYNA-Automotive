@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import {
   Chip,
   DataTable,
-  Icon,
   MetricTiles,
   Tabs,
   TopNav,
@@ -207,7 +207,7 @@ const FRONTDESK_COLUMNS: Column<LocationRow>[] = [
     render: (v) => (
       <span className="inline-flex items-center gap-xs">
         {String(v)}
-        <Icon name="expand_more" size={16} className="text-text-icon" />
+        <ChevronDown className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
       </span>
     ),
   },
@@ -227,7 +227,7 @@ const DEFAULT_COLUMNS: Column<LocationRow>[] = [
     render: (v) => (
       <span className="inline-flex items-center gap-xs">
         {String(v)}
-        <Icon name="expand_more" size={16} className="text-text-icon" />
+        <ChevronDown className="size-4 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />
       </span>
     ),
   },
@@ -340,13 +340,13 @@ export function AgentInstanceScreen({
       <TopNav initials="S" />
 
       {/* Header */}
-      <div className="flex h-16 shrink-0 items-center justify-between bg-surface px-2xl">
+      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between bg-surface px-2xl py-xl">
         <div className="flex items-center gap-sm">
           <button
             type="button"
             aria-label="Back"
             onClick={onBack}
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            className="flex size-8 items-center justify-center rounded-md text-text-icon hover:bg-surface-hover"
           >
             <BackArrowIcon />
           </button>
@@ -358,14 +358,10 @@ export function AgentInstanceScreen({
             <button
               type="button"
               onClick={() => setActionsOpen((open) => !open)}
-              className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
+              className="flex h-[34px] items-center gap-sm rounded-md border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
             >
               Actions
-              <Icon
-                name={actionsOpen ? 'expand_less' : 'expand_more'}
-                size={20}
-                className="text-text-icon"
-              />
+              {actionsOpen ? <ChevronUp className="size-5 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth /> : <ChevronDown className="size-5 text-text-icon" strokeWidth={1.6} absoluteStrokeWidth />}
             </button>
             {actionsOpen && (
               <>
@@ -409,7 +405,7 @@ export function AgentInstanceScreen({
           {activeTab === 'settings' && (
             <button
               type="button"
-              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+              className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
             >
               Save
             </button>
