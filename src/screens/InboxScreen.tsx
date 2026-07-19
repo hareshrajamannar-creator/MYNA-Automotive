@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChartCard, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
+import { ChartCard, ChatBubble, ChatSystemLabel, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
 import voicemailSample from '../assets/voicemail_sample.mp3'
 import { AgentDetailScreen } from './AgentDetailScreen'
 import { WorkflowEditorScreen } from './WorkflowEditorScreen'
@@ -808,34 +808,21 @@ export function InboxScreen() {
               {/* Subsequent events */}
               {CHAT_EVENTS.map(event => {
                 if (event.kind === 'date') {
-                  return (
-                    <div key={event.id} className="flex items-center justify-center">
-                      <span className="text-small text-text-tertiary">{event.label}</span>
-                    </div>
-                  )
+                  return <ChatSystemLabel key={event.id} text={event.label} />
                 }
 
                 if (event.kind === 'status') {
-                  return (
-                    <div key={event.id} className="flex items-center justify-center">
-                      <span className="text-small text-text-tertiary">
-                        {event.text} • {event.time}
-                      </span>
-                    </div>
-                  )
+                  return <ChatSystemLabel key={event.id} text={`${event.text} • ${event.time}`} />
                 }
 
                 if (event.kind === 'bubble') {
                   const isAgent = event.sender === 'agent'
                   return (
-                    <div key={event.id} className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[70%] rounded-lg px-md py-sm text-body text-text-primary ${isAgent ? 'bg-[#dbeafe]' : 'bg-[#f0f0f0]'}`}>
-                        {event.text}
-                      </div>
-                      <span className="mt-xs text-small text-text-tertiary">
+                    <ChatBubble key={event.id} sender={isAgent ? 'business' : 'user'} text={event.text}>
+                      <span className="text-small text-text-tertiary">
                         {event.attribution ? `${event.attribution} • ` : ''}{event.time}
                       </span>
-                    </div>
+                    </ChatBubble>
                   )
                 }
 

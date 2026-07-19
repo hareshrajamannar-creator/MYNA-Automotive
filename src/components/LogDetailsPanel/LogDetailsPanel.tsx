@@ -1,23 +1,66 @@
-import { useEffect, useRef, useState } from 'react'
-import aiIcon from '../../assets/ai-icon.svg'
+import { useState } from 'react'
+import voicemailSample from '../../assets/voicemail_sample.mp3'
+import { CallRecordingPlayer } from '../CallRecordingPlayer/CallRecordingPlayer'
+import { ChatBubble, ChatSystemLabel } from '../ChatBubble/ChatBubble'
 import { Icon } from '../Icon/Icon'
+import { RefChip } from '../RefChip/RefChip'
+import { Tooltip } from '../Tooltip/Tooltip'
 import type {
   LogDetailsPanelProps,
   LogToolCall,
+  LogToolOutputEntry,
+  LogToolProperty,
   LogTranscriptEntry,
 } from './LogDetailsPanel.types'
 
-const SPEEDS = [1, 1.5, 2] as const
-type Speed = (typeof SPEEDS)[number]
-
 const DEFAULT_SUMMARY =
-  'The caller inquired about the cost of an oil change service. The agent provided detailed information from the service menu, outlining the various options available, and subsequently transferred the call to the sales department for further assistance.'
+  "The caller reported a bad headache she suspected was a migraine. The agent traced it to a back tooth with mild swelling, then routed her to booking, which scheduled her with Dr. Patel for Thursday at 2 PM."
 
-const WAVE_BARS = [
-  18, 34, 52, 28, 44, 62, 36, 48, 22, 56, 40, 30, 58, 24, 46, 64, 38, 50, 26, 54,
-  32, 48, 60, 28, 42, 56, 34, 50, 22, 46, 58, 30, 52, 40, 26, 48, 62, 36, 44, 28,
-  54, 32, 48, 60, 24, 46, 38, 56, 30, 50, 42, 28, 58, 34, 48, 22, 52, 40, 60, 26,
-  46, 54, 32, 48, 38, 56, 28, 44, 50, 34, 58, 24, 46, 40, 52, 30, 48, 36, 54, 28,
+const DEFAULT_TOOL_OUTPUT: LogToolOutputEntry[] = [
+  { kind: 'field', key: 'patientPresent', value: 'true' },
+  { kind: 'field', key: 'guarantorPresent', value: 'false' },
+  { kind: 'field', key: 'cids', value: '425270500, 563631216, 503143111' },
+  {
+    kind: 'object',
+    key: 'patientDetails',
+    propertyCount: 6,
+    properties: [
+      { key: 'PatientFirstName', value: 'Sarah' },
+      { key: 'PatientLastName', value: 'Weiss' },
+      { key: 'phone', value: '919) 747-3001' },
+      { key: 'emailId', value: 'sarahl@xyz.com' },
+      { key: 'patientDob', value: '02-01-1998' },
+      { key: 'patientId', value: 'a764c0d3-fd32-44f0-8c89-79fd12' },
+    ],
+  },
+  { kind: 'field', key: 'futureAppointments', value: '-' },
+  { kind: 'field', key: 'pastAppointments', value: '-' },
+  { kind: 'field', key: 'cancelledAppointments', value: '1' },
+  {
+    kind: 'object',
+    key: 'cancelledAppointments',
+    propertyCount: 13,
+    properties: [
+      { key: 'appointmentId', value: '7GY6JvpXWe' },
+      { key: 'start', value: '2026-05-12T09:00:00' },
+      { key: 'end', value: '2026-05-12T09:15:00' },
+      { key: 'action', value: 'cancel' },
+      { key: 'status', value: 'success' },
+      { key: 'businessId', value: '1717392' },
+      { key: 'businessName', value: 'Trillium Clinic Dermatology Burlington' },
+      { key: 'specialistId', value: '1717392' },
+      { key: 'specialistName', value: 'Crystal Foust, Pa-c' },
+      { key: 'serviceId', value: '103915' },
+      { key: 'serviceName', value: 'Derm Est' },
+      { key: 'source', value: 'widget' },
+      { key: 'cid', value: '563631216' },
+    ],
+  },
+]
+
+const DEFAULT_TOOL_INPUTS: LogToolProperty[] = [
+  { key: 'phoneNumber', value: '(032) 902 9023' },
+  { key: 'lookupType', value: 'patient' },
 ]
 
 const DEFAULT_TRANSCRIPT: LogTranscriptEntry[] = [
@@ -28,7 +71,6 @@ const DEFAULT_TRANSCRIPT: LogTranscriptEntry[] = [
     text: 'Thank you for calling Rock Dental Brands — my name is Myna, your virtual assistant. How can I help you today?',
     llmResponseTime: '0.42s',
     tts: '700ms',
-    procedure: 'Greeting & start conversation',
   },
   {
     id: 'c1',
@@ -42,16 +84,14 @@ const DEFAULT_TRANSCRIPT: LogTranscriptEntry[] = [
     text: "I'm really sorry you're dealing with that — a bad headache is no fun. Just so I point you in the right direction: is the pain coming from your teeth, jaw, or gums, or is it more of a general head pain?",
     llmResponseTime: '0.51s',
     tts: '820ms',
-    knowledgeBase: '2 chunks • 5s',
+    knowledgeBase: '5s',
     toolCall: {
       id: 'tool-1',
       name: 'Patient record - Lookup',
       propertyCount: 3,
-      properties: [
-        { label: 'Matched patient', value: 'Dana Whitfield' },
-        { label: 'Last visit', value: '12 Mar, 2024' },
-        { label: 'Preferred location', value: 'North region' },
-      ],
+      durationLabel: '400ms',
+      output: DEFAULT_TOOL_OUTPUT,
+      inputs: DEFAULT_TOOL_INPUTS,
     },
   },
   {
@@ -73,17 +113,59 @@ const DEFAULT_TRANSCRIPT: LogTranscriptEntry[] = [
     text: 'A little swelling near the tooth, no fever',
     durationLabel: '3s',
   },
+  {
+    id: 'a4',
+    role: 'agent',
+    text: "Good to know there's no fever. Swelling near a tooth is still worth having a dentist look at soon, so let's get you an appointment rather than wait it out.",
+    llmResponseTime: '0.39s',
+    tts: '610ms',
+  },
+  { id: 'sys2', role: 'system', text: 'Routed to appointment booking agent' },
+  { id: 'sys3', role: 'system', text: 'Procedure switched : Book appointment' },
+  {
+    id: 'a5',
+    role: 'agent',
+    text: 'I have an opening this Thursday at 2 PM with Dr. Patel — would that work for you?',
+    llmResponseTime: '0.35s',
+    tts: '580ms',
+  },
+  {
+    id: 'c4',
+    role: 'caller',
+    text: 'Yes please, Thursday at 2 PM works.',
+    durationLabel: '3s',
+  },
+  {
+    id: 'a6',
+    role: 'agent',
+    text: "You're all set for Thursday at 2 PM with Dr. Patel. Anything else I can help with?",
+    llmResponseTime: '0.31s',
+    tts: '520ms',
+    toolCall: {
+      id: 'tool-2',
+      name: 'Schedule Appointment',
+      propertyCount: 4,
+      durationLabel: '350ms',
+      output: [
+        { kind: 'field', key: 'appointmentId', value: 'AP93F2KcTm' },
+        { kind: 'field', key: 'start', value: '2026-05-14T14:00:00' },
+        { kind: 'field', key: 'end', value: '2026-05-14T14:30:00' },
+        { kind: 'field', key: 'specialistName', value: 'Dr. Patel' },
+      ],
+      inputs: [
+        { key: 'patientId', value: 'a764c0d3-fd32-44f0-8c89-79fd12' },
+        { key: 'specialistId', value: '1717392' },
+        { key: 'start', value: '2026-05-14T14:00:00' },
+      ],
+    },
+  },
+  {
+    id: 'c5',
+    role: 'caller',
+    text: "No, that's all. Thank you!",
+    durationLabel: '2s',
+  },
 ]
-
-function speedLabel(s: Speed): string {
-  return s === 1 ? '1 x' : s === 1.5 ? '1.5 x' : '2 x'
-}
-
-function fmtPlayerTime(secs: number): string {
-  const m = Math.floor(secs / 60)
-  const s = Math.floor(secs % 60)
-  return `${m}.${String(s).padStart(2, '0')}`
-}
 
 function parseDurationSecs(duration: string): number {
   const mmss = duration.match(/^(\d+):(\d+)$/)
@@ -105,63 +187,161 @@ function startTimeLabel(timestamp: string): string {
   return match?.[1] ?? timestamp
 }
 
-function StaticWaveform({
-  progress,
-  onSeek,
-}: {
-  progress: number
-  onSeek: (ratio: number) => void
-}) {
+function FieldRow({ fieldKey, value }: { fieldKey: string; value: string }) {
   return (
-    <div
-      className="mb-md flex h-14 cursor-pointer items-end gap-[2px]"
-      onClick={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect()
-        onSeek((e.clientX - rect.left) / rect.width)
-      }}
-      role="slider"
-      aria-valuenow={Math.round(progress * 100)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label="Playback position"
-    >
-      {WAVE_BARS.map((h, i) => {
-        const played = i / WAVE_BARS.length <= progress
-        return (
-          <div
-            key={i}
-            className={`min-w-[2px] flex-1 rounded-sm ${played ? 'bg-primary' : 'bg-surface-selected'}`}
-            style={{ height: Math.max(4, Math.round((h / 64) * 56)) }}
-          />
-        )
-      })}
+    <div className="flex flex-wrap items-center gap-sm text-small">
+      <RefChip kind="context" label={fieldKey} />
+      <span className="min-w-0 break-all text-text-primary">{value}</span>
+    </div>
+  )
+}
+
+function NestedObjectBlock({
+  entry,
+}: {
+  entry: Extract<LogToolOutputEntry, { kind: 'object' }>
+}) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-xs text-left text-small"
+      >
+        <Icon
+          name={open ? 'expand_more' : 'chevron_right'}
+          size={16}
+          className="shrink-0 text-text-tertiary"
+        />
+        <RefChip kind="context" label={entry.key} />
+        <span className="text-text-tertiary">{`{ ${entry.propertyCount} properties }`}</span>
+      </button>
+      {open && (
+        <div className="ml-sm mt-xs flex flex-col gap-xs border-l border-border pl-sm">
+          {entry.properties.map((p) => (
+            <FieldRow key={p.key} fieldKey={p.key} value={p.value} />
+          ))}
+          {entry.trailingRaw && (
+            <p className="m-0 text-small text-text-primary">{entry.trailingRaw}</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
 function ToolCallBlock({ tool }: { tool: LogToolCall }) {
   const [open, setOpen] = useState(false)
+  const [inputsOpen, setInputsOpen] = useState(false)
+
+  const output: LogToolOutputEntry[] =
+    tool.output ??
+    (tool.properties ?? []).map((p) => ({
+      kind: 'field' as const,
+      key: p.label,
+      value: p.value,
+    }))
+
+  function handleCopy() {
+    const text = JSON.stringify(
+      {
+        name: tool.name,
+        output,
+        inputs: tool.inputs,
+      },
+      null,
+      2,
+    )
+    void navigator.clipboard?.writeText(text)
+  }
+
   return (
-    <div className="mt-sm">
+    <div className="w-[380px] max-w-full rounded-md bg-surface-l2">
+      {/* Header row — same background as the expanded body, no seam on open */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-xs text-left text-small text-text-secondary hover:text-text-primary"
+        className="flex w-full items-center justify-end gap-sm px-[12px] py-sm text-left text-small hover:opacity-80"
       >
-        <Icon name={open ? 'expand_more' : 'chevron_right'} size={16} className="text-text-tertiary" />
-        <span>
-          Tool : {tool.name}{' '}
-          <span className="text-text-tertiary">{`{ ${tool.propertyCount} properties }`}</span>
+        <Icon
+          name={open ? 'expand_more' : 'chevron_right'}
+          size={16}
+          className="shrink-0 text-text-tertiary"
+        />
+        <span className="truncate text-text-action">Tool : {tool.name}</span>
+        <Icon name="check_circle" size={16} fill className="shrink-0 text-accent-positive" />
+        <span className="shrink-0 text-text-tertiary">
+          {`{ ${tool.propertyCount} properties }`}
+          {tool.durationLabel ? ` • ${tool.durationLabel}` : ''}
         </span>
       </button>
+
       {open && (
-        <div className="ml-lg mt-xs space-y-xs rounded-sm border border-border bg-surface-l2 px-md py-sm">
-          {tool.properties.map((p) => (
-            <div key={p.label} className="flex gap-sm text-small">
-              <span className="shrink-0 text-text-tertiary">{p.label}</span>
-              <span className="text-text-primary">{p.value}</span>
+        <div className="relative px-[12px] pb-sm">
+          <div className="absolute right-[12px] top-0 z-[1]">
+            <Tooltip content="Copy" variant="brief">
+              <button
+                type="button"
+                onClick={handleCopy}
+                aria-label="Copy"
+                className="flex size-7 items-center justify-center rounded-sm text-text-tertiary hover:bg-surface-hover hover:text-text-icon"
+              >
+                <Icon name="content_copy" size={16} />
+              </button>
+            </Tooltip>
+          </div>
+
+          <div className="flex flex-col gap-xs">
+            {output.map((entry, i) => {
+              if (entry.kind === 'field') {
+                return <FieldRow key={`${entry.key}-${i}`} fieldKey={entry.key} value={entry.value} />
+              }
+              if (entry.kind === 'object') {
+                return <NestedObjectBlock key={`${entry.key}-${i}`} entry={entry} />
+              }
+              return (
+                <p key={`raw-${i}`} className="m-0 text-small text-text-primary">
+                  {entry.value}
+                </p>
+              )
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false)
+              setInputsOpen(false)
+            }}
+            className="mt-sm text-small text-text-action hover:text-primary-hover"
+          >
+            Hide
+          </button>
+
+          {(tool.inputs?.length ?? 0) > 0 && (
+            <div className="mt-sm">
+              <button
+                type="button"
+                onClick={() => setInputsOpen((v) => !v)}
+                className="flex items-center gap-xs text-left text-small text-text-action hover:text-primary-hover"
+              >
+                <Icon
+                  name={inputsOpen ? 'expand_more' : 'chevron_right'}
+                  size={16}
+                  className="shrink-0"
+                />
+                View inputs
+              </button>
+              {inputsOpen && (
+                <div className="ml-sm mt-xs flex flex-col gap-xs border-l border-border pl-sm">
+                  {tool.inputs!.map((p) => (
+                    <FieldRow key={p.key} fieldKey={p.key} value={p.value} />
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
@@ -177,45 +357,50 @@ function MetaField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function agentMetaParts(entry: Extract<LogTranscriptEntry, { role: 'agent' }>): string[] {
+function agentMetaLine(entry: Extract<LogTranscriptEntry, { role: 'agent' }>): string | null {
   const parts: string[] = []
   if (entry.llmResponseTime) parts.push(`LLM response time : ${entry.llmResponseTime}`)
-  if (entry.tts) parts.push(`TTS ${entry.tts}`)
-  if (entry.procedure) parts.push(`Procedure : ${entry.procedure}`)
-  if (entry.knowledgeBase) parts.push(`Knowledge base: ${entry.knowledgeBase}`)
-  return parts
+  if (entry.tts) parts.push(`TTS : ${entry.tts}`)
+  if (entry.knowledgeBase) parts.push(`Knowledge base : ${entry.knowledgeBase}`)
+  return parts.length > 0 ? parts.join(' • ') : null
 }
 
 function TranscriptEntry({ entry }: { entry: LogTranscriptEntry }) {
   if (entry.role === 'system') {
-    return <div className="py-sm text-center text-small text-text-tertiary">{entry.text}</div>
-  }
-
-  if (entry.role === 'caller') {
     return (
-      <div className="flex flex-col items-end gap-xs">
-        <p className="m-0 max-w-[90%] rounded-md rounded-br-sm bg-surface-selected px-md py-sm text-body leading-[1.6] text-text-primary">
-          {entry.text}
-        </p>
-        {entry.durationLabel && (
-          <span className="text-small text-text-tertiary">Caller • {entry.durationLabel}</span>
-        )}
+      <div className="py-sm">
+        <ChatSystemLabel text={entry.text} />
       </div>
     )
   }
 
-  const meta = agentMetaParts(entry)
+  if (entry.role === 'caller') {
+    return (
+      <ChatBubble
+        sender="user"
+        text={entry.text}
+        gap="gap-sm"
+        bubbleClassName="max-w-[85%] px-lg py-md"
+      >
+        {entry.durationLabel && (
+          <span className="text-small text-text-tertiary">STT : {entry.durationLabel}</span>
+        )}
+      </ChatBubble>
+    )
+  }
+
+  const meta = agentMetaLine(entry)
 
   return (
-    <div className="flex flex-col items-start gap-xs">
-      <p className="m-0 max-w-[90%] rounded-md rounded-bl-sm bg-surface-selected px-md py-sm text-body leading-[1.6] text-text-primary">
-        {entry.text}
-      </p>
-      {meta.length > 0 && (
-        <p className="m-0 text-small text-text-tertiary">{meta.join(' • ')}</p>
-      )}
+    <ChatBubble
+      sender="business"
+      text={entry.text}
+      gap="gap-sm"
+      bubbleClassName="max-w-[85%] px-lg py-md"
+    >
+      {meta && <span className="text-small text-text-tertiary">{meta}</span>}
       {entry.toolCall && <ToolCallBlock tool={entry.toolCall} />}
-    </div>
+    </ChatBubble>
   )
 }
 
@@ -229,45 +414,20 @@ export function LogDetailsPanel({
   summary = DEFAULT_SUMMARY,
   transcript = DEFAULT_TRANSCRIPT,
   durationSecs,
+  audioUrl = voicemailSample,
   onViewConversation,
 }: LogDetailsPanelProps) {
   const totalSecs = durationSecs ?? (parseDurationSecs(row.duration) || 332)
   const displayCaller =
     row.contact.startsWith('+') || row.contact.startsWith('(') ? row.contact : callerNumber
 
-  const [playing, setPlaying] = useState(false)
-  const [elapsed, setElapsed] = useState(0.54)
-  const [speed, setSpeed] = useState<Speed>(1.5)
   const [summaryOpen, setSummaryOpen] = useState(true)
   const [transcriptOpen, setTranscriptOpen] = useState(true)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  useEffect(() => {
-    if (!playing) {
-      if (timerRef.current) clearInterval(timerRef.current)
-      return
-    }
-    timerRef.current = setInterval(() => {
-      setElapsed((prev) => {
-        const next = prev + 0.1 * speed
-        if (next >= totalSecs) {
-          setPlaying(false)
-          return totalSecs
-        }
-        return next
-      })
-    }, 100)
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [playing, speed, totalSecs])
-
-  const progress = totalSecs > 0 ? elapsed / totalSecs : 0
 
   return (
-    <div className="preview-panel log-details-panel flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex shrink-0 items-center justify-between px-xl pt-md pb-md">
+    <div className="preview-panel log-details-panel flex h-full w-[600px] min-w-[360px] flex-col overflow-hidden">
+      {/* Header — matches RHSPanelHeader (0 15px, height 60) */}
+      <div className="flex h-[60px] shrink-0 items-center justify-between px-[15px]">
         <h2 className="m-0 text-body text-text-primary">Conversation details</h2>
         {onViewConversation && (
           <button
@@ -281,7 +441,7 @@ export function LogDetailsPanel({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-xl pb-xl pt-md">
+      <div className="min-h-0 flex-1 overflow-y-auto px-[15px] py-lg">
         {/* Meta card */}
         <div className="mb-2xl rounded-sm border border-border px-lg py-lg">
           <div className="grid grid-cols-2 gap-x-lg gap-y-lg">
@@ -303,8 +463,8 @@ export function LogDetailsPanel({
             className="flex w-full items-center justify-between text-left"
           >
             <span className="flex items-center gap-xs">
-              <img src={aiIcon} alt="" className="size-5 shrink-0" />
-              <span className="text-body text-text-primary">AI summary</span>
+              <Icon name="auto_awesome" size={20} className="shrink-0 text-ai-brand" />
+              <span className="text-body text-text-primary">Summary</span>
             </span>
             <Icon
               name={summaryOpen ? 'expand_less' : 'expand_more'}
@@ -313,66 +473,31 @@ export function LogDetailsPanel({
             />
           </button>
           {summaryOpen && (
-            <p className="m-0 mt-sm text-body leading-[1.6] text-text-primary">{summary}</p>
+            <p className="m-0 mt-sm text-body leading-[1.6] text-text-secondary">{summary}</p>
           )}
         </div>
 
-        {/* Call recording */}
-        <div className="mb-2xl">
-          <p className="mb-md text-body text-text-primary">Call recording</p>
-          <StaticWaveform
-            progress={progress}
-            onSeek={(ratio) => {
-              setElapsed(Math.min(totalSecs, Math.max(0, ratio * totalSecs)))
-            }}
-          />
-          <div className="flex items-center gap-md">
-            <button
-              type="button"
-              onClick={() => setPlaying((v) => !v)}
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover"
-              aria-label={playing ? 'Pause' : 'Play'}
-            >
-              <Icon name={playing ? 'pause' : 'play_arrow'} size={22} fill />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const idx = SPEEDS.indexOf(speed)
-                setSpeed(SPEEDS[(idx + 1) % SPEEDS.length])
-              }}
-              className="h-7 shrink-0 rounded-sm border border-border bg-surface px-md text-small text-text-primary hover:bg-surface-hover"
-            >
-              {speedLabel(speed)}
-            </button>
-            <span className="flex-1" />
-            <span className="whitespace-nowrap text-small text-text-secondary">
-              <span className="text-primary">{fmtPlayerTime(elapsed)}</span>
-              {' / '}
-              {fmtPlayerTime(totalSecs)}
-            </span>
-          </div>
-        </div>
-
-        {/* Call transcript */}
-        <div>
+        {/* Call transcript — player + messages */}
+        <div className="flex flex-col">
           <button
             type="button"
             onClick={() => setTranscriptOpen((v) => !v)}
-            className="mb-md flex w-full items-center justify-between text-left"
+            className="flex w-full items-center justify-between text-left"
           >
             <span className="text-body text-text-primary">Call transcript</span>
-            <Icon
-              name={transcriptOpen ? 'expand_less' : 'expand_more'}
-              size={20}
-              className="text-text-secondary"
-            />
           </button>
           {transcriptOpen && (
-            <div className="flex flex-col gap-md">
-              {transcript.map((entry) => (
-                <TranscriptEntry key={entry.id} entry={entry} />
-              ))}
+            <div className="mt-[32px] flex flex-col gap-3xl">
+              <CallRecordingPlayer
+                audioUrl={audioUrl}
+                durationSecs={totalSecs}
+                padded={false}
+              />
+              <div className="flex flex-col gap-3xl">
+                {transcript.map((entry) => (
+                  <TranscriptEntry key={entry.id} entry={entry} />
+                ))}
+              </div>
             </div>
           )}
         </div>

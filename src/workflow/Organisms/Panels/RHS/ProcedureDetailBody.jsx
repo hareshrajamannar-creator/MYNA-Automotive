@@ -572,7 +572,7 @@ function ChipContainer({
   );
 }
 
-function ChipSection({
+export function ChipSection({
   label,
   chips,
   onChange,
@@ -701,6 +701,7 @@ export default function ProcedureDetailBody({
   whenToUseLabel = 'When should this procedure be used?',
   onOpenToolDrawer = undefined,
   onAddContext,
+  hideContext = false,
 }) {
   const [title, setTitle] = useState(initialValues.name ?? '');
   const [whenToUse, setWhenToUse] = useState(initialValues.whenToUse ?? '');
@@ -845,21 +846,23 @@ export default function ProcedureDetailBody({
         )}
       </div>
 
-      <ChipSection
-        label="Context"
-        chips={contextChips}
-        onChange={(next) => { setContextChips(next); onFieldChange?.('contextChips', next); }}
-        defaultType="variable"
-        viewOnly={viewOnly}
-        moreCount={moreContextCount}
-        chipsReadOnly={viewOnly || (!contextEditable && !onAddContext)}
-        showContextAdd={false}
-        libraryContextStyle={
-          viewOnly || contextLibraryStyle || contextEditable || Boolean(onAddContext)
-        }
-        tooltip="Uses your brand voice, industry knowledge, to generate accurate responses"
-        onAddContext={viewOnly ? undefined : onAddContext}
-      />
+      {!hideContext && (
+        <ChipSection
+          label="Context"
+          chips={contextChips}
+          onChange={(next) => { setContextChips(next); onFieldChange?.('contextChips', next); }}
+          defaultType="variable"
+          viewOnly={viewOnly}
+          moreCount={moreContextCount}
+          chipsReadOnly={viewOnly || (!contextEditable && !onAddContext)}
+          showContextAdd={false}
+          libraryContextStyle={
+            viewOnly || contextLibraryStyle || contextEditable || Boolean(onAddContext)
+          }
+          tooltip="Uses your brand voice, industry knowledge, to generate accurate responses"
+          onAddContext={viewOnly ? undefined : onAddContext}
+        />
+      )}
 
       {showTypeField && (
         <div className={styles.section}>

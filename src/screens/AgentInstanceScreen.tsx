@@ -475,7 +475,7 @@ export function AgentInstanceScreen({
           ) : activeTab === 'settings' ? (
             <AgentSettingsTab
               product={product}
-              agentName={instanceName}
+              agentName={agentName}
               onOpenIntegrationSettings={onOpenIntegrationSettings}
             />
           ) : (

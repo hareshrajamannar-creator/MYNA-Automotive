@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { TopNav, Icon, ContextModal } from '../components'
 import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
-import ProcedureDetailBody from '../workflow/Organisms/Panels/RHS/ProcedureDetailBody.jsx'
+import ProcedureDetailBody, { ChipSection } from '../workflow/Organisms/Panels/RHS/ProcedureDetailBody.jsx'
 import AddToolDrawer from '../workflow/Organisms/Drawers/AddToolDrawer/AddToolDrawer'
 import {
   type Procedure,
@@ -263,9 +263,9 @@ export function ProcedureDetailScreen({
           </div>
         </div>
 
-        {/* Body — same ProcedureDetailBody as the procedure drawer */}
-        <div className="px-2xl pb-2xl pt-md">
-          <div className="w-full max-w-[700px]">
+        {/* Body — same ProcedureDetailBody as the procedure drawer, Context in its own right column */}
+        <div className="flex gap-2xl px-2xl pb-2xl pt-md">
+          <div className="flex min-w-0 flex-1 flex-col">
             <ProcedureDetailBody
               initialValues={{
                 id: local.id,
@@ -282,9 +282,27 @@ export function ProcedureDetailScreen({
               showTitle
               showTypeField
               contextEditable
+              hideContext
               onAddContext={() => setContextModalOpen(true)}
               // allowJs infers default `= undefined` as the only prop type
               {...({ onOpenToolDrawer: () => setToolPickerOpen(true) } as object)}
+            />
+          </div>
+
+          <div className="w-[400px] shrink-0">
+            <ChipSection
+              label="Context"
+              chips={local.contextChips}
+              onChange={(next: { value: string; type: string }[]) =>
+                handleFieldChange('contextChips', next)
+              }
+              defaultType="variable"
+              viewOnly={false}
+              moreCount={local.moreContextCount}
+              chipsReadOnly={false}
+              libraryContextStyle
+              tooltip="Uses your brand voice, industry knowledge, to generate accurate responses"
+              onAddContext={() => setContextModalOpen(true)}
             />
           </div>
         </div>

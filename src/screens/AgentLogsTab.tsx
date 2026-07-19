@@ -1,6 +1,5 @@
-import { Chip, DataTable, MetricTiles, type ChipVariant, type Column } from '../components'
+import { Chip, DataTable, type ChipVariant, type Column } from '../components'
 import {
-  HEALTHCARE_LOGS_METRICS,
   HEALTHCARE_LOGS_ROWS,
   PREVISIT_LOGS_ROWS,
   type HealthcareLogRow,
@@ -8,9 +7,9 @@ import {
 } from '../data/healthcareAgentLogs'
 
 const STATUS_VARIANT: Record<string, ChipVariant> = {
-  Resolved: 'success',
-  Abandoned: 'danger',
-  Transferred: 'warning',
+  Complete: 'success',
+  Failed: 'danger',
+  'In progress': 'warning',
 }
 
 const LOG_COLUMNS: Column<HealthcareLogRow>[] = [
@@ -95,9 +94,6 @@ export function AgentLogsTab({ agentName, onViewRun }: AgentLogsTabProps) {
 
   return (
     <>
-      <div className="px-2xl pt-lg">
-        <MetricTiles metrics={HEALTHCARE_LOGS_METRICS} />
-      </div>
       <div className="px-lg py-lg">
         <DataTable
           columns={LOG_COLUMNS}
