@@ -234,10 +234,16 @@
   font-size: 14px;
   font-family: 'Roboto', sans-serif;
   color: #212121;
-  line-height: 20px;
+  line-height: 26px;
   letter-spacing: -0.28px;
   flex: 1;
   min-width: 0;
+}
+
+/* Give inline variable/tool chips a bit more breathing room from surrounding
+   step text so dense steps don't read as a wall of chips. */
+.stepsEditorBody :global(.prompt-chip) {
+  margin: 2px 4px;
 }
 
 .stepsListWithHint {
@@ -368,7 +374,7 @@
 .stepsList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 22px;
   padding: 24px;
   background: #fff;
   border: 1px solid #e5e9f0;
@@ -395,13 +401,13 @@
 .step {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .stepTitleRow {
   display: flex;
   align-items: flex-start;
-  gap: 0;
+  gap: 4px;
 }
 
 .stepNumberPrefix {
@@ -409,7 +415,7 @@
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
   color: #212121;
-  line-height: 20px;
+  line-height: 26px;
   letter-spacing: -0.28px;
   flex-shrink: 0;
 }
@@ -419,7 +425,7 @@
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
   color: #212121;
-  line-height: 20px;
+  line-height: 26px;
   letter-spacing: -0.28px;
   flex: 1;
   min-width: 0;
@@ -428,7 +434,7 @@
 .stepBullets {
   list-style-type: disc;
   list-style-position: outside;
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   padding-left: 24px;
 }
 
@@ -437,9 +443,9 @@
   font-size: 14px;
   font-family: 'Roboto', sans-serif;
   color: #212121;
-  line-height: 20px;
+  line-height: 26px;
   letter-spacing: -0.28px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .stepBulletRow:last-child {

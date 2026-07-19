@@ -87,7 +87,7 @@ function InlineChip({ label }) {
     .filter(Boolean).join(' ');
 
   return (
-    <span className={chipClass} style={{ verticalAlign: 'middle', display: 'inline-flex', margin: '0 2px' }}>
+    <span className={chipClass} style={{ verticalAlign: 'middle', display: 'inline-flex', margin: '2px 4px' }}>
       <span className={swatchClass}>
         {type === 'variable' && <DataTypeIcon />}
         {type === 'tool' && <span className={`material-symbols-outlined ${chipStyles.iconTool}`}>build</span>}
