@@ -1331,10 +1331,6 @@ export default function AgentBuilder({
           </div>
 
           {drawerOpen && (
-            <div className="agent-builder__overlay" onClick={handleCloseDrawer} />
-          )}
-
-          {drawerOpen && (
             <div key={selectedNodeId} className="agent-builder__rhs">
               <RHSErrorBoundary key={selectedNodeId}>
                 {renderRHSPanel()}

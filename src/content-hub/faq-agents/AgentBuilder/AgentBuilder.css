@@ -23,14 +23,6 @@
   flex: 1;
 }
 
-/* ─── Blur overlay behind floating RHS panel ─── */
-.agent-builder__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(4px);
-  z-index: 25;
-}
 
 .agent-builder__rhs {
   position: absolute;
