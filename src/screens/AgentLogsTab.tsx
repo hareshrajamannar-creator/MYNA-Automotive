@@ -63,7 +63,7 @@ const TAGGING_ROUTING_LOG_COLUMNS: Column<PrevisitLogRow>[] = [
 
 interface AgentLogsTabProps {
   agentName?: string
-  onNavigateToInbox?: () => void
+  onNavigateToInbox?: (conversationId?: string) => void
   onViewRun?: (row: HealthcareLogRow) => void
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FormInput } from '../elemental-stubs';
+import { FormInput, Tooltip } from '../elemental-stubs';
 import NodeType from '../Organisms/Accordion/NodeType/NodeType';
 import AIChatBubble from '../Molecules/AIChatBubble/AIChatBubble';
 import AIPromptBox from '../Molecules/AIPromptBox/AIPromptBox';
@@ -181,7 +181,7 @@ const AUTOMOTIVE_TASK_SUB_ITEMS = {
   },
 };
 
-const HEALTHCARE_TASK_SUB_ITEMS = {
+export const HEALTHCARE_TASK_SUB_ITEMS = {
   Conversation: {
     title: 'Conversation tasks',
     items: [
@@ -216,6 +216,8 @@ const HEALTHCARE_TASK_SUB_ITEMS = {
     ],
   },
 };
+
+export { AUTOMOTIVE_TASK_SUB_ITEMS };
 
 const READONLY_TRIGGER_SUBMENUS = new Set(['Contact-trigger', 'Appointment-trigger']);
 const READONLY_TASK_SUBMENUS = new Set(['Conversation', 'Contact', 'Appointment']);
@@ -392,6 +394,24 @@ export const CONTROL_CARDS = [
   },
 ];
 
+/** Sub-items for the canvas add-step menu, keyed by product. */
+export function getTaskSubItems(product = 'automotive') {
+  const isHC = product === 'healthcare' || product === 'dental';
+  return isHC ? HEALTHCARE_TASK_SUB_ITEMS : AUTOMOTIVE_TASK_SUB_ITEMS;
+}
+
+/** Task cards for the canvas add-step menu (excludes External apps for a cleaner popover). */
+export function getAddStepTaskCards(product = 'automotive') {
+  const isHC = product === 'healthcare' || product === 'dental';
+  const cards = isHC ? HEALTHCARE_TASK_CARDS : AUTOMOTIVE_TASK_CARDS;
+  return cards.filter((c) => c.subKey !== 'External apps-task');
+}
+
+/** Control cards shown in the add-step popover (matches Figma: Branch + Delay). */
+export function getAddStepControlCards() {
+  return CONTROL_CARDS.filter((c) => c.nodeType === 'branch' || c.nodeType === 'delay');
+}
+
 /* ─── Trigger + task sub-items (mutable state; procedures are derived dynamically) ─── */
 function buildInitialSubItems(isHC) {
   const taskSubItems = isHC ? HEALTHCARE_TASK_SUB_ITEMS : AUTOMOTIVE_TASK_SUB_ITEMS;
@@ -511,6 +531,7 @@ export default function LHSDrawer({
   product = 'automotive',
   procedures = null,
   onProcedureClick = null,
+  onCollapse = null,
 }) {
   const isHC = product === 'healthcare' || product === 'dental';
 
@@ -750,6 +771,18 @@ export default function LHSDrawer({
               showLeftIcon
               customIconClass="icon_phoenix-search-glass"
             />
+            {onCollapse && (
+              <Tooltip text="Collapse editor" position="bottom">
+                <button
+                  className="lhs-drawer__collapse-btn"
+                  onClick={onCollapse}
+                  type="button"
+                  aria-label="Collapse editor"
+                >
+                  <span className="material-symbols-outlined">left_panel_close</span>
+                </button>
+              </Tooltip>
+            )}
           </div>
 
           <div className="lhs-drawer__sections">

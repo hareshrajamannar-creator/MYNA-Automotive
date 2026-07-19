@@ -15,6 +15,7 @@ import EndNode from '../Molecules/Canvas/EndNode/EndNode';
 import CanvasNode from '../Molecules/Canvas/CanvasNode/CanvasNode';
 import ProceduresNode from '../Molecules/Canvas/ProceduresNode/ProceduresNode';
 import LoopNode, { computeLoopBodyHeight } from '../Molecules/Canvas/LoopNode/LoopNode';
+import AddStepButton from './AddStepButton';
 import './FlowCanvas.css';
 import branchStyles from './BranchPath.module.css';
 import { FLOW_CONNECTOR_GAP } from '../flowLayoutConstants';
@@ -259,6 +260,8 @@ function EndNodeWrapper({ id, data }) {
         viewOnly={data.viewOnly}
         isDraggingFromLHS={data.isDraggingFromLHS}
         onDropBeforeEnd={data.onDropBeforeEnd}
+        onAddStep={data.onAddStepBeforeEnd}
+        product={data.product}
         hideAdd={data.hideAdd}
       />
     </div>
@@ -307,11 +310,9 @@ function AddButtonEdge({ id, source, target, sourceX, sourceY, targetX, targetY,
     }
   }, [data]);
 
-  const btnClass = [
-    'flow-canvas__edge-add',
-    isDraggingFromLHS ? 'flow-canvas__edge-add--lhs-drag' : '',
-    isDragOver ? 'flow-canvas__edge-add--drop-target' : '',
-  ].filter(Boolean).join(' ');
+  const handleSelect = useCallback(({ type, label, description }) => {
+    data?.onDropOnEdge?.(type, label, description);
+  }, [data]);
 
   const showAddButton = !viewOnly && source !== '__start__' && target !== '__end__' && !data?.hideAddButton;
 
@@ -321,16 +322,22 @@ function AddButtonEdge({ id, source, target, sourceX, sourceY, targetX, targetY,
     <>
       {!isEndEdge && <BaseEdge id={id} path={edgePath} style={style} />}
       {showAddButton && (
-        <foreignObject width={56} height={56} x={labelX - 28} y={labelY - 28}>
+        <foreignObject width={56} height={56} x={labelX - 28} y={labelY - 28} className="flow-canvas__edge-fo">
           <div
             className="flow-canvas__edge-add-wrapper"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <button className={btnClass} type="button">
-              <span className="material-symbols-outlined">add</span>
-            </button>
+            <AddStepButton
+              isDraggingFromLHS={isDraggingFromLHS}
+              isDragOver={isDragOver}
+              product={data?.product}
+              onSelect={handleSelect}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            />
           </div>
         </foreignObject>
       )}
@@ -382,6 +389,7 @@ function FlowCanvasInner({
   onEdit,
   selectedNodeId,
   viewOnly = false,
+  product = 'healthcare',
 }) {
   const { zoomTo, fitView, setCenter, setViewport, getViewport, getNodes } = useReactFlow();
   const [zoom, setZoom] = useState(100);
@@ -407,6 +415,7 @@ function FlowCanvasInner({
         selectedNodeId,
         viewOnly,
         isDraggingFromLHS,
+        product,
         // Inject click handler for inline nodes rendered inside loop containers.
         ...(n.type === 'loop' ? {
           onChildClick: (childId) => onNodeClick?.({ id: childId, type: 'task', data: {} }),
@@ -421,12 +430,20 @@ function FlowCanvasInner({
                   afterNodeId: n.data?.afterNodeId ?? endEdgeSourceId,
                 });
               },
+              onAddStepBeforeEnd: ({ type, label, description }) => {
+                onDropNodeRef.current?.({
+                  type,
+                  label,
+                  description,
+                  afterNodeId: n.data?.afterNodeId ?? endEdgeSourceId,
+                });
+              },
             }
           : {}),
         ...(n.id === '__end__' ? { hideAdd: !!n.data?.hideAddBeforeEnd } : {}),
       },
     })),
-    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, onNodeClick]
+    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, onNodeClick, product]
   );
 
   // Pin start node 24px below the controls bar, horizontally centered, at zoom=1.
@@ -458,6 +475,23 @@ function FlowCanvasInner({
       setTimeout(() => positionToStart(), 80);
     }
   }, [nodes.length, positionToStart]);
+
+  // Keep the flow horizontally centered whenever the canvas container resizes
+  // (LHS drawer collapse/expand, RHS panel open/close, window resize). CSS
+  // transitions the LHS width, so ResizeObserver fires continuously through
+  // the animation, keeping the canvas centered as the panel moves.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const observer = new ResizeObserver(() => {
+      if (!initialPositioned.current) return;
+      const { width } = canvas.getBoundingClientRect();
+      const { y, zoom: currentZoom } = getViewport();
+      setViewport({ x: width / 2, y, zoom: currentZoom }, { duration: 0 });
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [getViewport, setViewport]);
 
   // Detect LHS drag start/end (HTML5 drag API)
   useEffect(() => {
@@ -566,6 +600,7 @@ function FlowCanvasInner({
           ...edge.data,
           isDraggingFromLHS,
           viewOnly,
+          product,
           onDropOnEdge: viewOnly ? undefined : (type, label, description) => {
             onDropNodeRef.current?.({
               type,
@@ -577,7 +612,7 @@ function FlowCanvasInner({
           },
         },
       })),
-    [edges, isDraggingFromLHS, viewOnly]
+    [edges, isDraggingFromLHS, viewOnly, product]
   );
 
   const handleViewportChange = useCallback(({ zoom: z }) => {

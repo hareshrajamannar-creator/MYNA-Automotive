@@ -27,6 +27,10 @@ export type Token = string | Ref
 
 export interface Bullet {
   tokens: Token[]
+  /** Nesting level for sub-lists (0-2). Defaults to 0. */
+  indent?: number
+  /** Numbered (true) vs bulleted (false/undefined) marker. */
+  ordered?: boolean
 }
 
 export interface ProcedureStep {

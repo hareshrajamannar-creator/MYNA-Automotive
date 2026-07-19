@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { EmptyHintField } from '../../../../components/EmptyHintField/EmptyHintField';
 import { Icon } from '../../../../components/Icon/Icon';
-import { serializeFrom, deserializeIntoTyped } from '../../../Molecules/Inputs/promptChipHelpers.js';
+import { serializeRichFrom, deserializeRichInto, insertChipAt } from '../../../Molecules/Inputs/promptChipHelpers.js';
 import '../../../Molecules/Inputs/prompt-chip.css';
 import StepsEditorToolbar from '../../../Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar.jsx';
+import { ToolSlashMenu, getCaretAnchor } from '../../../Molecules/Inputs/ToolSlashMenu/ToolSlashMenu';
 import UserPromptInput from '../../../Molecules/Inputs/UserPromptInput/UserPromptInput.jsx';
 import VariableChip, { CHIP_TYPES, DataTypeIcon, ProcedureBookIcon } from '../../../Molecules/Inputs/VariableChip/VariableChip';
 import chipStyles from '../../../Molecules/Inputs/VariableChip/VariableChip.module.css';
@@ -101,44 +102,104 @@ function InlineChip({ label }) {
   );
 }
 
-/* ── Inline chip token parser (handles {{label}} in step text) ── */
-function renderInlineText(text) {
-  const parts = text.split(/(\{\{[^}]+\}\})/g);
-  return parts.map((part, i) => {
-    const match = part.match(/^\{\{(.+)\}\}$/);
-    if (match) return <InlineChip key={i} label={match[1]} />;
-    return part || null;
-  });
+/* ── Inline token parser — handles {{chip}}, **bold**, *italic*, ~underline~, [label](url) ──
+ * Italic uses `*` (not `_`) since step text is full of snake_case tool/variable
+ * names that `_..._` would misparse as italic markup. Each call builds its own
+ * RegExp rather than sharing one module-level instance — recursive calls (for
+ * nested marks) would otherwise clobber the outer call's lastIndex via the
+ * auto-reset-to-0-on-no-match behavior of `g`-flagged regexes, spinning forever. */
+const RICH_TEXT_SOURCE = '(\\{\\{[^}]+\\}\\})|(\\[[^\\]]+\\]\\([^)]+\\))|(\\*\\*[^*]+\\*\\*)|(~[^~]+~)|(\\*[^*]+\\*)';
+
+function renderInlineText(text, keyPrefix = '') {
+  const nodes = [];
+  let lastIndex = 0;
+  let i = 0;
+  let m;
+  const richTextRe = new RegExp(RICH_TEXT_SOURCE, 'g');
+  while ((m = richTextRe.exec(text))) {
+    if (m.index > lastIndex) nodes.push(text.slice(lastIndex, m.index));
+    const key = `${keyPrefix}${i++}`;
+    if (m[1]) {
+      nodes.push(<InlineChip key={key} label={m[1].slice(2, -2)} />);
+    } else if (m[2]) {
+      const linkMatch = m[2].match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      nodes.push(
+        <a key={key} className={styles.stepLink} href={linkMatch[2]} target="_blank" rel="noreferrer">
+          {renderInlineText(linkMatch[1], `${key}-`)}
+        </a>,
+      );
+    } else if (m[3]) {
+      nodes.push(<b key={key}>{renderInlineText(m[3].slice(2, -2), `${key}-`)}</b>);
+    } else if (m[4]) {
+      nodes.push(<u key={key}>{renderInlineText(m[4].slice(1, -1), `${key}-`)}</u>);
+    } else if (m[5]) {
+      nodes.push(<em key={key}>{renderInlineText(m[5].slice(1, -1), `${key}-`)}</em>);
+    }
+    lastIndex = richTextRe.lastIndex;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes;
 }
 
-/* ── Steps text → structured array ── */
-function parseStepsText(text) {
+/* ── Steps text → structured array ──
+ * Bullets carry `indent` (0-2) and `ordered` (numbered vs bulleted) so nested
+ * numbered/bulleted sub-lists round-trip through the flat text. Indent is
+ * encoded as leading tab characters; an ordered marker ("1." / "1)") only
+ * counts as such at indent >= 1, so it can't be confused with a step header. */
+export function parseStepsText(text) {
   if (!text?.trim()) return [];
   const lines = text.split('\n');
   const steps = [];
   let current = null;
 
   for (const raw of lines) {
+    if (!raw.trim()) continue;
+    const indent = Math.min((raw.match(/^\t*/) || [''])[0].length, 2);
     const line = raw.trim();
-    if (!line) continue;
 
-    const numbered = line.match(/^(\d+)\.\s*(.+)/);
+    const numbered = indent === 0 && line.match(/^(\d+)\.\s*(.+)/);
     if (numbered) {
       current = { number: parseInt(numbered[1], 10), title: numbered[2], bullets: [] };
       steps.push(current);
-    } else if ((line.startsWith('•') || line.startsWith('-')) && current) {
-      current.bullets.push(line.replace(/^[•\-]\s*/, ''));
-    } else if (current) {
-      current.bullets.push(line);
-    } else {
-      steps.push({ number: null, title: line, bullets: [] });
+      continue;
     }
+
+    if (!current) {
+      steps.push({ number: null, title: line, bullets: [] });
+      continue;
+    }
+
+    const orderedMatch = indent > 0 && line.match(/^\d+[.)]\s*(.+)/);
+    const bulletMatch = line.match(/^[•\-]\s*(.+)/);
+    const content = orderedMatch ? orderedMatch[1] : bulletMatch ? bulletMatch[1] : line;
+    current.bullets.push({ text: content, indent, ordered: Boolean(orderedMatch) });
   }
   return steps;
 }
 
+const BULLET_MARKER_ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+
+/* ── Marker glyph per bullet: •/◦/▪ for unordered, 1./a. for ordered, per indent level ── */
+function bulletMarkers(bullets) {
+  const counters = [0, 0, 0];
+  let prevIndent = -1;
+  let prevOrdered = false;
+  return bullets.map((b) => {
+    if (b.ordered) {
+      if (prevIndent !== b.indent || !prevOrdered) counters[b.indent] = 0;
+      counters[b.indent] += 1;
+      prevIndent = b.indent;
+      prevOrdered = true;
+      return b.indent >= 2 ? `${BULLET_MARKER_ALPHA[(counters[b.indent] - 1) % 26]}.` : `${counters[b.indent]}.`;
+    }
+    prevIndent = b.indent;
+    prevOrdered = false;
+    return b.indent === 0 ? '•' : b.indent === 1 ? '◦' : '▪';
+  });
+}
+
 /* ── Single contenteditable line with inline {{chip}} rendering ── */
-function EditableLine({ text, className, onInput, onFocusLine }) {
+function EditableLine({ text, className, onInput, onFocusLine, onSlash }) {
   const ref = useRef(null);
   const lastSynced = useRef(null);
 
@@ -147,8 +208,8 @@ function EditableLine({ text, className, onInput, onFocusLine }) {
     if (!el) return;
     if (text === lastSynced.current) return;
     lastSynced.current = text;
-    deserializeIntoTyped(el, text, () => {
-      const s = serializeFrom(el);
+    deserializeRichInto(el, text, () => {
+      const s = serializeRichFrom(el);
       lastSynced.current = s;
       onInput(s);
     }, resolveTokenType);
@@ -161,8 +222,14 @@ function EditableLine({ text, className, onInput, onFocusLine }) {
       contentEditable
       suppressContentEditableWarning
       onFocus={() => onFocusLine?.(ref.current)}
+      onKeyDown={onSlash ? (e) => {
+        if (e.key === '/') {
+          e.preventDefault();
+          onSlash();
+        }
+      } : undefined}
       onInput={() => {
-        const s = serializeFrom(ref.current);
+        const s = serializeRichFrom(ref.current);
         lastSynced.current = s;
         onInput(s);
       }}
@@ -181,21 +248,24 @@ function serializeStepsList(rootEl) {
     const titleEl = titleWrapper
       ? titleWrapper.querySelector('[contenteditable]:not([contenteditable="false"])')
       : Array.from(stepEl.querySelectorAll('[contenteditable]:not([contenteditable="false"])'))[0];
-    const titleText = titleEl ? serializeFrom(titleEl).trim() : '';
+    const titleText = titleEl ? serializeRichFrom(titleEl).trim() : '';
 
     const bulletLines = [];
     const bulletWrappers = stepEl.querySelectorAll('[data-step-bullet]');
     if (bulletWrappers.length) {
       bulletWrappers.forEach((bw) => {
         const bulletEl = bw.querySelector('[contenteditable]:not([contenteditable="false"])');
-        const bulletText = bulletEl ? serializeFrom(bulletEl).trim() : '';
-        if (bulletText) bulletLines.push(`• ${bulletText}`);
+        const bulletText = bulletEl ? serializeRichFrom(bulletEl).trim() : '';
+        if (!bulletText) return;
+        const indent = Math.min(Number(bw.dataset.indent || 0), 2);
+        const ordered = bw.dataset.ordered === '1';
+        bulletLines.push(`${'\t'.repeat(indent)}${ordered ? '1.' : '•'} ${bulletText}`);
       });
     } else {
       // Fallback: all editables after the first are bullets
       const all = Array.from(stepEl.querySelectorAll('[contenteditable]:not([contenteditable="false"])'));
       all.slice(1).forEach((el) => {
-        const bulletText = serializeFrom(el).trim();
+        const bulletText = serializeRichFrom(el).trim();
         if (bulletText) bulletLines.push(`• ${bulletText}`);
       });
     }
@@ -242,12 +312,15 @@ function CreateStepsField({ text, onChange, onOpenToolDrawer }) {
 }
 
 /* ── Editable steps — identical layout to StepsRenderer ── */
-function EditableStepsRenderer({ text, onChange, onOpenToolDrawer }) {
+function EditableStepsRenderer({ text, onChange }) {
   const rootRef = useRef(null);
   const shellRef = useRef(null);
   const activeEditableRef = useRef(null);
   const lastEmitted = useRef(text);
+  const slashRangeRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [slashAnchor, setSlashAnchor] = useState(null);
   const steps = parseStepsText(text);
 
   useEffect(() => {
@@ -272,13 +345,40 @@ function EditableStepsRenderer({ text, onChange, onOpenToolDrawer }) {
       next = serializeStepsList(rootRef.current);
     } else {
       const active = getActiveEditable();
-      if (active) next = serializeFrom(active);
+      if (active) next = serializeRichFrom(active);
     }
     if (next !== lastEmitted.current) {
       lastEmitted.current = next;
       onChange(next);
     }
   }, [onChange, text, getActiveEditable]);
+
+  // Opens the same tool search whether triggered from the bottom toolbar's
+  // Tools button or by typing "/" in a step title/bullet — saves the live
+  // selection first since the slash menu's own search input steals focus.
+  const openToolSlash = useCallback(() => {
+    const el = getActiveEditable();
+    if (!el) return;
+    const sel = window.getSelection();
+    if (sel?.rangeCount > 0 && el.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      slashRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+    const anchor = getCaretAnchor(el);
+    if (!anchor) return;
+    setSlashAnchor(anchor);
+    setSlashOpen(true);
+  }, [getActiveEditable]);
+
+  const handleToolSelect = useCallback((tool) => {
+    setSlashOpen(false);
+    setSlashAnchor(null);
+    const el = getActiveEditable();
+    if (!el) return;
+    insertChipAt(el, slashRangeRef.current, () => {
+      slashRangeRef.current = null;
+      emitChange();
+    }, 'tool', tool.name);
+  }, [getActiveEditable, emitChange]);
 
   const handleFocusLine = useCallback((el) => {
     if (el) activeEditableRef.current = el;
@@ -330,6 +430,7 @@ function EditableStepsRenderer({ text, onChange, onOpenToolDrawer }) {
         text={text}
         className={styles.stepsEmptyEditable}
         onFocusLine={handleFocusLine}
+        onSlash={openToolSlash}
         onInput={(lineText) => {
           lastEmitted.current = lineText;
           onChange(lineText);
@@ -353,22 +454,35 @@ function EditableStepsRenderer({ text, onChange, onOpenToolDrawer }) {
               text={step.title}
               className={styles.stepTitleText}
               onFocusLine={handleFocusLine}
+              onSlash={openToolSlash}
               onInput={emitChange}
             />
           </div>
           {step.bullets.length > 0 && (
-            <ul className={styles.stepBullets}>
-              {step.bullets.map((b, j) => (
-                <li key={j} className={styles.stepBulletRow} data-step-bullet>
-                  <EditableLine
-                    text={b}
-                    className={styles.stepBulletText}
-                    onFocusLine={handleFocusLine}
-                    onInput={emitChange}
-                  />
-                </li>
-              ))}
-            </ul>
+            <div className={styles.stepBullets}>
+              {bulletMarkers(step.bullets).map((marker, j) => {
+                const b = step.bullets[j];
+                return (
+                  <div
+                    key={j}
+                    className={styles.stepBulletRow}
+                    data-step-bullet
+                    data-indent={b.indent}
+                    data-ordered={b.ordered ? '1' : '0'}
+                    style={{ marginLeft: b.indent * 20 }}
+                  >
+                    <span className={styles.bulletMarker} aria-hidden>{marker}</span>
+                    <EditableLine
+                      text={b.text}
+                      className={styles.stepBulletText}
+                      onFocusLine={handleFocusLine}
+                      onSlash={openToolSlash}
+                      onInput={emitChange}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       ))}
@@ -392,8 +506,14 @@ function EditableStepsRenderer({ text, onChange, onOpenToolDrawer }) {
       <StepsEditorToolbar
         getActiveEditable={getActiveEditable}
         onAfterInsert={emitChange}
-        onOpenToolDrawer={onOpenToolDrawer}
+        onOpenToolSlash={openToolSlash}
         hasContent={Boolean(text?.trim())}
+      />
+      <ToolSlashMenu
+        open={slashOpen}
+        anchor={slashAnchor}
+        onClose={() => { setSlashOpen(false); setSlashAnchor(null); }}
+        onSelect={handleToolSelect}
       />
     </div>
   );
@@ -416,13 +536,17 @@ function StepsRenderer({ text }) {
             <span className={styles.stepTitleText}>{renderInlineText(step.title)}</span>
           </div>
           {step.bullets.length > 0 && (
-            <ul className={styles.stepBullets}>
-              {step.bullets.map((b, j) => (
-                <li key={j} className={styles.stepBulletRow}>
-                  <span className={styles.stepBulletText}>{renderInlineText(b)}</span>
-                </li>
-              ))}
-            </ul>
+            <div className={styles.stepBullets}>
+              {bulletMarkers(step.bullets).map((marker, j) => {
+                const b = step.bullets[j];
+                return (
+                  <div key={j} className={styles.stepBulletRow} style={{ marginLeft: b.indent * 20 }}>
+                    <span className={styles.bulletMarker} aria-hidden>{marker}</span>
+                    <span className={styles.stepBulletText}>{renderInlineText(b.text)}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       ))}
@@ -702,6 +826,7 @@ export default function ProcedureDetailBody({
   onOpenToolDrawer = undefined,
   onAddContext,
   hideContext = false,
+  isNewProcedure = false,
 }) {
   const [title, setTitle] = useState(initialValues.name ?? '');
   const [whenToUse, setWhenToUse] = useState(initialValues.whenToUse ?? '');
@@ -894,7 +1019,7 @@ export default function ProcedureDetailBody({
           <div className={`${styles.readOnlyField} ${styles.readOnlySteps}`}>
             <StepsRenderer text={stepsText} />
           </div>
-        ) : showTitle ? (
+        ) : isNewProcedure ? (
           <CreateStepsField
             text={stepsText}
             onOpenToolDrawer={onOpenToolDrawer}
@@ -903,7 +1028,6 @@ export default function ProcedureDetailBody({
         ) : (
           <EditableStepsRenderer
             text={stepsText}
-            onOpenToolDrawer={onOpenToolDrawer}
             onChange={(val) => { setStepsText(val); onFieldChange?.('stepsText', val); }}
           />
         )}

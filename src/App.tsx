@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FRONT_DESK_INBOX_CONVERSATION_ID } from './data/frontDeskCallConversation'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
 import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
 import { Icon, IconRail, Link, RecordDetailScreen, SideNav, Toast, TopNav, type NavSection, type RailGroup, type Product } from './components'
@@ -313,6 +314,7 @@ export function App() {
   const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
   const [agentToastMessage, setAgentToastMessage] = useState('')
   const [agentToastVisible, setAgentToastVisible] = useState(false)
+  const [inboxFocusId, setInboxFocusId] = useState<string | null>(null)
 
   function openIntegrationSettings(integrationId: string) {
     setRailActive('settings')
@@ -415,7 +417,10 @@ export function App() {
             <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} onWebWidgets={() => setSettingsSubScreen('web-widgets')} onAppointmentWidgets={() => setSettingsSubScreen('appointment-widgets')} />
           )
         ) : railActive === 'inbox' ? (
-          <InboxScreen />
+          <InboxScreen
+            initialConversationId={inboxFocusId}
+            onInitialConversationConsumed={() => setInboxFocusId(null)}
+          />
         ) : isEditingWorkflow ? (
           <>
             <TopNav title="Front desk" initials="S" />
@@ -576,7 +581,10 @@ export function App() {
             onEditAgent={handleEditAgent}
             onOpenIntegrationSettings={openIntegrationSettings}
             onAgentSetupActiveChange={setIsAgentSetupActive}
-            onNavigateToInbox={() => setRailActive('inbox')}
+            onNavigateToInbox={(conversationId) => {
+              setInboxFocusId(conversationId ?? FRONT_DESK_INBOX_CONVERSATION_ID)
+              setRailActive('inbox')
+            }}
             product={activeProduct}
           />
         ) : appointmentDetail ? (

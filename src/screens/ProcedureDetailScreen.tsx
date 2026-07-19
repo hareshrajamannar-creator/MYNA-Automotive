@@ -2,22 +2,35 @@ import { useCallback, useMemo, useState } from 'react'
 import { TopNav, Icon, ContextModal } from '../components'
 import type { ContextModalResult } from '../components/ContextModal/ContextModal.types'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
-import ProcedureDetailBody, { ChipSection } from '../workflow/Organisms/Panels/RHS/ProcedureDetailBody.jsx'
+import ProcedureDetailBody, { ChipSection, parseStepsText as parseRichStepsText } from '../workflow/Organisms/Panels/RHS/ProcedureDetailBody.jsx'
 import AddToolDrawer from '../workflow/Organisms/Drawers/AddToolDrawer/AddToolDrawer'
 import {
   type Procedure,
   type ProcedureStep,
   type ContextItem,
   type ProcedureQueue,
+  type Token,
 } from '../data/procedureData'
 import { useProcedureStore } from '../data/ProcedureStoreContext'
 
+/** Splits a bullet/title's flat markup text into plain-string and {{chip}} tokens. */
+function textToTokens(text: string): Token[] {
+  const parts = text.split(/(\{\{[^}]+\}\})/g).filter(Boolean)
+  return parts.map((part) => {
+    const m = part.match(/^\{\{(.+)\}\}$/)
+    return m ? { kind: 'context', label: m[1] } : part
+  })
+}
+
 function parseStepsText(text: string): ProcedureStep[] {
-  if (!text.trim()) return []
-  return text
-    .split('\n')
-    .filter((l) => l.trim())
-    .map((l) => ({ title: l.replace(/^[\d•.\-\s]+/, '').trim(), bullets: [] }))
+  return parseRichStepsText(text).map((step: { title: string; bullets: { text: string; indent: number; ordered: boolean }[] }) => ({
+    title: step.title,
+    bullets: step.bullets.map((b) => ({
+      tokens: textToTokens(b.text),
+      indent: b.indent,
+      ordered: b.ordered,
+    })),
+  }))
 }
 
 function stepsToEditorText(steps: ProcedureStep[]): string {
@@ -28,7 +41,10 @@ function stepsToEditorText(steps: ProcedureStep[]): string {
           const content = b.tokens
             .map((t) => (typeof t === 'string' ? t : `{{${t.label}}}`))
             .join('')
-          return content.trim() ? `• ${content.trim()}` : ''
+          if (!content.trim()) return ''
+          const indent = Math.min(b.indent ?? 0, 2)
+          const marker = b.ordered ? '1.' : '•'
+          return `${'\t'.repeat(indent)}${marker} ${content.trim()}`
         })
         .filter(Boolean)
         .join('\n')
@@ -283,6 +299,7 @@ export function ProcedureDetailScreen({
               showTypeField
               contextEditable
               hideContext
+              isNewProcedure={isNew}
               onAddContext={() => setContextModalOpen(true)}
               // allowJs infers default `= undefined` as the only prop type
               {...({ onOpenToolDrawer: () => setToolPickerOpen(true) } as object)}

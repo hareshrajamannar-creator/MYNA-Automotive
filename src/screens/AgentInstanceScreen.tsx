@@ -21,6 +21,7 @@ import { RecommendationsTab } from './RecommendationsTab'
 import { FrontdeskRecommendationsTab } from './FrontdeskRecommendationsTab'
 import { RunDetailView } from './RunDetailView'
 import type { HealthcareLogRow } from '../data/healthcareAgentLogs'
+import { FRONT_DESK_INBOX_CONVERSATION_ID } from '../data/frontDeskCallConversation'
 
 interface AgentInstanceScreenProps {
   instanceName: string
@@ -28,7 +29,7 @@ interface AgentInstanceScreenProps {
   onBack: () => void
   onEditAgent?: (agentName: string) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
-  onNavigateToInbox?: () => void
+  onNavigateToInbox?: (conversationId?: string) => void
   product?: string
 }
 
@@ -348,7 +349,7 @@ export function AgentInstanceScreen({
           <RunDetailView
             row={selectedRun}
             onBack={() => setSelectedRun(null)}
-            onViewConversation={onNavigateToInbox}
+            onViewConversation={() => onNavigateToInbox?.(FRONT_DESK_INBOX_CONVERSATION_ID)}
           />
         </div>
       </div>

@@ -168,6 +168,7 @@ export function ProcedurePickerDetailView({
             showTitle={true}
             showTypeField
             contextEditable={!readOnly}
+            isNewProcedure={isNew}
             onAddContext={readOnly ? undefined : () => setContextModalOpen(true)}
           />
         </div>

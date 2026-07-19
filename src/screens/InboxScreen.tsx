@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChartCard, ChatBubble, ChatSystemLabel, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
 import voicemailSample from '../assets/voicemail_sample.mp3'
+import {
+  FRONT_DESK_CALL_SUMMARY,
+  FRONT_DESK_INBOX_CONVERSATION_ID,
+  FRONT_DESK_INBOX_EVENTS,
+  FRONT_DESK_VOICE_MESSAGES,
+} from '../data/frontDeskCallConversation'
 import { AgentDetailScreen } from './AgentDetailScreen'
 import { WorkflowEditorScreen } from './WorkflowEditorScreen'
 
@@ -17,6 +23,16 @@ interface Conversation {
 }
 
 const CONVERSATIONS: Conversation[] = [
+  {
+    id: FRONT_DESK_INBOX_CONVERSATION_ID,
+    name: 'Dana Whitfield',
+    verified: true,
+    message: 'I am having a very bad headache. I think it is migraine.',
+    location: 'Rock Dental Brands',
+    assignee: 'Myna',
+    date: '5:30 PM',
+    unread: true,
+  },
   { id: '1', name: 'Cameron Williamson', verified: true, message: 'You can find more details here: https://birdeye.com', location: 'Austin', sublocation: 'Savannah', date: '03:25 PM' },
   { id: '2', name: 'Annette Black',      verified: true, message: 'Kelsy Hiltz: yes',                                   location: 'San Francisco', assignee: 'Kelsy Hiltz', date: 'Dec 31, 2022', unread: true },
   { id: '3', name: 'Wade Warren',                        message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022', unread: true },
@@ -617,18 +633,43 @@ function InboxSideNav({ activeId, onSelect }: { activeId: string; onSelect: (id:
   )
 }
 
-export function InboxScreen() {
+export function InboxScreen({
+  initialConversationId,
+  onInitialConversationConsumed,
+}: {
+  initialConversationId?: string | null
+  onInitialConversationConsumed?: () => void
+} = {}) {
   const [activeNav, setActiveNav] = useState('view-all-interactions')
-  const [selectedConvo, setSelectedConvo] = useState(CONVERSATIONS[0])
+  const [selectedConvo, setSelectedConvo] = useState(() => {
+    if (initialConversationId) {
+      return CONVERSATIONS.find((c) => c.id === initialConversationId) ?? CONVERSATIONS[0]
+    }
+    return CONVERSATIONS[0]
+  })
   const [activeTab, setActiveTab] = useState('all')
   const [message, setMessage] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!initialConversationId) return
+    const match = CONVERSATIONS.find((c) => c.id === initialConversationId)
+    if (match) {
+      setSelectedConvo(match)
+      setActiveNav('view-all-interactions')
+    }
+    onInitialConversationConsumed?.()
+    // Only react to deep-link id changes; consume callback is intentionally unstable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId])
+
   const isInternalChat = activeNav === 'chat-internal-team'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
   const listTitle = NAV_LABELS[activeNav] ?? 'Inbox'
+  const isFrontDeskCall = selectedConvo.id === FRONT_DESK_INBOX_CONVERSATION_ID
+  const threadEvents = isFrontDeskCall ? FRONT_DESK_INBOX_EVENTS : CHAT_EVENTS
 
   const searchQ = searchQuery.trim().toLowerCase()
   const visibleConversations = searchQ
@@ -791,28 +832,37 @@ export function InboxScreen() {
 
               {/* Date separator */}
               <div className="flex items-center justify-center">
-                <span className="text-small text-text-tertiary">Fri • Jun 12</span>
+                <span className="text-small text-text-tertiary">
+                  {isFrontDeskCall ? 'Tue • Feb 25' : 'Fri • Jun 12'}
+                </span>
               </div>
 
-              {/* Voicemail bubble */}
+              {/* Voice call card */}
               <VoicemailMessage
                 variant="voice-chat"
                 transcript="Hello. I was trying to get a hold of Joanne about her rental. She can call me back at 5807437121. Thank you."
-                summary="Patient reported tooth-origin pain with mild swelling (no fever or breathing issues). Myna screened symptoms and offered an urgent appointment, but the patient ended the call."
-                duration="00:11"
-                durationSecs={11}
-                time="10:42 PM"
+                summary={
+                  isFrontDeskCall
+                    ? FRONT_DESK_CALL_SUMMARY
+                    : 'Patient reported tooth-origin pain with mild swelling (no fever or breathing issues). Myna screened symptoms and offered an urgent appointment, but the patient ended the call.'
+                }
+                duration={isFrontDeskCall ? '00:53' : '00:11'}
+                durationSecs={isFrontDeskCall ? 53 : 11}
+                time={isFrontDeskCall ? '5:30 PM' : '10:42 PM'}
                 audioUrl={voicemailSample}
+                messages={isFrontDeskCall ? FRONT_DESK_VOICE_MESSAGES : undefined}
               />
 
               {/* Subsequent events */}
-              {CHAT_EVENTS.map(event => {
+              {threadEvents.map(event => {
                 if (event.kind === 'date') {
                   return <ChatSystemLabel key={event.id} text={event.label} />
                 }
 
                 if (event.kind === 'status') {
-                  return <ChatSystemLabel key={event.id} text={`${event.text} • ${event.time}`} />
+                  const label =
+                    'time' in event && event.time ? `${event.text} • ${event.time}` : event.text
+                  return <ChatSystemLabel key={event.id} text={label} />
                 }
 
                 if (event.kind === 'bubble') {
@@ -820,7 +870,8 @@ export function InboxScreen() {
                   return (
                     <ChatBubble key={event.id} sender={isAgent ? 'business' : 'user'} text={event.text}>
                       <span className="text-small text-text-tertiary">
-                        {event.attribution ? `${event.attribution} • ` : ''}{event.time}
+                        {'attribution' in event && event.attribution ? `${event.attribution} • ` : ''}
+                        {event.time}
                       </span>
                     </ChatBubble>
                   )

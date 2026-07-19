@@ -1,3 +1,5 @@
+import type { VoiceChatMessage } from '../VoiceChatDrawer/VoiceChatDrawer.types'
+
 export interface VoicemailMessageProps {
   variant?: 'voicemail' | 'voice-chat'
   transcript: string
@@ -6,4 +8,6 @@ export interface VoicemailMessageProps {
   durationSecs: number
   time: string       // e.g. "10:42 PM"
   audioUrl?: string
+  /** Override drawer transcript; defaults to the Rock Dental demo messages. */
+  messages?: VoiceChatMessage[]
 }

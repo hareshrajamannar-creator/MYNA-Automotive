@@ -285,7 +285,9 @@
   white-space: pre-wrap;
 }
 
-/* ── Steps editor shell (edit mode + toolbar) ── */
+/* ── Steps editor shell (edit mode + toolbar) ──
+ * No max-height/internal scroll — the box has a min-height and grows with
+ * content, same as the create-mode variant below. */
 .stepsEditorShell {
   display: flex;
   flex-direction: column;
@@ -293,10 +295,7 @@
   border: 1px solid #e5e9f0;
   border-radius: 4px;
   box-sizing: border-box;
-  resize: vertical;
-  overflow: hidden;
   min-height: 160px;
-  max-height: 70vh;
 }
 
 .stepsEditorShellFocused {
@@ -304,17 +303,13 @@
 }
 
 .stepsEditorShellCreate {
-  /* Default create height — grows with content, no inner scroll.
-     Matches STEPS_FIELD_MIN_HEIGHT in ProcedureDetailScreen.tsx. */
+  /* Matches STEPS_FIELD_MIN_HEIGHT in ProcedureDetailScreen.tsx. */
   min-height: 250px;
-  max-height: none;
-  overflow: visible;
-  resize: none;
 }
 
 .stepsEditorBody {
   flex: 1;
-  overflow: auto;
+  overflow: visible;
   min-height: 100px;
 }
 
@@ -432,14 +427,16 @@
 }
 
 .stepBullets {
-  list-style-type: disc;
-  list-style-position: outside;
+  display: flex;
+  flex-direction: column;
   margin: 4px 0 0;
   padding-left: 24px;
 }
 
 .stepBulletRow {
-  display: list-item;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   font-size: 14px;
   font-family: 'Roboto', sans-serif;
   color: #212121;
@@ -452,9 +449,27 @@
   margin-bottom: 0;
 }
 
-.stepBulletRow::marker {
+.bulletMarker {
+  flex-shrink: 0;
+  min-width: 14px;
+  line-height: 26px;
   font-size: 1.15em;
   color: #212121;
+  text-align: center;
+}
+
+/* ── Inline rich text marks (bold/italic/underline/link) ── */
+.stepTitleText a,
+.stepBulletText a,
+.stepsEmptyEditable a {
+  color: #1976d2;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.stepLink {
+  color: #1976d2;
+  text-decoration: underline;
 }
 
 .stepsEmpty {

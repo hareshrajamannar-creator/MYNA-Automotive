@@ -663,6 +663,7 @@ export default function AgentBuilder({
   const [assignConversationStatusToolOpen, setAssignConversationStatusToolOpen] = useState(false);
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [lhsCollapsed, setLhsCollapsed] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
     const startNode = base[START_NODE_ID];
@@ -1755,6 +1756,7 @@ export default function AgentBuilder({
                 showTitle: true,
                 showLibraryCheckbox: true,
                 contextEditable: true,
+                isNewProcedure: true,
                 onFieldChange: (field, value) => {
                   const overridesNext = {
                     ...(currentDetails.procedureOverrides || {}),
@@ -1981,13 +1983,14 @@ export default function AgentBuilder({
         )}
 
         <div className="agent-builder">
-          <div className="agent-builder__lhs">
+          <div className={`agent-builder__lhs${lhsCollapsed ? ' agent-builder__lhs--collapsed' : ''}`}>
             <LHSDrawer
               defaultTab="Create manually"
               defaultOpenSection={defaultOpenSection}
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}
+              onCollapse={viewOnly ? undefined : () => setLhsCollapsed(true)}
               onProcedureClick={viewOnly ? undefined : (procedureId) => {
                 setLhsPreviewProcedureId(procedureId);
                 setSelectedNodeId(null);
@@ -1996,6 +1999,16 @@ export default function AgentBuilder({
               }}
             />
           </div>
+
+          {lhsCollapsed && (
+            <button
+              className="ab-lhs-expand-pill"
+              onClick={() => setLhsCollapsed(false)}
+            >
+              <span className="material-symbols-outlined">left_panel_open</span>
+              <span className="ab-lhs-expand-pill__label">Editor</span>
+            </button>
+          )}
 
           <div className={`agent-builder__canvas${drawerOpen ? ' agent-builder__canvas--with-rhs' : ''}`}>
             <FlowCanvas
@@ -2007,6 +2020,7 @@ export default function AgentBuilder({
               selectedNodeId={selectedNodeId}
               orientation="vertical"
               viewOnly={viewOnly}
+              product={product}
               onEdit={viewOnly ? onEdit : undefined}
               onRun={() => {
                 if (isReminderAgent) {

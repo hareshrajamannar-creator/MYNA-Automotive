@@ -27,7 +27,7 @@ interface AgentDetailScreenProps {
   onEditAgent?: (agentName: string, draft?: WizardAgentDraft) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
   onAgentSetupActiveChange?: (active: boolean) => void
-  onNavigateToInbox?: () => void
+  onNavigateToInbox?: (conversationId?: string) => void
   product?: string
 }
 
