@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
-import LHSDrawer from '../LHSDrawer/LHSDrawer';
+import LHSDrawer, { isFrontDeskAgent, INITIATE_VOICE_CALL_TASK } from '../LHSDrawer/LHSDrawer';
 import FlowCanvas from '../FlowCanvas/FlowCanvas';
 import RHS from '../Organisms/Panels/RHS/RHS';
 import ScheduleBased from '../Molecules/RHS/Trigger/ScheduleBased/ScheduleBased';
@@ -142,6 +142,7 @@ function makeNodeDetails(type, label) {
 const TASK_DROP_DEFAULTS = {
   'Initiate voice call': { description: 'Call the customer' },
   'In-call SMS': { description: 'Send a text message to the caller during the active call', selectedTools: ['in-call-sms'] },
+  'Send response': { selectedTools: ['send-response'] },
   'Schedule appointment': { description: 'Book a new appointment for the customer' },
   'Reschedule appointment': { description: 'Change an existing appointment date or time' },
   'Cancel appointment': { description: 'Cancel a scheduled appointment' },
@@ -1293,7 +1294,14 @@ export default function AgentBuilder({
     // Nothing can be inserted above the first trigger — start node is always the entry point
     if (insertAtBeginning || afterNodeId === START_NODE_ID) return;
 
-    const isVoiceCallDrop = type === 'task' && (description === 'Initiate voice call' || label === 'Initiate voice call');
+    if (
+      isFrontDeskAgent(agentName)
+      && (description === INITIATE_VOICE_CALL_TASK || label === INITIATE_VOICE_CALL_TASK)
+    ) {
+      return;
+    }
+
+    const isVoiceCallDrop = type === 'task' && (description === INITIATE_VOICE_CALL_TASK || label === INITIATE_VOICE_CALL_TASK);
     const effectiveType = isVoiceCallDrop ? 'voiceCall' : type;
 
     const id = nextId();
@@ -1435,7 +1443,7 @@ export default function AgentBuilder({
       setDrawerOpen(true);
       setActiveProcedureId(CUSTOM_PROCEDURE_ID);
     }
-  }, []);
+  }, [agentName, product]);
 
   const handleNodeClick = useCallback((node) => {
     if (node.type === 'end' || node.type === 'branchEnd') return;
@@ -1855,6 +1863,23 @@ export default function AgentBuilder({
       );
     }
 
+    if (flowType === 'task' && (currentDetails.selectedTools || []).includes('send-response')) {
+      return (
+        <RHS
+          variant="sendResponseTask"
+          title="Task"
+          viewOnly={viewOnly}
+          product={product}
+          bodyProps={{
+            initialValues: currentDetails,
+            onFieldChange: activeFieldChange,
+          }}
+          onClose={handleCloseDrawer}
+          onSave={handleCloseDrawer}
+        />
+      );
+    }
+
     return (
       <RHS
         variant="entityTask"
@@ -1989,6 +2014,7 @@ export default function AgentBuilder({
               defaultOpenSection={defaultOpenSection}
               viewOnly={viewOnly}
               product={product}
+              agentName={agentName}
               procedures={procedures}
               onCollapse={viewOnly ? undefined : () => setLhsCollapsed(true)}
               onProcedureClick={viewOnly ? undefined : (procedureId) => {
@@ -2021,6 +2047,7 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               product={product}
+              agentName={agentName}
               onEdit={viewOnly ? onEdit : undefined}
               onRun={() => {
                 if (isReminderAgent) {

@@ -10,4 +10,6 @@ export interface VoicemailMessageProps {
   audioUrl?: string
   /** Override drawer transcript; defaults to the Rock Dental demo messages. */
   messages?: VoiceChatMessage[]
+  /** Contact name for the transcript drawer title ("Call with …"). */
+  contactName?: string
 }

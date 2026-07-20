@@ -186,7 +186,7 @@ export function ReviewSummaryStep({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="w-full max-w-[700px]">
+      <div className="w-full max-w-[978px]">
         <h2 className="text-h3 text-text-primary">Review summary</h2>
         <p className="mt-xs text-small text-text-secondary">
           Review your configurations before creating the agent.
@@ -194,7 +194,7 @@ export function ReviewSummaryStep({
       </div>
 
       {/* Getting started */}
-      <section className="w-full max-w-[700px] pt-3xl">
+      <section className="w-full max-w-[978px] pt-3xl">
         <SectionHeader
           title="Getting started"
           editAriaLabel="Edit getting started"
@@ -222,7 +222,7 @@ export function ReviewSummaryStep({
       </section>
 
       {/* Configure agent */}
-      <section className="w-full max-w-[700px] pt-3xl">
+      <section className="w-full max-w-[978px] pt-3xl">
         <SectionHeader
           title="Configure agent"
           editAriaLabel="Edit configure agent"
@@ -261,7 +261,7 @@ export function ReviewSummaryStep({
       </section>
 
       {/* Channel configuration */}
-      <section className="w-full max-w-[700px] pt-3xl">
+      <section className="w-full max-w-[978px] pt-3xl">
         <SectionHeader
           title="Channel configuration"
           editAriaLabel="Edit channel configuration"
@@ -366,7 +366,7 @@ export function ReviewSummaryStep({
         )}
       </section>
 
-      {/* Procedures — full canvas width, 3 cards per row */}
+      {/* Procedures — full content width, 3 cards per row */}
       <section className="w-full pt-3xl">
         <SectionHeader
           title="Procedures"
@@ -374,7 +374,7 @@ export function ReviewSummaryStep({
           onEdit={() => onEditStep(4)}
         />
         {selectedProcedures.length === 0 ? (
-          <div className={`${READONLY_SHELL} flex h-16 max-w-[700px] items-center justify-center px-md text-text-tertiary`}>
+          <div className={`${READONLY_SHELL} flex h-16 w-full items-center justify-center px-md text-text-tertiary`}>
             No procedures selected.
           </div>
         ) : (

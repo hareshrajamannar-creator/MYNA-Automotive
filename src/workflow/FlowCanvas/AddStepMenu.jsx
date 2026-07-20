@@ -10,6 +10,7 @@ import './AddStepMenu.css';
 const ITEM_DESCRIPTIONS = {
   'Initiate voice call': 'Call the customer',
   'In-call SMS': 'Send a text message to the caller during the active call',
+  'Send response': 'Sends a voice / text message to the user at the defined point in the conversation',
   'In call text': 'Send a text message during the active call',
   'Schedule appointment': 'Book a new appointment for the customer',
   'Book new appointment': 'Book a new appointment for the customer',
@@ -91,6 +92,7 @@ export default function AddStepMenu({
   anchorRect,
   anchorRef,
   product = 'healthcare',
+  agentName = '',
   onClose,
   onSelect,
 }) {
@@ -103,7 +105,7 @@ export default function AddStepMenu({
 
   const taskCards = useMemo(() => getAddStepTaskCards(product), [product]);
   const controlCards = useMemo(() => getAddStepControlCards(), []);
-  const subItemsMap = useMemo(() => getTaskSubItems(product), [product]);
+  const subItemsMap = useMemo(() => getTaskSubItems(product, agentName), [product, agentName]);
 
   useEffect(() => {
     if (!open) {

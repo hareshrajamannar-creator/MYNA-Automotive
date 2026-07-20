@@ -530,7 +530,7 @@ function ChannelAccordion({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-surface">
+    <div className="overflow-hidden rounded-md border border-border bg-surface-l2">
       <div className="flex h-14 items-center justify-between px-lg hover:bg-surface-l2">
         <button
           type="button"
@@ -823,7 +823,7 @@ function FrontDeskSettings() {
   }
 
   return (
-    <div className="flex w-full max-w-[700px] flex-col gap-md">
+    <div className="flex w-full flex-col gap-md">
       {/* System prompt */}
       <div className="flex flex-col gap-xs">
         <div className="flex items-center gap-xs">
@@ -1148,16 +1148,19 @@ export function AgentSettingsTab({
 
   if (isFrontDeskAgent(agentName)) {
     return (
-      <div className="px-2xl pt-lg pb-2xl">
-        <FrontDeskSettings />
+      <div className="flex gap-2xl px-2xl pt-lg pb-2xl">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <FrontDeskSettings />
+        </div>
+        {/* Same right-column width as ProcedureDetailScreen Context panel */}
+        <div className="w-[400px] shrink-0" aria-hidden />
       </div>
     )
   }
 
   return (
-    <div className="px-2xl pt-lg pb-2xl">
-      {/* constrain settings content to ~700px */}
-      <div className="w-full max-w-[700px] space-y-xl">
+    <div className="flex gap-2xl px-2xl pt-lg pb-2xl">
+      <div className="min-w-0 flex-1 space-y-xl">
 
         {/* Channel settings */}
         <section>
@@ -1301,6 +1304,8 @@ export function AgentSettingsTab({
         </section>
 
       </div>
+      {/* Same right-column width as ProcedureDetailScreen Context panel */}
+      <div className="w-[400px] shrink-0" aria-hidden />
     </div>
   )
 }

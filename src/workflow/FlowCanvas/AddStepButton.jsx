@@ -11,6 +11,7 @@ export default function AddStepButton({
   isDraggingFromLHS = false,
   isDragOver = false,
   product = 'healthcare',
+  agentName = '',
   onSelect,
   onDragOver,
   onDragLeave,
@@ -119,6 +120,7 @@ export default function AddStepButton({
         anchorRect={anchorRect}
         anchorRef={btnRef}
         product={product}
+        agentName={agentName}
         onClose={() => setMenuOpen(false)}
         onSelect={(payload) => {
           onSelect?.(payload);

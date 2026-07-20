@@ -489,8 +489,10 @@ export function HCFrontdeskOverviewScreen({ isDental }: HCFrontdeskOverviewScree
             </div>
             <div className="flex items-center gap-md">
               <button type="button" className="flex items-center gap-sm">
-                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=32&h=32&fit=crop&crop=face" alt="" className="size-7 rounded-full object-cover" />
-                <span className="text-body text-text-primary">{selectedConvo.assignee ?? 'Savannah'}</span>
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ai-summary">
+                  <Icon name="auto_awesome" size={16} className="text-ai-brand" />
+                </span>
+                <span className="text-body text-text-primary">{selectedConvo.assignee ?? 'Front desk agent - North region'}</span>
                 <Icon name="expand_more" size={14} className="text-text-icon" />
               </button>
               <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">

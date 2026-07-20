@@ -9,6 +9,7 @@ export default function EndNode({
   onDropBeforeEnd,
   onAddStep = undefined,
   product = 'healthcare',
+  agentName = '',
   hideAdd = false,
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -51,6 +52,7 @@ export default function EndNode({
               isDraggingFromLHS={isDraggingFromLHS}
               isDragOver={isDragOver}
               product={product}
+              agentName={agentName}
               onSelect={(payload) => {
                 if (onAddStep) onAddStep(payload);
                 else onDropBeforeEnd?.(payload.type, payload.label, payload.description);

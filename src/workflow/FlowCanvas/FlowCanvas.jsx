@@ -262,6 +262,7 @@ function EndNodeWrapper({ id, data }) {
         onDropBeforeEnd={data.onDropBeforeEnd}
         onAddStep={data.onAddStepBeforeEnd}
         product={data.product}
+        agentName={data.agentName}
         hideAdd={data.hideAdd}
       />
     </div>
@@ -333,6 +334,7 @@ function AddButtonEdge({ id, source, target, sourceX, sourceY, targetX, targetY,
               isDraggingFromLHS={isDraggingFromLHS}
               isDragOver={isDragOver}
               product={data?.product}
+              agentName={data?.agentName}
               onSelect={handleSelect}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -390,6 +392,7 @@ function FlowCanvasInner({
   selectedNodeId,
   viewOnly = false,
   product = 'healthcare',
+  agentName = '',
 }) {
   const { zoomTo, fitView, setCenter, setViewport, getViewport, getNodes } = useReactFlow();
   const [zoom, setZoom] = useState(100);
@@ -416,6 +419,7 @@ function FlowCanvasInner({
         viewOnly,
         isDraggingFromLHS,
         product,
+        agentName,
         // Inject click handler for inline nodes rendered inside loop containers.
         ...(n.type === 'loop' ? {
           onChildClick: (childId) => onNodeClick?.({ id: childId, type: 'task', data: {} }),
@@ -443,7 +447,7 @@ function FlowCanvasInner({
         ...(n.id === '__end__' ? { hideAdd: !!n.data?.hideAddBeforeEnd } : {}),
       },
     })),
-    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, onNodeClick, product]
+    [nodes, selectedNodeId, viewOnly, isDraggingFromLHS, endEdgeSourceId, onNodeClick, product, agentName]
   );
 
   // Pin start node 24px below the controls bar, horizontally centered, at zoom=1.
@@ -601,6 +605,7 @@ function FlowCanvasInner({
           isDraggingFromLHS,
           viewOnly,
           product,
+          agentName,
           onDropOnEdge: viewOnly ? undefined : (type, label, description) => {
             onDropNodeRef.current?.({
               type,
@@ -612,7 +617,7 @@ function FlowCanvasInner({
           },
         },
       })),
-    [edges, isDraggingFromLHS, viewOnly, product]
+    [edges, isDraggingFromLHS, viewOnly, product, agentName]
   );
 
   const handleViewportChange = useCallback(({ zoom: z }) => {

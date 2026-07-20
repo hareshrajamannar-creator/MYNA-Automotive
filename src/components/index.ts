@@ -1,6 +1,10 @@
 export { Chip } from './Chip/Chip'
 export { ChatBubble, ChatSystemLabel } from './ChatBubble/ChatBubble'
-export type { ChatBubbleProps, ChatSender } from './ChatBubble/ChatBubble.types'
+export type {
+  ChatBubbleProps,
+  ChatSender,
+  MessageFeedbackValue,
+} from './ChatBubble/ChatBubble.types'
 export { EmptyState } from './EmptyState/EmptyState'
 export type { EmptyStateProps } from './EmptyState/EmptyState.types'
 export { InfoTooltip } from './InfoTooltip/InfoTooltip'
@@ -57,6 +61,8 @@ export { DatePickerModal } from './DatePickerModal/DatePickerModal'
 export { MessageDrawer } from './MessageDrawer/MessageDrawer'
 export { QuickSendModal } from './QuickSendModal/QuickSendModal'
 export { Toast } from './Toast/Toast'
+export { ShareFeedbackModal } from './ShareFeedbackModal/ShareFeedbackModal'
+export type { ShareFeedbackModalProps } from './ShareFeedbackModal/ShareFeedbackModal.types'
 export { ViewActivityDrawer } from './ViewActivityDrawer/ViewActivityDrawer'
 export { WeekCalendar } from './WeekCalendar/WeekCalendar'
 export { DayCalendar } from './DayCalendar/DayCalendar'

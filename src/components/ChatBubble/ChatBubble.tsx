@@ -1,5 +1,50 @@
 import type { ReactNode } from 'react'
-import { ChatBubbleProps } from './ChatBubble.types'
+import { Icon } from '../Icon/Icon'
+import { Tooltip } from '../Tooltip/Tooltip'
+import { ChatBubbleProps, MessageFeedbackValue } from './ChatBubble.types'
+
+function MessageFeedback({
+  value = null,
+  onChange,
+}: {
+  value?: MessageFeedbackValue
+  onChange?: (value: MessageFeedbackValue) => void
+}) {
+  const toggle = (next: 'up' | 'down') => {
+    onChange?.(value === next ? null : next)
+  }
+
+  return (
+    <div className="flex items-center gap-xs">
+      <Tooltip content="Good response" variant="brief">
+        <button
+          type="button"
+          aria-label="Good response"
+          aria-pressed={value === 'up'}
+          onClick={() => toggle('up')}
+          className={`flex size-5 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover ${
+            value === 'up' ? 'text-accent-positive' : 'text-text-tertiary'
+          }`}
+        >
+          <Icon name="thumb_up" size={16} />
+        </button>
+      </Tooltip>
+      <Tooltip content="Bad response" variant="brief">
+        <button
+          type="button"
+          aria-label="Bad response"
+          aria-pressed={value === 'down'}
+          onClick={() => toggle('down')}
+          className={`flex size-5 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover ${
+            value === 'down' ? 'text-chip-danger-text' : 'text-text-tertiary'
+          }`}
+        >
+          <Icon name="thumb_down" size={16} />
+        </button>
+      </Tooltip>
+    </div>
+  )
+}
 
 export function ChatBubble({
   sender,
@@ -8,8 +53,12 @@ export function ChatBubble({
   className = '',
   bubbleClassName = '',
   gap = 'gap-xs',
+  showFeedback = false,
+  feedback = null,
+  onFeedbackChange,
 }: ChatBubbleProps) {
   const isBusiness = sender === 'business'
+
   return (
     <div className={`flex flex-col ${gap} ${isBusiness ? 'items-end' : 'items-start'} ${className}`}>
       <div
@@ -21,7 +70,14 @@ export function ChatBubble({
       >
         {text}
       </div>
-      {children}
+      {showFeedback ? (
+        <div className="flex items-center gap-sm">
+          <MessageFeedback value={feedback} onChange={onFeedbackChange} />
+          {children}
+        </div>
+      ) : (
+        children
+      )}
     </div>
   )
 }

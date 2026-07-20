@@ -537,6 +537,18 @@ const _SEED_TOOLS = [
     outputs: [{ name: 'status', type: 'string', description: 'sent | failed' }],
   },
   {
+    id: 'send-response',
+    name: 'Send response',
+    icon: 'reply',
+    description: 'Sends a reply to the customer in the active conversation, on whichever channel — voice, web chat, or text — the conversation is currently on.',
+    category: 'Communication',
+    modules: ['Conversation'],
+    products: ['healthcare'],
+    entities: ['conversation'],
+    inputs: [{ name: 'messageMode', type: 'string' }, { name: 'message', type: 'string' }],
+    outputs: [{ name: 'status', type: 'string', description: 'sent | failed' }],
+  },
+  {
     id: 'auto-follow-up',
     name: 'Auto follow-up',
     icon: 'replay',

@@ -1152,7 +1152,7 @@ function ChannelAccordion({
   const isOpen = collapsible ? open : true
 
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-surface">
+    <div className="overflow-hidden rounded-md border border-border bg-surface-l2">
       {collapsible ? (
         <button
           type="button"
@@ -1199,7 +1199,7 @@ function GettingStartedStep({
         <h2 className="text-h3 text-text-primary">Getting started</h2>
       </div>
 
-      <div className="flex max-w-[700px] flex-col gap-sm">
+      <div className="flex w-full max-w-[978px] flex-col gap-sm">
         <label className="text-body text-text-primary">Name</label>
         <input
           ref={nameInputRef}
@@ -1308,7 +1308,7 @@ function ConfigureAgentStep({
   }
 
   return (
-    <div className="flex w-full max-w-[700px] flex-col gap-xl">
+    <div className="flex w-full max-w-[978px] flex-col gap-xl">
       <div>
         <h2 className="text-h3 text-text-primary">Configure agent</h2>
       </div>
@@ -1531,7 +1531,7 @@ function ConfigureChannelsStep({
   const useAccordion = selectedChannels.size > 1
 
   return (
-    <div className="flex w-full max-w-[700px] flex-col gap-xl">
+    <div className="flex w-full max-w-[978px] flex-col gap-xl">
       <div>
         <h2 className="text-h3 text-text-primary">Select channels</h2>
       </div>

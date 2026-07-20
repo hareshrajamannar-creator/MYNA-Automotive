@@ -15,7 +15,7 @@ export function Toast({ message, visible, onClose }: ToastProps) {
         visible ? 'opacity-100 translate-y-0' : 'pointer-events-none opacity-0 -translate-y-2'
       }`}
     >
-      <Icon name="check" size={20} className="shrink-0 text-success" />
+      <Icon name="check" size={20} className="shrink-0 text-accent-positive" />
       <span className="whitespace-nowrap text-body text-text-primary">{message}</span>
       <button
         type="button"

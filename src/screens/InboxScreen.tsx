@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChartCard, ChatBubble, ChatSystemLabel, DataTable, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, VoicemailMessage, type Column, type NavSection } from '../components'
+import { ChartCard, ChatBubble, ChatSystemLabel, DataTable, Icon, SankeyChart, ShareFeedbackModal, StackedBarChart, SummaryStats, Toast, TopNav, VoicemailMessage, type Column, type MessageFeedbackValue, type NavSection } from '../components'
 import voicemailSample from '../assets/voicemail_sample.mp3'
 import {
   FRONT_DESK_CALL_SUMMARY,
@@ -29,7 +29,7 @@ const CONVERSATIONS: Conversation[] = [
     verified: true,
     message: 'I am having a very bad headache. I think it is migraine.',
     location: 'Rock Dental Brands',
-    assignee: 'Myna',
+    assignee: 'Front desk agent',
     date: '5:30 PM',
     unread: true,
   },
@@ -652,6 +652,31 @@ export function InboxScreen({
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [messageFeedback, setMessageFeedback] = useState<Record<string, MessageFeedbackValue>>({})
+  const [shareFeedbackMessageId, setShareFeedbackMessageId] = useState<string | null>(null)
+  const [toastVisible, setToastVisible] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+
+  const showFeedbackToast = (message: string) => {
+    setToastMessage(message)
+    setToastVisible(true)
+  }
+
+  const handleFeedbackChange = (messageId: string, value: MessageFeedbackValue) => {
+    if (value === 'down') {
+      setShareFeedbackMessageId(messageId)
+      return
+    }
+    setMessageFeedback((prev) => ({ ...prev, [messageId]: value }))
+    if (value === 'up') showFeedbackToast('Thanks for the feedback!')
+  }
+
+  const handleShareFeedbackSubmit = (_details: string) => {
+    if (!shareFeedbackMessageId) return
+    setMessageFeedback((prev) => ({ ...prev, [shareFeedbackMessageId]: 'down' }))
+    setShareFeedbackMessageId(null)
+    showFeedbackToast('Feedback submitted! The agent will be trained on your input.')
+  }
 
   useEffect(() => {
     if (!initialConversationId) return
@@ -685,6 +710,7 @@ export function InboxScreen({
   }
 
   return (
+    <>
     <div className="flex h-full">
       {/* L2 Nav — full height; collapsed while the agent workflow editor is open */}
       {!editingAgentName && <InboxSideNav activeId={activeNav} onSelect={handleNavSelect} />}
@@ -813,12 +839,10 @@ export function InboxScreen({
               </div>
               <div className="flex items-center gap-md">
                 <button type="button" className="flex items-center gap-sm">
-                  <img
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=32&h=32&fit=crop&crop=face"
-                    alt=""
-                    className="size-7 rounded-full object-cover"
-                  />
-                  <span className="text-body text-text-primary">{selectedConvo.sublocation ?? 'Savannah'}</span>
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ai-summary">
+                    <Icon name="auto_awesome" size={16} className="text-ai-brand" />
+                  </span>
+                  <span className="text-body text-text-primary">{selectedConvo.assignee ?? 'Front desk agent - North region'}</span>
                   <Icon name="expand_more" size={14} className="text-text-icon" />
                 </button>
                 <button type="button" className="flex size-7 items-center justify-center text-text-icon hover:text-text-primary">
@@ -851,6 +875,7 @@ export function InboxScreen({
                 time={isFrontDeskCall ? '5:30 PM' : '10:42 PM'}
                 audioUrl={voicemailSample}
                 messages={isFrontDeskCall ? FRONT_DESK_VOICE_MESSAGES : undefined}
+                contactName={selectedConvo.name}
               />
 
               {/* Subsequent events */}
@@ -868,7 +893,18 @@ export function InboxScreen({
                 if (event.kind === 'bubble') {
                   const isAgent = event.sender === 'agent'
                   return (
-                    <ChatBubble key={event.id} sender={isAgent ? 'business' : 'user'} text={event.text}>
+                    <ChatBubble
+                      key={event.id}
+                      sender={isAgent ? 'business' : 'user'}
+                      text={event.text}
+                      showFeedback={isAgent}
+                      feedback={isAgent ? (messageFeedback[event.id] ?? null) : undefined}
+                      onFeedbackChange={
+                        isAgent
+                          ? (value) => handleFeedbackChange(event.id, value)
+                          : undefined
+                      }
+                    >
                       <span className="text-small text-text-tertiary">
                         {'attribution' in event && event.attribution ? `${event.attribution} • ` : ''}
                         {event.time}
@@ -958,5 +994,17 @@ export function InboxScreen({
         )}
       </div>
     </div>
+
+    <ShareFeedbackModal
+      open={shareFeedbackMessageId !== null}
+      onClose={() => setShareFeedbackMessageId(null)}
+      onSubmit={handleShareFeedbackSubmit}
+    />
+    <Toast
+      message={toastMessage}
+      visible={toastVisible}
+      onClose={() => setToastVisible(false)}
+    />
+    </>
   )
 }

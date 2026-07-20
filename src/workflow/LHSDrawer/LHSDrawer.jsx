@@ -187,6 +187,7 @@ export const HEALTHCARE_TASK_SUB_ITEMS = {
     items: [
       'Initiate voice call',
       'In-call SMS',
+      'Send response',
     ],
   },
   Appointment: {
@@ -218,6 +219,33 @@ export const HEALTHCARE_TASK_SUB_ITEMS = {
 };
 
 export { AUTOMOTIVE_TASK_SUB_ITEMS };
+
+export const INITIATE_VOICE_CALL_TASK = 'Initiate voice call';
+
+/** True for "Front desk agent" and regional instances (e.g. "Front desk agent - North region"). */
+export function isFrontDeskAgent(agentName = '') {
+  const base = String(agentName).replace(/ - .+$/, '').trim();
+  return base === 'Front desk agent';
+}
+
+/** Remove task sub-items unavailable for the current agent. */
+export function filterTaskItemsForAgent(items = [], agentName = '') {
+  if (!isFrontDeskAgent(agentName)) return items;
+  return items.filter((item) => item !== INITIATE_VOICE_CALL_TASK);
+}
+
+function filterTaskSubItemsMap(subItemsMap, agentName = '') {
+  if (!isFrontDeskAgent(agentName)) return subItemsMap;
+  return Object.fromEntries(
+    Object.entries(subItemsMap).map(([key, group]) => [
+      key,
+      {
+        ...group,
+        items: filterTaskItemsForAgent(group.items, agentName),
+      },
+    ]),
+  );
+}
 
 const READONLY_TRIGGER_SUBMENUS = new Set(['Contact-trigger', 'Appointment-trigger']);
 const READONLY_TASK_SUBMENUS = new Set(['Conversation', 'Contact', 'Appointment']);
@@ -395,9 +423,10 @@ export const CONTROL_CARDS = [
 ];
 
 /** Sub-items for the canvas add-step menu, keyed by product. */
-export function getTaskSubItems(product = 'automotive') {
+export function getTaskSubItems(product = 'automotive', agentName = '') {
   const isHC = product === 'healthcare' || product === 'dental';
-  return isHC ? HEALTHCARE_TASK_SUB_ITEMS : AUTOMOTIVE_TASK_SUB_ITEMS;
+  const base = isHC ? HEALTHCARE_TASK_SUB_ITEMS : AUTOMOTIVE_TASK_SUB_ITEMS;
+  return filterTaskSubItemsMap(base, agentName);
 }
 
 /** Task cards for the canvas add-step menu (excludes External apps for a cleaner popover). */
@@ -529,6 +558,7 @@ export default function LHSDrawer({
   defaultOpenSection = 'Tasks',
   viewOnly = false,
   product = 'automotive',
+  agentName = '',
   procedures = null,
   onProcedureClick = null,
   onCollapse = null,
@@ -707,6 +737,12 @@ export default function LHSDrawer({
   const activeSubItems = expandedCard && !showExternalAppsDropdown
     ? allSubItems[expandedCard]
     : null;
+  const visibleSubItems = activeSubItems
+    ? {
+        ...activeSubItems,
+        items: filterTaskItemsForAgent(activeSubItems.items, agentName),
+      }
+    : null;
 
   const cancelCloseDropdown = () => {
     if (closeDropdownTimerRef.current) {
@@ -812,7 +848,7 @@ export default function LHSDrawer({
         </div>
       )}
 
-      {(activeSubItems || showExternalAppsDropdown) && (
+      {(visibleSubItems || showExternalAppsDropdown) && (
         <div
           className="lhs-drawer__dropdown-zone"
           style={{ top: dropdownTop }}
@@ -828,8 +864,8 @@ export default function LHSDrawer({
             />
           ) : (
             <LHSEntityGroup
-              title={activeSubItems.title}
-              items={activeSubItems.items}
+              title={visibleSubItems.title}
+              items={visibleSubItems.items}
               nodeType={expandedSection === 'trigger' ? 'trigger' : expandedSection === 'procedures' ? 'procedures' : 'task'}
               parentLabel={expandedCard}
               onItemsChange={(newItems) => handleSubItemsChange(expandedCard, newItems)}

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 
 import '../../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 import { CallRecordingPlayer } from '../CallRecordingPlayer/CallRecordingPlayer'
+import { ChatBubble, ChatSystemLabel } from '../ChatBubble/ChatBubble'
 import type { VoiceChatDrawerProps } from './VoiceChatDrawer.types'
 
 export function VoiceChatDrawer({
@@ -12,10 +13,12 @@ export function VoiceChatDrawer({
   audioUrl,
   durationSecs = 0,
   mode = 'voice',
+  title,
   onClose,
 }: VoiceChatDrawerProps) {
   const isChat = mode === 'chat'
   const [summaryOpen, setSummaryOpen] = useState(true)
+  const headerTitle = title ?? (isChat ? 'Chat with Myna' : 'Call with Myna')
 
   if (!open) return null
 
@@ -28,7 +31,7 @@ export function VoiceChatDrawer({
             <button className="pp-details__back-btn" type="button" onClick={onClose} aria-label="Back">
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
-            <span className="pp-details__title">{isChat ? 'Chat with Myna' : 'Call with Myna'}</span>
+            <span className="pp-details__title">{headerTitle}</span>
           </div>
 
           <div className="pp-details__body">
@@ -60,30 +63,19 @@ export function VoiceChatDrawer({
               </div>
             )}
 
-            {/* Transcript */}
+            {/* Transcript — same bubble template as inbox; side padding matches summary card */}
             <div className="pp-details__transcript">
               {messages.map((m) => {
                 if (m.role === 'system') {
-                  return (
-                    <div key={m.id} className="pp-system">
-                      {m.text}
-                    </div>
-                  )
+                  return <ChatSystemLabel key={m.id} text={m.text} />
                 }
                 if (m.role === 'agent') {
                   return (
-                    <div key={m.id} className="pp-agent-row">
-                      <div className="pp-agent-avatar">
-                        <span className="material-symbols-outlined">auto_awesome</span>
-                      </div>
-                      <p className="pp-agent-text">{m.text}</p>
-                    </div>
+                    <ChatBubble key={m.id} sender="business" text={m.text} />
                   )
                 }
                 return (
-                  <div key={m.id} className="pp-user-row">
-                    <p className="pp-user-bubble">{m.text}</p>
-                  </div>
+                  <ChatBubble key={m.id} sender="user" text={m.text} />
                 )
               })}
             </div>
