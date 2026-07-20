@@ -15,7 +15,7 @@ export function ShareFeedbackModal({ open, onClose, onSubmit }: ShareFeedbackMod
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/40"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}

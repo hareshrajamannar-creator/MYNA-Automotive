@@ -4,6 +4,9 @@ import { createPortal } from 'react-dom'
 import '../../workflow/Molecules/PreviewPanel/PreviewPanel.css'
 import { CallRecordingPlayer } from '../CallRecordingPlayer/CallRecordingPlayer'
 import { ChatBubble, ChatSystemLabel } from '../ChatBubble/ChatBubble'
+import type { MessageFeedbackValue } from '../ChatBubble/ChatBubble.types'
+import { ShareFeedbackModal } from '../ShareFeedbackModal/ShareFeedbackModal'
+import { Toast } from '../Toast/Toast'
 import type { VoiceChatDrawerProps } from './VoiceChatDrawer.types'
 
 export function VoiceChatDrawer({
@@ -18,7 +21,25 @@ export function VoiceChatDrawer({
 }: VoiceChatDrawerProps) {
   const isChat = mode === 'chat'
   const [summaryOpen, setSummaryOpen] = useState(true)
+  const [messageFeedback, setMessageFeedback] = useState<Record<string, MessageFeedbackValue>>({})
+  const [shareFeedbackId, setShareFeedbackId] = useState<string | null>(null)
+  const [toastVisible, setToastVisible] = useState(false)
   const headerTitle = title ?? (isChat ? 'Chat with Myna' : 'Call with Myna')
+
+  const handleFeedbackChange = (id: string, value: MessageFeedbackValue) => {
+    if (value === 'down') {
+      setShareFeedbackId(id)
+      return
+    }
+    setMessageFeedback((prev) => ({ ...prev, [id]: value }))
+    if (value === 'up') setToastVisible(true)
+  }
+
+  const handleShareFeedbackSubmit = () => {
+    if (shareFeedbackId === null) return
+    setMessageFeedback((prev) => ({ ...prev, [shareFeedbackId]: 'down' }))
+    setShareFeedbackId(null)
+  }
 
   if (!open) return null
 
@@ -71,7 +92,14 @@ export function VoiceChatDrawer({
                 }
                 if (m.role === 'agent') {
                   return (
-                    <ChatBubble key={m.id} sender="business" text={m.text} />
+                    <ChatBubble
+                      key={m.id}
+                      sender="business"
+                      text={m.text}
+                      showFeedback
+                      feedback={messageFeedback[String(m.id)] ?? null}
+                      onFeedbackChange={(value) => handleFeedbackChange(String(m.id), value)}
+                    />
                   )
                 }
                 return (
@@ -82,6 +110,17 @@ export function VoiceChatDrawer({
           </div>
         </div>
       </div>
+
+      <ShareFeedbackModal
+        open={shareFeedbackId !== null}
+        onClose={() => setShareFeedbackId(null)}
+        onSubmit={handleShareFeedbackSubmit}
+      />
+      <Toast
+        message="Thanks for the feedback!"
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+      />
     </div>,
     document.body,
   )

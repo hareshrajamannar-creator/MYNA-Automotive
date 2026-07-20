@@ -29,10 +29,29 @@ function MessageFeedback({
           <Icon name="thumb_up" size={16} />
         </button>
       </Tooltip>
-      <Tooltip content="Bad response" variant="brief">
+      <Tooltip
+        content={
+          value === 'down' ? (
+            <span>
+              Feedback submitted.{' '}
+              <button
+                type="button"
+                className="text-white underline hover:opacity-90"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Track
+              </button>
+            </span>
+          ) : (
+            'Bad response'
+          )
+        }
+        variant={value === 'down' ? 'detail' : 'brief'}
+        interactive={value === 'down'}
+      >
         <button
           type="button"
-          aria-label="Bad response"
+          aria-label={value === 'down' ? 'Feedback submitted' : 'Bad response'}
           aria-pressed={value === 'down'}
           onClick={() => toggle('down')}
           className={`flex size-5 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover ${

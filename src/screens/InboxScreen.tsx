@@ -4,9 +4,12 @@ import voicemailSample from '../assets/voicemail_sample.mp3'
 import {
   FRONT_DESK_CALL_SUMMARY,
   FRONT_DESK_INBOX_CONVERSATION_ID,
-  FRONT_DESK_INBOX_EVENTS,
   FRONT_DESK_VOICE_MESSAGES,
 } from '../data/frontDeskCallConversation'
+import {
+  ANNETTE_BLACK_CHAT_EVENTS,
+  ANNETTE_BLACK_CONVERSATION_ID,
+} from '../data/annetteBlackChatConversation'
 import { AgentDetailScreen } from './AgentDetailScreen'
 import { WorkflowEditorScreen } from './WorkflowEditorScreen'
 
@@ -34,7 +37,16 @@ const CONVERSATIONS: Conversation[] = [
     unread: true,
   },
   { id: '1', name: 'Cameron Williamson', verified: true, message: 'You can find more details here: https://birdeye.com', location: 'Austin', sublocation: 'Savannah', date: '03:25 PM' },
-  { id: '2', name: 'Annette Black',      verified: true, message: 'Kelsy Hiltz: yes',                                   location: 'San Francisco', assignee: 'Kelsy Hiltz', date: 'Dec 31, 2022', unread: true },
+  {
+    id: ANNETTE_BLACK_CONVERSATION_ID,
+    name: 'Annette Black',
+    verified: true,
+    message: 'That helped!',
+    location: 'Rock Dental Brands',
+    assignee: 'Myna',
+    date: '02:09 PM',
+    unread: true,
+  },
   { id: '3', name: 'Wade Warren',                        message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022', unread: true },
   { id: '4', name: 'Floyd Miles',                        message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022', unread: true },
   { id: '5', name: 'Brooklyn Simmons',                   message: 'Robin: Was your question answered?',                  location: 'San Francisco', assignee: 'USA - Sales', date: 'Dec 11, 2022' },
@@ -44,8 +56,18 @@ const CONVERSATIONS: Conversation[] = [
 
 type ChatEvent =
   | { kind: 'date';      id: string; label: string }
-  | { kind: 'status';    id: string; text: string; time: string }
-  | { kind: 'bubble';    id: string; sender: 'customer' | 'agent'; text: string; attribution?: string; time: string }
+  | { kind: 'status';    id: string; text: string; time?: string }
+  | {
+      kind: 'bubble'
+      id: string
+      sender: 'customer' | 'agent'
+      text?: string
+      fields?: { label: string; value: string }[]
+      attribution?: string
+      time: string
+      showLink?: boolean
+      isBot?: boolean
+    }
   | { kind: 'recording'; id: string; time: string }
 
 const CHAT_EVENTS: ChatEvent[] = [
@@ -91,10 +113,6 @@ const INBOX_NAV_SECTIONS: NavSection[] = [
   //   ],
   // },
 ]
-
-const NAV_LABELS: Record<string, string> = Object.fromEntries(
-  INBOX_NAV_SECTIONS.flatMap((section) => section.items?.map((item) => [item.id, item.label]) ?? [])
-)
 
 interface TabSet {
   visible: { id: string; label: string }[]
@@ -671,11 +689,20 @@ export function InboxScreen({
     if (value === 'up') showFeedbackToast('Thanks for the feedback!')
   }
 
+  const handleShareFeedbackClose = () => {
+    setShareFeedbackMessageId(null)
+  }
+
   const handleShareFeedbackSubmit = (_details: string) => {
     if (!shareFeedbackMessageId) return
     setMessageFeedback((prev) => ({ ...prev, [shareFeedbackMessageId]: 'down' }))
     setShareFeedbackMessageId(null)
     showFeedbackToast('Feedback submitted! The agent will be trained on your input.')
+  }
+
+  const feedbackForMessage = (messageId: string): MessageFeedbackValue => {
+    if (shareFeedbackMessageId === messageId) return 'down'
+    return messageFeedback[messageId] ?? null
   }
 
   useEffect(() => {
@@ -692,9 +719,13 @@ export function InboxScreen({
 
   const isInternalChat = activeNav === 'chat-internal-team'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
-  const listTitle = NAV_LABELS[activeNav] ?? 'Inbox'
   const isFrontDeskCall = selectedConvo.id === FRONT_DESK_INBOX_CONVERSATION_ID
-  const threadEvents = isFrontDeskCall ? FRONT_DESK_INBOX_EVENTS : CHAT_EVENTS
+  const isAnnetteChat = selectedConvo.id === ANNETTE_BLACK_CONVERSATION_ID
+  const threadEvents: ChatEvent[] = isAnnetteChat
+    ? ANNETTE_BLACK_CHAT_EVENTS
+    : isFrontDeskCall
+      ? []
+      : CHAT_EVENTS
 
   const searchQ = searchQuery.trim().toLowerCase()
   const visibleConversations = searchQ
@@ -735,9 +766,9 @@ export function InboxScreen({
         <div className="flex flex-1 overflow-hidden">
           {/* Middle panel — conversation list */}
           <div className="flex w-[370px] shrink-0 flex-col border-r border-border">
-            <div className="flex h-[52px] shrink-0 items-center border-b border-border bg-surface px-lg transition-colors focus-within:border-primary">
+            <div className="shrink-0 border-b border-border bg-surface px-lg pt-lg pb-md transition-colors focus-within:border-primary">
               {searchOpen ? (
-                <div className="flex h-9 flex-1 items-center gap-xs">
+                <div className="flex h-9 items-center gap-xs">
                   <Icon name="search" size={20} className="shrink-0 text-text-icon" />
                   <input
                     autoFocus
@@ -760,8 +791,14 @@ export function InboxScreen({
                   </button>
                 </div>
               ) : (
-                <div className="flex w-full items-center justify-between gap-sm">
-                  <h1 className="text-h3 text-text-primary">{listTitle}</h1>
+                <div className="flex w-full items-start justify-between gap-sm">
+                  <div className="flex min-w-0 flex-col gap-xs">
+                    <div className="flex items-center gap-xs">
+                      <span className="text-body text-text-primary">OPEN</span>
+                      <Icon name="expand_more" size={16} className="text-text-icon" />
+                    </div>
+                    <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
+                  </div>
                   <div className="flex shrink-0 items-center gap-md">
                     <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="text-text-icon hover:text-text-primary">
                       <Icon name="search" size={20} />
@@ -774,22 +811,14 @@ export function InboxScreen({
               )}
             </div>
 
-            <div className="flex flex-col gap-xs px-lg pt-lg">
-              <div className="flex items-center gap-xs">
-                <span className="text-body text-text-primary">OPEN</span>
-                <Icon name="expand_more" size={16} className="text-text-icon" />
-              </div>
-              <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
-            </div>
-
             {!isInternalChat && (
-              <div className="px-lg pt-sm">
+              <div className="px-lg">
                 <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
               </div>
             )}
 
             {/* Conversation list */}
-            <div className="flex-1 overflow-y-auto px-sm py-sm">
+            <div className="flex-1 overflow-y-auto px-lg pt-md pb-sm">
               {visibleConversations.map((convo) => (
                 <button
                   key={convo.id}
@@ -840,7 +869,7 @@ export function InboxScreen({
               <div className="flex items-center gap-md">
                 <button type="button" className="flex items-center gap-sm">
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ai-summary">
-                    <Icon name="auto_awesome" size={16} className="text-ai-brand" />
+                    <Icon name="smart_toy" size={16} className="text-ai-brand" />
                   </span>
                   <span className="text-body text-text-primary">{selectedConvo.assignee ?? 'Front desk agent - North region'}</span>
                   <Icon name="expand_more" size={14} className="text-text-icon" />
@@ -854,86 +883,116 @@ export function InboxScreen({
             {/* Chat messages */}
             <div className="flex flex-1 flex-col gap-md overflow-y-auto px-2xl py-lg">
 
-              {/* Date separator */}
-              <div className="flex items-center justify-center">
-                <span className="text-small text-text-tertiary">
-                  {isFrontDeskCall ? 'Tue • Feb 25' : 'Fri • Jun 12'}
-                </span>
-              </div>
+              {isFrontDeskCall ? (
+                <>
+                  <div className="flex items-center justify-center">
+                    <span className="text-small text-text-tertiary">Tue • Feb 25</span>
+                  </div>
+                  <VoicemailMessage
+                    variant="voice-chat"
+                    transcript=""
+                    summary={FRONT_DESK_CALL_SUMMARY}
+                    duration="00:53"
+                    durationSecs={53}
+                    time="5:30 PM"
+                    audioUrl={voicemailSample}
+                    messages={FRONT_DESK_VOICE_MESSAGES}
+                    contactName={selectedConvo.name}
+                  />
+                </>
+              ) : !isAnnetteChat ? (
+                <>
+                  <div className="flex items-center justify-center">
+                    <span className="text-small text-text-tertiary">Fri • Jun 12</span>
+                  </div>
+                  <VoicemailMessage
+                    variant="voice-chat"
+                    transcript="Hello. I was trying to get a hold of Joanne about her rental. She can call me back at 5807437121. Thank you."
+                    summary="Patient reported tooth-origin pain with mild swelling (no fever or breathing issues). Myna screened symptoms and offered an urgent appointment, but the patient ended the call."
+                    duration="00:11"
+                    durationSecs={11}
+                    time="10:42 PM"
+                    audioUrl={voicemailSample}
+                    contactName={selectedConvo.name}
+                  />
+                </>
+              ) : null}
 
-              {/* Voice call card */}
-              <VoicemailMessage
-                variant="voice-chat"
-                transcript="Hello. I was trying to get a hold of Joanne about her rental. She can call me back at 5807437121. Thank you."
-                summary={
-                  isFrontDeskCall
-                    ? FRONT_DESK_CALL_SUMMARY
-                    : 'Patient reported tooth-origin pain with mild swelling (no fever or breathing issues). Myna screened symptoms and offered an urgent appointment, but the patient ended the call.'
-                }
-                duration={isFrontDeskCall ? '00:53' : '00:11'}
-                durationSecs={isFrontDeskCall ? 53 : 11}
-                time={isFrontDeskCall ? '5:30 PM' : '10:42 PM'}
-                audioUrl={voicemailSample}
-                messages={isFrontDeskCall ? FRONT_DESK_VOICE_MESSAGES : undefined}
-                contactName={selectedConvo.name}
-              />
+              {!isFrontDeskCall &&
+                threadEvents.map((event) => {
+                  if (event.kind === 'date') {
+                    return <ChatSystemLabel key={event.id} text={event.label} />
+                  }
 
-              {/* Subsequent events */}
-              {threadEvents.map(event => {
-                if (event.kind === 'date') {
-                  return <ChatSystemLabel key={event.id} text={event.label} />
-                }
+                  if (event.kind === 'status') {
+                    const label =
+                      event.time != null && event.time !== ''
+                        ? `${event.text} • ${event.time}`
+                        : event.text
+                    return <ChatSystemLabel key={event.id} text={label} />
+                  }
 
-                if (event.kind === 'status') {
-                  const label =
-                    'time' in event && event.time ? `${event.text} • ${event.time}` : event.text
-                  return <ChatSystemLabel key={event.id} text={label} />
-                }
-
-                if (event.kind === 'bubble') {
-                  const isAgent = event.sender === 'agent'
-                  return (
-                    <ChatBubble
-                      key={event.id}
-                      sender={isAgent ? 'business' : 'user'}
-                      text={event.text}
-                      showFeedback={isAgent}
-                      feedback={isAgent ? (messageFeedback[event.id] ?? null) : undefined}
-                      onFeedbackChange={
-                        isAgent
-                          ? (value) => handleFeedbackChange(event.id, value)
-                          : undefined
-                      }
-                    >
-                      <span className="text-small text-text-tertiary">
-                        {'attribution' in event && event.attribution ? `${event.attribution} • ` : ''}
-                        {event.time}
-                      </span>
-                    </ChatBubble>
-                  )
-                }
-
-                if (event.kind === 'recording') {
-                  return (
-                    <div key={event.id} className="flex flex-col items-end">
-                      <div className="flex w-[220px] flex-col gap-sm rounded-lg border border-border bg-[#dbeafe] px-md py-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="text-body text-text-primary">Call recording</span>
-                          <span className="text-small text-text-secondary">{event.time}</span>
+                  if (event.kind === 'bubble') {
+                    const isAgent = event.sender === 'agent'
+                    const bubbleText =
+                      event.fields && event.fields.length > 0 ? (
+                        <div className="flex flex-col gap-md">
+                          {event.fields.map((field) => (
+                            <div key={field.label}>
+                              <p className="m-0 text-small text-text-secondary">{field.label}</p>
+                              <p className="m-0 text-body text-text-primary">{field.value}</p>
+                            </div>
+                          ))}
                         </div>
-                        <button type="button" className="flex items-center gap-sm">
-                          <div className="flex size-9 items-center justify-center rounded-full bg-[#1f1f1f]">
-                            <Icon name="play_arrow" size={20} fill className="text-white" />
-                          </div>
-                          <span className="text-body text-text-primary">Play recording</span>
-                        </button>
-                      </div>
-                    </div>
-                  )
-                }
+                      ) : (
+                        event.text ?? ''
+                      )
 
-                return null
-              })}
+                    return (
+                      <ChatBubble
+                        key={event.id}
+                        sender={isAgent ? 'business' : 'user'}
+                        text={bubbleText}
+                        showFeedback={isAgent}
+                        feedback={isAgent ? feedbackForMessage(event.id) : undefined}
+                        onFeedbackChange={
+                          isAgent
+                            ? (value) => handleFeedbackChange(event.id, value)
+                            : undefined
+                        }
+                      >
+                        <span className="flex items-center gap-xs text-small text-text-tertiary">
+                          {!event.isBot && event.attribution ? `${event.attribution} • ` : ''}
+                          {event.time}
+                          {!isAgent && event.showLink && (
+                            <Icon name="link" size={14} className="text-text-tertiary" />
+                          )}
+                        </span>
+                      </ChatBubble>
+                    )
+                  }
+
+                  if (event.kind === 'recording') {
+                    return (
+                      <div key={event.id} className="flex flex-col items-end">
+                        <div className="flex w-[220px] flex-col gap-sm rounded-lg border border-border bg-[#dbeafe] px-md py-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-body text-text-primary">Call recording</span>
+                            <span className="text-small text-text-secondary">{event.time}</span>
+                          </div>
+                          <button type="button" className="flex items-center gap-sm">
+                            <div className="flex size-9 items-center justify-center rounded-full bg-[#1f1f1f]">
+                              <Icon name="play_arrow" size={20} fill className="text-white" />
+                            </div>
+                            <span className="text-body text-text-primary">Play recording</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return null
+                })}
             </div>
 
             {/* Compose box */}
@@ -997,7 +1056,7 @@ export function InboxScreen({
 
     <ShareFeedbackModal
       open={shareFeedbackMessageId !== null}
-      onClose={() => setShareFeedbackMessageId(null)}
+      onClose={handleShareFeedbackClose}
       onSubmit={handleShareFeedbackSubmit}
     />
     <Toast
