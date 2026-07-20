@@ -20,6 +20,8 @@ export default function ProceduresNode({
   viewOnly = false,
   onToggleChange,
   onDelete,
+  onCopy,
+  onReplace,
   onMoveUp,
   onMoveDown,
   canMoveUp = false,
@@ -92,6 +94,8 @@ export default function ProceduresNode({
         viewOnly={viewOnly}
         onToggleChange={handleToggle}
         onDelete={onDelete}
+        onCopy={onCopy}
+        onReplace={onReplace}
         onMoveUp={onMoveUp}
         onMoveDown={onMoveDown}
         canMoveUp={canMoveUp}

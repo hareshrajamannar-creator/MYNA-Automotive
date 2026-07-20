@@ -85,6 +85,8 @@ const DEFAULT_TRANSCRIPT: LogTranscriptEntry[] = [
     llmResponseTime: '0.51s',
     tts: '820ms',
     knowledgeBase: '5s',
+    reasoning:
+      "The caller reported a severe headache and suspected a migraine. I need to determine whether the pain is dental in origin — teeth, jaw, or gums — versus general head pain before routing to urgent care or booking.",
     toolCall: {
       id: 'tool-1',
       name: 'Patient record - Lookup',
@@ -231,9 +233,13 @@ function NestedObjectBlock({
   )
 }
 
-function ToolCallBlock({ tool }: { tool: LogToolCall }) {
-  const [open, setOpen] = useState(false)
+function AgentTurnAccordions({ tool, reasoning }: { tool: LogToolCall; reasoning?: string }) {
+  const [toolOpen, setToolOpen] = useState(false)
+  const [reasoningOpen, setReasoningOpen] = useState(false)
   const [inputsOpen, setInputsOpen] = useState(false)
+
+  const accordionTrigger =
+    'inline-flex items-center gap-xs rounded-[12px] border-0 px-sm py-xs text-small transition-colors hover:bg-surface-hover'
 
   const output: LogToolOutputEntry[] =
     tool.output ??
@@ -256,36 +262,81 @@ function ToolCallBlock({ tool }: { tool: LogToolCall }) {
     void navigator.clipboard?.writeText(text)
   }
 
-  return (
-    <div className="w-[380px] max-w-full rounded-md bg-surface-l2">
-      {/* Header row — same background as the expanded body, no seam on open */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-end gap-sm px-[12px] py-sm text-left text-small hover:opacity-80"
-      >
-        <Icon
-          name={open ? 'expand_more' : 'chevron_right'}
-          size={16}
-          className="shrink-0 text-text-tertiary"
-        />
-        <span className="truncate text-text-action">Tool : {tool.name}</span>
-        <Icon name="check_circle" size={16} fill className="shrink-0 text-accent-positive" />
-        <span className="shrink-0 text-text-tertiary">
-          {`{ ${tool.propertyCount} properties }`}
-          {tool.durationLabel ? ` • ${tool.durationLabel}` : ''}
-        </span>
-      </button>
+  function toggleReasoning() {
+    setReasoningOpen((open) => {
+      const next = !open
+      if (next) {
+        setToolOpen(false)
+        setInputsOpen(false)
+      }
+      return next
+    })
+  }
 
-      {open && (
-        <div className="relative px-[12px] pb-sm">
-          <div className="absolute right-[12px] top-0 z-[1]">
+  function toggleTool() {
+    setToolOpen((open) => {
+      const next = !open
+      if (next) setReasoningOpen(false)
+      else setInputsOpen(false)
+      return next
+    })
+  }
+
+  return (
+    <div className="flex w-full max-w-full flex-col gap-sm">
+      <div className="flex flex-wrap items-center justify-end gap-xs">
+        {reasoning && (
+          <button
+            type="button"
+            onClick={toggleReasoning}
+            className={`${accordionTrigger} text-text-tertiary hover:text-text-secondary ${
+              reasoningOpen ? 'bg-surface-hover hover:bg-surface-hover' : ''
+            }`}
+          >
+            Reasoning
+            <Icon
+              name={reasoningOpen ? 'expand_more' : 'chevron_right'}
+              size={16}
+              className="shrink-0"
+            />
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={toggleTool}
+          className={`${accordionTrigger} min-w-0 text-left ${
+            toolOpen ? 'bg-surface-hover hover:bg-surface-hover' : ''
+          }`}
+        >
+          <span className="truncate text-text-action">Tool : {tool.name}</span>
+          <Icon name="check_circle" size={16} fill className="shrink-0 text-accent-positive" />
+          {tool.durationLabel && (
+            <span className="shrink-0 text-text-tertiary">{tool.durationLabel}</span>
+          )}
+          <Icon
+            name={toolOpen ? 'expand_more' : 'chevron_right'}
+            size={16}
+            className="shrink-0 text-text-tertiary"
+          />
+        </button>
+      </div>
+
+      {reasoning && reasoningOpen && (
+        <div className="ml-auto w-[380px] max-w-full rounded-[12px] bg-surface-l2 px-md py-md">
+          <p className="m-0 text-small leading-[1.6] text-text-secondary">{reasoning}</p>
+        </div>
+      )}
+
+      {toolOpen && (
+        <div className="relative ml-auto w-[380px] max-w-full rounded-[12px] bg-surface-l2 px-md py-md">
+          <div className="absolute right-md top-md z-[1]">
             <Tooltip content="Copy" variant="brief">
               <button
                 type="button"
                 onClick={handleCopy}
                 aria-label="Copy"
-                className="flex size-7 items-center justify-center rounded-sm text-text-tertiary hover:bg-surface-hover hover:text-text-icon"
+                className="flex size-7 items-center justify-center rounded-[12px] text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-icon"
               >
                 <Icon name="content_copy" size={16} />
               </button>
@@ -311,7 +362,7 @@ function ToolCallBlock({ tool }: { tool: LogToolCall }) {
           <button
             type="button"
             onClick={() => {
-              setOpen(false)
+              setToolOpen(false)
               setInputsOpen(false)
             }}
             className="mt-sm text-small text-text-action hover:text-primary-hover"
@@ -359,7 +410,7 @@ function MetaField({ label, value }: { label: string; value: string }) {
 
 function agentMetaLine(entry: Extract<LogTranscriptEntry, { role: 'agent' }>): string | null {
   const parts: string[] = []
-  if (entry.llmResponseTime) parts.push(`LLM response time : ${entry.llmResponseTime}`)
+  if (entry.llmResponseTime) parts.push(`LLM response : ${entry.llmResponseTime}`)
   if (entry.tts) parts.push(`TTS : ${entry.tts}`)
   if (entry.knowledgeBase) parts.push(`Knowledge base : ${entry.knowledgeBase}`)
   return parts.length > 0 ? parts.join(' • ') : null
@@ -399,7 +450,9 @@ function TranscriptEntry({ entry }: { entry: LogTranscriptEntry }) {
       bubbleClassName="max-w-[85%] px-lg py-md"
     >
       {meta && <span className="text-small text-text-tertiary">{meta}</span>}
-      {entry.toolCall && <ToolCallBlock tool={entry.toolCall} />}
+      {entry.toolCall && (
+        <AgentTurnAccordions tool={entry.toolCall} reasoning={entry.reasoning} />
+      )}
     </ChatBubble>
   )
 }

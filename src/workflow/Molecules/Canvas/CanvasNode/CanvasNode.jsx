@@ -20,6 +20,8 @@ export default function CanvasNode({
   hasAddButton = false,
   onAddClick,
   onDelete,
+  onCopy,
+  onReplace,
   state = 'default',
 }) {
   const [on, setOn] = useState(toggleEnabled);
@@ -51,6 +53,8 @@ export default function CanvasNode({
         hasAddButton={hasAddButton && !viewOnly}
         onAddClick={onAddClick}
         onDelete={onDelete}
+        onCopy={onCopy}
+        onReplace={onReplace}
       />
       {(stepNumber != null || title) && (
         <div className={isOff ? 'canvas-node__body--disabled' : undefined}>

@@ -597,6 +597,59 @@ function nextId() {
   return `node-${nodeIdCounter}`;
 }
 
+function duplicateNodeDetails(sourceId, newId, allDetails) {
+  const source = allDetails[sourceId];
+  if (!source) return { nodeDetails: {}, extraDetails: {} };
+
+  const cloned = JSON.parse(JSON.stringify(source));
+  const extraDetails = {};
+
+  if (Array.isArray(cloned.branches)) {
+    cloned.branches = cloned.branches.map((branch, index) => {
+      const newPathId = `${newId}-path-copy-${index}-${Date.now()}`;
+      const pathDetails = allDetails[branch.id];
+      extraDetails[newPathId] = pathDetails
+        ? {
+            ...JSON.parse(JSON.stringify(pathDetails)),
+            parentId: newId,
+            nodes: (pathDetails.nodes || []).map((child) => {
+              const childNewId = nextId();
+              if (allDetails[child.id]) {
+                extraDetails[childNewId] = JSON.parse(JSON.stringify(allDetails[child.id]));
+              }
+              return { ...child, id: childNewId, data: { ...child.data } };
+            }),
+          }
+        : {
+            branchName: branch.name,
+            description: '',
+            conditions: [],
+            parentId: newId,
+            isBranchPath: true,
+            isFallback: branch.isFallback,
+            isVoiceCallBranch: branch.isVoiceCallBranch,
+            nodes: [],
+          };
+      return { ...branch, id: newPathId };
+    });
+  }
+
+  if (Array.isArray(cloned.nodes) && !cloned.isBranchPath) {
+    cloned.nodes = (source.nodes || []).map((inner) => {
+      const innerNewId = nextId();
+      if (allDetails[inner.id]) {
+        extraDetails[innerNewId] = JSON.parse(JSON.stringify(allDetails[inner.id]));
+      }
+      return { ...inner, id: innerNewId, data: { ...inner.data } };
+    });
+  }
+
+  return {
+    nodeDetails: { [newId]: cloned },
+    extraDetails,
+  };
+}
+
 export default function AgentBuilder({
   agentId: propAgentId,
   agentSlug: propAgentSlug,
@@ -665,6 +718,7 @@ export default function AgentBuilder({
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lhsCollapsed, setLhsCollapsed] = useState(false);
+  const [lhsForceOpenSection, setLhsForceOpenSection] = useState(null);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
     const startNode = base[START_NODE_ID];
@@ -1069,6 +1123,8 @@ export default function AgentBuilder({
 
   const handleDeleteNode = useCallback((nodeId) => {
     setNodeList((prev) => {
+      const target = prev.find((n) => n.id === nodeId);
+      if (!target || target.flowType === 'trigger') return prev;
       const updated = prev.filter((n) => n.id !== nodeId);
       return updated.map((n, i) => ({
         ...n,
@@ -1094,6 +1150,33 @@ export default function AgentBuilder({
       setDrawerOpen(false);
     }
   }, [selectedNodeId]);
+
+  const handleCopyNode = useCallback((nodeId) => {
+    const newId = nextId();
+    setNodeList((prev) => {
+      const idx = prev.findIndex((n) => n.id === nodeId);
+      if (idx === -1) return prev;
+      if (prev[idx].flowType === 'trigger') return prev;
+      const source = prev[idx];
+      const cloned = {
+        ...source,
+        id: newId,
+        data: { ...source.data },
+      };
+      const updated = [...prev.slice(0, idx + 1), cloned, ...prev.slice(idx + 1)];
+      return updated.map((n, i) => ({ ...n, data: { ...n.data, stepNumber: i + 1 } }));
+    });
+    setNodeDetails((prev) => {
+      const { nodeDetails, extraDetails } = duplicateNodeDetails(nodeId, newId, prev);
+      if (!nodeDetails[newId]) return prev;
+      return { ...prev, ...nodeDetails, ...extraDetails };
+    });
+  }, []);
+
+  const handleReplaceTrigger = useCallback(() => {
+    setLhsCollapsed(false);
+    setLhsForceOpenSection('Trigger');
+  }, []);
 
   const handleAddBranchPath = useCallback((branchNodeId) => {
     const newPathId = `${branchNodeId}-path-${Date.now()}`;
@@ -1204,12 +1287,17 @@ export default function AgentBuilder({
     if (n.type === 'branchEnd') return n;
     const nodeIdx = nodeList.findIndex((nl) => nl.id === n.id);
     const extra = {
-      onDelete: () => handleDeleteNode(n.id),
       onMoveUp: () => handleMoveNode(n.id, 'up'),
       onMoveDown: () => handleMoveNode(n.id, 'down'),
       canMoveUp: !viewOnly && nodeIdx > 0,
       canMoveDown: !viewOnly && nodeIdx !== -1 && nodeIdx < nodeList.length - 1,
     };
+    if (n.type === 'trigger') {
+      extra.onReplace = () => handleReplaceTrigger();
+    } else {
+      extra.onDelete = () => handleDeleteNode(n.id);
+      extra.onCopy = () => handleCopyNode(n.id);
+    }
     if (n.type === 'branch') extra.onAddBranch = () => handleAddBranchPath(n.id);
     if (n.type === 'task' && !viewOnly) {
       extra.onToggleChange = (enabled) => handleNodeToggleChange(n.id, enabled);
@@ -1322,6 +1410,36 @@ export default function AgentBuilder({
         description: taskDefaults.description ?? '',
         ...(taskDefaults.selectedTools ? { selectedTools: taskDefaults.selectedTools } : {}),
       };
+    }
+
+    if (effectiveType === 'trigger' && !branchPathId) {
+      const currentList = latestRef.current.nodeList || [];
+      const triggerIdx = currentList.findIndex((n) => n.flowType === 'trigger');
+      const oldTriggerId = triggerIdx !== -1 ? currentList[triggerIdx].id : null;
+
+      setNodeList((prev) => {
+        const idx = prev.findIndex((n) => n.flowType === 'trigger');
+        let updated;
+        if (idx !== -1) {
+          updated = [...prev];
+          updated[idx] = newNode;
+        } else {
+          updated = [newNode, ...prev];
+        }
+        return updated.map((n, i) => ({ ...n, data: { ...n.data, stepNumber: i + 1 } }));
+      });
+
+      setNodeDetails((prev) => {
+        const copy = { ...prev };
+        if (oldTriggerId) delete copy[oldTriggerId];
+        return { ...copy, [id]: details };
+      });
+
+      setSelectedNodeId(id);
+      setDrawerOpen(true);
+      setActiveProcedureId(null);
+      setLhsForceOpenSection(null);
+      return;
     }
 
     if (branchPathId) {
@@ -2008,6 +2126,8 @@ export default function AgentBuilder({
             <LHSDrawer
               defaultTab="Create manually"
               defaultOpenSection={defaultOpenSection}
+              forceOpenSection={lhsForceOpenSection}
+              onForceOpenSectionHandled={() => setLhsForceOpenSection(null)}
               viewOnly={viewOnly}
               product={product}
               agentName={agentName}

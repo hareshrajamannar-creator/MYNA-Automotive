@@ -45,6 +45,7 @@ export type LogTranscriptEntry =
       tts?: string
       knowledgeBase?: string
       toolCall?: LogToolCall
+      reasoning?: string
     }
   | { id: string; role: 'caller'; text: string; durationLabel?: string }
 

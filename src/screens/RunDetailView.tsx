@@ -1,6 +1,6 @@
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { Chip, LogDetailsPanel } from '../components'
-import type { HealthcareLogRow } from '../data/healthcareAgentLogs'
+import type { HealthcareLogRow, LogStepId } from '../data/healthcareAgentLogs'
 import StartNode from '../workflow/Molecules/Canvas/StartNode/StartNode'
 import CanvasNode from '../workflow/Molecules/Canvas/CanvasNode/CanvasNode'
 import ProceduresNode from '../workflow/Molecules/Canvas/ProceduresNode/ProceduresNode'
@@ -61,8 +61,23 @@ function RunFlowConnector({
 
 const RUN_PROCEDURE_ITEMS = PROCEDURE_CHIPS.map((name) => ({ id: name, name }))
 
+function getImplementedSteps(row: HealthcareLogRow): LogStepId[] {
+  if (row.implementedSteps?.length) return row.implementedSteps
+  if (row.status === 'Complete') return ['trigger', 'procedures']
+  return ['trigger']
+}
+
 /* ── workflow canvas ── */
-function WorkflowCanvas({ instanceName }: { instanceName: string }) {
+function WorkflowCanvas({
+  instanceName,
+  implementedSteps,
+}: {
+  instanceName: string
+  implementedSteps: LogStepId[]
+}) {
+  const triggerImplemented = implementedSteps.includes('trigger')
+  const proceduresImplemented = implementedSteps.includes('procedures')
+
   return (
     <div className="flow-canvas absolute inset-0 flex flex-col overflow-auto">
       <div
@@ -100,6 +115,9 @@ function WorkflowCanvas({ instanceName }: { instanceName: string }) {
             onToggleChange={() => {}}
             onAddClick={() => {}}
             onDelete={() => {}}
+            onCopy={() => {}}
+            onReplace={() => {}}
+            state={triggerImplemented ? 'implemented' : 'default'}
           />
         </div>
 
@@ -115,11 +133,14 @@ function WorkflowCanvas({ instanceName }: { instanceName: string }) {
             viewOnly
             onToggleChange={() => {}}
             onDelete={() => {}}
+            onCopy={() => {}}
+            onReplace={() => {}}
             onMoveUp={() => {}}
             onMoveDown={() => {}}
             onDropProcedure={() => {}}
             onRemoveProcedure={() => {}}
             onSelectProcedure={() => {}}
+            state={proceduresImplemented ? 'implemented' : 'default'}
           />
         </div>
 
@@ -153,7 +174,10 @@ export function RunDetailView({ row, onBack, onViewConversation }: RunDetailView
 
       {/* Body — full-bleed canvas with overlaid details panel (matches trigger/task RHS) */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <WorkflowCanvas instanceName={instanceName} />
+        <WorkflowCanvas
+          instanceName={instanceName}
+          implementedSteps={getImplementedSteps(row)}
+        />
 
         <div className="preview-panel-float-wrap preview-panel-float-wrap--log-details">
           <LogDetailsPanel row={row} onViewConversation={onViewConversation} />

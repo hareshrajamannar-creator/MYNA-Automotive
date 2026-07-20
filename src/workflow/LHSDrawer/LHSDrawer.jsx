@@ -556,6 +556,8 @@ const AI_OPTIONS = [
 export default function LHSDrawer({
   defaultTab = 'Create manually',
   defaultOpenSection = 'Tasks',
+  forceOpenSection = null,
+  onForceOpenSectionHandled = null,
   viewOnly = false,
   product = 'automotive',
   agentName = '',
@@ -587,6 +589,13 @@ export default function LHSDrawer({
   const [openSection, setOpenSection] = useState(defaultOpenSection);
   const toggleSection = (section) =>
     setOpenSection((prev) => (prev === section ? null : section));
+
+  useEffect(() => {
+    if (forceOpenSection) {
+      setOpenSection(forceOpenSection);
+      onForceOpenSectionHandled?.();
+    }
+  }, [forceOpenSection, onForceOpenSectionHandled]);
   const [search, setSearch] = useState('');
   const [proceduresExpanded, setProceduresExpanded] = useState(false);
   const [eventBasedOpen, setEventBasedOpen] = useState(true);

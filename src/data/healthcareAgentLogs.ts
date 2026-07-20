@@ -2,6 +2,8 @@ import type { Metric } from '../components/MetricTiles/MetricTiles.types'
 
 export type LogStatus = 'Complete' | 'Failed' | 'In progress'
 
+export type LogStepId = 'trigger' | 'procedures'
+
 export interface HealthcareLogRow {
   timestamp: string
   status: LogStatus
@@ -9,7 +11,9 @@ export interface HealthcareLogRow {
   channel: string
   duration: string
   topic: string
-  [key: string]: string
+  /** Workflow steps executed during this run — shown with a green border on the log canvas */
+  implementedSteps?: LogStepId[]
+  [key: string]: string | LogStepId[] | undefined
 }
 
 export const HEALTHCARE_LOGS_METRICS: Metric[] = [
@@ -89,6 +93,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     channel: 'Voice call',
     duration: '0:53',
     topic: 'Tooth pain screening',
+    implementedSteps: ['trigger', 'procedures'],
   },
   {
     timestamp: 'Feb 09, 2024, 11:12 am',
@@ -97,6 +102,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     channel: 'Voice call',
     duration: '1:36',
     topic: 'New patient scheduling',
+    implementedSteps: ['trigger', 'procedures'],
   },
   {
     timestamp: 'Feb 05, 2024, 2:47 pm',
@@ -105,6 +111,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     channel: 'Web chat',
     duration: '1:11',
     topic: 'Appointment reschedule',
+    implementedSteps: ['trigger', 'procedures'],
   },
   {
     timestamp: 'Jan 25, 2024, 9:05 am',
@@ -113,6 +120,7 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     channel: 'Web chat',
     duration: '1:04',
     topic: 'Emergency dental concern',
+    implementedSteps: ['trigger'],
   },
   {
     timestamp: 'Jan 18, 2024, 4:18 pm',
@@ -121,5 +129,6 @@ export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
     channel: 'Voice call',
     duration: '0:18',
     topic: 'Insurance inquiry',
+    implementedSteps: ['trigger'],
   },
 ]
