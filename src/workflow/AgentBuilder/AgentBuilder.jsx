@@ -1344,11 +1344,9 @@ export default function AgentBuilder({
           [id]: details,
         };
       });
-      if (type === 'procedures' && procedureSeed === CUSTOM_PROCEDURE_ID) {
-        setSelectedNodeId(id);
-        setDrawerOpen(true);
-        setActiveProcedureId(CUSTOM_PROCEDURE_ID);
-      }
+      setSelectedNodeId(id);
+      setDrawerOpen(true);
+      setActiveProcedureId(type === 'procedures' && procedureSeed === CUSTOM_PROCEDURE_ID ? CUSTOM_PROCEDURE_ID : null);
       return;
     }
 
@@ -1438,11 +1436,9 @@ export default function AgentBuilder({
       ...extraDetails,
     }));
 
-    if (type === 'procedures' && procedureSeed === CUSTOM_PROCEDURE_ID) {
-      setSelectedNodeId(id);
-      setDrawerOpen(true);
-      setActiveProcedureId(CUSTOM_PROCEDURE_ID);
-    }
+    setSelectedNodeId(id);
+    setDrawerOpen(true);
+    setActiveProcedureId(type === 'procedures' && procedureSeed === CUSTOM_PROCEDURE_ID ? CUSTOM_PROCEDURE_ID : null);
   }, [agentName, product]);
 
   const handleNodeClick = useCallback((node) => {

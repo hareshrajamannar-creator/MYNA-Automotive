@@ -1,5 +1,6 @@
 import React from 'react';
 import RHSSidePanelHeader from '../../../Molecules/RHS/RHSHeader/RHSHeader';
+import RHSPanelFooter from '../../../Molecules/RHS/RHSFooter/RHSFooter';
 import AgentDetailsBody from './AgentDetailsBody';
 import LLMTaskBody from './LLMTaskBody';
 import EntityTaskBody from './EntityTaskBody';
@@ -152,6 +153,9 @@ export default function RHS({ variant = 'agentDetails', title, bodyProps, onClos
           </div>
         </div>
 
+        {!viewOnly && variant === 'createCustomProcedure' && (
+          <RHSPanelFooter onSave={onSave} saveLabel="Save" />
+        )}
       </div>
   );
 }
