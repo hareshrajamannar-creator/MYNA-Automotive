@@ -76,7 +76,7 @@ function StepIndicator({ labels, current }: StepIndicatorProps) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <div
                 className={cn(
-                  'size-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 border transition-colors',
+                  'size-6 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0 border transition-colors',
                   done    && 'bg-primary border-primary text-primary-foreground',
                   active  && 'bg-primary border-primary text-primary-foreground',
                   pending && 'bg-background border-border text-muted-foreground',
@@ -92,7 +92,7 @@ function StepIndicator({ labels, current }: StepIndicatorProps) {
               </div>
               <span
                 className={cn(
-                  'text-[13px] whitespace-nowrap',
+                  'text-[13px] font-medium whitespace-nowrap',
                   active  && 'text-foreground',
                   done    && 'text-muted-foreground',
                   pending && 'text-muted-foreground',
@@ -276,7 +276,7 @@ export function ContentCreationWizardModal({
         <DialogPrimitive.Content
           className={cn(
             'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-            'bg-background rounded-xl shadow-modal',
+            'bg-background rounded-xl shadow-xl',
             'w-full max-w-[640px] max-h-[88vh]',
             'flex flex-col overflow-hidden',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
@@ -287,11 +287,11 @@ export function ContentCreationWizardModal({
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 flex-shrink-0">
-            <p className="text-[15px] text-foreground">{title}</p>
+            <p className="text-[15px] font-semibold text-foreground">{title}</p>
             <button
               type="button"
               onClick={onCancel}
-              className="flex items-center justify-center size-7 rounded-md hover:bg-surface-hover transition-colors text-muted-foreground hover:text-foreground"
+              className="flex items-center justify-center size-7 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             >
               <X size={15} strokeWidth={1.6} absoluteStrokeWidth />
             </button>
@@ -321,7 +321,7 @@ export function ContentCreationWizardModal({
                 size="sm"
                 onClick={handleNext}
                 disabled={!canProceed}
-                className={isRegenerateMode && step === 2 ? 'bg-primary hover:bg-primary-hover' : ''}
+                className={isRegenerateMode && step === 2 ? 'bg-amber-600 hover:bg-amber-700' : ''}
               >
                 {primaryLabel}
               </Button>

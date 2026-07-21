@@ -110,7 +110,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
     <div className="flex flex-col gap-6 p-6">
       {/* Objective */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Objective</label>
+        <label className="text-[13px] font-medium text-foreground">Objective</label>
         <div className="flex flex-col gap-2">
           {OBJECTIVES.map(obj => {
             const selected = objective === obj.id;
@@ -120,13 +120,13 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
                 type="button"
                 onClick={() => onChange({ ...data, objective: obj.id })}
                 className={cn(
-                  'relative flex items-center gap-2 text-left bg-background rounded-lg px-4 py-2 transition-all',
+                  'relative flex items-center gap-3 text-left bg-background rounded-lg px-4 py-3 transition-all',
                   selected ? '' : 'border border-border hover:border-primary/40',
                 )}
                 style={selected ? { border: '2px solid var(--color-primary)' } : undefined}
               >
                 <div className="flex-1 flex flex-col gap-0.5">
-                  <p className="text-[13px] text-foreground">{obj.label}</p>
+                  <p className="text-[13px] font-medium text-foreground">{obj.label}</p>
                   <p className="text-[12px] text-muted-foreground leading-snug">{obj.description}</p>
                 </div>
                 <div className={cn(
@@ -147,7 +147,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
 
       {/* Audience */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Target audience</label>
+        <label className="text-[13px] font-medium text-foreground">Target audience</label>
         <ContentFlowTextarea
           rows={2}
           value={audience}
@@ -159,7 +159,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
 
       {/* Tone */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Tone of voice</label>
+        <label className="text-[13px] font-medium text-foreground">Tone of voice</label>
         <ContentFlowSelect
           value={tone}
           onChange={value => onChange({ ...data, tone: value })}
@@ -168,12 +168,12 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
       </div>
 
       {/* Content mix */}
-      <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Content mix</label>
+      <div className="flex flex-col gap-3">
+        <label className="text-[13px] font-medium text-foreground">Content mix</label>
         {contentMix.map(item => {
           const socialDef = SOCIAL_PLATFORM_BY_LABEL.get(item.type);
           return (
-          <div key={item.type} className="flex items-center gap-2 p-2 border border-border rounded-lg bg-background">
+          <div key={item.type} className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background">
             {socialDef ? (
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <socialDef.Logo size={16} />
@@ -187,15 +187,15 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
                 type="button"
                 onClick={() => adjustCount(item.type, -1)}
                 disabled={item.count <= 1}
-                className="size-6 flex items-center justify-center rounded-md border border-border hover:bg-surface-hover transition-colors disabled:opacity-40"
+                className="size-6 flex items-center justify-center rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-40"
               >
                 <Minus size={12} strokeWidth={1.6} absoluteStrokeWidth />
               </button>
-              <span className="text-[13px] text-foreground w-4 text-center">{item.count}</span>
+              <span className="text-[13px] font-medium text-foreground w-4 text-center">{item.count}</span>
               <button
                 type="button"
                 onClick={() => adjustCount(item.type, 1)}
-                className="size-6 flex items-center justify-center rounded-md border border-border hover:bg-surface-hover transition-colors"
+                className="size-6 flex items-center justify-center rounded-md border border-border hover:bg-muted transition-colors"
               >
                 <Plus size={12} strokeWidth={1.6} absoluteStrokeWidth />
               </button>
@@ -203,7 +203,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
             <button
               type="button"
               onClick={() => removeType(item.type)}
-              className="text-muted-foreground hover:text-foreground text-[11px] px-2 py-1 rounded hover:bg-surface-hover transition-colors"
+              className="text-muted-foreground hover:text-foreground text-[11px] px-2 py-1 rounded hover:bg-muted transition-colors"
             >
               Remove
             </button>
@@ -221,7 +221,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
                   key={t}
                   type="button"
                   onClick={() => addType(t)}
-                  className="flex items-center gap-1.5 border border-dashed border-border rounded-full px-2 py-1 text-[12px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 border border-dashed border-border rounded-full px-3 py-1 text-[12px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
                 >
                   {socialDef ? (
                     <socialDef.Logo size={13} />
@@ -240,7 +240,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
 
       {/* Approval flow */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Approval flow</label>
+        <label className="text-[13px] font-medium text-foreground">Approval flow</label>
         <div className="flex flex-wrap gap-2">
           {APPROVAL_OPTIONS.map(opt => (
             <button
@@ -248,7 +248,7 @@ export function ProjectWizardStep3({ step1Data, data, onChange }: ProjectWizardS
               type="button"
               onClick={() => onChange({ ...data, approvalFlow: opt.id })}
               className={cn(
-                'border rounded-full px-2 py-1.5 text-[12px] transition-colors',
+                'border rounded-full px-3 py-1.5 text-[12px] transition-colors',
                 approvalFlow === opt.id
                   ? 'border-primary bg-primary/5 text-foreground'
                   : 'border-border text-muted-foreground hover:border-primary/40',

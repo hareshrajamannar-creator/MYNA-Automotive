@@ -70,7 +70,7 @@ export function ProjectWizardStep1({ data, onChange }: ProjectWizardStep1Props) 
 
       <div className="space-y-6">
         <div className="space-y-1.5">
-          <label className="text-[13px] text-foreground">
+          <label className="text-[13px] font-medium text-foreground">
             Project name <span className="text-destructive">*</span>
           </label>
           <ContentFlowTextInput
@@ -81,7 +81,7 @@ export function ProjectWizardStep1({ data, onChange }: ProjectWizardStep1Props) 
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[13px] text-foreground">
+          <label className="text-[13px] font-medium text-foreground">
             Brand identity <span className="text-destructive">*</span>
           </label>
           <ContentFlowSelect
@@ -92,7 +92,7 @@ export function ProjectWizardStep1({ data, onChange }: ProjectWizardStep1Props) 
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[13px] text-foreground">Locations <span className="text-destructive">*</span></label>
+          <label className="text-[13px] font-medium text-foreground">Locations <span className="text-destructive">*</span></label>
           <ContentFlowLocationFlatList
             values={locations}
             options={LOCATIONS.map(loc => ({ value: loc.id, label: loc.label }))}

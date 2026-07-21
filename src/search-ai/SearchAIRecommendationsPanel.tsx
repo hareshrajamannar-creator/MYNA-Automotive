@@ -41,7 +41,7 @@ export type SearchAIRecommendation = {
 
 const recommendationColumnHelper = createColumnHelper<SearchAIRecommendation>();
 
-const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
+export const MOCK_RECOMMENDATIONS: SearchAIRecommendation[] = [
   {
     id: "b1",
     title: "Dubbo Property Market Update 2026: What Buyers, Sellers and Landlords Need to Know",

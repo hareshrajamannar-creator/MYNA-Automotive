@@ -54,10 +54,10 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Auto-suggest banner */}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-center gap-2">
+      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-center gap-3">
         <Sparkles size={15} strokeWidth={1.6} absoluteStrokeWidth className="text-primary shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] text-foreground">Use your project context</p>
+          <p className="text-[13px] font-medium text-foreground">Use your project context</p>
           <p className="text-[12px] text-muted-foreground">We found lushgreen.com/services from your brand identity</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleAutoFill}>
@@ -67,7 +67,7 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
 
       {/* Topic input */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">{topicLabel}</label>
+        <label className="text-[13px] font-medium text-foreground">{topicLabel}</label>
         <ContentFlowTextarea
           rows={2}
           value={topic}
@@ -131,7 +131,7 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
         </div>
         {urlScraped && (
           <div
-            className="flex items-center gap-2 text-[12px] rounded-md px-2 py-2 border"
+            className="flex items-center gap-2 text-[12px] rounded-md px-3 py-2 border"
             style={{ color: STATUS_COLORS.ready.text, background: STATUS_COLORS.ready.bg, borderColor: STATUS_COLORS.ready.bg }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -157,9 +157,9 @@ export function BlogWizardStep2({ mode, step1Data: _step1Data, data, onChange }:
         </ContentFlowInfoLabel>
         <div className={cn(
           'border-2 border-dashed border-border rounded-lg p-6 text-center flex flex-col items-center gap-2',
-          'hover:border-primary/40 hover:bg-surface-hover transition-colors cursor-pointer',
+          'hover:border-primary/40 hover:bg-muted/30 transition-colors cursor-pointer',
         )}>
-          <p className="text-[13px] text-foreground">Drop a file or click to browse</p>
+          <p className="text-[13px] text-foreground font-medium">Drop a file or click to browse</p>
           <p className="text-[12px] text-muted-foreground">Accepts .pdf .docx .txt</p>
         </div>
       </div>

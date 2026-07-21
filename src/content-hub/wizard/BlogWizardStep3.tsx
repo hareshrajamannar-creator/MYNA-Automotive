@@ -86,7 +86,7 @@ function PillRadio({
               : 'border-border hover:border-primary/40',
           )}
         >
-          <span className="text-[13px] text-foreground">{opt.label}</span>
+          <span className="text-[13px] font-medium text-foreground">{opt.label}</span>
           {opt.sub && <span className="text-[11px] text-muted-foreground">{opt.sub}</span>}
         </button>
       ))}
@@ -120,7 +120,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
     <div className="flex flex-col gap-6 p-6">
       {/* Target audience */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Target audience</label>
+        <label className="text-[13px] font-medium text-foreground">Target audience</label>
         <ContentFlowTextarea
           rows={2}
           value={audience}
@@ -132,7 +132,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
 
       {/* Tone */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Tone of voice</label>
+        <label className="text-[13px] font-medium text-foreground">Tone of voice</label>
         <ContentFlowSelect
           value={tone}
           onChange={value => onChange({ ...data, tone: value })}
@@ -142,7 +142,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
 
       {/* Length */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">
+        <label className="text-[13px] font-medium text-foreground">
           {mode === 'landing' ? 'Page length' : 'Article length'}
         </label>
         <PillRadio
@@ -154,7 +154,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
 
       {/* Sections */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Include sections</label>
+        <label className="text-[13px] font-medium text-foreground">Include sections</label>
         <div className="flex flex-wrap gap-2">
           {availableSections.map(s => {
             const checked = sections.includes(s.id);
@@ -164,7 +164,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
                 type="button"
                 onClick={() => toggleSection(s.id)}
                 className={cn(
-                  'border rounded-full px-2 py-1.5 text-[12px] transition-colors',
+                  'border rounded-full px-3 py-1.5 text-[12px] transition-colors',
                   checked
                     ? 'border-primary bg-primary/5 text-foreground'
                     : 'border-border text-muted-foreground hover:border-primary/40',
@@ -181,14 +181,14 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
 
       {/* Publish destinations */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Publish destinations</label>
+        <label className="text-[13px] font-medium text-foreground">Publish destinations</label>
         {availableDests.map(dest => {
           const checked = dest.disabled || destinations.includes(dest.id);
           return (
             <label
               key={dest.id}
               className={cn(
-                'flex items-center gap-2 cursor-pointer',
+                'flex items-center gap-3 cursor-pointer',
                 dest.disabled && 'opacity-60 cursor-not-allowed',
               )}
             >
@@ -207,7 +207,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
 
       {/* Approval flow */}
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] text-foreground">Approval flow</label>
+        <label className="text-[13px] font-medium text-foreground">Approval flow</label>
         <div className="flex flex-wrap gap-2">
           {APPROVAL_OPTIONS.map(opt => (
             <button
@@ -215,7 +215,7 @@ export function BlogWizardStep3({ mode, step1Data: _s1, data, onChange }: BlogWi
               type="button"
               onClick={() => onChange({ ...data, approvalFlow: opt.id })}
               className={cn(
-                'border rounded-full px-2 py-1.5 text-[12px] transition-colors',
+                'border rounded-full px-3 py-1.5 text-[12px] transition-colors',
                 approvalFlow === opt.id
                   ? 'border-primary bg-primary/5 text-foreground'
                   : 'border-border text-muted-foreground hover:border-primary/40',

@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, ArrowUpRight, Sparkles, Loader2, Upload, X, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Sparkles, Loader2, Upload, X, FileText, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import { cn } from '@/contenthub-ui/utils';
+import { Button } from '@/contenthub-ui/button';
 import { Switch } from '@/contenthub-ui/switch';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/contenthub-ui/popover';
+import { MOCK_RECOMMENDATIONS } from '@/search-ai/SearchAIRecommendationsPanel';
 import {
   ContentFlowStepper,
   ContentFlowInfoLabel,
@@ -149,6 +151,64 @@ const STEPS: ContentFlowStep[] = [
   { id: 'setup',     label: 'Blog setup' },
 ];
 
+// ── YouTube source-link validation ───────────────────────────────────────────
+//
+// Covers what's determinable from the URL string alone. Codes that require an
+// actual server-side admission probe (video_unavailable, video_too_long,
+// rate_limited, summary_generation_temporarily_unavailable) belong to the
+// generation API, not this field, and should surface from that response once
+// this flow is wired to a real backend.
+type VideoLinkErrorCode =
+  | 'invalid_youtube_url'
+  | 'unsupported_youtube_url_shape'
+  | 'video_live_not_supported';
+
+const VIDEO_LINK_ERROR_MESSAGES: Record<VideoLinkErrorCode, string> = {
+  invalid_youtube_url: 'Please provide a valid YouTube video link.',
+  unsupported_youtube_url_shape: 'This link does not point to a single YouTube video.',
+  video_live_not_supported: 'Live or currently airing videos are not supported yet.',
+};
+
+const YOUTUBE_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'];
+
+function validateYoutubeUrl(rawUrl: string): VideoLinkErrorCode | null {
+  const url = rawUrl.trim();
+  if (!url) return 'invalid_youtube_url';
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return 'invalid_youtube_url';
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return 'invalid_youtube_url';
+  }
+  if (!YOUTUBE_HOSTS.includes(parsed.hostname)) {
+    return 'invalid_youtube_url';
+  }
+
+  if (/^\/live\/[^/]+/.test(parsed.pathname)) {
+    return 'video_live_not_supported';
+  }
+
+  if (parsed.hostname === 'youtu.be') {
+    const videoId = parsed.pathname.replace(/^\//, '');
+    return videoId ? null : 'unsupported_youtube_url_shape';
+  }
+
+  if (parsed.pathname === '/watch') {
+    return parsed.searchParams.get('v') ? null : 'unsupported_youtube_url_shape';
+  }
+  if (/^\/shorts\/[^/]+/.test(parsed.pathname)) {
+    return null;
+  }
+
+  // /playlist, /channel/*, /@handle, /results, or anything else without a resolvable single-video shape
+  return 'unsupported_youtube_url_shape';
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 export interface CreateBlogPageFlowData {
@@ -189,6 +249,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [createMode, setCreateMode] = useState<'topic' | 'url'>('topic');
   const [topic, setTopic]           = useState('');
   const [sourceUrl, setSourceUrl]   = useState('');
+  const [sourceUrlError, setSourceUrlError] = useState<string | null>(null);
   const [keywords, setKeywords]     = useState<string[]>([]);
   const [intent, setIntent]         = useState('agent');
   const [objective, setObjective]   = useState('agent');
@@ -199,13 +260,13 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   const [refUrlInput, setRefUrlInput] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [customiseOpen, setCustomiseOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen]   = useState(false);
   const [includeImages, setIncludeImages]   = useState(true);
   const [includeCTAs, setIncludeCTAs]       = useState(true);
   const [includeFAQ, setIncludeFAQ]         = useState(true);
   const [internalLinks, setInternalLinks]   = useState(true);
   const [generatingTopic, setGeneratingTopic] = useState(false);
+  const [recommendationsOpen, setRecommendationsOpen] = useState(false);
   const topicIdxRef  = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -255,6 +316,13 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
       setStep(1);
       return;
     }
+    if (createMode === 'url') {
+      const errorCode = validateYoutubeUrl(sourceUrl);
+      if (errorCode) {
+        setSourceUrlError(VIDEO_LINK_ERROR_MESSAGES[errorCode]);
+        return;
+      }
+    }
     const resolvedTopic = createMode === 'url' ? sourceUrl : topic;
     const resolvedName = blogName.trim() || resolvedTopic.split('\n')[0].trim();
     onGenerate({
@@ -282,7 +350,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
         {/* Create mode radio list */}
         <div className="space-y-1">
-          <label className="text-[13px] text-foreground">
+          <label className="text-[13px] font-medium text-foreground">
             How would you like to create this blog?
           </label>
 
@@ -291,17 +359,17 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             <button
               type="button"
               onClick={() => setCreateMode('topic')}
-              className="flex items-start gap-2 w-full text-left"
+              className="flex items-start gap-3 w-full text-left"
             >
               {/* Radio circle */}
               <span className={cn(
                 'mt-0.5 h-4 w-4 flex-none rounded-full border-2 flex items-center justify-center transition-colors',
-                createMode === 'topic' ? 'border-primary bg-primary' : 'border-border bg-surface',
+                createMode === 'topic' ? 'border-primary bg-primary' : 'border-border bg-background',
               )}>
                 {createMode === 'topic' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
               </span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-[13px] text-foreground">Start with a topic</span>
+                <span className="text-[13px] font-medium text-foreground">Start with a topic</span>
                 <span className="text-[12px] text-muted-foreground">Describe what you want the blog to cover</span>
               </span>
             </button>
@@ -314,18 +382,53 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                   onChange={e => setTopic(e.target.value)}
                   placeholder="e.g. Top 5 ways restaurants can respond to negative reviews to make it industry-relevant"
                   rows={4}
-                  className="w-full resize-none bg-surface px-4 pt-3 pb-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 outline-none border-none"
+                  className="w-full resize-none bg-background px-4 pt-3 pb-2 text-[13px] text-foreground placeholder:text-muted-foreground/60 outline-none border-none"
                 />
-                <div className="border-t border-border px-2 py-2 bg-surface">
+                <div className="border-t border-border px-3 py-2 bg-background flex items-center gap-1">
+                  <Popover open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Insert a Search AI recommendation"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        <Lightbulb size={13} strokeWidth={1.6} absoluteStrokeWidth />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-[440px] p-1">
+                      <div className="px-3 py-2 text-[11px] font-medium text-muted-foreground">
+                        Search AI recommendations
+                      </div>
+                      <div className="flex max-h-80 flex-col gap-0.5 overflow-y-auto">
+                        {MOCK_RECOMMENDATIONS.map(rec => (
+                          <button
+                            key={rec.id}
+                            type="button"
+                            onClick={() => {
+                              setTopic(rec.title);
+                              setRecommendationsOpen(false);
+                            }}
+                            className="flex flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-muted"
+                          >
+                            <span className="text-[11px] text-muted-foreground">{rec.category}</span>
+                            <span className="text-[13px] leading-snug text-foreground line-clamp-2">{rec.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <div className="h-4 w-px bg-border" />
+
                   <button
                     type="button"
                     disabled={generatingTopic}
                     onClick={handleGenerateTopic}
-                    className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground disabled:opacity-60 transition-colors"
+                    className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-60 transition-colors"
                   >
                     {generatingTopic
-                      ? <Loader2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin text-primary" />
-                      : <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-primary" />
+                      ? <Loader2 size={13} strokeWidth={1.6} absoluteStrokeWidth className="animate-spin text-[#7c3aed]" />
+                      : <Sparkles size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-[#7c3aed]" />
                     }
                     {generatingTopic ? 'Generating...' : topic ? 'Regenerate topic' : 'Generate a topic for me'}
                   </button>
@@ -339,17 +442,17 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             <button
               type="button"
               onClick={() => setCreateMode('url')}
-              className="flex items-start gap-2 w-full text-left"
+              className="flex items-start gap-3 w-full text-left"
             >
               <span className={cn(
                 'mt-0.5 h-4 w-4 flex-none rounded-full border-2 flex items-center justify-center transition-colors',
-                createMode === 'url' ? 'border-primary bg-primary' : 'border-border bg-surface',
+                createMode === 'url' ? 'border-primary bg-primary' : 'border-border bg-background',
               )}>
                 {createMode === 'url' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
               </span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-[13px] text-foreground">Start with a URL or video link</span>
-                <span className="text-[12px] text-muted-foreground">Paste a website URL or YouTube link to use as source material</span>
+                <span className="text-[13px] font-medium text-foreground">Start with a YouTube video</span>
+                <span className="text-[12px] text-muted-foreground">Paste a YouTube video link to use as source material</span>
               </span>
             </button>
 
@@ -358,29 +461,36 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
               <div className="ml-7 mt-4">
                 <ContentFlowTextInput
                   value={sourceUrl}
-                  onChange={e => setSourceUrl(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=... or https://example.com/article"
+                  onChange={e => {
+                    setSourceUrl(e.target.value);
+                    if (sourceUrlError) setSourceUrlError(null);
+                  }}
+                  placeholder="https://youtube.com/watch?v=..."
+                  aria-invalid={!!sourceUrlError}
                 />
+                {sourceUrlError && (
+                  <p className="mt-1.5 text-[11px] text-destructive">{sourceUrlError}</p>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Customise your blog accordion */}
+        {/* Advanced settings accordion — all blog configuration lives here */}
         <div className="rounded-lg border border-border">
           <button
             type="button"
-            onClick={() => setCustomiseOpen(o => !o)}
-            className="flex items-center justify-between w-full px-4 py-2"
+            onClick={() => setAdvancedOpen(o => !o)}
+            className="flex items-center justify-between w-full px-4 py-3"
           >
-            <span className="text-[13px] text-foreground">Customise your blog</span>
-            {customiseOpen
+            <span className="text-[13px] font-medium text-foreground">Advanced settings</span>
+            {advancedOpen
               ? <ChevronUp size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
               : <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
             }
           </button>
-          {customiseOpen && (
-            <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
+          {advancedOpen && (
+            <div className="flex flex-col gap-5 border-t border-border px-4 py-4">
 
               {/* Keywords */}
               <div className="space-y-1.5">
@@ -397,13 +507,13 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
               {/* Length */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Length</label>
+                <label className="text-[13px] font-medium text-foreground">Length</label>
                 <ContentFlowSelect value={length} options={LENGTH_OPTIONS} onChange={setLength} />
               </div>
 
               {/* Anything specific */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Anything specific you want covered?</label>
+                <label className="text-[13px] font-medium text-foreground">Anything specific you want covered?</label>
                 <ContentFlowTextarea
                   value={brief}
                   onChange={e => setBrief(e.target.value)}
@@ -414,7 +524,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
               {/* Attachments */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Attachments</label>
+                <label className="text-[13px] font-medium text-foreground">Attachments</label>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -425,11 +535,11 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                     'w-full rounded-lg border-2 border-dashed px-4 py-4 flex flex-col items-center gap-2 transition-colors',
                     isDragOver
                       ? 'border-primary/50 bg-primary/5'
-                      : 'border-border hover:border-primary/30 hover:bg-surface-hover',
+                      : 'border-border hover:border-primary/30 hover:bg-muted/30',
                   )}
                 >
                   <Upload size={16} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-                  <span className="text-[13px] text-foreground">Drop files or click to browse</span>
+                  <span className="text-[13px] font-medium text-foreground">Drop files or click to browse</span>
                   <span className="text-[11px] text-muted-foreground">.pdf · .docx · .txt · .png · .jpg</span>
                 </button>
                 <input
@@ -443,7 +553,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                 {attachedFiles.length > 0 && (
                   <div className="flex flex-col gap-1">
                     {attachedFiles.map(name => (
-                      <div key={name} className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted text-[12px]">
+                      <div key={name} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]">
                         <FileText size={13} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground shrink-0" />
                         <span className="flex-1 text-foreground truncate">{name}</span>
                         <button
@@ -460,55 +570,35 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
               </div>
 
               {/* Include toggles */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[13px] text-foreground">Include in blog</label>
+              <div className="flex flex-col gap-3">
+                <label className="text-[13px] font-medium text-foreground">Include in blog</label>
                 <ToggleRow label="Images" checked={includeImages} onChange={setIncludeImages} />
                 <ToggleRow label="CTAs" checked={includeCTAs} onChange={setIncludeCTAs} />
                 <ToggleRow label="FAQ section" checked={includeFAQ} onChange={setIncludeFAQ} />
                 <ToggleRow label="Internal links" checked={internalLinks} onChange={setInternalLinks} />
               </div>
 
-            </div>
-          )}
-        </div>
-
-        {/* Advanced settings accordion */}
-        <div className="rounded-lg border border-border">
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen(o => !o)}
-            className="flex items-center justify-between w-full px-4 py-2"
-          >
-            <span className="text-[13px] text-foreground">Advanced settings</span>
-            {advancedOpen
-              ? <ChevronUp size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-              : <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth className="text-muted-foreground" />
-            }
-          </button>
-          {advancedOpen && (
-            <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
-
               {/* Intent */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Intent</label>
+                <label className="text-[13px] font-medium text-foreground">Intent</label>
                 <ContentFlowSelect value={intent} options={INTENT_OPTIONS} onChange={setIntent} />
               </div>
 
               {/* Objective */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Objective</label>
+                <label className="text-[13px] font-medium text-foreground">Objective</label>
                 <ContentFlowSelect value={objective} options={OBJECTIVE_OPTIONS} onChange={setObjective} />
               </div>
 
               {/* Funnel stage */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Funnel stage</label>
+                <label className="text-[13px] font-medium text-foreground">Funnel stage</label>
                 <ContentFlowSelect value={funnelStage} options={FUNNEL_OPTIONS} onChange={setFunnelStage} />
               </div>
 
               {/* Reference URLs */}
               <div className="space-y-1.5">
-                <label className="text-[13px] text-foreground">Reference URLs</label>
+                <label className="text-[13px] font-medium text-foreground">Reference URLs</label>
                 <div className="flex items-center gap-2">
                   <ContentFlowTextInput
                     value={refUrlInput}
@@ -521,7 +611,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                     type="button"
                     onClick={handleAddUrl}
                     disabled={!refUrlInput.trim() || refUrls.length >= 5}
-                    className="h-10 px-4 rounded-[8px] border border-border bg-surface text-[13px] text-foreground hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                    className="h-10 px-4 rounded-[8px] border border-border bg-background text-[13px] font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                   >
                     Add
                   </button>
@@ -529,7 +619,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                 {refUrls.length > 0 && (
                   <div className="flex flex-col gap-1 mt-1">
                     {refUrls.map(url => (
-                      <div key={url} className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted text-[12px]">
+                      <div key={url} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-[12px]">
                         <span className="flex-1 text-foreground truncate">{url}</span>
                         <button
                           type="button"
@@ -563,7 +653,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
         {/* Blog name — auto-filled from topic */}
         <div className="space-y-1.5">
-          <label className="text-[13px] text-foreground">
+          <label className="text-[13px] font-medium text-foreground">
             Blog name <span className="text-destructive">*</span>
           </label>
           <ContentFlowTextInput
@@ -575,7 +665,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
         {/* Brand identity */}
         <div className="space-y-1.5">
-          <label className="text-[13px] text-foreground">
+          <label className="text-[13px] font-medium text-foreground">
             Brand identity <span className="text-destructive">*</span>
           </label>
           <ContentFlowSelect
@@ -594,7 +684,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-2 py-2 text-[13px] text-text-primary transition-colors hover:border-border dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
+                className="flex w-full items-center justify-between rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-[13px] text-[#212121] transition-colors hover:border-[#c0c6d4] dark:border-[#333a47] dark:bg-[#262b35] dark:text-[#e4e4e4] dark:hover:border-[#4d5568]"
               >
                 <span className="truncate">{BLOG_AGENTS.find(a => a.id === agentId)?.label ?? 'Choose an agent...'}</span>
                 <ChevronDown size={20} strokeWidth={1.6} absoluteStrokeWidth className="size-5 shrink-0 text-[#888] dark:text-[#6b7280]" />
@@ -608,10 +698,10 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                     type="button"
                     onClick={() => setAgentId(agent.id)}
                     className={cn(
-                      'flex w-full items-center rounded-md px-2 py-2 text-[13px] text-left transition-colors',
+                      'flex w-full items-center rounded-md px-3 py-2 text-[13px] text-left transition-colors',
                       agentId === agent.id
-                        ? 'bg-[#e8effe] text-primary dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
-                        : 'text-foreground hover:bg-surface-hover',
+                        ? 'bg-[#e8effe] text-[#2552ED] dark:bg-[#1e2d5e] dark:text-[#6b9bff]'
+                        : 'text-foreground hover:bg-muted',
                     )}
                   >
                     {agent.label}{i === 0 && <span className="ml-1.5 text-[11px] text-muted-foreground">(Default)</span>}
@@ -620,7 +710,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
                 <div className="my-1 h-px bg-border" />
                 <button
                   type="button"
-                  className="flex h-[34px] w-full items-center gap-1.5 rounded-md px-2 text-[13px] text-primary transition-colors hover:bg-surface-hover"
+                  className="flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-[13px] text-primary transition-colors hover:bg-muted"
                 >
                   <span>Manage blog agents</span>
                   <ArrowUpRight size={13} strokeWidth={1.6} absoluteStrokeWidth className="shrink-0" />
@@ -632,7 +722,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
 
         {/* Locations */}
         <div className="space-y-1.5">
-          <label className="text-[13px] text-foreground">
+          <label className="text-[13px] font-medium text-foreground">
             Locations <span className="text-destructive">*</span>
           </label>
           <ContentFlowLocationFlatList
@@ -649,45 +739,45 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-surface">
+    <div className="flex flex-col h-full bg-background">
 
-      {/* Header */}
-      <div className="flex w-full shrink-0 items-center justify-between bg-surface px-2xl py-xl">
-        <div className="flex items-center gap-sm">
+      {/* Header — matches ContentEditorShell setup-phase header */}
+      <div className="w-full bg-background flex items-center justify-between px-6 py-[9px] flex-shrink-0">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={onCancel}
             aria-label="Go back"
-            className="flex size-[34px] items-center justify-center rounded-md text-text-icon transition-colors hover:bg-surface-l2"
+            className="flex items-center justify-center w-8 h-8 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors flex-none"
           >
-            <ArrowLeft size={18} strokeWidth={1.6} absoluteStrokeWidth />
+            <ArrowLeft size={16} strokeWidth={1.6} absoluteStrokeWidth />
           </button>
-          <span className="text-h3 text-text-primary">Create blog</span>
+          <span className="text-[16px] font-semibold text-foreground leading-tight">Create blog</span>
         </div>
-        <div className="flex items-center gap-sm">
-          <button
+        <div className="flex items-center gap-2">
+          <Button
             type="button"
+            variant="ghost"
             onClick={onCancel}
-            className="flex h-[34px] items-center rounded-md px-lg text-body text-text-secondary transition-colors hover:bg-surface-hover"
+            className="text-muted-foreground hover:text-foreground"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setStep(0)}
             disabled={step === 0}
-            className="flex h-[34px] items-center rounded-md border border-border-selected bg-surface px-lg text-body text-text-primary transition-colors hover:bg-surface-l2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Back
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={!canAdvance}
             onClick={handleNext}
-            className="flex h-[34px] items-center rounded-md bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {step === 0 ? 'Continue' : 'Generate'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -695,7 +785,7 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
       <div className="flex-1 min-h-0 flex">
 
         {/* Left sidebar — ContentFlowStepper at 250px, exactly matching ContentEditorShell */}
-        <aside className="flex-shrink-0 bg-surface" style={{ width: 250 }}>
+        <aside className="flex-shrink-0 bg-background" style={{ width: 250 }}>
           <div className="px-4 py-4">
             <ContentFlowStepper
               steps={STEPS}
@@ -705,10 +795,10 @@ export function CreateBlogPage({ onCancel, onGenerate }: CreateBlogPageProps) {
           </div>
         </aside>
 
-        {/* Right content */}
-        <div className="flex-1 min-w-0 min-h-0 bg-surface">
+        {/* Right content — same scrollable card shell as BlogInlineCreationFlow */}
+        <div className="flex-1 min-w-0 min-h-0 bg-background">
           <div className="h-full overflow-hidden py-4 pl-4 pr-6">
-            <div className="h-full overflow-y-auto rounded-lg border border-border bg-surface px-[30px] pb-[30px] pt-[30px]">
+            <div className="h-full overflow-y-auto rounded-lg border border-border bg-background px-[30px] pb-[30px] pt-[30px]">
               <div className="w-1/2 min-w-[520px] max-w-[720px]">
                 {step === 0 ? renderStep2() : renderStep1()}
               </div>
