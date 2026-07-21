@@ -196,9 +196,9 @@ const FRONTDESK_HC_NODE_DETAILS: Record<string, any> = {
   'fd-1': { ...FRONTDESK_NODE_DETAILS['fd-1'] },
   'fd-2': {
     procedureIds: [
-      'General inquiry',
+      'Handle general inquiry',
       'Talk to human',
-      'Book, cancel, reschedule appointment',
+      'Book new appointment',
       'Verify insurance',
     ],
   },

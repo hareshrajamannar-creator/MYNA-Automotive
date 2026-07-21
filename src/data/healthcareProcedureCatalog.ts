@@ -47,7 +47,7 @@ export const HEALTHCARE_PROCEDURE_CATALOG: HealthcareProcedureCatalogItem[] = [
   },
   {
     id: 'new-patient',
-    title: 'Collect new patient details',
+    title: 'New patient intake',
     description: 'Collects details to create a record for patients not found in the system.',
     lastEdited: '5 days ago',
   },
@@ -73,12 +73,6 @@ export const HEALTHCARE_PROCEDURE_CATALOG: HealthcareProcedureCatalogItem[] = [
     id: 'slot-conflict',
     title: 'Handle slot conflict',
     description: 'Re-offers availability when the chosen slot was already taken.',
-    lastEdited: '1 week ago',
-  },
-  {
-    id: 'slot-confirmation',
-    title: 'Slot confirmation',
-    description: 'When agent is calling outbound for slot confirmation.',
     lastEdited: '1 week ago',
   },
 ]

@@ -69,9 +69,9 @@ export function WorkflowEditorScreen({
   const isPreVisit = agentBaseName === 'Pre-visit agent'
   const isWaitlist = agentBaseName === 'Waitlist agent'
   const HC_FRONTDESK_SIDEBAR_NAMES = new Set([
-    'General inquiry',
+    'Handle general inquiry',
     'Talk to human',
-    'Book, cancel, reschedule appointment',
+    'Book new appointment',
     'Reschedule appointment',
   ])
   const filteredProcedures = procedures.filter((p) => {

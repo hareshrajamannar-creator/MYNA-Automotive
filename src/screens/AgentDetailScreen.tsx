@@ -187,7 +187,7 @@ const LIBRARY_TEMPLATES = [
   },
   {
     id: 'new-patient',
-    title: 'Collect new patient details',
+    title: 'New patient intake',
     description: 'Guides new patients through intake, verifies their insurance, and books the right appointment',
   },
   {

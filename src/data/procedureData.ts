@@ -1610,12 +1610,12 @@ const HC_PREVISIT_CONTEXT: ContextItem[] = [
 
 /** Display order for healthcare Procedures library and workflow procedure nodes */
 export const HC_PROCEDURE_ORDER = [
-  'Recall — reactivate and book recare',
-  'Revenue — resolve outstanding balance',
-  'Treatment plan — schedule recommended treatment',
-  'General inquiry',
+  'Reactivate and book recare',
+  'Resolve outstanding balance',
+  'Schedule recommended treatment',
+  'Handle general inquiry',
   'Talk to human',
-  'Book, cancel, reschedule appointment',
+  'Book new appointment',
   'Reschedule appointment',
   'Cancel appointment',
   'Handle slot conflict',
@@ -1640,13 +1640,13 @@ function sortProceduresByOrder(procedures: Procedure[], order: readonly string[]
 const HC_PROCEDURES_UNSORTED: Procedure[] = [
   {
     id: 'hc-fd-02',
-    name: 'General inquiry',
+    name: 'Handle general inquiry',
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Answers informational questions about hours, location, insurance, services, and directions. Includes emergency triage when patient mentions an urgent concern.',
+    description: 'Patient asks about clinic hours, location, parking, services, or accepted insurance',
     lastEdited: 'Jun 26',
-    whenToUse: 'Patient asks a general query related to the hospital or anything that should come from the knowledge base — website, FAQs, hours, location, insurance, services, doctors.',
+    whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted, services offered, directions, telehealth availability, wait times.',
     steps: [
       {
         title: 'Personality & environment',
@@ -1715,7 +1715,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Triages urgent (non-life-threatening) patient concerns and routes to same-day care or nurse line.',
+    description: 'Patient describes a time-sensitive concern that is not life-threatening',
     lastEdited: 'Jun 7',
     whenToUse: "Patient describes worsening symptoms, medication reaction, post-visit concern they feel can't wait, anxiety about results, or any time-sensitive medical issue (but not life-threatening).",
     steps: [
@@ -1755,7 +1755,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Web chat', 'Text'],
-    description: 'Recovers unclear or ambiguous patient messages through two guided clarification attempts before escalating.',
+    description: "Patient's request is too vague to route to a procedure",
     lastEdited: 'Jun 5',
     whenToUse: "Patient's message is too vague, ambiguous, or out-of-scope to match any other procedure's trigger with confidence.",
     steps: [
@@ -1790,7 +1790,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Immediately transfers the patient to a live agent. Apologizes and ends the call if transfer fails.',
+    description: 'Patient asks to speak with a team member or shows frustration',
     lastEdited: 'Jun 29',
     whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
     steps: [
@@ -1816,13 +1816,13 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
   },
   {
     id: 'hc-fd-06',
-    name: 'Book, cancel, reschedule appointment',
+    name: 'Book new appointment',
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Verifies patient identity, collects details, confirms insurance, matches services, presents slots, and secures appointment confirmation.',
+    description: 'Patient wants to book a new appointment',
     lastEdited: 'Jun 29',
-    whenToUse: 'Route to Appointment Agent if the user wants to book an appointment, check availability of service and specialist, reschedule, or cancel an appointment.',
+    whenToUse: 'Patient wants to schedule a new appointment and mentions it explicitly ("I want to book an appointment").',
     steps: [
       {
         title: 'Personality',
@@ -2038,9 +2038,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call', 'Web chat'],
-    description: 'Looks up the patient\'s existing appointments, finds a new slot, and moves the appointment.',
+    description: 'Patient wants to move an existing appointment',
     lastEdited: 'Jun 29',
-    whenToUse: 'Route to Appointment Agent if the user wants to book an appointment, check availability, book, reschedule, or cancel.',
+    whenToUse: 'Patient has an existing appointment and wants to move it to a different date or time — "change my appointment," "can we move it," "something came up."',
     steps: [
       {
         title: 'Identify patient and retrieve appointment',
@@ -2076,9 +2076,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call', 'Text'],
-    description: 'Locates the patient\'s appointment, confirms the cancellation intent, and releases the slot.',
+    description: 'Patient wants to cancel an existing appointment',
     lastEdited: 'Jun 29',
-    whenToUse: 'Route to Appointment Agent if the user wants to book an appointment, check availability, book, reschedule, or cancel.',
+    whenToUse: 'Patient wants to cancel an existing appointment without immediately rebooking — "I need to cancel," "I can\'t make it," "please remove my appointment."',
     steps: [
       {
         title: 'Identify patient and present appointments',
@@ -2108,7 +2108,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Re-offers availability when the chosen slot was taken between selection and write, with up to 2 automatic retries.',
+    description: "Patient's chosen appointment slot is no longer available",
     lastEdited: 'May 24',
     whenToUse: 'The create_appointment or reschedule_appointment tool returned a slot_taken error — the selected slot was booked by someone else between selection and write.',
     steps: [
@@ -2149,7 +2149,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Recovers gracefully from tool failures (connectivity errors, timeouts, patient creation failures) by logging a high-priority staff task and confirming callback details.',
+    description: "Patient's booking could not be completed due to a system or connectivity error",
     lastEdited: 'May 21',
     whenToUse: 'A tool call (create_appointment, reschedule_appointment, cancel_appointment, lookup_patient) failed for a non-slot reason — connectivity error, API timeout, or patient creation failed.',
     steps: [
@@ -2190,7 +2190,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Inbound',
     channels: ['Voice call'],
-    description: 'Runs eligibility check against the patient\'s insurance on file or newly collected, so the patient knows their copay and coverage status before they pick a time.',
+    description: "Patient's insurance needs checking before the appointment",
     lastEdited: 'Jun 29',
     whenToUse: 'Runs eligibility check against the patient\'s insurance on file or newly collected, so the patient knows their copay and coverage status before they pick a time.',
     steps: [
@@ -2279,9 +2279,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Outbound',
     channels: ['Text', 'Email'],
-    description: 'Outbound call that verifies patient identity, delivers the appointment reminder, and handles confirmation, reschedule, or cancellation responses.',
+    description: 'Patient has a scheduled appointment that needs to be confirmed',
     lastEdited: 'Jun 29',
-    whenToUse: 'When agent is calling outbound for appointment confirmation.',
+    whenToUse: 'Triggered outbound when an appointment is scheduled and the confirmation journey begins.',
     steps: [
       {
         title: 'Introduce and confirm you\'re speaking to the patient',
@@ -2337,9 +2337,9 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     category: 'Healthcare Frontdesk',
     queue: 'Outbound',
     channels: ['Text'],
-    description: 'Outbound call that verifies patient identity, offers the open waitlist slot, and books or updates waitlist preferences based on response.',
+    description: 'Patient is on the waitlist and a slot has opened',
     lastEdited: 'Jun 29',
-    whenToUse: 'When agent is calling outbound for slot confirmation.',
+    whenToUse: 'A slot opens on the waitlist and the system needs to offer it to the next eligible patient.',
     steps: [
       {
         title: 'Introduce and confirm you\'re speaking to the patient',
@@ -2485,11 +2485,11 @@ HC_PROCEDURES_UNSORTED.push(
   },
   {
     id: 'dental-ob-01',
-    name: 'Recall — reactivate and book recare',
+    name: 'Reactivate and book recare',
     category: 'Dental',
     queue: 'Outbound',
     channels: ['Voice call', 'Text'],
-    description: 'Outbound call to reactivate a patient due or overdue for routine or preventive care (cleaning, exam, recare) and book the appointment.',
+    description: 'Patient is overdue for a routine or preventive care visit',
     lastEdited: 'Jun 16',
     whenToUse: 'Outbound call to a patient who is due or overdue for routine or preventive care (cleaning, periodic exam, recare, or unscheduled hygiene). Myna places the call to help them get back on the schedule.',
     steps: [
@@ -2552,11 +2552,11 @@ HC_PROCEDURES_UNSORTED.push(
   },
   {
     id: 'dental-ob-02',
-    name: 'Revenue — resolve outstanding balance',
+    name: 'Resolve outstanding balance',
     category: 'Dental',
     queue: 'Outbound',
     channels: ['Text', 'Email'],
-    description: 'Outbound call to help a patient or guarantor pay securely, set up a payment plan, or route a dispute — respectfully, never like collections.',
+    description: 'Patient has an outstanding balance that needs to be resolved',
     lastEdited: 'Jun 16',
     whenToUse: 'Outbound call to a patient or guarantor with an outstanding balance. Myna calls to help them pay securely, set up a payment plan, or route a dispute — respectfully, never like collections.',
     steps: [
@@ -2611,11 +2611,11 @@ HC_PROCEDURES_UNSORTED.push(
   },
   {
     id: 'dental-ob-03',
-    name: 'Treatment plan — schedule recommended treatment',
+    name: 'Schedule recommended treatment',
     category: 'Dental',
     queue: 'Outbound',
     channels: ['Voice call', 'Text'],
-    description: 'Outbound call to help a patient book provider-recommended treatment that hasn\'t been scheduled yet. No clinical advice — cost questions routed to financial coordinator.',
+    description: 'Patient has a recommended treatment that has not been scheduled',
     lastEdited: 'Jun 16',
     whenToUse: 'Outbound call to a patient with treatment their provider recommended but that hasn\'t been scheduled. Myna calls to help book it — no clinical advice, and cost questions are routed to the financial coordinator.',
     steps: [

@@ -34,22 +34,22 @@ export function createNewProcedureDraft(): ProcedureDetailDraft {
 
 const CATALOG_DETAIL_KEY: Record<string, string> = {
   greet: 'Greeting & Intent Detection',
-  general: 'General inquiry',
+  general: 'Handle general inquiry',
   emergency: 'Handle emergency or urgent concern',
   unclear: 'Handle unclear message',
   'talk-human': 'Talk to human',
   'identify-patient': 'Identify patient',
   'new-patient': 'New patient intake',
-  'book-appointment': 'Book, cancel, reschedule appointment',
+  'book-appointment': 'Book new appointment',
 }
 
 /** Catalog id → healthcare library procedure name */
 const CATALOG_PROCEDURE_NAME: Record<string, string> = {
-  general: 'General inquiry',
+  general: 'Handle general inquiry',
   emergency: 'Handle emergency or urgent concern',
   unclear: 'Handle unclear message',
   'talk-human': 'Talk to human',
-  'book-appointment': 'Book, cancel, reschedule appointment',
+  'book-appointment': 'Book new appointment',
 }
 
 const GREET_STEPS = [
@@ -69,7 +69,7 @@ const FALLBACK_STEPS: Record<string, string> = {
     '• Match the caller to an existing patient record using {{patient_lookup}}.',
     '2.Confirm match',
     '• Read back the matched name and last four digits of the phone number.',
-    '• If no match, route to {{Collect new patient details}}.',
+    '• If no match, route to {{New patient intake}}.',
   ].join('\n'),
   'new-patient': [
     '1.Collect demographics',
