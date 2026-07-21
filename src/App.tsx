@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FRONT_DESK_INBOX_CONVERSATION_ID } from './data/frontDeskCallConversation'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
+import { FeedbackStoreProvider } from './data/FeedbackStoreContext'
 import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
 import { Icon, IconRail, Link, RecordDetailScreen, SideNav, Toast, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen, buildAppointmentDetailProps, type AppointmentDetailArgs } from './screens/ManageAppointmentsScreen'
@@ -370,6 +371,7 @@ export function App() {
 
   return (
     <ProcedureStoreProvider>
+    <FeedbackStoreProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
       <IconRail
         logoSrc={logoSrc}
@@ -615,6 +617,7 @@ export function App() {
         onClose={() => setAgentToastVisible(false)}
       />
     </div>
+    </FeedbackStoreProvider>
     </ProcedureStoreProvider>
   )
 }
