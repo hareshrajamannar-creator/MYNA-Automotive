@@ -57,6 +57,20 @@
   --font-weight-black: 700;
   --slide-duration: 220ms;
   --slide-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Social module token bridge (--s-* → myna-main equivalents) ── */
+  --s-bg-primary:     #ffffff;
+  --s-bg-secondary:   #fafafa;
+  --s-bg-muted:       #f4f6f7;
+  --s-bg-input:       #ffffff;
+  --s-border:         #e5e7eb;
+  --s-border-subtle:  #eaecf0;
+  --s-text-primary:   #212121;
+  --s-text-secondary: #555555;
+  --s-text-muted:     #888888;
+  --s-icon-fill:      #303030;
+  --s-blue:           #1976d2;
+  --s-blue-bg:        #e3f2fd;
 }
 
 @keyframes gradient-shift {

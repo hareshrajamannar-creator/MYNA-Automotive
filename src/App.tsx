@@ -5,6 +5,8 @@ import { Icon, IconRail, Link, RecordDetailScreen, SideNav, type NavSection, typ
 import { ContentHubL2NavPanel, type ContentHubSubView } from './content-hub/ContentHubL2NavPanel'
 import { SearchAIView } from './search-ai/SearchAIView'
 import { SearchAIL2NavPanel } from './search-ai/SearchAIL2NavPanel'
+import { SocialView } from './social/SocialView'
+import { SocialL2NavPanel } from './social/SocialL2NavPanel'
 import { SEARCH_AI_L2_DEFAULT_ACTIVE } from './search-ai/searchAIL2Keys'
 import { ProjectsView } from './content-hub/ProjectsView'
 import { TemplateGallery } from './content-hub/TemplateGallery'
@@ -348,6 +350,7 @@ export function App() {
   )
   const [expandOnHover, setExpandOnHover] = useState(true)
   const [searchAIL2Active, setSearchAIL2Active] = useState(SEARCH_AI_L2_DEFAULT_ACTIVE)
+  const [socialL2Active, setSocialL2Active] = useState('Publish/Calendar')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
   const [wizardAgentDraft, setWizardAgentDraft] = useState<WizardAgentDraft | null>(null)
   const [isAgentSetupActive, setIsAgentSetupActive] = useState(false)
@@ -416,7 +419,8 @@ export function App() {
     railActive !== 'settings' &&
     railActive !== 'inbox' &&
     railActive !== 'content-hub' &&
-    railActive !== 'search'
+    railActive !== 'search' &&
+    railActive !== 'social'
 
   return (
     <ProcedureStoreProvider>
@@ -544,6 +548,14 @@ export function App() {
                 />
               )}
 
+              {/* Social L2 nav panel — hidden on Create post full-screen */}
+              {railActive === 'social' && socialL2Active !== 'Create post' && (
+                <SocialL2NavPanel
+                  activeItem={socialL2Active}
+                  onActiveItemChange={setSocialL2Active}
+                />
+              )}
+
               {/* Content Hub L2 nav panel — hidden when in editor/creation flow */}
               {railActive === 'content-hub' && editorMode === null && (
                 <ContentHubL2NavPanel
@@ -567,6 +579,8 @@ export function App() {
               <main className="flex flex-1 flex-col min-w-0 overflow-hidden bg-background">
                 {railActive === 'search' ? (
                   <SearchAIView l2ActiveItem={searchAIL2Active} />
+                ) : railActive === 'social' ? (
+                  <SocialView activeItem={socialL2Active} onActiveItemChange={setSocialL2Active} />
                 ) : railActive === 'content-hub' ? (
                   editorMode !== null ? (
                     <ContentEditorShell
