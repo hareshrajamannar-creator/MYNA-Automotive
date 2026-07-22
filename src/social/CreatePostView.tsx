@@ -1437,8 +1437,8 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
             <MediaSection mediaItems={mediaItems} setMediaItems={setMediaItems} />
 
 
-            {/* ── Apple Post Settings ── shown on initial tab or when apple tab is active */}
-            {selectedPlatforms.includes('apple') && (activeTab === 'initial' || activeTab === 'apple') && (
+            {/* ── Apple Post Settings ── shown only on apple tab */}
+            {selectedPlatforms.includes('apple') && activeTab === 'apple' && (
               <div className="border border-border rounded-[8px] bg-background">
                 {/* Section header */}
                 <div
@@ -1576,8 +1576,8 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
             )}
 
 
-            {/* ── Google Post Settings ── shown on initial tab or when google tab is active */}
-            {selectedPlatforms.includes('google') && (activeTab === 'initial' || activeTab === 'google') && (
+            {/* ── Google Post Settings ── shown only on google tab */}
+            {selectedPlatforms.includes('google') && activeTab === 'google' && (
               <div className="border border-border rounded-[8px] bg-background">
                 {/* Section header */}
                 <div
