@@ -1692,37 +1692,43 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
                       </div>
 
                       {/* Start date row */}
-                      <div className="flex items-center gap-[12px]">
+                      <div className="flex items-center gap-[10px]">
                         <label className="font-normal text-[13px] shrink-0 w-[36px]" style={{ color: 'var(--s-text-secondary)' }}>Start</label>
-                        <div className="relative flex-1" style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div className="relative" style={{ border: '1px solid var(--s-border)', borderRadius: 4, height: 34, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', width: 200 }}>
                           <PickCalendarIcon />
                           <input type="date" value={googleDurationStart} onChange={e => setGoogleDurationStart(e.target.value)}
-                            className="full-picker flex-1 outline-none bg-transparent"
-                            style={{ fontSize: 13, color: googleDurationStart ? 'var(--s-text-primary)' : 'var(--s-text-muted)', minWidth: 0 }} />
+                            className="full-picker outline-none bg-transparent"
+                            style={{ fontSize: 13, color: googleDurationStart ? 'var(--s-text-primary)' : 'var(--s-text-muted)', flex: 1, minWidth: 0 }} />
+                          <ChevronDown size={12} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)', pointerEvents: 'none', flexShrink: 0 }} />
                         </div>
                         {googleIncludeTimes && (
-                          <div style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6, width: 110 }}>
+                          <div className="relative" style={{ border: '1px solid var(--s-border)', borderRadius: 4, height: 34, display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', width: 80 }}>
+                            <PickClockIcon />
                             <input type="time" value={googleEventStartTime} onChange={e => setGoogleEventStartTime(e.target.value)}
                               className="outline-none bg-transparent"
-                              style={{ fontSize: 13, color: googleEventStartTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', width: '100%' }} />
+                              style={{ fontSize: 12, color: googleEventStartTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', flex: 1, minWidth: 0 }} />
+                            <ChevronDown size={12} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)', pointerEvents: 'none', flexShrink: 0 }} />
                           </div>
                         )}
                       </div>
 
                       {/* End date row */}
-                      <div className="flex items-center gap-[12px]">
+                      <div className="flex items-center gap-[10px]">
                         <label className="font-normal text-[13px] shrink-0 w-[36px]" style={{ color: 'var(--s-text-secondary)' }}>End</label>
-                        <div className="relative flex-1" style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div className="relative" style={{ border: '1px solid var(--s-border)', borderRadius: 4, height: 34, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', width: 200 }}>
                           <PickCalendarIcon />
                           <input type="date" value={googleDurationEnd} onChange={e => setGoogleDurationEnd(e.target.value)}
-                            className="full-picker flex-1 outline-none bg-transparent"
-                            style={{ fontSize: 13, color: googleDurationEnd ? 'var(--s-text-primary)' : 'var(--s-text-muted)', minWidth: 0 }} />
+                            className="full-picker outline-none bg-transparent"
+                            style={{ fontSize: 13, color: googleDurationEnd ? 'var(--s-text-primary)' : 'var(--s-text-muted)', flex: 1, minWidth: 0 }} />
+                          <ChevronDown size={12} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)', pointerEvents: 'none', flexShrink: 0 }} />
                         </div>
                         {googleIncludeTimes && (
-                          <div style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6, width: 110 }}>
+                          <div className="relative" style={{ border: '1px solid var(--s-border)', borderRadius: 4, height: 34, display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', width: 80 }}>
+                            <PickClockIcon />
                             <input type="time" value={googleEventEndTime} onChange={e => setGoogleEventEndTime(e.target.value)}
                               className="outline-none bg-transparent"
-                              style={{ fontSize: 13, color: googleEventEndTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', width: '100%' }} />
+                              style={{ fontSize: 12, color: googleEventEndTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', flex: 1, minWidth: 0 }} />
+                            <ChevronDown size={12} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)', pointerEvents: 'none', flexShrink: 0 }} />
                           </div>
                         )}
                       </div>
