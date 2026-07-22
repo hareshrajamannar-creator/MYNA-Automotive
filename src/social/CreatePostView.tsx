@@ -142,6 +142,7 @@ function GoogleIcon() {
 type GooglePublishAs = 'updates' | 'offers' | 'events';
 
 const GOOGLE_BUTTON_TYPES = ['Book', 'Order online', 'Buy', 'Learn more', 'Sign up', 'Get offer', 'Call now'] as const;
+const GOOGLE_EVENT_BUTTON_TYPES = ['None', 'Book', 'Buy', 'Learn more', 'Order online', 'Sign up'] as const;
 type GoogleButtonType = typeof GOOGLE_BUTTON_TYPES[number];
 
 
@@ -1031,6 +1032,12 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
   const [googleLink, setGoogleLink]                   = useState('');
   const [googleTerms, setGoogleTerms]                 = useState('');
   const [googleSettingsExpanded, setGoogleSettingsExpanded] = useState(true);
+  const [googleIncludeTimes, setGoogleIncludeTimes]   = useState(false);
+  const [googleEventStartTime, setGoogleEventStartTime] = useState('');
+  const [googleEventEndTime, setGoogleEventEndTime]   = useState('');
+  const [googleEventButtonType, setGoogleEventButtonType] = useState('None');
+  const [googleEventButtonTypeOpen, setGoogleEventButtonTypeOpen] = useState(false);
+  const [googleEventButtonLink, setGoogleEventButtonLink] = useState('');
 
 
   const [addToLibrary, setAddToLibrary] = useState(true);
@@ -1672,41 +1679,110 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
 
                     {/* ── Google events fields ── */}
                     {googlePublishAs === 'events' && (<>
+                      {/* Event Title */}
                       <div className="flex flex-col gap-[6px]">
                         <div className="flex items-center justify-between">
-                          <label className="font-normal text-[13px] tracking-[-0.26px]" style={{ color: 'var(--s-text-secondary)' }}>Title <span style={{ color: 'var(--s-blue)' }}>*</span></label>
+                          <label className="font-normal text-[13px] tracking-[-0.26px]" style={{ color: 'var(--s-text-secondary)' }}>Event title <span style={{ color: 'var(--s-blue)' }}>*</span></label>
                           <span className="font-normal text-[12px]" style={{ color: 'var(--s-text-muted)' }}>{googleTitle.length}/58</span>
                         </div>
                         <input type="text" maxLength={58} value={googleTitle} onChange={e => setGoogleTitle(e.target.value)}
                           className="w-full outline-none bg-transparent"
                           style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '8px 10px', fontSize: 14, color: 'var(--s-text-primary)' }}
-                          placeholder="Enter event title" />
+                          placeholder="e.g. Grand Opening" />
                       </div>
+
+                      {/* Start date row */}
+                      <div className="flex items-center gap-[12px]">
+                        <label className="font-normal text-[13px] shrink-0 w-[36px]" style={{ color: 'var(--s-text-secondary)' }}>Start</label>
+                        <div className="relative flex-1" style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <PickCalendarIcon />
+                          <input type="date" value={googleDurationStart} onChange={e => setGoogleDurationStart(e.target.value)}
+                            className="full-picker flex-1 outline-none bg-transparent"
+                            style={{ fontSize: 13, color: googleDurationStart ? 'var(--s-text-primary)' : 'var(--s-text-muted)', minWidth: 0 }} />
+                        </div>
+                        {googleIncludeTimes && (
+                          <div style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6, width: 110 }}>
+                            <input type="time" value={googleEventStartTime} onChange={e => setGoogleEventStartTime(e.target.value)}
+                              className="outline-none bg-transparent"
+                              style={{ fontSize: 13, color: googleEventStartTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', width: '100%' }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* End date row */}
+                      <div className="flex items-center gap-[12px]">
+                        <label className="font-normal text-[13px] shrink-0 w-[36px]" style={{ color: 'var(--s-text-secondary)' }}>End</label>
+                        <div className="relative flex-1" style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <PickCalendarIcon />
+                          <input type="date" value={googleDurationEnd} onChange={e => setGoogleDurationEnd(e.target.value)}
+                            className="full-picker flex-1 outline-none bg-transparent"
+                            style={{ fontSize: 13, color: googleDurationEnd ? 'var(--s-text-primary)' : 'var(--s-text-muted)', minWidth: 0 }} />
+                        </div>
+                        {googleIncludeTimes && (
+                          <div style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6, width: 110 }}>
+                            <input type="time" value={googleEventEndTime} onChange={e => setGoogleEventEndTime(e.target.value)}
+                              className="outline-none bg-transparent"
+                              style={{ fontSize: 13, color: googleEventEndTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', width: '100%' }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Include start/end times toggle */}
+                      <div className="flex items-center gap-[10px]">
+                        <label className="font-normal text-[13px]" style={{ color: 'var(--s-text-secondary)' }}>Include start/end times</label>
+                        <button
+                          type="button"
+                          onClick={() => setGoogleIncludeTimes(v => !v)}
+                          className="relative shrink-0 transition-colors"
+                          style={{ width: 36, height: 20, borderRadius: 10, backgroundColor: googleIncludeTimes ? 'var(--s-blue)' : '#c4c4c4' }}
+                        >
+                          <span className="absolute top-[2px] transition-transform"
+                            style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', display: 'block', transform: googleIncludeTimes ? 'translateX(18px)' : 'translateX(2px)' }} />
+                        </button>
+                      </div>
+
+                      {/* Button Type (optional) */}
                       <div className="flex flex-col gap-[6px]">
-                        <label className="font-normal text-[13px] tracking-[-0.26px]" style={{ color: 'var(--s-text-secondary)' }}>Event dates <span style={{ color: 'var(--s-blue)' }}>*</span></label>
-                        <div className="flex items-center gap-[8px]">
-                          <div className="relative flex-1" style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <PickCalendarIcon />
-                            <input type="date" value={googleDurationStart} onChange={e => setGoogleDurationStart(e.target.value)}
-                              className="full-picker flex-1 outline-none bg-transparent"
-                              style={{ fontSize: 13, color: googleDurationStart ? 'var(--s-text-primary)' : 'var(--s-text-muted)', minWidth: 0 }} />
-                          </div>
-                          <span className="shrink-0 text-[13px]" style={{ color: 'var(--s-text-muted)' }}>–</span>
-                          <div className="relative flex-1" style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '0 10px', height: 34, display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <PickCalendarIcon />
-                            <input type="date" value={googleDurationEnd} onChange={e => setGoogleDurationEnd(e.target.value)}
-                              className="full-picker flex-1 outline-none bg-transparent"
-                              style={{ fontSize: 13, color: googleDurationEnd ? 'var(--s-text-primary)' : 'var(--s-text-muted)', minWidth: 0 }} />
-                          </div>
+                        <label className="font-normal text-[13px] tracking-[-0.26px]" style={{ color: 'var(--s-text-secondary)' }}>Button type (optional)</label>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            className="w-full flex items-center justify-between outline-none bg-transparent"
+                            style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '8px 10px', fontSize: 14, color: 'var(--s-text-primary)' }}
+                            onClick={() => setGoogleEventButtonTypeOpen(v => !v)}
+                          >
+                            <span>{googleEventButtonType}</span>
+                            <ChevronDown size={14} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)' }} />
+                          </button>
+                          {googleEventButtonTypeOpen && (
+                            <div className="absolute left-0 right-0 top-full z-20 bg-background border border-border rounded-[6px] shadow-dropdown overflow-hidden" style={{ marginTop: 2 }}>
+                              {GOOGLE_EVENT_BUTTON_TYPES.map(type => (
+                                <button key={type} type="button"
+                                  className="w-full flex items-center gap-[8px] px-[12px] py-[8px] text-left hover:bg-muted transition-colors"
+                                  style={{ fontSize: 14, color: 'var(--s-text-primary)' }}
+                                  onClick={() => { setGoogleEventButtonType(type); setGoogleEventButtonTypeOpen(false); }}>
+                                  {googleEventButtonType === type && (
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--s-blue)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                  )}
+                                  {googleEventButtonType !== type && <span style={{ width: 12, display: 'inline-block' }} />}
+                                  {type}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="flex flex-col gap-[6px]">
-                        <label className="font-normal text-[13px] tracking-[-0.26px]" style={{ color: 'var(--s-text-secondary)' }}>Event link</label>
-                        <input type="url" value={googleLink} onChange={e => setGoogleLink(e.target.value)}
-                          className="w-full outline-none bg-transparent"
-                          style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '8px 10px', fontSize: 14, color: 'var(--s-text-primary)' }}
-                          placeholder="Enter URL" />
-                      </div>
+
+                      {/* Link for button */}
+                      {googleEventButtonType !== 'None' && (
+                        <div className="flex flex-col gap-[6px]">
+                          <label className="font-normal text-[13px] tracking-[-0.26px]" style={{ color: 'var(--s-text-secondary)' }}>Link for your button</label>
+                          <input type="url" value={googleEventButtonLink} onChange={e => setGoogleEventButtonLink(e.target.value)}
+                            className="w-full outline-none bg-transparent"
+                            style={{ border: '1px solid var(--s-border)', borderRadius: 4, padding: '8px 10px', fontSize: 14, color: 'var(--s-text-primary)' }}
+                            placeholder="https://" />
+                        </div>
+                      )}
                     </>)}
 
                   </div>
