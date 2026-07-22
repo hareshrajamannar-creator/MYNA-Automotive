@@ -1062,8 +1062,8 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
   const [googleTerms, setGoogleTerms]                 = useState('');
   const [googleSettingsExpanded, setGoogleSettingsExpanded] = useState(true);
   const [googleIncludeTimes, setGoogleIncludeTimes]   = useState(false);
-  const [googleEventStartTime, setGoogleEventStartTime] = useState('');
-  const [googleEventEndTime, setGoogleEventEndTime]   = useState('');
+  const [googleEventStartTime, setGoogleEventStartTime] = useState('09:00');
+  const [googleEventEndTime, setGoogleEventEndTime]   = useState('18:00');
   const [googleEventButtonType, setGoogleEventButtonType] = useState('None');
   const [googleEventButtonTypeOpen, setGoogleEventButtonTypeOpen] = useState(false);
   const [googleEventButtonLink, setGoogleEventButtonLink] = useState('');
@@ -1261,7 +1261,13 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
           cursor: pointer;
         }
         input[type="time"]::-webkit-calendar-picker-indicator {
-          display: none;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
         }
       `}</style>
 
@@ -1743,8 +1749,8 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
                           <div className="relative" style={{ border: '1px solid var(--s-border)', borderRadius: 4, height: 34, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', width: 150 }}>
                             <PickClockIcon />
                             <input type="time" value={googleEventStartTime} onChange={e => setGoogleEventStartTime(e.target.value)}
-                              className="outline-none bg-transparent"
-                              style={{ fontSize: 13, color: googleEventStartTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', flex: 1, minWidth: 0 }} />
+                              className="full-picker outline-none bg-transparent"
+                              style={{ fontSize: 13, color: 'var(--s-text-primary)', flex: 1, minWidth: 0 }} />
                             <ChevronDown size={12} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)', pointerEvents: 'none', flexShrink: 0 }} />
                           </div>
                         )}
@@ -1764,8 +1770,8 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
                           <div className="relative" style={{ border: '1px solid var(--s-border)', borderRadius: 4, height: 34, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', width: 150 }}>
                             <PickClockIcon />
                             <input type="time" value={googleEventEndTime} onChange={e => setGoogleEventEndTime(e.target.value)}
-                              className="outline-none bg-transparent"
-                              style={{ fontSize: 13, color: googleEventEndTime ? 'var(--s-text-primary)' : 'var(--s-text-muted)', flex: 1, minWidth: 0 }} />
+                              className="full-picker outline-none bg-transparent"
+                              style={{ fontSize: 13, color: 'var(--s-text-primary)', flex: 1, minWidth: 0 }} />
                             <ChevronDown size={12} strokeWidth={1.6} absoluteStrokeWidth style={{ color: 'var(--s-text-muted)', pointerEvents: 'none', flexShrink: 0 }} />
                           </div>
                         )}
