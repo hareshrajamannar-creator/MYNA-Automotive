@@ -943,13 +943,15 @@ function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, goog
                   )}
                 </div>
               )}
-              <p className="text-[13px] tracking-[0.5px]" style={{ color: 'var(--s-blue)' }}>
-                {googlePublishAs === 'updates'
-                  ? googleButtonType.toUpperCase()
-                  : googlePublishAs === 'events'
-                    ? (googleEventButtonType !== 'None' ? googleEventButtonType.toUpperCase() : 'REGISTER')
-                    : 'VIEW OFFER'}
-              </p>
+              {(googlePublishAs !== 'events' || googleEventButtonType !== 'None') && (
+                <p className="text-[13px] tracking-[0.5px]" style={{ color: 'var(--s-blue)' }}>
+                  {googlePublishAs === 'updates'
+                    ? googleButtonType.toUpperCase()
+                    : googlePublishAs === 'events'
+                      ? googleEventButtonType.toUpperCase()
+                      : 'VIEW OFFER'}
+                </p>
+              )}
             </div>
           </div>
         </div>
