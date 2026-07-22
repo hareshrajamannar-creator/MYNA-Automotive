@@ -862,10 +862,12 @@ function ApplePreview({ content, mediaItems, appleHeader, appleButtonType }: { c
 
 // ─── Per-platform preview sub-components ──────────────────────────────────────
 
-function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, googleDurationStart, googleDurationEnd, googleCouponCode, googleButtonType }: {
+function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, googleDurationStart, googleDurationEnd, googleCouponCode, googleButtonType, googleIncludeTimes, googleEventStartTime, googleEventEndTime, googleEventButtonType }: {
   content: string; mediaItems: MediaItem[]; googlePublishAs: GooglePublishAs;
   googleTitle: string; googleDurationStart: string; googleDurationEnd: string;
   googleCouponCode: string; googleButtonType: GoogleButtonType;
+  googleIncludeTimes: boolean; googleEventStartTime: string; googleEventEndTime: string;
+  googleEventButtonType: string;
 }) {
   const [expanded, setExpanded] = useState(true);
   const imgSrc = mediaItems.length > 0 ? mediaItems[0].url : 'https://picsum.photos/seed/google/600/340';
@@ -873,6 +875,13 @@ function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, goog
     if (!d) return '';
     const [y, m, day] = d.split('-');
     return `${day}/${m}/${y}`;
+  };
+  const formatTime = (t: string) => {
+    if (!t) return '';
+    const [h, min] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${String(min).padStart(2, '0')} ${ampm}`;
   };
 
   return (
@@ -907,12 +916,23 @@ function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, goog
                 <p className="text-foreground text-[15px] leading-[20px] mb-[4px]" >{googleTitle}</p>
               )}
               {(googlePublishAs === 'offers' || googlePublishAs === 'events') && (googleDurationStart || googleDurationEnd) && (
-                <p className="text-foreground text-[13px] leading-[18px] mb-[6px]" >
-                  {googleDurationStart ? formatDate(googleDurationStart) : '—'}{googleDurationEnd ? ` - ${formatDate(googleDurationEnd)}` : ''}
-                </p>
+                <div className="mb-[6px]">
+                  {/* Start row */}
+                  {googleDurationStart && (
+                    <p className="text-foreground text-[13px] leading-[18px]">
+                      {formatDate(googleDurationStart)}{googleIncludeTimes && googleEventStartTime ? `, ${formatTime(googleEventStartTime)}` : ''}
+                    </p>
+                  )}
+                  {/* End row */}
+                  {googleDurationEnd && (
+                    <p className="text-muted-foreground text-[12px] leading-[17px]">
+                      Ends {formatDate(googleDurationEnd)}{googleIncludeTimes && googleEventEndTime ? `, ${formatTime(googleEventEndTime)}` : ''}
+                    </p>
+                  )}
+                </div>
               )}
               <p className="text-muted-foreground text-[13px] leading-[19px] mb-[10px] line-clamp-3">
-                {content || 'Celebrate summer with our festival sale! Enjoy 15% off all purchases.'}
+                {content || 'Save big this season! Exclusive deals and limited-time offers just for you.'}
               </p>
               {googlePublishAs === 'offers' && googleCouponCode && (
                 <div className="rounded-[6px] mb-[10px] py-[12px] px-[14px] text-center" style={{ border: '1.5px dashed var(--s-border)' }}>
@@ -924,7 +944,11 @@ function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, goog
                 </div>
               )}
               <p className="text-[13px] tracking-[0.5px]" style={{ color: 'var(--s-blue)' }}>
-                {googlePublishAs === 'updates' ? googleButtonType.toUpperCase() : googlePublishAs === 'events' ? 'REGISTER' : 'VIEW OFFER'}
+                {googlePublishAs === 'updates'
+                  ? googleButtonType.toUpperCase()
+                  : googlePublishAs === 'events'
+                    ? (googleEventButtonType !== 'None' ? googleEventButtonType.toUpperCase() : 'REGISTER')
+                    : 'VIEW OFFER'}
               </p>
             </div>
           </div>
@@ -936,7 +960,8 @@ function GooglePreview({ content, mediaItems, googlePublishAs, googleTitle, goog
 
 // ─── Preview Panel ─────────────────────────────────────────────────────────────
 function PreviewPanel({ content, mediaItems, activeTab, appleHeader, appleButtonType, selectedPlatforms,
-  googlePublishAs, googleTitle, googleDurationStart, googleDurationEnd, googleCouponCode, googleButtonType }: {
+  googlePublishAs, googleTitle, googleDurationStart, googleDurationEnd, googleCouponCode, googleButtonType,
+  googleIncludeTimes, googleEventStartTime, googleEventEndTime, googleEventButtonType }: {
   content: string;
   mediaItems: MediaItem[];
   activeTab: TabKey;
@@ -949,6 +974,10 @@ function PreviewPanel({ content, mediaItems, activeTab, appleHeader, appleButton
   googleDurationEnd: string;
   googleCouponCode: string;
   googleButtonType: GoogleButtonType;
+  googleIncludeTimes: boolean;
+  googleEventStartTime: string;
+  googleEventEndTime: string;
+  googleEventButtonType: string;
 }) {
   const showAll = activeTab === 'initial';
 
@@ -980,7 +1009,7 @@ function PreviewPanel({ content, mediaItems, activeTab, appleHeader, appleButton
         {showInstagram && <InstagramPreview content={content} mediaItems={mediaItems} />}
         {showLinkedIn  && <LinkedInPreview  content={content} mediaItems={mediaItems} />}
         {showApple     && <ApplePreview     content={content} mediaItems={mediaItems} appleHeader={appleHeader} appleButtonType={appleButtonType} />}
-        {showGoogle    && <GooglePreview    content={content} mediaItems={mediaItems} googlePublishAs={googlePublishAs} googleTitle={googleTitle} googleDurationStart={googleDurationStart} googleDurationEnd={googleDurationEnd} googleCouponCode={googleCouponCode} googleButtonType={googleButtonType} />}
+        {showGoogle    && <GooglePreview    content={content} mediaItems={mediaItems} googlePublishAs={googlePublishAs} googleTitle={googleTitle} googleDurationStart={googleDurationStart} googleDurationEnd={googleDurationEnd} googleCouponCode={googleCouponCode} googleButtonType={googleButtonType} googleIncludeTimes={googleIncludeTimes} googleEventStartTime={googleEventStartTime} googleEventEndTime={googleEventEndTime} googleEventButtonType={googleEventButtonType} />}
         {!showFacebook && !showInstagram && !showLinkedIn && !showApple && !showGoogle && (
           <p className="text-[13px] text-muted-foreground text-center mt-[20px]">No preview available for this tab.</p>
         )}
@@ -1355,7 +1384,13 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
                     }}
                     value={postContent}
                     onChange={e => setPostContent(e.target.value)}
-                    placeholder="Write your post content..."
+                    placeholder={
+                      activeTab === 'google' && googlePublishAs === 'events'
+                        ? 'Describe your event — what to expect, who should attend, and why it\'s not to be missed...'
+                        : activeTab === 'google' && googlePublishAs === 'offers'
+                          ? 'Describe your offer — what\'s included, how to redeem, and what makes it special...'
+                          : 'Write your post content...'
+                    }
                   />
 
                   {/* Bottom toolbar */}
@@ -1917,7 +1952,7 @@ export function CreatePostView({ onBack, onPublish }: CreatePostViewProps) {
 
         {/* ── Right Preview Panel ── */}
         <div className="flex flex-col overflow-hidden" style={{ flex: '0 0 38%', backgroundColor: 'var(--s-bg-muted)', borderLeft: '1px solid var(--s-border)' }}>
-          <PreviewPanel content={postContent} mediaItems={mediaItems} activeTab={activeTab} appleHeader={appleHeader} appleButtonType={appleButtonType} selectedPlatforms={selectedPlatforms} googlePublishAs={googlePublishAs} googleTitle={googleTitle} googleDurationStart={googleDurationStart} googleDurationEnd={googleDurationEnd} googleCouponCode={googleCouponCode} googleButtonType={googleButtonType} />
+          <PreviewPanel content={postContent} mediaItems={mediaItems} activeTab={activeTab} appleHeader={appleHeader} appleButtonType={appleButtonType} selectedPlatforms={selectedPlatforms} googlePublishAs={googlePublishAs} googleTitle={googleTitle} googleDurationStart={googleDurationStart} googleDurationEnd={googleDurationEnd} googleCouponCode={googleCouponCode} googleButtonType={googleButtonType} googleIncludeTimes={googleIncludeTimes} googleEventStartTime={googleEventStartTime} googleEventEndTime={googleEventEndTime} googleEventButtonType={googleEventButtonType} />
         </div>
       </div>
 
